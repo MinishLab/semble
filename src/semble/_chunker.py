@@ -1,7 +1,8 @@
-"""Code chunking with tree-sitter AST parsing and line-based fallback."""
+"""Code chunking with AST parsing and line-based fallback."""
 
 from __future__ import annotations
 
+import ast
 import hashlib
 from pathlib import Path
 from typing import Any
@@ -78,6 +79,126 @@ def _get_symbol_name(node: Any, source_bytes: bytes) -> str | None:
         if child.type in ("identifier", "name", "type_identifier", "property_identifier"):
             return source_bytes[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
     return None
+
+
+_MAX_CHUNK_LINES = 60
+_CHUNK_OVERLAP_LINES = 5
+
+
+def chunk_with_ast(source: str, file_path: str) -> list[Chunk]:
+    """Chunk Python source using the built-in ast module.
+
+    Extracts top-level and class-level function/class definitions as individual
+    chunks with proper symbol names. Symbols larger than _MAX_CHUNK_LINES are
+    split into overlapping line-windows; the first window keeps the symbol name
+    so symbol search still finds the definition. Falls back to line-based if
+    parsing fails.
+    """
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return chunk_by_lines(source, file_path, "python")
+
+    lines = source.splitlines(keepends=True)
+    chunks: list[Chunk] = []
+    covered_lines: set[int] = set()
+
+    _AST_KIND: dict[type, SymbolKind] = {
+        ast.FunctionDef: SymbolKind.FUNCTION,
+        ast.AsyncFunctionDef: SymbolKind.FUNCTION,
+        ast.ClassDef: SymbolKind.CLASS,
+    }
+
+    def _add(node: ast.stmt, kind: SymbolKind) -> None:
+        start = node.lineno - 1  # 0-based
+        end = node.end_lineno or start
+        n_lines = end - start
+        name: str = node.name  # type: ignore[attr-defined]
+
+        if n_lines <= _MAX_CHUNK_LINES:
+            content = "".join(lines[start:end])
+            if content.strip():
+                chunks.append(
+                    Chunk(
+                        content=content,
+                        file_path=file_path,
+                        start_line=start + 1,
+                        end_line=end,
+                        symbol_name=name,
+                        symbol_kind=kind,
+                        language="python",
+                        content_hash=_content_hash(content),
+                    )
+                )
+                covered_lines.update(range(start, end))
+        else:
+            # Sub-chunk with overlap; first window keeps the symbol name
+            first = True
+            win_start = start
+            while win_start < end:
+                win_end = min(win_start + _MAX_CHUNK_LINES, end)
+                content = "".join(lines[win_start:win_end])
+                if content.strip():
+                    chunks.append(
+                        Chunk(
+                            content=content,
+                            file_path=file_path,
+                            start_line=win_start + 1,
+                            end_line=win_end,
+                            symbol_name=name if first else None,
+                            symbol_kind=kind if first else SymbolKind.CHUNK,
+                            language="python",
+                            content_hash=_content_hash(content),
+                        )
+                    )
+                    covered_lines.update(range(win_start, win_end))
+                    first = False
+                if win_end >= end:
+                    break
+                win_start = win_end - _CHUNK_OVERLAP_LINES
+
+    # Only iterate module-level and class-level directly — no recursive walk
+    for node in tree.body:
+        kind = _AST_KIND.get(type(node))
+        if kind is not None:
+            _add(node, kind)
+        if isinstance(node, ast.ClassDef):
+            for child in node.body:
+                child_kind = _AST_KIND.get(type(child))
+                if child_kind is not None:
+                    _add(child, child_kind)
+
+    # Capture gap lines (imports, module-level assignments, etc.)
+    gap_lines = sorted(set(range(len(lines))) - covered_lines)
+    if gap_lines:
+        groups: list[list[int]] = []
+        current_group = [gap_lines[0]]
+        for line_num in gap_lines[1:]:
+            if line_num == current_group[-1] + 1:
+                current_group.append(line_num)
+            else:
+                groups.append(current_group)
+                current_group = [line_num]
+        groups.append(current_group)
+
+        for group in groups:
+            content = "".join(lines[group[0] : group[-1] + 1])
+            if content.strip() and len(content.strip()) > 20:
+                chunks.append(
+                    Chunk(
+                        content=content,
+                        file_path=file_path,
+                        start_line=group[0] + 1,
+                        end_line=group[-1] + 1,
+                        symbol_name=None,
+                        symbol_kind=SymbolKind.CHUNK,
+                        language="python",
+                        content_hash=_content_hash(content),
+                    )
+                )
+
+    chunks.sort(key=lambda c: c.start_line)
+    return chunks if chunks else chunk_by_lines(source, file_path, "python")
 
 
 def chunk_with_treesitter(source: str, file_path: str, language: str) -> list[Chunk]:
@@ -223,6 +344,9 @@ def chunk_file(file_path: Path) -> list[Chunk]:
 
     if not source.strip():
         return []
+
+    if language == "python":
+        return chunk_with_ast(source, str(file_path))
 
     if language in _TS_SYMBOL_NODES:
         return chunk_with_treesitter(source, str(file_path), language)
