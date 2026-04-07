@@ -332,8 +332,91 @@ def chunk_by_lines(
     return chunks
 
 
-def chunk_file(file_path: Path) -> list[Chunk]:
-    """Chunk a single file, choosing the best available strategy."""
+def chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
+    """Chunk source code using Chonkie's CodeChunker (requires chonkie[code]).
+
+    Falls back to the AST / line-based strategy if chonkie is not installed or
+    the language is unsupported. Does not set symbol_name (chonkie doesn't
+    expose that information), so symbol search will return no results for
+    files chunked this way.
+    """
+    try:
+        import chonkie as _chonkie
+
+        CodeChunker = _chonkie.CodeChunker  # type: ignore[attr-defined]
+    except (ImportError, AttributeError):
+        return (
+            chunk_with_ast(source, file_path)
+            if language == "python"
+            else chunk_by_lines(source, file_path, language)
+        )
+
+    try:
+        cc = CodeChunker(language=language, chunk_size=1500)
+        raw = cc.chunk(source)
+    except Exception:
+        return (
+            chunk_with_ast(source, file_path)
+            if language == "python"
+            else chunk_by_lines(source, file_path, language)
+        )
+
+    if not raw:
+        return chunk_by_lines(source, file_path, language)
+
+    # Convert character offsets to line numbers
+    line_starts = [0]
+    for ch in source:
+        if ch == "\n":
+            line_starts.append(line_starts[-1] + 1)
+        else:
+            line_starts[-1] += 1
+    # Rebuild as cumulative character positions per line
+    cum: list[int] = [0]
+    for line in source.splitlines(keepends=True):
+        cum.append(cum[-1] + len(line))
+
+    def _char_to_line(offset: int) -> int:
+        # Binary search for the line containing this character offset
+        lo, hi = 0, len(cum) - 1
+        while lo < hi:
+            mid = (lo + hi + 1) // 2
+            if cum[mid] <= offset:
+                lo = mid
+            else:
+                hi = mid - 1
+        return lo + 1  # 1-based
+
+    chunks: list[Chunk] = []
+    for c in raw:
+        text = c.text
+        if not text.strip():
+            continue
+        start_line = _char_to_line(c.start_index)
+        end_line = _char_to_line(max(c.end_index - 1, c.start_index))
+        chunks.append(
+            Chunk(
+                content=text,
+                file_path=file_path,
+                start_line=start_line,
+                end_line=end_line,
+                symbol_name=None,
+                symbol_kind=SymbolKind.CHUNK,
+                language=language,
+                content_hash=_content_hash(text),
+            )
+        )
+    return chunks if chunks else chunk_by_lines(source, file_path, language)
+
+
+def chunk_file(file_path: Path, use_chonkie: bool = False) -> list[Chunk]:
+    """Chunk a single file, choosing the best available strategy.
+
+    :param file_path: Path to the source file.
+    :param use_chonkie: If True, use Chonkie CodeChunker instead of the
+        built-in AST / tree-sitter strategy (requires ``chonkie[code]``).
+    :returns: List of chunks extracted from the file.
+    """
     suffix = file_path.suffix.lower()
     language = EXTENSION_MAP.get(suffix)
 
@@ -344,6 +427,9 @@ def chunk_file(file_path: Path) -> list[Chunk]:
 
     if not source.strip():
         return []
+
+    if use_chonkie and language:
+        return chunk_with_chonkie(source, str(file_path), language)
 
     if language == "python":
         return chunk_with_ast(source, str(file_path))

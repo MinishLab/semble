@@ -36,6 +36,7 @@ treesitter = [
 ]
 mcp = ["mcp>=1.0.0"]
 benchmark = [
+    "chonkie[code]>=1.6.2",
     "einops>=0.8.0",
     "sentence-transformers>=3.0",
 ]
@@ -78,6 +79,10 @@ module = "tests.*"
 disallow_untyped_defs = false
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = "chonkie.*"
+ignore_missing_imports = true
 
 [tool.pydoclint]
 style = "sphinx"

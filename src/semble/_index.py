@@ -124,6 +124,7 @@ class SembleIndex:
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
+        use_chonkie: bool = False,
     ) -> IndexStats:
         """Index all code files under the given directory.
 
@@ -131,6 +132,7 @@ class SembleIndex:
         :param extensions: File extensions to include. Defaults to code-only.
         :param ignore: Directory/file names to skip. Defaults to common VCS/build dirs.
         :param include_docs: If True, also index docs (md, yaml, toml, json).
+        :param use_chonkie: If True, use Chonkie CodeChunker (requires chonkie[code]).
         :returns: Statistics about the indexed content.
         """
         path = Path(path).resolve()
@@ -145,7 +147,7 @@ class SembleIndex:
         lang_counts: dict[str, int] = {}
 
         for fp in files:
-            file_chunks = chunk_file(fp)
+            file_chunks = chunk_file(fp, use_chonkie=use_chonkie)
             all_chunks.extend(file_chunks)
             for c in file_chunks:
                 if c.language:
