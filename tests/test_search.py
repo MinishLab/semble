@@ -10,7 +10,7 @@ from semble._search import (
     SemanticIndex,
     dedup_results,
     search_bm25,
-    search_hybrid,
+    search_hybrid_alpha,
     search_semantic,
     search_symbol,
 )
@@ -168,14 +168,16 @@ def test_symbol_one_result_per_file(tmp_path) -> None:
 def test_hybrid_returns_results(
     chunks, embeddings, semantic, bm25, hash_to_chunk, mock_model
 ) -> None:
-    results = search_hybrid(
+    results = search_hybrid_alpha(
         "authenticate token", mock_model, semantic, bm25, chunks, hash_to_chunk, top_k=3
     )
     assert len(results) > 0
 
 
 def test_hybrid_source_label(chunks, embeddings, semantic, bm25, hash_to_chunk, mock_model) -> None:
-    results = search_hybrid("login", mock_model, semantic, bm25, chunks, hash_to_chunk, top_k=4)
+    results = search_hybrid_alpha(
+        "login", mock_model, semantic, bm25, chunks, hash_to_chunk, top_k=4
+    )
     assert all(r.source == "hybrid" for r in results)
 
 

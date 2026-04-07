@@ -162,7 +162,7 @@ def search_symbol(
     return results[:top_k]
 
 
-def search_hybrid(
+def search_hybrid_rrf(
     query: str,
     model: StaticModel,
     semantic_index: SemanticIndex,
@@ -217,7 +217,74 @@ def search_hybrid(
             rrf[key] += len(overlap) * _PATH_BOOST
 
     ranked = sorted(rrf, key=lambda k: -rrf[k])[:top_k]
-    return [SearchResult(chunk=cmap[k], score=rrf[k], source="hybrid") for k in ranked]
+    return [SearchResult(chunk=cmap[k], score=rrf[k], source="hybrid_rrf") for k in ranked]
+
+
+def _normalize(scores: dict[str, float]) -> dict[str, float]:
+    """Min-max normalize a score dict to [0, 1]."""
+    if not scores:
+        return scores
+    vals = np.array(list(scores.values()), dtype=np.float32)
+    mn, mx = float(vals.min()), float(vals.max())
+    denom = mx - mn if mx - mn > 1e-9 else 1e-9
+    return {k: float((v - mn) / denom) for k, v in scores.items()}
+
+
+def search_hybrid_alpha(
+    query: str,
+    model: StaticModel,
+    semantic_index: SemanticIndex,
+    bm25_index: BM25Index,
+    chunks: list[Chunk],
+    hash_to_chunk: dict[str, Chunk],
+    top_k: int,
+    alpha: float = 0.7,
+) -> list[SearchResult]:
+    """Hybrid search using alpha-weighted linear combination of normalized scores.
+
+    :param query: Search query string.
+    :param model: Embedding model for semantic search.
+    :param semantic_index: Pre-built semantic (vector) index.
+    :param bm25_index: Pre-built BM25 index.
+    :param chunks: All indexed chunks (parallel to BM25 index).
+    :param hash_to_chunk: Mapping from content hash to chunk.
+    :param top_k: Number of results to return.
+    :param alpha: Weight for the semantic score (1-alpha goes to BM25).
+        Higher alpha = more semantic, lower = more keyword. Default 0.7.
+    :returns: List of search results sorted by combined score descending.
+    """
+    n = top_k * 3
+
+    # Semantic scores: vicinity returns (hash, cosine_distance); convert to similarity
+    qe = model.encode([query])[0]
+    hits = semantic_index.query(qe, n)
+    sem_raw: dict[str, float] = {}
+    cmap: dict[str, Chunk] = {}
+    for content_hash, distance in hits:
+        chunk = hash_to_chunk.get(content_hash)
+        if chunk is not None:
+            sem_raw[content_hash] = 1.0 - float(distance)
+            cmap[content_hash] = chunk
+
+    # BM25 scores (subword tokenizer for better recall)
+    bm25_scores = bm25_index.scores_subword(query)
+    bm25_raw: dict[str, float] = {}
+    for idx in np.argsort(-bm25_scores)[:n]:
+        if bm25_scores[idx] > 0:
+            key = chunks[idx].content_hash
+            bm25_raw[key] = float(bm25_scores[idx])
+            cmap[key] = chunks[idx]
+
+    # Normalize each set independently, then combine
+    sem_norm = _normalize(sem_raw)
+    bm25_norm = _normalize(bm25_raw)
+
+    combined: dict[str, float] = {}
+    for key in set(sem_norm) | set(bm25_norm):
+        combined[key] = alpha * sem_norm.get(key, 0.0) + (1.0 - alpha) * bm25_norm.get(key, 0.0)
+
+    ranked = sorted(combined, key=lambda k: -combined[k])[:top_k]
+    return [SearchResult(chunk=cmap[k], score=combined[k], source="hybrid") for k in ranked]
 
 
 def dedup_results(
