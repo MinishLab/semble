@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import time
 from collections.abc import Generator
 from pathlib import Path
@@ -107,6 +108,7 @@ class SembleIndex:
         self._bm25_index: BM25Index | None = None
         self._semantic_index: SemanticIndex | None = None
         self._hash_to_chunk: dict[str, Chunk] = {}
+        self._file_lines: dict[str, list[str]] = {}
         self._stats = IndexStats()
 
     @property
@@ -124,7 +126,6 @@ class SembleIndex:
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
-        use_chonkie: bool = False,
     ) -> IndexStats:
         """Index all code files under the given directory.
 
@@ -132,7 +133,6 @@ class SembleIndex:
         :param extensions: File extensions to include. Defaults to code-only.
         :param ignore: Directory/file names to skip. Defaults to common VCS/build dirs.
         :param include_docs: If True, also index docs (md, yaml, toml, json).
-        :param use_chonkie: If True, use Chonkie CodeChunker (requires chonkie[code]).
         :returns: Statistics about the indexed content.
         """
         path = Path(path).resolve()
@@ -146,14 +146,20 @@ class SembleIndex:
         all_chunks: list[Chunk] = []
         lang_counts: dict[str, int] = {}
 
+        self._file_lines = {}
         for fp in files:
-            file_chunks = chunk_file(fp, use_chonkie=use_chonkie)
+            file_chunks = chunk_file(fp)
             all_chunks.extend(file_chunks)
             for c in file_chunks:
                 if c.language:
                     lang_counts[c.language] = lang_counts.get(c.language, 0) + 1
+            fp_str = str(fp)
+            with contextlib.suppress(OSError):
+                self._file_lines[fp_str] = fp.read_text(
+                    encoding="utf-8", errors="replace"
+                ).splitlines()
             if fp.suffix == ".py":
-                self._docstrings[str(fp)] = _extract_python_docstrings(fp)
+                self._docstrings[fp_str] = _extract_python_docstrings(fp)
 
         t_emb = time.perf_counter()
         embeddings = self._embed_chunks(all_chunks)
@@ -225,7 +231,7 @@ class SembleIndex:
                 return []
             results = search_bm25(query, self._bm25_index, self._chunks, top_k * 2)
         elif mode == "symbol":
-            results = search_symbol(query, self._chunks, top_k)
+            results = search_symbol(query, self._file_lines, top_k)
         elif mode == "hybrid":
             if self._semantic_index is None or self._bm25_index is None:
                 return []

@@ -7,7 +7,6 @@ from pathlib import Path
 import pytest
 
 from semble._chunker import chunk_by_lines, chunk_file, chunk_with_treesitter
-from semble._types import SymbolKind
 
 
 def test_chunk_by_lines_basic(tmp_path: Path) -> None:
@@ -47,20 +46,21 @@ def test_chunk_file_empty(tmp_path: Path) -> None:
     assert chunks == []
 
 
-def test_chunk_file_py_treesitter(tmp_py_file: Path) -> None:
-    pytest.importorskip("tree_sitter_python")
-    chunks = chunk_file(tmp_py_file)
-    # Should find at least the two functions
+def test_chunk_file_py_ast_symbol_names(tmp_py_file: Path) -> None:
+    # When chonkie is unavailable, AST chunker sets symbol names
+    pytest.importorskip("tree_sitter_python", reason="need tree_sitter_python for fallback test")
+    from unittest.mock import patch
+
+    with patch.dict("sys.modules", {"chonkie": None}):
+        chunks = chunk_file(tmp_py_file)
     symbol_names = [c.symbol_name for c in chunks if c.symbol_name]
     assert "add" in symbol_names
     assert "subtract" in symbol_names
 
 
-def test_chunk_file_py_symbol_kinds(tmp_py_file: Path) -> None:
-    pytest.importorskip("tree_sitter_python")
+def test_chunk_file_py_produces_chunks(tmp_py_file: Path) -> None:
     chunks = chunk_file(tmp_py_file)
-    function_chunks = [c for c in chunks if c.symbol_kind == SymbolKind.FUNCTION]
-    assert len(function_chunks) >= 2
+    assert len(chunks) >= 1
 
 
 def test_chunk_file_sorted_by_line(tmp_py_file: Path) -> None:

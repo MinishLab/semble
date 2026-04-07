@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -12,7 +14,7 @@ import numpy.typing as npt
 from vicinity import Metric, Vicinity
 
 from semble._tokenizer import QUERY_STOPS, tokenize_simple, tokenize_subword
-from semble._types import Chunk, SearchResult
+from semble._types import Chunk, SearchResult, SymbolKind
 
 if TYPE_CHECKING:
     from model2vec import StaticModel
@@ -95,20 +97,67 @@ def search_bm25(
     ]
 
 
+_DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |pub async fn )")
+_CONTEXT_LINES = 3
+# Tokens that are too generic to be useful as symbol search terms
+_SYMBOL_STOPS = QUERY_STOPS | frozenset({"get", "set", "run", "main", "test", "new", "init"})
+
+
 def search_symbol(
     query: str,
-    chunks: list[Chunk],
+    file_lines: dict[str, list[str]],
     top_k: int,
 ) -> list[SearchResult]:
-    qt = set(tokenize_subword(query)) - QUERY_STOPS
-    results = []
-    for chunk in chunks:
-        if chunk.symbol_name:
-            st = set(tokenize_subword(chunk.symbol_name)) - QUERY_STOPS
-            overlap = qt & st
-            if overlap:
-                score = len(overlap) / max(len(qt), 1)
-                results.append(SearchResult(chunk=chunk, score=score, source="symbol"))
+    """Search for symbols using regex word-boundary matching over cached file lines.
+
+    Extracts identifier-like tokens from the query (subword-aware), then
+    searches for any of them in each file. Definition lines score higher than
+    plain usages. Returns at most one result per file.
+    """
+    # Extract identifier tokens from the query (handles camelCase and plain words)
+    raw_tokens = set(tokenize_subword(query)) - _SYMBOL_STOPS
+    # Keep only tokens that look like identifiers (2+ chars, not pure stop words)
+    tokens = [t for t in raw_tokens if len(t) >= 2]
+    if not tokens:
+        return []
+
+    # Build per-token patterns; skip tokens that fail to compile (shouldn't happen)
+    patterns = []
+    for tok in tokens:
+        with contextlib.suppress(re.error):
+            patterns.append(re.compile(r"\b" + re.escape(tok) + r"\b", re.IGNORECASE))
+    if not patterns:
+        return []
+
+    best: dict[str, tuple[float, SearchResult]] = {}
+
+    for file_path, lines in file_lines.items():
+        for lineno, line in enumerate(lines):
+            # Count how many query tokens appear on this line
+            matches = sum(1 for p in patterns if p.search(line))
+            if matches == 0:
+                continue
+            is_def = bool(_DEF_RE.match(line))
+            # Score: fraction of tokens matched, boosted for definition lines
+            score = (matches / len(patterns)) * (1.5 if is_def else 1.0)
+            if file_path in best and best[file_path][0] >= score:
+                continue
+            start = max(0, lineno - _CONTEXT_LINES)
+            end = min(len(lines), lineno + _CONTEXT_LINES + 1)
+            content = "\n".join(lines[start:end])
+            chunk = Chunk(
+                content=content,
+                file_path=file_path,
+                start_line=start + 1,
+                end_line=end,
+                symbol_name=query if is_def else None,
+                symbol_kind=SymbolKind.FUNCTION if is_def else SymbolKind.CHUNK,
+                language=None,
+                content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
+            )
+            best[file_path] = (score, SearchResult(chunk=chunk, score=score, source="symbol"))
+
+    results = [sr for _, sr in best.values()]
     results.sort(key=lambda r: -r.score)
     return results[:top_k]
 

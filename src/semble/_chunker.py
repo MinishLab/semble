@@ -335,10 +335,8 @@ def chunk_by_lines(
 def chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
     """Chunk source code using Chonkie's CodeChunker (requires chonkie[code]).
 
-    Falls back to the AST / line-based strategy if chonkie is not installed or
-    the language is unsupported. Does not set symbol_name (chonkie doesn't
-    expose that information), so symbol search will return no results for
-    files chunked this way.
+    Falls back to AST (Python) or line-based if chonkie is not installed or
+    the language is unsupported.
     """
     try:
         import chonkie as _chonkie
@@ -409,12 +407,13 @@ def chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk
     return chunks if chunks else chunk_by_lines(source, file_path, language)
 
 
-def chunk_file(file_path: Path, use_chonkie: bool = False) -> list[Chunk]:
+def chunk_file(file_path: Path) -> list[Chunk]:
     """Chunk a single file, choosing the best available strategy.
 
+    Uses Chonkie CodeChunker when available (best quality), falling back to
+    the built-in AST chunker (Python) or tree-sitter / line-based otherwise.
+
     :param file_path: Path to the source file.
-    :param use_chonkie: If True, use Chonkie CodeChunker instead of the
-        built-in AST / tree-sitter strategy (requires ``chonkie[code]``).
     :returns: List of chunks extracted from the file.
     """
     suffix = file_path.suffix.lower()
@@ -428,13 +427,7 @@ def chunk_file(file_path: Path, use_chonkie: bool = False) -> list[Chunk]:
     if not source.strip():
         return []
 
-    if use_chonkie and language:
+    if language:
         return chunk_with_chonkie(source, str(file_path), language)
-
-    if language == "python":
-        return chunk_with_ast(source, str(file_path))
-
-    if language in _TS_SYMBOL_NODES:
-        return chunk_with_treesitter(source, str(file_path), language)
 
     return chunk_by_lines(source, str(file_path), language)

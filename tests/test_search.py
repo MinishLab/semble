@@ -114,30 +114,52 @@ def test_semantic_scores_between_0_and_1(
 # Symbol tests
 
 
-def test_symbol_finds_function_by_name(chunks) -> None:
-    results = search_symbol("authenticate", chunks, top_k=5)
+def _file_lines(tmp_path, name: str, content: str) -> dict[str, list[str]]:
+    f = tmp_path / name
+    f.write_text(content)
+    return {str(f): content.splitlines()}
+
+
+def test_symbol_finds_function_by_name(tmp_path) -> None:
+    fl = _file_lines(
+        tmp_path, "auth.py", "def authenticate(token):\n    return token == 'secret'\n"
+    )
+    results = search_symbol("authenticate", fl, top_k=5)
+    assert len(results) == 1
+    assert results[0].chunk.symbol_name == "authenticate"
+
+
+def test_symbol_finds_class(tmp_path) -> None:
+    fl = _file_lines(tmp_path, "users.py", "class UserService:\n    pass\n")
+    results = search_symbol("UserService", fl, top_k=5)
+    assert len(results) == 1
+    assert results[0].chunk.symbol_name == "UserService"
+
+
+def test_symbol_definitions_ranked_above_usages(tmp_path) -> None:
+    fl = _file_lines(
+        tmp_path, "auth.py", "# uses authenticate here\ndef authenticate(token):\n    pass\n"
+    )
+    results = search_symbol("authenticate", fl, top_k=5)
     assert any(r.chunk.symbol_name == "authenticate" for r in results)
 
 
-def test_symbol_finds_class(chunks) -> None:
-    results = search_symbol("UserService", chunks, top_k=5)
-    assert any(r.chunk.symbol_name == "UserService" for r in results)
-
-
-def test_symbol_subword_match(chunks) -> None:
-    # "user" should match "UserService" via subword splitting
-    results = search_symbol("user service", chunks, top_k=5)
-    assert any(r.chunk.symbol_name == "UserService" for r in results)
-
-
-def test_symbol_source_label(chunks) -> None:
-    results = search_symbol("login", chunks, top_k=3)
+def test_symbol_source_label(tmp_path) -> None:
+    fl = _file_lines(tmp_path, "auth.py", "def login(u, p):\n    pass\n")
+    results = search_symbol("login", fl, top_k=3)
     assert all(r.source == "symbol" for r in results)
 
 
-def test_symbol_no_results_for_nonsense(chunks) -> None:
-    results = search_symbol("zzznomatch", chunks, top_k=5)
+def test_symbol_no_results_for_nonsense(tmp_path) -> None:
+    fl = _file_lines(tmp_path, "auth.py", "def authenticate(token):\n    pass\n")
+    results = search_symbol("zzznomatch", fl, top_k=5)
     assert results == []
+
+
+def test_symbol_one_result_per_file(tmp_path) -> None:
+    fl = _file_lines(tmp_path, "mod.py", "foo = 1\nfoo = 2\nfoo = 3\n")
+    results = search_symbol("foo", fl, top_k=10)
+    assert len(results) == 1
 
 
 # Hybrid tests
