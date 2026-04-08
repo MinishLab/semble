@@ -5,7 +5,7 @@ from pathlib import Path
 
 from chonkie.chunker import CodeChunker
 
-from semble.types import Chunk, SymbolKind
+from semble.types import Chunk
 
 EXTENSION_MAP: dict[str, str] = {
     ".py": "python",
@@ -69,8 +69,6 @@ def chunk_by_lines(
                     file_path=file_path,
                     start_line=start + 1,
                     end_line=end,
-                    symbol_name=None,
-                    symbol_kind=SymbolKind.CHUNK,
                     language=language,
                     content_hash=_content_hash(content),
                 )
@@ -80,16 +78,36 @@ def chunk_by_lines(
     return chunks
 
 
-def chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
-    """Chunk source code using Chonkie's CodeChunker.
-
-    Falls back to line-based chunking if the language grammar is unsupported.
+def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
+    """Chunk pre-read source text using Chonkie with line-based fallback.
 
     :param source: Source text to chunk.
     :param file_path: Path of the source file (for metadata).
-    :param language: Language identifier passed to CodeChunker.
-    :returns: List of structural chunks, or line-based chunks on failure.
+    :param language: Language identifier, or None to use line-based chunking.
+    :returns: List of chunks.
     """
+    if not source.strip():
+        return []
+    if language:
+        return _chunk_with_chonkie(source, file_path, language)
+    return chunk_by_lines(source, file_path, language)
+
+
+def chunk_file(file_path: Path) -> list[Chunk]:
+    """Chunk a single file, reading it from disk.
+
+    :param file_path: Path to the source file.
+    :returns: List of chunks extracted from the file.
+    """
+    try:
+        source = file_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    language = EXTENSION_MAP.get(file_path.suffix.lower())
+    return chunk_source(source, str(file_path), language)
+
+
+def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
     try:
         cc = CodeChunker(language=language, chunk_size=1500)
         raw = cc.chunk(source)
@@ -119,39 +137,14 @@ def chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk
         text = c.text
         if not text.strip():
             continue
-        start_line = _char_to_line(c.start_index)
-        end_line = _char_to_line(max(c.end_index - 1, c.start_index))
         chunks.append(
             Chunk(
                 content=text,
                 file_path=file_path,
-                start_line=start_line,
-                end_line=end_line,
-                symbol_name=None,
-                symbol_kind=SymbolKind.CHUNK,
+                start_line=_char_to_line(c.start_index),
+                end_line=_char_to_line(max(c.end_index - 1, c.start_index)),
                 language=language,
                 content_hash=_content_hash(text),
             )
         )
     return chunks if chunks else chunk_by_lines(source, file_path, language)
-
-
-def chunk_file(file_path: Path) -> list[Chunk]:
-    """Chunk a single file using Chonkie CodeChunker with line-based fallback.
-
-    :param file_path: Path to the source file.
-    :returns: List of chunks extracted from the file.
-    """
-    try:
-        source = file_path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return []
-
-    if not source.strip():
-        return []
-
-    language = EXTENSION_MAP.get(file_path.suffix.lower())
-    if language:
-        return chunk_with_chonkie(source, str(file_path), language)
-
-    return chunk_by_lines(source, str(file_path), language)

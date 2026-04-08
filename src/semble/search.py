@@ -10,7 +10,7 @@ import numpy.typing as npt
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble.types import Chunk, SearchResult, SymbolKind
+from semble.types import Chunk, SearchResult
 
 # Stop words filtered out during symbol search
 _SYMBOL_STOPS: frozenset[str] = frozenset(
@@ -216,8 +216,6 @@ def search_symbol(
                 file_path=file_path,
                 start_line=start + 1,
                 end_line=end,
-                symbol_name=query if is_def else None,
-                symbol_kind=SymbolKind.FUNCTION if is_def else SymbolKind.CHUNK,
                 language=None,
                 content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
             )

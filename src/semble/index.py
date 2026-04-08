@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import time
-from collections.abc import Generator
+from collections.abc import Iterator
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 from model2vec import StaticModel
 
-from semble.chunker import EXTENSION_MAP, chunk_file
+from semble.chunker import EXTENSION_MAP, chunk_source
 from semble.search import (
     BM25Index,
     SemanticIndex,
@@ -18,7 +19,7 @@ from semble.search import (
     search_semantic,
     search_symbol,
 )
-from semble.types import Chunk, IndexStats, SearchResult, SymbolKind
+from semble.types import Chunk, IndexStats, SearchResult
 
 _DOC_EXTENSIONS: frozenset[str] = frozenset({".md", ".yaml", ".yml", ".toml", ".json"})
 ALL_EXTENSIONS: frozenset[str] = frozenset(EXTENSION_MAP)
@@ -71,8 +72,6 @@ class SembleIndex:
     def model(self) -> StaticModel:
         """Lazily load the embedding model."""
         if self._model is None:
-            from model2vec import StaticModel
-
             self._model = StaticModel.from_pretrained(self._model_name)
         return self._model
 
@@ -97,23 +96,21 @@ class SembleIndex:
             extensions = ALL_EXTENSIONS if include_docs else CODE_EXTENSIONS
 
         t_start = time.perf_counter()
-        files = list(self._walk_files(path, extensions, ignore))
 
         all_chunks: list[Chunk] = []
         lang_counts: dict[str, int] = {}
-
         self._file_lines = {}
-        for fp in files:
-            file_chunks = chunk_file(fp)
-            all_chunks.extend(file_chunks)
-            for c in file_chunks:
-                if c.language:
-                    lang_counts[c.language] = lang_counts.get(c.language, 0) + 1
-            fp_str = str(fp)
+
+        for fp in self._walk_files(path, extensions, ignore):
+            language = EXTENSION_MAP.get(fp.suffix.lower())
             with contextlib.suppress(OSError):
-                self._file_lines[fp_str] = fp.read_text(
-                    encoding="utf-8", errors="replace"
-                ).splitlines()
+                source = fp.read_text(encoding="utf-8", errors="replace")
+                self._file_lines[str(fp)] = source.splitlines()
+                file_chunks = chunk_source(source, str(fp), language)
+                all_chunks.extend(file_chunks)
+                for c in file_chunks:
+                    if c.language:
+                        lang_counts[c.language] = lang_counts.get(c.language, 0) + 1
 
         t_emb = time.perf_counter()
         embeddings = self._embed_chunks(all_chunks)
@@ -129,8 +126,6 @@ class SembleIndex:
                     file_path=c.file_path,
                     start_line=c.start_line,
                     end_line=c.end_line,
-                    symbol_name=c.symbol_name,
-                    symbol_kind=c.symbol_kind,
                     language=c.language,
                     content_hash=c.content_hash,
                 )
@@ -140,9 +135,8 @@ class SembleIndex:
             self._semantic_index = SemanticIndex(all_chunks, embeddings)
 
         self._stats = IndexStats(
-            total_files=len(files),
+            total_files=len(self._file_lines),
             total_chunks=len(all_chunks),
-            total_symbols=sum(1 for c in all_chunks if c.symbol_kind != SymbolKind.CHUNK),
             index_time_ms=(time.perf_counter() - t_start) * 1000,
             embedding_time_ms=t_emb * 1000,
             languages=lang_counts,
@@ -172,11 +166,7 @@ class SembleIndex:
             if self._semantic_index is None:
                 return []
             return search_semantic(
-                query,
-                self.model,
-                self._semantic_index,
-                self._hash_to_chunk,
-                top_k,
+                query, self.model, self._semantic_index, self._hash_to_chunk, top_k
             )
         if mode == "bm25":
             if self._bm25_index is None:
@@ -222,11 +212,7 @@ class SembleIndex:
         if target is None:
             return []
         results = search_semantic(
-            target.content,
-            self.model,
-            self._semantic_index,
-            self._hash_to_chunk,
-            top_k + 1,
+            target.content, self.model, self._semantic_index, self._hash_to_chunk, top_k + 1
         )
         return [r for r in results if r.chunk.content_hash != target.content_hash][:top_k]
 
@@ -242,12 +228,13 @@ class SembleIndex:
         root: Path,
         extensions: frozenset[str],
         ignore: frozenset[str],
-    ) -> Generator[Path, None, None]:
-        for item in sorted(root.rglob("*")):
-            if any(part in ignore for part in item.parts):
-                continue
-            if item.is_file() and item.suffix.lower() in extensions:
-                yield item
+    ) -> Iterator[Path]:
+        for dirpath, dirnames, filenames in os.walk(str(root)):
+            dirnames[:] = sorted(d for d in dirnames if d not in ignore)
+            for filename in sorted(filenames):
+                p = Path(dirpath) / filename
+                if p.suffix.lower() in extensions:
+                    yield p
 
     def _embed_chunks(self, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
         if not chunks:

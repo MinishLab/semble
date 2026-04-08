@@ -13,10 +13,10 @@ from semble.search import (
     search_semantic,
     search_symbol,
 )
-from semble.types import Chunk, SymbolKind
+from semble.types import Chunk
 
 
-def _make_chunk(content: str, file_path: str = "file.py", symbol_name: str | None = None) -> Chunk:
+def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:
     import hashlib
 
     return Chunk(
@@ -24,8 +24,6 @@ def _make_chunk(content: str, file_path: str = "file.py", symbol_name: str | Non
         file_path=file_path,
         start_line=1,
         end_line=content.count("\n") + 1,
-        symbol_name=symbol_name,
-        symbol_kind=SymbolKind.FUNCTION if symbol_name else SymbolKind.CHUNK,
         language="python",
         content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
     )
@@ -34,12 +32,10 @@ def _make_chunk(content: str, file_path: str = "file.py", symbol_name: str | Non
 @pytest.fixture
 def chunks():
     return [
-        _make_chunk(
-            "def authenticate(token):\n    return token == 'secret'", "auth.py", "authenticate"
-        ),
-        _make_chunk("def login(username, password):\n    pass", "auth.py", "login"),
-        _make_chunk("class UserService:\n    pass", "users.py", "UserService"),
-        _make_chunk("def format_date(dt):\n    return str(dt)", "utils.py", "format_date"),
+        _make_chunk("def authenticate(token):\n    return token == 'secret'", "auth.py"),
+        _make_chunk("def login(username, password):\n    pass", "auth.py"),
+        _make_chunk("class UserService:\n    pass", "users.py"),
+        _make_chunk("def format_date(dt):\n    return str(dt)", "utils.py"),
     ]
 
 
@@ -81,7 +77,7 @@ def test_bm25_source_label(bm25, chunks) -> None:
 
 def test_bm25_relevant_result_first(bm25, chunks) -> None:
     results = search_bm25("authenticate token", bm25, chunks, top_k=4)
-    assert results[0].chunk.symbol_name == "authenticate"
+    assert "authenticate" in results[0].chunk.content
 
 
 def test_bm25_no_results_for_garbage(bm25, chunks) -> None:
@@ -125,14 +121,14 @@ def test_symbol_finds_function_by_name(tmp_path) -> None:
     )
     results = search_symbol("authenticate", fl, top_k=5)
     assert len(results) == 1
-    assert results[0].chunk.symbol_name == "authenticate"
+    assert "authenticate" in results[0].chunk.content
 
 
 def test_symbol_finds_class(tmp_path) -> None:
     fl = _file_lines(tmp_path, "users.py", "class UserService:\n    pass\n")
     results = search_symbol("UserService", fl, top_k=5)
     assert len(results) == 1
-    assert results[0].chunk.symbol_name == "UserService"
+    assert "UserService" in results[0].chunk.content
 
 
 def test_symbol_definitions_ranked_above_usages(tmp_path) -> None:
@@ -140,7 +136,7 @@ def test_symbol_definitions_ranked_above_usages(tmp_path) -> None:
         tmp_path, "auth.py", "# uses authenticate here\ndef authenticate(token):\n    pass\n"
     )
     results = search_symbol("authenticate", fl, top_k=5)
-    assert any(r.chunk.symbol_name == "authenticate" for r in results)
+    assert any("def authenticate" in r.chunk.content for r in results)
 
 
 def test_symbol_source_label(tmp_path) -> None:

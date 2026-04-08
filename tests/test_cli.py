@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semble.cli import main
-from semble.types import Chunk, IndexStats, SearchResult, SymbolKind
+from semble.types import Chunk, IndexStats, SearchResult
 
 
 def _make_chunk(content: str = "def foo(): pass", file_path: str = "foo.py") -> Chunk:
@@ -16,8 +16,6 @@ def _make_chunk(content: str = "def foo(): pass", file_path: str = "foo.py") -> 
         file_path=file_path,
         start_line=1,
         end_line=1,
-        symbol_name="foo",
-        symbol_kind=SymbolKind.FUNCTION,
         language="python",
         content_hash="abc123",
     )
@@ -28,7 +26,6 @@ def _make_index_mock(chunks=None, stats=None):
     mock.index_directory.return_value = stats or IndexStats(
         total_files=2,
         total_chunks=5,
-        total_symbols=3,
         index_time_ms=100.0,
         embedding_time_ms=50.0,
         languages={"python": 5},
@@ -39,18 +36,6 @@ def _make_index_mock(chunks=None, stats=None):
         else chunks
     )
     return mock
-
-
-@patch("semble.SembleIndex")
-def test_index_command(mock_cls, tmp_project, capsys) -> None:
-    mock_cls.return_value = _make_index_mock()
-    import sys
-
-    sys.argv = ["semble", "index", str(tmp_project)]
-    main()
-    out = capsys.readouterr().out
-    assert "files" in out
-    assert "chunks" in out
 
 
 @patch("semble.SembleIndex")

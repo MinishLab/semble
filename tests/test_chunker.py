@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from semble.chunker import chunk_by_lines, chunk_file, chunk_with_chonkie
+from semble.chunker import _chunk_with_chonkie, chunk_by_lines, chunk_file
 
 
 def test_chunk_by_lines_basic(tmp_path: Path) -> None:
@@ -50,7 +50,7 @@ def test_chunk_with_chonkie_fallback(tmp_path: Path) -> None:
     """Should fall back to line-based when given an unsupported language."""
     f = tmp_path / "code.py"
     f.write_text("def foo():\n    pass\n")
-    chunks = chunk_with_chonkie(f.read_text(), str(f), "python")
+    chunks = _chunk_with_chonkie(f.read_text(), str(f), "python")
     assert len(chunks) > 0
 
 
