@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import contextlib
 import os
 import time
@@ -7,19 +5,14 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import cast
 
+import bm25s
 import numpy as np
 import numpy.typing as npt
 from model2vec import StaticModel
+from vicinity import Metric, Vicinity
 
 from semble.chunker import EXTENSION_MAP, chunk_source
-from semble.search import (
-    BM25Index,
-    SemanticIndex,
-    search_bm25,
-    search_hybrid,
-    search_semantic,
-    search_symbol,
-)
+from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic, search_symbol
 from semble.types import Chunk, Encoder, FileLines, IndexStats, SearchMode, SearchResult
 
 DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
@@ -65,30 +58,10 @@ class SembleIndex:
         self.model = model
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
-        self._bm25_index: BM25Index | None = None
-        self._semantic_index: SemanticIndex | None = None
+        self._bm25_index: bm25s.BM25 | None = None
+        self._semantic_index: Vicinity | None = None
         self._file_lines: FileLines = {}
         self._stats = IndexStats()
-
-    @classmethod
-    def build(
-        cls,
-        path: str | Path,
-        model: Encoder | None = None,
-        *,
-        extensions: frozenset[str] | None = None,
-        ignore: frozenset[str] | None = None,
-        include_docs: bool = False,
-    ) -> SembleIndex:
-        """Create an index and populate it from a directory."""
-        index = cls(model=model)
-        index.index(
-            path,
-            extensions=extensions,
-            ignore=ignore,
-            include_docs=include_docs,
-        )
-        return index
 
     def index(
         self,
@@ -97,14 +70,7 @@ class SembleIndex:
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
     ) -> IndexStats:
-        """Index all code files under the given directory.
-
-        :param path: Root directory to index.
-        :param extensions: File extensions to include. Defaults to code-only.
-        :param ignore: Directory/file names to skip. Defaults to common VCS/build dirs.
-        :param include_docs: If True, also index docs (md, yaml, toml, json).
-        :returns: Statistics about the indexed content.
-        """
+        """Index all code files under the given directory."""
         path = Path(path).resolve()
         ignore = ignore or DEFAULT_IGNORE
         if extensions is None:
@@ -132,8 +98,16 @@ class SembleIndex:
         self._chunks = all_chunks
 
         if all_chunks:
-            self._bm25_index = BM25Index([self._enrich_for_bm25(c) for c in all_chunks])
-            self._semantic_index = SemanticIndex(all_chunks, embeddings)
+            self._bm25_index = bm25s.BM25()
+            self._bm25_index.index(
+                [_tokenize(self._enrich_for_bm25(chunk)) for chunk in all_chunks],
+                show_progress=False,
+            )
+            self._semantic_index = Vicinity.from_vectors_and_items(
+                embeddings,
+                all_chunks,
+                metric=Metric.COSINE,
+            )
 
         self._stats = IndexStats(
             total_files=len(self._file_lines),
@@ -150,15 +124,7 @@ class SembleIndex:
         mode: SearchMode | str = SearchMode.HYBRID,
         alpha: float = 0.5,
     ) -> list[SearchResult]:
-        """Search the index.
-
-        :param query: Natural language or code query.
-        :param top_k: Number of results to return.
-        :param mode: Search mode — one of "hybrid", "semantic", "bm25", "symbol".
-        :param alpha: Semantic weight for hybrid mode (1-alpha goes to BM25). Default 0.5.
-        :returns: List of search results, best first.
-        :raises ValueError: If mode is not recognized.
-        """
+        """Search the index."""
         if not self._chunks:
             return []
 
@@ -194,8 +160,6 @@ class SembleIndex:
     def stats(self) -> IndexStats:
         """Return indexing statistics from the last call to index."""
         return self._stats
-
-    # -- Private helpers --
 
     def _walk_files(
         self,

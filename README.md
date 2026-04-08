@@ -18,7 +18,8 @@ pip install semble
 ```python
 from semble import SearchMode, SembleIndex
 
-index = SembleIndex.build("./my-project")
+index = SembleIndex()
+index.index("./my-project")
 
 # Hybrid search (semantic + BM25)
 results = index.search("how does authentication work?", top_k=5)

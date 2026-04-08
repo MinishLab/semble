@@ -1,7 +1,5 @@
 """Tests for semble.index (SembleIndex)."""
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +13,12 @@ def index(mock_model: Any) -> SembleIndex:
     return SembleIndex(model=mock_model)
 
 
+@pytest.fixture
+def indexed_index(index: SembleIndex, tmp_project: Path) -> SembleIndex:
+    index.index(tmp_project)
+    return index
+
+
 def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
     stats = index.index(tmp_project)
     assert stats.total_files >= 2  # auth.py, utils.py
@@ -22,9 +26,8 @@ def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
     assert stats.embedding_time_ms > 0
 
 
-def test_index_excludes_markdown_by_default(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    assert ".md" not in [Path(c.file_path).suffix for c in index._chunks]
+def test_index_excludes_markdown_by_default(indexed_index: SembleIndex) -> None:
+    assert ".md" not in [Path(chunk.file_path).suffix for chunk in indexed_index._chunks]
 
 
 def test_index_includes_markdown_with_flag(index: SembleIndex, tmp_project: Path) -> None:
@@ -39,8 +42,8 @@ def test_index_empty_returns_zero_chunks(index: SembleIndex, tmp_path: Path) -> 
     assert stats.total_files == 0
 
 
-def test_index_language_counts(index: SembleIndex, tmp_project: Path) -> None:
-    stats = index.index(tmp_project)
+def test_index_language_counts(indexed_index: SembleIndex) -> None:
+    stats = indexed_index.stats
     assert "python" in stats.languages
     assert stats.languages["python"] > 0
 
@@ -51,72 +54,47 @@ def test_search_returns_empty_before_indexing() -> None:
     assert results == []
 
 
-def test_search_hybrid(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    results = index.search("authenticate token", top_k=3, mode="hybrid")
+@pytest.mark.parametrize(
+    "query, mode",
+    [("authenticate token", "hybrid"), ("authenticate", "bm25"), ("authentication", "semantic")],
+)
+def test_search_modes(indexed_index: SembleIndex, query: str, mode: str) -> None:
+    results = indexed_index.search(query, top_k=3, mode=mode)
     assert isinstance(results, list)
     assert len(results) <= 3
 
 
-def test_search_bm25(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    results = index.search("authenticate", top_k=3, mode="bm25")
-    assert isinstance(results, list)
-
-
-def test_search_semantic(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    results = index.search("authentication", top_k=3, mode="semantic")
-    assert isinstance(results, list)
-
-
-def test_search_symbol(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    results = index.search("authenticate", top_k=5, mode=SearchMode.SYMBOL)
+def test_search_symbol(indexed_index: SembleIndex) -> None:
+    results = indexed_index.search("authenticate", top_k=5, mode=SearchMode.SYMBOL)
     assert len(results) > 0
     assert any("authenticate" in r.chunk.content for r in results)
 
 
-def test_search_invalid_mode(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
+def test_search_invalid_mode(indexed_index: SembleIndex) -> None:
     with pytest.raises(ValueError, match="Unknown search mode"):
-        index.search("query", mode="invalid")
+        indexed_index.search("query", mode="invalid")
 
 
-def test_search_top_k_respected(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    results = index.search("function", top_k=1, mode="bm25")
+def test_search_top_k_respected(indexed_index: SembleIndex) -> None:
+    results = indexed_index.search("function", top_k=1, mode="bm25")
     assert len(results) <= 1
 
 
-def test_search_no_duplicate_hashes(index: SembleIndex, tmp_project: Path) -> None:
-    index.index(tmp_project)
-    results = index.search("authenticate", top_k=5)
+def test_search_no_duplicate_hashes(indexed_index: SembleIndex) -> None:
+    results = indexed_index.search("authenticate", top_k=5)
     hashes = [r.chunk.content_hash for r in results]
     assert len(hashes) == len(set(hashes))
 
 
-def test_reindex_does_not_re_embed(index: SembleIndex, tmp_project: Path, mock_model: Any) -> None:
-    index.index(tmp_project)
+def test_reindex_does_not_re_embed(
+    indexed_index: SembleIndex, tmp_project: Path, mock_model: Any
+) -> None:
     call_count_after_first = mock_model.encode.call_count
 
-    index.index(tmp_project)
+    indexed_index.index(tmp_project)
 
     assert mock_model.encode.call_count == call_count_after_first
 
 
-def test_stats_property(index: SembleIndex, tmp_project: Path) -> None:
-    stats = index.index(tmp_project)
-    assert index.stats is stats
-
-
-def test_build(index: SembleIndex, tmp_project: Path, mock_model: Any) -> None:
-    built = SembleIndex.build(tmp_project, model=mock_model)
-    assert built.stats.total_files >= 2
-    assert built.stats.total_chunks > 0
-
-
-def test_constructor_accepts_encoder(tmp_project: Path, mock_model: Any) -> None:
-    index = SembleIndex(model=mock_model)
-    index.index(tmp_project)
-    assert index.model is mock_model
+def test_stats_property(indexed_index: SembleIndex) -> None:
+    assert indexed_index.stats.total_files >= 2

@@ -1,7 +1,5 @@
 """Shared fixtures for semble tests."""
 
-from __future__ import annotations
-
 import textwrap
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -9,8 +7,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import numpy.typing as npt
 import pytest
-
-from semble.types import Chunk
 
 
 @pytest.fixture
@@ -62,13 +58,6 @@ def tmp_project(tmp_path: Path) -> Path:
     )
     (tmp_path / "README.md").write_text("# Test project\n")
     return tmp_path
-
-
-@pytest.fixture
-def sample_chunks(tmp_py_file: Path) -> list[Chunk]:
-    from semble.chunker import chunk_file
-
-    return chunk_file(tmp_py_file)
 
 
 @pytest.fixture

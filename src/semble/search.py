@@ -1,13 +1,12 @@
-from __future__ import annotations
-
-import hashlib
 import re
+from typing import cast
 
 import bm25s
 import numpy as np
 import numpy.typing as npt
-from vicinity import Metric, Vicinity
+from vicinity import Vicinity
 
+from semble.chunker import _content_hash
 from semble.types import Chunk, Encoder, FileLines, SearchMode, SearchResult
 
 _TOKEN_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
@@ -21,7 +20,7 @@ def _tokenize(text: str) -> list[str]:
 
 
 def _normalize(scores: dict[str, float]) -> dict[str, float]:
-    """Min-max normalize a score mapping to the range [0, 1]."""
+    """Min-max normalize scores."""
     if not scores:
         return scores
     values = np.array(list(scores.values()), dtype=np.float32)
@@ -31,44 +30,15 @@ def _normalize(scores: dict[str, float]) -> dict[str, float]:
     return {key: float((score - minimum_score) / denominator) for key, score in scores.items()}
 
 
-class BM25Index:
-    """Thin wrapper around bm25s."""
-
-    def __init__(self, texts: list[str]) -> None:
-        """Build a BM25 index from texts."""
-        tokens = [_tokenize(t) for t in texts]
-        self._bm25 = bm25s.BM25()
-        self._bm25.index(tokens, show_progress=False)
-
-    def scores(self, query: str) -> npt.NDArray[np.float32]:
-        """Return BM25 scores for all indexed chunks."""
-        return self._bm25.get_scores(_tokenize(query))  # type: ignore[no-any-return]
-
-
-class SemanticIndex:
-    """Wrapper around vicinity for cosine similarity search."""
-
-    def __init__(self, chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> None:
-        """Build a semantic index from chunks and embeddings."""
-        self._vicinity = Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
-
-    def query(
-        self, query_embedding: npt.NDArray[np.float32], top_k: int
-    ) -> list[tuple[Chunk, float]]:
-        """Return (chunk, cosine_distance) pairs sorted by distance ascending."""
-        results = self._vicinity.query(query_embedding[None], k=top_k)
-        return results[0]  # type: ignore[return-value]
-
-
 def search_semantic(
     query: str,
     model: Encoder,
-    semantic_index: SemanticIndex,
+    semantic_index: Vicinity,
     top_k: int,
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
     query_embedding = model.encode([query])[0]
-    hits = semantic_index.query(query_embedding, top_k)
+    hits = cast(list[tuple[Chunk, float]], semantic_index.query(query_embedding[None], k=top_k)[0])
     return [
         SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC)
         for chunk, distance in hits
@@ -77,12 +47,12 @@ def search_semantic(
 
 def search_bm25(
     query: str,
-    bm25_index: BM25Index,
+    bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
 ) -> list[SearchResult]:
     """Run BM25 search for a query."""
-    scores = bm25_index.scores(query)
+    scores = cast(npt.NDArray[np.float32], bm25_index.get_scores(_tokenize(query)))
     indices = np.argsort(-scores)[:top_k]
     return [
         SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25)
@@ -132,7 +102,7 @@ def search_symbol(
                 start_line=start + 1,
                 end_line=end,
                 language=None,
-                content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
+                content_hash=_content_hash(content),
             )
             best_results_by_file[file_path] = (
                 score,
@@ -147,8 +117,8 @@ def search_symbol(
 def search_hybrid(
     query: str,
     model: Encoder,
-    semantic_index: SemanticIndex,
-    bm25_index: BM25Index,
+    semantic_index: Vicinity,
+    bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
     alpha: float = 0.5,
@@ -170,14 +140,17 @@ def search_hybrid(
     candidate_count = top_k * 3
 
     query_embedding = model.encode([query])[0]
-    hits = semantic_index.query(query_embedding, candidate_count)
+    hits = cast(
+        list[tuple[Chunk, float]],
+        semantic_index.query(query_embedding[None], k=candidate_count)[0],
+    )
     semantic_scores: dict[str, float] = {}
     chunks_by_hash: dict[str, Chunk] = {}
     for chunk, distance in hits:
         semantic_scores[chunk.content_hash] = 1.0 - float(distance)
         chunks_by_hash[chunk.content_hash] = chunk
 
-    bm25_scores = bm25_index.scores(query)
+    bm25_scores = cast(npt.NDArray[np.float32], bm25_index.get_scores(_tokenize(query)))
     bm25_result_scores: dict[str, float] = {}
     for chunk_index in np.argsort(-bm25_scores)[:candidate_count]:
         if bm25_scores[chunk_index] > 0:

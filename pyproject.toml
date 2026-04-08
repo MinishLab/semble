@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ name = "MinishLab" }]
-keywords = ["code-search", "embeddings", "mcp", "model2vec", "semantic-search"]
+keywords = ["code-search", "embeddings", "model2vec", "semantic-search"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
@@ -26,7 +26,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-mcp = ["mcp>=1.0.0"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
@@ -34,8 +33,6 @@ dev = [
     "mypy>=1.0",
     "pydoclint>=0.5.3",
     "pre-commit>=3.0",
-    "einops>=0.8.0",
-    "sentence-transformers>=3.0",
 ]
 
 [project.urls]

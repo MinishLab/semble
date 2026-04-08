@@ -1,35 +1,27 @@
 """Tests for semble.search."""
 
-from __future__ import annotations
-
 from pathlib import Path
 from typing import Any
 
+import bm25s
 import numpy as np
 import numpy.typing as npt
 import pytest
+from vicinity import Metric, Vicinity
 
-from semble.search import (
-    BM25Index,
-    SemanticIndex,
-    search_bm25,
-    search_hybrid,
-    search_semantic,
-    search_symbol,
-)
-from semble.types import Chunk
+from semble.chunker import _content_hash
+from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic, search_symbol
+from semble.types import Chunk, SearchMode
 
 
 def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:
-    import hashlib
-
     return Chunk(
         content=content,
         file_path=file_path,
         start_line=1,
         end_line=content.count("\n") + 1,
         language="python",
-        content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
+        content_hash=_content_hash(content),
     )
 
 
@@ -52,34 +44,31 @@ def embeddings(chunks: list[Chunk]) -> npt.NDArray[np.float32]:
 
 
 @pytest.fixture
-def bm25(chunks: list[Chunk]) -> BM25Index:
-    return BM25Index([c.content for c in chunks])
+def bm25(chunks: list[Chunk]) -> bm25s.BM25:
+    index = bm25s.BM25()
+    index.index([_tokenize(chunk.content) for chunk in chunks], show_progress=False)
+    return index
 
 
 @pytest.fixture
-def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> SemanticIndex:
-    return SemanticIndex(chunks, embeddings)
+def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> Vicinity:
+    return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
 
 # BM25 tests
 
 
-def test_bm25_returns_results(bm25: BM25Index, chunks: list[Chunk]) -> None:
+def test_bm25_returns_results(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     results = search_bm25("authenticate token", bm25, chunks, top_k=3)
     assert len(results) > 0
 
 
-def test_bm25_source_label(bm25: BM25Index, chunks: list[Chunk]) -> None:
-    results = search_bm25("authenticate", bm25, chunks, top_k=3)
-    assert all(r.source == "bm25" for r in results)
-
-
-def test_bm25_relevant_result_first(bm25: BM25Index, chunks: list[Chunk]) -> None:
+def test_bm25_relevant_result_first(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     results = search_bm25("authenticate token", bm25, chunks, top_k=4)
     assert "authenticate" in results[0].chunk.content
 
 
-def test_bm25_no_results_for_garbage(bm25: BM25Index, chunks: list[Chunk]) -> None:
+def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     results = search_bm25("zzzznonexistentterm", bm25, chunks, top_k=3)
     assert results == []
 
@@ -87,17 +76,12 @@ def test_bm25_no_results_for_garbage(bm25: BM25Index, chunks: list[Chunk]) -> No
 # Semantic tests
 
 
-def test_semantic_returns_results(semantic: SemanticIndex, mock_model: Any) -> None:
+def test_semantic_returns_results(semantic: Vicinity, mock_model: Any) -> None:
     results = search_semantic("login", mock_model, semantic, top_k=3)
     assert len(results) > 0
 
 
-def test_semantic_source_label(semantic: SemanticIndex, mock_model: Any) -> None:
-    results = search_semantic("query", mock_model, semantic, top_k=4)
-    assert all(r.source == "semantic" for r in results)
-
-
-def test_semantic_scores_between_0_and_1(semantic: SemanticIndex, mock_model: Any) -> None:
+def test_semantic_scores_between_0_and_1(semantic: Vicinity, mock_model: Any) -> None:
     results = search_semantic("query", mock_model, semantic, top_k=4)
     for r in results:
         assert -1.0 <= r.score <= 1.0
@@ -136,12 +120,6 @@ def test_symbol_definitions_ranked_above_usages(tmp_path: Path) -> None:
     assert any("def authenticate" in r.chunk.content for r in results)
 
 
-def test_symbol_source_label(tmp_path: Path) -> None:
-    fl = _file_lines(tmp_path, "auth.py", "def login(u, p):\n    pass\n")
-    results = search_symbol("login", fl, top_k=3)
-    assert all(r.source == "symbol" for r in results)
-
-
 def test_symbol_no_results_for_nonsense(tmp_path: Path) -> None:
     fl = _file_lines(tmp_path, "auth.py", "def authenticate(token):\n    pass\n")
     results = search_symbol("zzznomatch", fl, top_k=5)
@@ -158,14 +136,38 @@ def test_symbol_one_result_per_file(tmp_path: Path) -> None:
 
 
 def test_hybrid_returns_results(
-    chunks: list[Chunk], semantic: SemanticIndex, bm25: BM25Index, mock_model: Any
+    chunks: list[Chunk], semantic: Vicinity, bm25: bm25s.BM25, mock_model: Any
 ) -> None:
     results = search_hybrid("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
     assert len(results) > 0
 
 
-def test_hybrid_source_label(
-    chunks: list[Chunk], semantic: SemanticIndex, bm25: BM25Index, mock_model: Any
+@pytest.mark.parametrize(
+    ("mode", "query", "top_k"),
+    [
+        (SearchMode.BM25, "authenticate", 3),
+        (SearchMode.SEMANTIC, "query", 4),
+        (SearchMode.SYMBOL, "login", 3),
+        (SearchMode.HYBRID, "login", 4),
+    ],
+)
+def test_search_source_labels(
+    mode: SearchMode,
+    query: str,
+    top_k: int,
+    chunks: list[Chunk],
+    semantic: Vicinity,
+    bm25: bm25s.BM25,
+    mock_model: Any,
+    tmp_path: Path,
 ) -> None:
-    results = search_hybrid("login", mock_model, semantic, bm25, chunks, top_k=4)
-    assert all(r.source == "hybrid" for r in results)
+    if mode is SearchMode.BM25:
+        results = search_bm25(query, bm25, chunks, top_k)
+    elif mode is SearchMode.SEMANTIC:
+        results = search_semantic(query, mock_model, semantic, top_k)
+    elif mode is SearchMode.SYMBOL:
+        file_lines = _file_lines(tmp_path, "auth.py", "def login(u, p):\n    pass\n")
+        results = search_symbol(query, file_lines, top_k)
+    else:
+        results = search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
+    assert all(result.source is mode for result in results)

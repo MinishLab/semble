@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import hashlib
 from pathlib import Path
 
@@ -60,15 +58,7 @@ def chunk_lines(
     max_lines: int = 50,
     overlap_lines: int = 5,
 ) -> list[Chunk]:
-    """Fallback chunker: split by line count with overlap.
-
-    :param source: Source text to chunk.
-    :param file_path: Path of the source file (for metadata).
-    :param language: Language identifier (optional).
-    :param max_lines: Maximum lines per chunk.
-    :param overlap_lines: Lines of overlap between consecutive chunks.
-    :returns: List of line-based chunks.
-    """
+    """Split source by line count with overlap."""
     lines = source.splitlines(keepends=True)
     if not lines:
         return []
