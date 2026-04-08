@@ -1,6 +1,5 @@
 """Tests for semble.search."""
 
-from pathlib import Path
 from typing import Any
 
 import bm25s
@@ -10,7 +9,7 @@ import pytest
 from vicinity import Metric, Vicinity
 
 from semble.chunker import _content_hash
-from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic, search_symbol
+from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, SearchMode
 
 
@@ -87,54 +86,6 @@ def test_semantic_scores_between_0_and_1(semantic: Vicinity, mock_model: Any) ->
         assert -1.0 <= r.score <= 1.0
 
 
-# Symbol tests
-
-
-def _file_lines(tmp_path: Path, name: str, content: str) -> dict[str, list[str]]:
-    f = tmp_path / name
-    f.write_text(content)
-    return {str(f): content.splitlines()}
-
-
-def test_symbol_finds_function_by_name(tmp_path: Path) -> None:
-    fl = _file_lines(
-        tmp_path, "auth.py", "def authenticate(token):\n    return token == 'secret'\n"
-    )
-    results = search_symbol("authenticate", fl, top_k=5)
-    assert len(results) == 1
-    assert "authenticate" in results[0].chunk.content
-
-
-def test_symbol_finds_class(tmp_path: Path) -> None:
-    fl = _file_lines(tmp_path, "users.py", "class UserService:\n    pass\n")
-    results = search_symbol("UserService", fl, top_k=5)
-    assert len(results) == 1
-    assert "UserService" in results[0].chunk.content
-
-
-def test_symbol_definitions_ranked_above_usages(tmp_path: Path) -> None:
-    fl = _file_lines(
-        tmp_path, "auth.py", "# uses authenticate here\ndef authenticate(token):\n    pass\n"
-    )
-    results = search_symbol("authenticate", fl, top_k=5)
-    assert any("def authenticate" in r.chunk.content for r in results)
-
-
-def test_symbol_no_results_for_nonsense(tmp_path: Path) -> None:
-    fl = _file_lines(tmp_path, "auth.py", "def authenticate(token):\n    pass\n")
-    results = search_symbol("zzznomatch", fl, top_k=5)
-    assert results == []
-
-
-def test_symbol_one_result_per_file(tmp_path: Path) -> None:
-    fl = _file_lines(tmp_path, "mod.py", "foo = 1\nfoo = 2\nfoo = 3\n")
-    results = search_symbol("foo", fl, top_k=10)
-    assert len(results) == 1
-
-
-# Hybrid tests
-
-
 def test_hybrid_returns_results(
     chunks: list[Chunk], semantic: Vicinity, bm25: bm25s.BM25, mock_model: Any
 ) -> None:
@@ -147,7 +98,6 @@ def test_hybrid_returns_results(
     [
         (SearchMode.BM25, "authenticate", 3),
         (SearchMode.SEMANTIC, "query", 4),
-        (SearchMode.SYMBOL, "login", 3),
         (SearchMode.HYBRID, "login", 4),
     ],
 )
@@ -159,15 +109,11 @@ def test_search_source_labels(
     semantic: Vicinity,
     bm25: bm25s.BM25,
     mock_model: Any,
-    tmp_path: Path,
 ) -> None:
     if mode is SearchMode.BM25:
         results = search_bm25(query, bm25, chunks, top_k)
     elif mode is SearchMode.SEMANTIC:
         results = search_semantic(query, mock_model, semantic, top_k)
-    elif mode is SearchMode.SYMBOL:
-        file_lines = _file_lines(tmp_path, "auth.py", "def login(u, p):\n    pass\n")
-        results = search_symbol(query, file_lines, top_k)
     else:
         results = search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
     assert all(result.source is mode for result in results)

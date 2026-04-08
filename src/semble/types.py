@@ -15,7 +15,6 @@ class SearchMode(str, Enum):
     HYBRID = "hybrid"
     SEMANTIC = "semantic"
     BM25 = "bm25"
-    SYMBOL = "symbol"
 
 
 class Encoder(Protocol):

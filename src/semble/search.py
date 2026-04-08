@@ -6,12 +6,9 @@ import numpy as np
 import numpy.typing as npt
 from vicinity import Vicinity
 
-from semble.chunker import _content_hash
-from semble.types import Chunk, Encoder, FileLines, SearchMode, SearchResult
+from semble.types import Chunk, Encoder, SearchMode, SearchResult
 
 _TOKEN_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
-_DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |pub async fn )")
-_CONTEXT_LINES = 3
 
 
 def _tokenize(text: str) -> list[str]:
@@ -59,59 +56,6 @@ def search_bm25(
         for i in indices
         if scores[i] > 0
     ]
-
-
-def search_symbol(
-    query: str,
-    file_lines: FileLines,
-    top_k: int,
-) -> list[SearchResult]:
-    """Search for symbols by matching identifier tokens against file lines.
-
-    Definition lines (def/class/function/etc.) score 1.5x higher than plain
-    usages. Returns at most one result per file.
-
-    :param query: Search query (e.g. a function or class name).
-    :param file_lines: Mapping from file path to list of source lines.
-    :param top_k: Maximum number of results to return.
-    :returns: List of search results sorted by score descending.
-    """
-    tokens = list(dict.fromkeys(t.lower() for t in _TOKEN_RE.findall(query) if len(t) >= 2))
-    if not tokens:
-        return []
-
-    patterns = [re.compile(r"\b" + re.escape(tok) + r"\b", re.IGNORECASE) for tok in tokens]
-
-    best_results_by_file: dict[str, tuple[float, SearchResult]] = {}
-
-    for file_path, lines in file_lines.items():
-        for lineno, line in enumerate(lines):
-            matches = sum(1 for pattern in patterns if pattern.search(line))
-            if matches == 0:
-                continue
-            is_def = bool(_DEF_RE.match(line))
-            score = (matches / len(patterns)) * (1.5 if is_def else 1.0)
-            if file_path in best_results_by_file and best_results_by_file[file_path][0] >= score:
-                continue
-            start = max(0, lineno - _CONTEXT_LINES)
-            end = min(len(lines), lineno + _CONTEXT_LINES + 1)
-            content = "\n".join(lines[start:end])
-            chunk = Chunk(
-                content=content,
-                file_path=file_path,
-                start_line=start + 1,
-                end_line=end,
-                language=None,
-                content_hash=_content_hash(content),
-            )
-            best_results_by_file[file_path] = (
-                score,
-                SearchResult(chunk=chunk, score=score, source=SearchMode.SYMBOL),
-            )
-
-    results = [result for _, result in best_results_by_file.values()]
-    results.sort(key=lambda r: -r.score)
-    return results[:top_k]
 
 
 def search_hybrid(

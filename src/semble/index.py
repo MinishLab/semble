@@ -12,8 +12,8 @@ from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
 from semble.chunker import EXTENSION_MAP, chunk_source
-from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic, search_symbol
-from semble.types import Chunk, Encoder, FileLines, IndexStats, SearchMode, SearchResult
+from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic
+from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
 DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
 
@@ -60,7 +60,6 @@ class SembleIndex:
         self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
-        self._file_lines: FileLines = {}
         self._stats = IndexStats()
 
     def index(
@@ -142,8 +141,6 @@ class SembleIndex:
             if self._bm25_index is None:
                 return []
             return search_bm25(query, self._bm25_index, self._chunks, top_k)
-        if mode is SearchMode.SYMBOL:
-            return search_symbol(query, self._file_lines, top_k)
         if self._semantic_index is None or self._bm25_index is None or self.model is None:
             return []
         return search_hybrid(

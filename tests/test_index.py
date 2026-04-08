@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from semble import SearchMode, SembleIndex
+from semble import SembleIndex
 
 
 @pytest.fixture
@@ -62,12 +62,6 @@ def test_search_modes(indexed_index: SembleIndex, query: str, mode: str) -> None
     results = indexed_index.search(query, top_k=3, mode=mode)
     assert isinstance(results, list)
     assert len(results) <= 3
-
-
-def test_search_symbol(indexed_index: SembleIndex) -> None:
-    results = indexed_index.search("authenticate", top_k=5, mode=SearchMode.SYMBOL)
-    assert len(results) > 0
-    assert any("authenticate" in r.chunk.content for r in results)
 
 
 def test_search_invalid_mode(indexed_index: SembleIndex) -> None:
