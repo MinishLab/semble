@@ -27,11 +27,6 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = ["mcp>=1.0.0"]
-benchmark = [
-    "chonkie[code]>=1.6.2",
-    "einops>=0.8.0",
-    "sentence-transformers>=3.0",
-]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
@@ -39,6 +34,8 @@ dev = [
     "mypy>=1.0",
     "pydoclint>=0.5.3",
     "pre-commit>=3.0",
+    "einops>=0.8.0",
+    "sentence-transformers>=3.0",
 ]
 
 [project.scripts]
@@ -63,13 +60,6 @@ python_version = "3.10"
 strict = true
 warn_return_any = true
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
-disallow_untyped_calls = false
-disallow_incomplete_defs = false
-
 
 [tool.pydoclint]
 style = "sphinx"

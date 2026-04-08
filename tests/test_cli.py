@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -21,7 +23,9 @@ def _make_chunk(content: str = "def foo(): pass", file_path: str = "foo.py") -> 
     )
 
 
-def _make_index_mock(chunks=None, stats=None):
+def _make_index_mock(
+    chunks: list[SearchResult] | None = None, stats: IndexStats | None = None
+) -> MagicMock:
     mock = MagicMock()
     mock.index_directory.return_value = stats or IndexStats(
         total_files=2,
@@ -39,7 +43,7 @@ def _make_index_mock(chunks=None, stats=None):
 
 
 @patch("semble.SembleIndex")
-def test_search_command_output(mock_cls, tmp_project, capsys) -> None:
+def test_search_command_output(mock_cls: Any, tmp_project: Path, capsys: Any) -> None:
     mock_cls.return_value = _make_index_mock()
     import sys
 
@@ -51,7 +55,7 @@ def test_search_command_output(mock_cls, tmp_project, capsys) -> None:
 
 
 @patch("semble.SembleIndex")
-def test_search_no_results(mock_cls, tmp_project, capsys) -> None:
+def test_search_no_results(mock_cls: Any, tmp_project: Path, capsys: Any) -> None:
     mock = _make_index_mock(chunks=[])
     mock_cls.return_value = mock
     import sys
@@ -62,7 +66,7 @@ def test_search_no_results(mock_cls, tmp_project, capsys) -> None:
     assert "No results" in out
 
 
-def test_no_command_exits_nonzero(capsys) -> None:
+def test_no_command_exits_nonzero(capsys: Any) -> None:
     import sys
 
     sys.argv = ["semble"]

@@ -2521,18 +2521,15 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-benchmark = [
-    { name = "chonkie", extra = ["code"] },
-    { name = "einops" },
-    { name = "sentence-transformers" },
-]
 dev = [
+    { name = "einops" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pydoclint" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "sentence-transformers" },
 ]
 mcp = [
     { name = "mcp" },
@@ -2542,8 +2539,7 @@ mcp = [
 requires-dist = [
     { name = "bm25s", specifier = ">=0.2.0" },
     { name = "chonkie", extras = ["code"], specifier = ">=1.6.2" },
-    { name = "chonkie", extras = ["code"], marker = "extra == 'benchmark'", specifier = ">=1.6.2" },
-    { name = "einops", marker = "extra == 'benchmark'", specifier = ">=0.8.0" },
+    { name = "einops", marker = "extra == 'dev'", specifier = ">=0.8.0" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0.0" },
     { name = "model2vec", specifier = ">=0.4.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
@@ -2553,10 +2549,10 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
-    { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
+    { name = "sentence-transformers", marker = "extra == 'dev'", specifier = ">=3.0" },
     { name = "vicinity", specifier = ">=0.4.0" },
 ]
-provides-extras = ["mcp", "benchmark", "dev"]
+provides-extras = ["mcp", "dev"]
 
 [[package]]
 name = "sentence-transformers"

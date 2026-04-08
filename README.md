@@ -13,12 +13,6 @@ Instant local code search for agents. Static embeddings, hybrid search, zero API
 pip install semble
 ```
 
-For better chunking (recommended), install with the code extra:
-
-```bash
-pip install "semble[code]"
-```
-
 ## Python API
 
 ```python
@@ -46,9 +40,6 @@ related = index.get_context("src/auth.py", line=42, top_k=3)
 ## CLI
 
 ```bash
-# Index a directory and print stats
-semble index .
-
 # Search (hybrid by default)
 semble search "how does auth work?" .
 

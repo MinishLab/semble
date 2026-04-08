@@ -64,7 +64,6 @@ class SembleIndex:
         self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
         self._bm25_index: BM25Index | None = None
         self._semantic_index: SemanticIndex | None = None
-        self._hash_to_chunk: dict[str, Chunk] = {}
         self._file_lines: dict[str, list[str]] = {}
         self._stats = IndexStats()
 
@@ -117,21 +116,9 @@ class SembleIndex:
         t_emb = time.perf_counter() - t_emb
 
         self._chunks = all_chunks
-        self._hash_to_chunk = {c.content_hash: c for c in all_chunks}
 
         if all_chunks:
-            enriched_chunks = [
-                Chunk(
-                    content=self._enrich_for_bm25(c),
-                    file_path=c.file_path,
-                    start_line=c.start_line,
-                    end_line=c.end_line,
-                    language=c.language,
-                    content_hash=c.content_hash,
-                )
-                for c in all_chunks
-            ]
-            self._bm25_index = BM25Index(enriched_chunks)
+            self._bm25_index = BM25Index([self._enrich_for_bm25(c) for c in all_chunks])
             self._semantic_index = SemanticIndex(all_chunks, embeddings)
 
         self._stats = IndexStats(
@@ -165,9 +152,7 @@ class SembleIndex:
         if mode == "semantic":
             if self._semantic_index is None:
                 return []
-            return search_semantic(
-                query, self.model, self._semantic_index, self._hash_to_chunk, top_k
-            )
+            return search_semantic(query, self.model, self._semantic_index, top_k)
         if mode == "bm25":
             if self._bm25_index is None:
                 return []
@@ -183,7 +168,6 @@ class SembleIndex:
                 self._semantic_index,
                 self._bm25_index,
                 self._chunks,
-                self._hash_to_chunk,
                 top_k,
                 alpha=alpha,
             )
@@ -211,9 +195,7 @@ class SembleIndex:
         )
         if target is None:
             return []
-        results = search_semantic(
-            target.content, self.model, self._semantic_index, self._hash_to_chunk, top_k + 1
-        )
+        results = search_semantic(target.content, self.model, self._semantic_index, top_k + 1)
         return [r for r in results if r.chunk.content_hash != target.content_hash][:top_k]
 
     @property

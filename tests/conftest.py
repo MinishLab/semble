@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 from semble.types import Chunk
@@ -71,15 +72,15 @@ def sample_chunks(tmp_py_file: Path) -> list[Chunk]:
 
 
 @pytest.fixture
-def mock_model():
+def mock_model() -> MagicMock:
     """A model stub that returns deterministic random embeddings."""
     model = MagicMock()
     rng = np.random.default_rng(42)
 
-    def _encode(texts):
+    def _encode(texts: list[str]) -> npt.NDArray[np.float32]:
         embs = rng.standard_normal((len(texts), 256)).astype(np.float32)
         norms = np.linalg.norm(embs, axis=1, keepdims=True)
-        return embs / (norms + 1e-8)
+        return embs / (norms + 1e-8)  # type: ignore[no-any-return]
 
     model.encode.side_effect = _encode
     return model

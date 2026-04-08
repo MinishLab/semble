@@ -88,8 +88,8 @@ def _tokenize(text: str) -> list[str]:
 class BM25Index:
     """Thin wrapper around bm25s."""
 
-    def __init__(self, chunks: list[Chunk]) -> None:
-        tokens = [_tokenize(c.content) for c in chunks]
+    def __init__(self, texts: list[str]) -> None:
+        tokens = [_tokenize(t) for t in texts]
         self._bm25 = bm25s.BM25()
         self._bm25.index(tokens, show_progress=False)
 
@@ -102,36 +102,28 @@ class SemanticIndex:
     """Wrapper around vicinity for cosine similarity search."""
 
     def __init__(self, chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> None:
-        content_hashes = [c.content_hash for c in chunks]
-        self._vicinity = Vicinity.from_vectors_and_items(
-            embeddings, content_hashes, metric=Metric.COSINE
-        )
+        self._vicinity = Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
     def query(
         self, query_embedding: npt.NDArray[np.float32], top_k: int
-    ) -> list[tuple[str, float]]:
-        """Return (content_hash, cosine_distance) pairs sorted by distance ascending."""
+    ) -> list[tuple[Chunk, float]]:
+        """Return (chunk, cosine_distance) pairs sorted by distance ascending."""
         results = self._vicinity.query(query_embedding[None], k=top_k)
-        return results[0]
+        return results[0]  # type: ignore[return-value]
 
 
 def search_semantic(
     query: str,
     model: StaticModel,
     semantic_index: SemanticIndex,
-    hash_to_chunk: dict[str, Chunk],
     top_k: int,
 ) -> list[SearchResult]:
     qe = model.encode([query])[0]
     hits = semantic_index.query(qe, top_k)
-    results = []
-    for content_hash, distance in hits:
-        chunk = hash_to_chunk.get(content_hash)
-        if chunk is not None:
-            results.append(
-                SearchResult(chunk=chunk, score=1.0 - float(distance), source="semantic")
-            )
-    return results
+    return [
+        SearchResult(chunk=chunk, score=1.0 - float(distance), source="semantic")
+        for chunk, distance in hits
+    ]
 
 
 def search_bm25(
@@ -242,7 +234,6 @@ def search_hybrid(
     semantic_index: SemanticIndex,
     bm25_index: BM25Index,
     chunks: list[Chunk],
-    hash_to_chunk: dict[str, Chunk],
     top_k: int,
     alpha: float = 0.5,
 ) -> list[SearchResult]:
@@ -256,7 +247,6 @@ def search_hybrid(
     :param semantic_index: Pre-built semantic (vector) index.
     :param bm25_index: Pre-built BM25 index.
     :param chunks: All indexed chunks (parallel to BM25 index).
-    :param hash_to_chunk: Mapping from content hash to chunk.
     :param top_k: Number of results to return.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
     :returns: List of search results sorted by combined score descending.
@@ -267,11 +257,9 @@ def search_hybrid(
     hits = semantic_index.query(qe, n)
     sem_raw: dict[str, float] = {}
     cmap: dict[str, Chunk] = {}
-    for content_hash, distance in hits:
-        chunk = hash_to_chunk.get(content_hash)
-        if chunk is not None:
-            sem_raw[content_hash] = 1.0 - float(distance)
-            cmap[content_hash] = chunk
+    for chunk, distance in hits:
+        sem_raw[chunk.content_hash] = 1.0 - float(distance)
+        cmap[chunk.content_hash] = chunk
 
     bm25_scores = bm25_index.scores(query)
     bm25_raw: dict[str, float] = {}
