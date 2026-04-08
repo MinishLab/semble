@@ -117,21 +117,6 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
     if not raw:
         return chunk_by_lines(source, file_path, language)
 
-    # Convert character offsets to 1-based line numbers via cumulative positions
-    cum: list[int] = [0]
-    for line in source.splitlines(keepends=True):
-        cum.append(cum[-1] + len(line))
-
-    def _char_to_line(offset: int) -> int:
-        lo, hi = 0, len(cum) - 1
-        while lo < hi:
-            mid = (lo + hi + 1) // 2
-            if cum[mid] <= offset:
-                lo = mid
-            else:
-                hi = mid - 1
-        return lo + 1
-
     chunks: list[Chunk] = []
     for c in raw:
         text = c.text
@@ -141,8 +126,8 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
             Chunk(
                 content=text,
                 file_path=file_path,
-                start_line=_char_to_line(c.start_index),
-                end_line=_char_to_line(max(c.end_index - 1, c.start_index)),
+                start_line=source[: c.start_index].count("\n") + 1,
+                end_line=source[: max(c.end_index - 1, c.start_index)].count("\n") + 1,
                 language=language,
                 content_hash=_content_hash(text),
             )

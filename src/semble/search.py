@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import re
 
@@ -11,74 +10,6 @@ from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
 from semble.types import Chunk, SearchResult
-
-# Stop words filtered out during symbol search
-_SYMBOL_STOPS: frozenset[str] = frozenset(
-    {
-        "self",
-        "def",
-        "class",
-        "return",
-        "import",
-        "from",
-        "if",
-        "else",
-        "elif",
-        "for",
-        "in",
-        "is",
-        "not",
-        "and",
-        "or",
-        "none",
-        "true",
-        "false",
-        "try",
-        "except",
-        "raise",
-        "with",
-        "as",
-        "pass",
-        "the",
-        "a",
-        "an",
-        "of",
-        "to",
-        "this",
-        "that",
-        "it",
-        "how",
-        "does",
-        "do",
-        "what",
-        "where",
-        "when",
-        "which",
-        "who",
-        "are",
-        "was",
-        "be",
-        "been",
-        "being",
-        "have",
-        "has",
-        "had",
-        "will",
-        "would",
-        "can",
-        "could",
-        "should",
-        "may",
-        "might",
-        "get",
-        "set",
-        "run",
-        "main",
-        "test",
-        "new",
-        "init",
-    }
-)
 
 
 def _tokenize(text: str) -> list[str]:
@@ -145,49 +76,30 @@ _DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |p
 _CONTEXT_LINES = 3
 
 
-def _symbol_tokens(query: str) -> list[str]:
-    """Extract identifier tokens from a query, with camelCase splitting."""
-    raw = re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query)
-    tokens: list[str] = []
-    for tok in raw:
-        lower = tok.lower()
-        if lower in _SYMBOL_STOPS or len(lower) < 2:
-            continue
-        tokens.append(lower)
-        if "_" in tok:
-            tokens.extend(p.lower() for p in tok.split("_") if len(p) >= 2)
-        tokens.extend(
-            p.lower() for p in re.findall(r"[A-Z]?[a-z]{2,}|[A-Z]{2,}(?=[A-Z][a-z]|\d|\b)", tok)
-        )
-    return list(dict.fromkeys(tokens))
-
-
 def search_symbol(
     query: str,
     file_lines: dict[str, list[str]],
     top_k: int,
 ) -> list[SearchResult]:
-    """Search for symbols using regex word-boundary matching over cached file lines.
+    """Search for symbols by matching identifier tokens against file lines.
 
-    Extracts identifier-like tokens from the query (subword-aware), then
-    searches for any of them in each file. Definition lines score higher than
-    plain usages. Returns at most one result per file.
+    Definition lines (def/class/function/etc.) score 1.5x higher than plain
+    usages. Returns at most one result per file.
 
-    :param query: Search query (e.g. function or class name).
+    :param query: Search query (e.g. a function or class name).
     :param file_lines: Mapping from file path to list of source lines.
     :param top_k: Maximum number of results to return.
     :returns: List of search results sorted by score descending.
     """
-    tokens = _symbol_tokens(query)
+    tokens = list(
+        dict.fromkeys(
+            t.lower() for t in re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query) if len(t) >= 2
+        )
+    )
     if not tokens:
         return []
 
-    patterns = []
-    for tok in tokens:
-        with contextlib.suppress(re.error):
-            patterns.append(re.compile(r"\b" + re.escape(tok) + r"\b", re.IGNORECASE))
-    if not patterns:
-        return []
+    patterns = [re.compile(r"\b" + re.escape(tok) + r"\b", re.IGNORECASE) for tok in tokens]
 
     best: dict[str, tuple[float, SearchResult]] = {}
 

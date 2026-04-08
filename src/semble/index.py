@@ -111,9 +111,9 @@ class SembleIndex:
                     if c.language:
                         lang_counts[c.language] = lang_counts.get(c.language, 0) + 1
 
-        t_emb = time.perf_counter()
+        t_emb_start = time.perf_counter()
         embeddings = self._embed_chunks(all_chunks)
-        t_emb = time.perf_counter() - t_emb
+        t_emb = time.perf_counter() - t_emb_start
 
         self._chunks = all_chunks
 
