@@ -20,7 +20,9 @@ from semble.search import (
     search_semantic,
     search_symbol,
 )
-from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
+from semble.types import Chunk, Encoder, FileLines, IndexStats, SearchMode, SearchResult
+
+DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
 
 _DOC_EXTENSIONS: frozenset[str] = frozenset({".md", ".yaml", ".yml", ".toml", ".json"})
 ALL_EXTENSIONS: frozenset[str] = frozenset(EXTENSION_MAP)
@@ -58,22 +60,21 @@ class SembleIndex:
         results = index.search("how does auth work?", top_k=5)
     """
 
-    def __init__(self, model: str | Encoder = "Pringled/potion-code-16M") -> None:
-        """Create an empty index with a model name or encoder instance."""
-        self._model_name = model if isinstance(model, str) else None
-        self._model: Encoder | None = None if isinstance(model, str) else model
+    def __init__(self, model: Encoder | None = None) -> None:
+        """Create an empty index with an optional encoder."""
+        self.model = model
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
         self._bm25_index: BM25Index | None = None
         self._semantic_index: SemanticIndex | None = None
-        self._file_lines: dict[str, list[str]] = {}
+        self._file_lines: FileLines = {}
         self._stats = IndexStats()
 
     @classmethod
     def from_directory(
         cls,
         path: str | Path,
-        model: str | Encoder = "Pringled/potion-code-16M",
+        model: Encoder | None = None,
         *,
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
@@ -88,15 +89,6 @@ class SembleIndex:
             include_docs=include_docs,
         )
         return index
-
-    @property
-    def model(self) -> Encoder:
-        """Lazily load the embedding model."""
-        if self._model is None:
-            if self._model_name is None:
-                raise RuntimeError("Model name is not set")
-            self._model = cast(Encoder, StaticModel.from_pretrained(self._model_name))
-        return self._model
 
     def index_directory(
         self,
@@ -117,8 +109,6 @@ class SembleIndex:
         ignore = ignore or DEFAULT_IGNORE
         if extensions is None:
             extensions = ALL_EXTENSIONS if include_docs else CODE_EXTENSIONS
-
-        t_start = time.perf_counter()
 
         all_chunks: list[Chunk] = []
         lang_counts: dict[str, int] = {}
@@ -148,7 +138,6 @@ class SembleIndex:
         self._stats = IndexStats(
             total_files=len(self._file_lines),
             total_chunks=len(all_chunks),
-            index_time_ms=(time.perf_counter() - t_start) * 1000,
             embedding_time_ms=t_emb * 1000,
             languages=lang_counts,
         )
@@ -176,12 +165,11 @@ class SembleIndex:
         try:
             mode = SearchMode(mode)
         except ValueError as exc:
-            raise ValueError(
-                f"Unknown search mode: {mode!r}. Choose from: hybrid, semantic, bm25, symbol"
-            ) from exc
+            modes = ", ".join(str(value) for value in SearchMode)
+            raise ValueError(f"Unknown search mode: {mode!r}. Choose from: {modes}") from exc
 
         if mode is SearchMode.SEMANTIC:
-            if self._semantic_index is None:
+            if self._semantic_index is None or self.model is None:
                 return []
             return search_semantic(query, self.model, self._semantic_index, top_k)
         if mode is SearchMode.BM25:
@@ -190,7 +178,7 @@ class SembleIndex:
             return search_bm25(query, self._bm25_index, self._chunks, top_k)
         if mode is SearchMode.SYMBOL:
             return search_symbol(query, self._file_lines, top_k)
-        if self._semantic_index is None or self._bm25_index is None:
+        if self._semantic_index is None or self._bm25_index is None or self.model is None:
             return []
         return search_hybrid(
             query,
@@ -210,7 +198,7 @@ class SembleIndex:
         :param top_k: Number of related chunks to return.
         :returns: Related chunks from the same or other files, excluding the target chunk.
         """
-        if self._semantic_index is None:
+        if self._semantic_index is None or self.model is None:
             return []
         target = next(
             (
@@ -250,6 +238,10 @@ class SembleIndex:
         """Embed chunks, reusing cached embeddings when available."""
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
+        model = self.model
+        if model is None:
+            model = cast(Encoder, StaticModel.from_pretrained(DEFAULT_MODEL_NAME))
+            self.model = model
         uncached = [
             (i, c.content)
             for i, c in enumerate(chunks)
@@ -257,7 +249,7 @@ class SembleIndex:
         ]
         if uncached:
             indices, texts = zip(*uncached, strict=True)
-            new_embs = self.model.encode(list(texts))
+            new_embs = model.encode(list(texts))
             for idx, emb in zip(indices, new_embs, strict=True):
                 self._embedding_cache[chunks[idx].content_hash] = emb
         return np.array([self._embedding_cache[c.content_hash] for c in chunks], dtype=np.float32)

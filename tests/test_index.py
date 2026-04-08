@@ -12,16 +12,13 @@ from semble import SearchMode, SembleIndex
 
 @pytest.fixture
 def index(mock_model: Any) -> SembleIndex:
-    idx = SembleIndex()
-    idx._model = mock_model
-    return idx
+    return SembleIndex(model=mock_model)
 
 
 def test_index_directory_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
     stats = index.index_directory(tmp_project)
     assert stats.total_files >= 2  # auth.py, utils.py
     assert stats.total_chunks > 0
-    assert stats.index_time_ms > 0
     assert stats.embedding_time_ms > 0
 
 

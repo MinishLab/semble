@@ -2,10 +2,18 @@ from __future__ import annotations
 
 import argparse
 import sys
+from typing import cast
+
+from model2vec import StaticModel
+
+from semble.types import Encoder
 
 
 def main() -> None:
     """Run the command-line interface."""
+    from semble import SearchMode
+    from semble.index import DEFAULT_MODEL_NAME
+
     parser = argparse.ArgumentParser(
         prog="semble",
         description="Instant local code search for agents.",
@@ -20,10 +28,10 @@ def main() -> None:
     srch.add_argument(
         "-m",
         "--mode",
-        default="hybrid",
-        choices=["hybrid", "semantic", "bm25", "symbol"],
+        default=SearchMode.HYBRID.value,
+        choices=[mode.value for mode in SearchMode],
     )
-    srch.add_argument("--model", default="Pringled/potion-code-16M")
+    srch.add_argument("--model", default=DEFAULT_MODEL_NAME)
     srch.add_argument("--include-docs", action="store_true")
 
     args = parser.parse_args()
@@ -31,11 +39,11 @@ def main() -> None:
     if args.command == "search":
         from semble import SembleIndex
 
-        index = SembleIndex(model=args.model)
+        index = SembleIndex(model=cast(Encoder, StaticModel.from_pretrained(args.model)))
         stats = index.index_directory(args.path, include_docs=args.include_docs)
         print(
             f"Indexed {stats.total_files} files → {stats.total_chunks} chunks"
-            f" ({stats.index_time_ms:.0f}ms, embedding: {stats.embedding_time_ms:.0f}ms)"
+            f" (embedding: {stats.embedding_time_ms:.0f}ms)"
         )
 
         results = index.search(args.query, top_k=args.top_k, mode=args.mode)
@@ -45,7 +53,7 @@ def main() -> None:
             return
 
         for i, r in enumerate(results):
-            print(f"\n#{i + 1} [{r.source}] score={r.score:.3f}")
+            print(f"\n#{i + 1} [{r.source.value}] score={r.score:.3f}")
             print(f"  {r.chunk.location}")
             lines = r.chunk.content.strip().splitlines()[:3]
             for line in lines:

@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semble.cli import main
-from semble.types import Chunk, IndexStats, SearchResult
+from semble.types import Chunk, IndexStats, SearchMode, SearchResult
 
 
 def _make_chunk(content: str = "def foo(): pass", file_path: str = "foo.py") -> Chunk:
@@ -30,12 +30,11 @@ def _make_index_mock(
     mock.index_directory.return_value = stats or IndexStats(
         total_files=2,
         total_chunks=5,
-        index_time_ms=100.0,
         embedding_time_ms=50.0,
         languages={"python": 5},
     )
     mock.search.return_value = (
-        [SearchResult(chunk=_make_chunk(), score=0.9, source="hybrid")]
+        [SearchResult(chunk=_make_chunk(), score=0.9, source=SearchMode.HYBRID)]
         if chunks is None
         else chunks
     )

@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 from vicinity import Metric, Vicinity
 
-from semble.types import Chunk, Encoder, SearchResult
+from semble.types import Chunk, Encoder, FileLines, SearchMode, SearchResult
 
 _TOKEN_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
 _DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |pub async fn )")
@@ -69,7 +69,7 @@ def search_semantic(
     qe = model.encode([query])[0]
     hits = semantic_index.query(qe, top_k)
     return [
-        SearchResult(chunk=chunk, score=1.0 - float(distance), source="semantic")
+        SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC)
         for chunk, distance in hits
     ]
 
@@ -84,7 +84,7 @@ def search_bm25(
     scores = bm25_index.scores(query)
     indices = np.argsort(-scores)[:top_k]
     return [
-        SearchResult(chunk=chunks[i], score=float(scores[i]), source="bm25")
+        SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25)
         for i in indices
         if scores[i] > 0
     ]
@@ -92,7 +92,7 @@ def search_bm25(
 
 def search_symbol(
     query: str,
-    file_lines: dict[str, list[str]],
+    file_lines: FileLines,
     top_k: int,
 ) -> list[SearchResult]:
     """Search for symbols by matching identifier tokens against file lines.
@@ -133,7 +133,10 @@ def search_symbol(
                 language=None,
                 content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
             )
-            best[file_path] = (score, SearchResult(chunk=chunk, score=score, source="symbol"))
+            best[file_path] = (
+                score,
+                SearchResult(chunk=chunk, score=score, source=SearchMode.SYMBOL),
+            )
 
     results = [sr for _, sr in best.values()]
     results.sort(key=lambda r: -r.score)
@@ -189,4 +192,6 @@ def search_hybrid(
         combined[key] = alpha * sem_norm.get(key, 0.0) + (1.0 - alpha) * bm25_norm.get(key, 0.0)
 
     ranked = sorted(combined, key=lambda k: -combined[k])[:top_k]
-    return [SearchResult(chunk=cmap[k], score=combined[k], source="hybrid") for k in ranked]
+    return [
+        SearchResult(chunk=cmap[k], score=combined[k], source=SearchMode.HYBRID) for k in ranked
+    ]

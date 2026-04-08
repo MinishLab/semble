@@ -8,6 +8,8 @@ from typing import Any, Protocol
 import numpy as np
 import numpy.typing as npt
 
+FileLines = dict[str, list[str]]
+
 
 class SearchMode(str, Enum):
     """Search mode for SembleIndex.search()."""
@@ -21,7 +23,7 @@ class SearchMode(str, Enum):
 class Encoder(Protocol):
     """Protocol for embedding models. Any object with a compatible encode() works."""
 
-    def encode(self, texts: Sequence[str], **kwargs: Any) -> npt.NDArray[np.float32]:
+    def encode(self, texts: Sequence[str], **kwargs: Any) -> npt.NDArray[np.floating[Any]]:
         """Encode a sequence of texts into embeddings."""
         ...  # pragma: no cover
 
@@ -43,21 +45,20 @@ class Chunk:
         return f"{self.file_path}:{self.start_line}-{self.end_line}"
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class SearchResult:
     """A single search result with score and source."""
 
     chunk: Chunk
     score: float
-    source: str  # "semantic", "bm25", "symbol", "hybrid"
+    source: SearchMode
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class IndexStats:
     """Statistics about the current index state."""
 
     total_files: int = 0
     total_chunks: int = 0
-    index_time_ms: float = 0
     embedding_time_ms: float = 0
     languages: dict[str, int] = field(default_factory=dict)
