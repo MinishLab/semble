@@ -1,4 +1,4 @@
-"""Tests for semble._chunker."""
+"""Tests for semble.chunker."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from semble._chunker import chunk_by_lines, chunk_file, chunk_with_treesitter
+from semble.chunker import chunk_by_lines, chunk_file, chunk_with_chonkie
 
 
 def test_chunk_by_lines_basic(tmp_path: Path) -> None:
@@ -46,16 +46,12 @@ def test_chunk_file_empty(tmp_path: Path) -> None:
     assert chunks == []
 
 
-def test_chunk_file_py_ast_symbol_names(tmp_py_file: Path) -> None:
-    # When chonkie is unavailable, AST chunker sets symbol names
-    pytest.importorskip("tree_sitter_python", reason="need tree_sitter_python for fallback test")
-    from unittest.mock import patch
-
-    with patch.dict("sys.modules", {"chonkie": None}):
-        chunks = chunk_file(tmp_py_file)
-    symbol_names = [c.symbol_name for c in chunks if c.symbol_name]
-    assert "add" in symbol_names
-    assert "subtract" in symbol_names
+def test_chunk_with_chonkie_fallback(tmp_path: Path) -> None:
+    """Should fall back to line-based when given an unsupported language."""
+    f = tmp_path / "code.py"
+    f.write_text("def foo():\n    pass\n")
+    chunks = chunk_with_chonkie(f.read_text(), str(f), "python")
+    assert len(chunks) > 0
 
 
 def test_chunk_file_py_produces_chunks(tmp_py_file: Path) -> None:
@@ -83,12 +79,3 @@ def test_chunk_content_hash_unique(tmp_py_file: Path) -> None:
     hashes = [c.content_hash for c in chunks]
     # Hashes should be unique across chunks (different content)
     assert len(hashes) == len(set(hashes))
-
-
-def test_chunk_with_treesitter_fallback_on_missing_grammar(tmp_path: Path) -> None:
-    """Should fall back to line-based when grammar module is unavailable."""
-    f = tmp_path / "code.rb"
-    f.write_text("def foo\n  puts 'hi'\nend\n")
-    # ruby grammar likely not installed — should fall back gracefully
-    chunks = chunk_with_treesitter(f.read_text(), str(f), "ruby")
-    assert len(chunks) > 0

@@ -1,56 +1,28 @@
-"""Core index engine: the main entry point for semble."""
-
 from __future__ import annotations
 
-import ast
 import contextlib
 import time
 from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
+from model2vec import StaticModel
 
-if TYPE_CHECKING:
-    from model2vec import StaticModel
-
-from semble._chunker import chunk_file
-from semble._search import (
+from semble.chunker import EXTENSION_MAP, chunk_file
+from semble.search import (
     BM25Index,
     SemanticIndex,
-    dedup_results,
     search_bm25,
-    search_hybrid_alpha,
+    search_hybrid,
     search_semantic,
     search_symbol,
 )
-from semble._types import Chunk, IndexStats, SearchResult, SymbolKind
+from semble.types import Chunk, IndexStats, SearchResult, SymbolKind
 
-CODE_EXTENSIONS: frozenset[str] = frozenset(
-    {
-        ".py",
-        ".js",
-        ".jsx",
-        ".ts",
-        ".tsx",
-        ".go",
-        ".rs",
-        ".java",
-        ".rb",
-        ".php",
-        ".c",
-        ".h",
-        ".cpp",
-        ".hpp",
-        ".cs",
-        ".sh",
-        ".sql",
-    }
-)
-ALL_EXTENSIONS: frozenset[str] = CODE_EXTENSIONS | frozenset(
-    {".md", ".yaml", ".yml", ".toml", ".json"}
-)
+_DOC_EXTENSIONS: frozenset[str] = frozenset({".md", ".yaml", ".yml", ".toml", ".json"})
+ALL_EXTENSIONS: frozenset[str] = frozenset(EXTENSION_MAP)
+CODE_EXTENSIONS: frozenset[str] = ALL_EXTENSIONS - _DOC_EXTENSIONS
 
 DEFAULT_IGNORE: frozenset[str] = frozenset(
     {
@@ -74,21 +46,6 @@ DEFAULT_IGNORE: frozenset[str] = frozenset(
 )
 
 
-def _extract_python_docstrings(path: Path) -> dict[str, str]:
-    """Extract docstrings keyed by symbol name from a Python file."""
-    try:
-        tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-    except (SyntaxError, OSError, UnicodeDecodeError):
-        return {}
-    ds: dict[str, str] = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
-            docstring = ast.get_docstring(node)
-            if docstring:
-                ds[node.name] = docstring
-    return ds
-
-
 class SembleIndex:
     """Fast local code index with hybrid search.
 
@@ -104,7 +61,6 @@ class SembleIndex:
         self._model: StaticModel | None = None
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
-        self._docstrings: dict[str, dict[str, str]] = {}
         self._bm25_index: BM25Index | None = None
         self._semantic_index: SemanticIndex | None = None
         self._hash_to_chunk: dict[str, Chunk] = {}
@@ -158,8 +114,6 @@ class SembleIndex:
                 self._file_lines[fp_str] = fp.read_text(
                     encoding="utf-8", errors="replace"
                 ).splitlines()
-            if fp.suffix == ".py":
-                self._docstrings[fp_str] = _extract_python_docstrings(fp)
 
         t_emb = time.perf_counter()
         embeddings = self._embed_chunks(all_chunks)
@@ -169,10 +123,9 @@ class SembleIndex:
         self._hash_to_chunk = {c.content_hash: c for c in all_chunks}
 
         if all_chunks:
-            enriched = [self._enrich_for_bm25(c) for c in all_chunks]
             enriched_chunks = [
                 Chunk(
-                    content=enriched[i],
+                    content=self._enrich_for_bm25(c),
                     file_path=c.file_path,
                     start_line=c.start_line,
                     end_line=c.end_line,
@@ -181,7 +134,7 @@ class SembleIndex:
                     language=c.language,
                     content_hash=c.content_hash,
                 )
-                for i, c in enumerate(all_chunks)
+                for c in all_chunks
             ]
             self._bm25_index = BM25Index(enriched_chunks)
             self._semantic_index = SemanticIndex(all_chunks, embeddings)
@@ -201,7 +154,6 @@ class SembleIndex:
         query: str,
         top_k: int = 10,
         mode: str = "hybrid",
-        dedup: bool = True,
         alpha: float = 0.5,
     ) -> list[SearchResult]:
         """Search the index.
@@ -209,7 +161,6 @@ class SembleIndex:
         :param query: Natural language or code query.
         :param top_k: Number of results to return.
         :param mode: Search mode — one of "hybrid", "semantic", "bm25", "symbol".
-        :param dedup: If True, remove near-duplicate results.
         :param alpha: Semantic weight for hybrid mode (1-alpha goes to BM25). Default 0.5.
         :returns: List of search results, best first.
         :raises ValueError: If mode is not recognized.
@@ -220,42 +171,35 @@ class SembleIndex:
         if mode == "semantic":
             if self._semantic_index is None:
                 return []
-            results = search_semantic(
+            return search_semantic(
                 query,
                 self.model,
                 self._semantic_index,
-                self._chunks,
                 self._hash_to_chunk,
-                top_k * 2,
+                top_k,
             )
-        elif mode == "bm25":
+        if mode == "bm25":
             if self._bm25_index is None:
                 return []
-            results = search_bm25(query, self._bm25_index, self._chunks, top_k * 2)
-        elif mode == "symbol":
-            results = search_symbol(query, self._file_lines, top_k)
-        elif mode == "hybrid":
+            return search_bm25(query, self._bm25_index, self._chunks, top_k)
+        if mode == "symbol":
+            return search_symbol(query, self._file_lines, top_k)
+        if mode == "hybrid":
             if self._semantic_index is None or self._bm25_index is None:
                 return []
-            results = search_hybrid_alpha(
+            return search_hybrid(
                 query,
                 self.model,
                 self._semantic_index,
                 self._bm25_index,
                 self._chunks,
                 self._hash_to_chunk,
-                top_k * 2,
+                top_k,
                 alpha=alpha,
             )
-        else:
-            raise ValueError(
-                f"Unknown search mode: {mode!r}. Choose from: hybrid, semantic, bm25, symbol"
-            )
-
-        if dedup and len(results) > 1:
-            results = dedup_results(results, self._embedding_cache)
-
-        return results[:top_k]
+        raise ValueError(
+            f"Unknown search mode: {mode!r}. Choose from: hybrid, semantic, bm25, symbol"
+        )
 
     def get_context(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically related to the chunk at the given location.
@@ -281,7 +225,6 @@ class SembleIndex:
             target.content,
             self.model,
             self._semantic_index,
-            self._chunks,
             self._hash_to_chunk,
             top_k + 1,
         )
@@ -289,6 +232,7 @@ class SembleIndex:
 
     @property
     def stats(self) -> IndexStats:
+        """Return indexing statistics from the last call to index_directory."""
         return self._stats
 
     # -- Private helpers --
@@ -321,11 +265,6 @@ class SembleIndex:
         return np.array([self._embedding_cache[c.content_hash] for c in chunks], dtype=np.float32)
 
     def _enrich_for_bm25(self, chunk: Chunk) -> str:
-        """Append file stem and docstring to BM25 content for better recall."""
-        parts = [chunk.content]
+        """Append file stem to BM25 content to boost path-based queries."""
         stem = Path(chunk.file_path).stem
-        parts.append(f" {stem} {stem}")
-        ds = self._docstrings.get(chunk.file_path, {})
-        if chunk.symbol_name and chunk.symbol_name in ds:
-            parts.append(ds[chunk.symbol_name])
-        return " ".join(parts)
+        return f"{chunk.content} {stem} {stem}"

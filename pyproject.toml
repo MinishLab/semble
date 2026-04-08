@@ -22,18 +22,10 @@ dependencies = [
     "vicinity>=0.4.0",
     "numpy>=1.24.0",
     "bm25s>=0.2.0",
+    "chonkie[code]>=1.6.2",
 ]
 
 [project.optional-dependencies]
-treesitter = [
-    "tree-sitter>=0.23.0",
-    "tree-sitter-python>=0.23.0",
-    "tree-sitter-javascript>=0.23.0",
-    "tree-sitter-typescript>=0.23.0",
-    "tree-sitter-go>=0.23.0",
-    "tree-sitter-rust>=0.23.0",
-    "tree-sitter-java>=0.23.0",
-]
 mcp = ["mcp>=1.0.0"]
 benchmark = [
     "chonkie[code]>=1.6.2",
@@ -47,8 +39,6 @@ dev = [
     "mypy>=1.0",
     "pydoclint>=0.5.3",
     "pre-commit>=3.0",
-    "tree-sitter>=0.23.0",
-    "tree-sitter-python>=0.23.0",
 ]
 
 [project.scripts]
@@ -80,9 +70,6 @@ disallow_untyped_defs = false
 disallow_untyped_calls = false
 disallow_incomplete_defs = false
 
-[[tool.mypy.overrides]]
-module = "chonkie.*"
-ignore_missing_imports = true
 
 [tool.pydoclint]
 style = "sphinx"
@@ -94,4 +81,8 @@ require-return-section-when-returning-nothing = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--tb=short"
+addopts = ["--tb=short", "--strict-markers", "--cov=src", "--cov-report=term-missing"]
+
+[tool.coverage.report]
+skip_covered = true
+exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]

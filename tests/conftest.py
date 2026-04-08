@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from semble._types import Chunk
+from semble.types import Chunk
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def tmp_project(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def sample_chunks(tmp_py_file: Path) -> list[Chunk]:
-    from semble._chunker import chunk_file
+    from semble.chunker import chunk_file
 
     return chunk_file(tmp_py_file)
 

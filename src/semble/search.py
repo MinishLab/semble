@@ -1,44 +1,101 @@
-"""Search strategies and hybrid fusion for semble."""
-
 from __future__ import annotations
 
 import contextlib
 import hashlib
 import re
-from typing import TYPE_CHECKING
 
 import bm25s
 import numpy as np
 import numpy.typing as npt
+from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble._tokenizer import QUERY_STOPS, tokenize_simple, tokenize_subword
-from semble._types import Chunk, SearchResult, SymbolKind
+from semble.types import Chunk, SearchResult, SymbolKind
 
-if TYPE_CHECKING:
-    from model2vec import StaticModel
+# Stop words filtered out during symbol search
+_SYMBOL_STOPS: frozenset[str] = frozenset(
+    {
+        "self",
+        "def",
+        "class",
+        "return",
+        "import",
+        "from",
+        "if",
+        "else",
+        "elif",
+        "for",
+        "in",
+        "is",
+        "not",
+        "and",
+        "or",
+        "none",
+        "true",
+        "false",
+        "try",
+        "except",
+        "raise",
+        "with",
+        "as",
+        "pass",
+        "the",
+        "a",
+        "an",
+        "of",
+        "to",
+        "this",
+        "that",
+        "it",
+        "how",
+        "does",
+        "do",
+        "what",
+        "where",
+        "when",
+        "which",
+        "who",
+        "are",
+        "was",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "will",
+        "would",
+        "can",
+        "could",
+        "should",
+        "may",
+        "might",
+        "get",
+        "set",
+        "run",
+        "main",
+        "test",
+        "new",
+        "init",
+    }
+)
 
-_DEDUP_THRESHOLD = 0.92
+
+def _tokenize(text: str) -> list[str]:
+    return re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", text.lower())
 
 
 class BM25Index:
-    """Thin wrapper around bm25s for simple and subword tokenization."""
+    """Thin wrapper around bm25s."""
 
     def __init__(self, chunks: list[Chunk]) -> None:
-        simple_tokens = [tokenize_simple(c.content) for c in chunks]
-        subword_tokens = [tokenize_subword(c.content) for c in chunks]
+        tokens = [_tokenize(c.content) for c in chunks]
+        self._bm25 = bm25s.BM25()
+        self._bm25.index(tokens, show_progress=False)
 
-        self._simple = bm25s.BM25()
-        self._simple.index(simple_tokens, show_progress=False)
-
-        self._subword = bm25s.BM25()
-        self._subword.index(subword_tokens, show_progress=False)
-
-    def scores_simple(self, query: str) -> npt.NDArray[np.float32]:
-        return self._simple.get_scores(tokenize_simple(query))  # type: ignore[no-any-return]
-
-    def scores_subword(self, query: str) -> npt.NDArray[np.float32]:
-        return self._subword.get_scores(tokenize_subword(query))  # type: ignore[no-any-return]
+    def scores(self, query: str) -> npt.NDArray[np.float32]:
+        """Return BM25 scores for all indexed chunks."""
+        return self._bm25.get_scores(_tokenize(query))  # type: ignore[no-any-return]
 
 
 class SemanticIndex:
@@ -62,7 +119,6 @@ def search_semantic(
     query: str,
     model: StaticModel,
     semantic_index: SemanticIndex,
-    chunks: list[Chunk],
     hash_to_chunk: dict[str, Chunk],
     top_k: int,
 ) -> list[SearchResult]:
@@ -84,7 +140,7 @@ def search_bm25(
     chunks: list[Chunk],
     top_k: int,
 ) -> list[SearchResult]:
-    scores = bm25_index.scores_simple(query)
+    scores = bm25_index.scores(query)
     indices = np.argsort(-scores)[:top_k]
     return [
         SearchResult(chunk=chunks[i], score=float(scores[i]), source="bm25")
@@ -95,8 +151,23 @@ def search_bm25(
 
 _DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |pub async fn )")
 _CONTEXT_LINES = 3
-# Tokens that are too generic to be useful as symbol search terms
-_SYMBOL_STOPS = QUERY_STOPS | frozenset({"get", "set", "run", "main", "test", "new", "init"})
+
+
+def _symbol_tokens(query: str) -> list[str]:
+    """Extract identifier tokens from a query, with camelCase splitting."""
+    raw = re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query)
+    tokens: list[str] = []
+    for tok in raw:
+        lower = tok.lower()
+        if lower in _SYMBOL_STOPS or len(lower) < 2:
+            continue
+        tokens.append(lower)
+        if "_" in tok:
+            tokens.extend(p.lower() for p in tok.split("_") if len(p) >= 2)
+        tokens.extend(
+            p.lower() for p in re.findall(r"[A-Z]?[a-z]{2,}|[A-Z]{2,}(?=[A-Z][a-z]|\d|\b)", tok)
+        )
+    return list(dict.fromkeys(tokens))
 
 
 def search_symbol(
@@ -109,15 +180,16 @@ def search_symbol(
     Extracts identifier-like tokens from the query (subword-aware), then
     searches for any of them in each file. Definition lines score higher than
     plain usages. Returns at most one result per file.
+
+    :param query: Search query (e.g. function or class name).
+    :param file_lines: Mapping from file path to list of source lines.
+    :param top_k: Maximum number of results to return.
+    :returns: List of search results sorted by score descending.
     """
-    # Extract identifier tokens from the query (handles camelCase and plain words)
-    raw_tokens = set(tokenize_subword(query)) - _SYMBOL_STOPS
-    # Keep only tokens that look like identifiers (2+ chars, not pure stop words)
-    tokens = [t for t in raw_tokens if len(t) >= 2]
+    tokens = _symbol_tokens(query)
     if not tokens:
         return []
 
-    # Build per-token patterns; skip tokens that fail to compile (shouldn't happen)
     patterns = []
     for tok in tokens:
         with contextlib.suppress(re.error):
@@ -129,12 +201,10 @@ def search_symbol(
 
     for file_path, lines in file_lines.items():
         for lineno, line in enumerate(lines):
-            # Count how many query tokens appear on this line
             matches = sum(1 for p in patterns if p.search(line))
             if matches == 0:
                 continue
             is_def = bool(_DEF_RE.match(line))
-            # Score: fraction of tokens matched, boosted for definition lines
             score = (matches / len(patterns)) * (1.5 if is_def else 1.0)
             if file_path in best and best[file_path][0] >= score:
                 continue
@@ -168,7 +238,7 @@ def _normalize(scores: dict[str, float]) -> dict[str, float]:
     return {k: float((v - mn) / denom) for k, v in scores.items()}
 
 
-def search_hybrid_alpha(
+def search_hybrid(
     query: str,
     model: StaticModel,
     semantic_index: SemanticIndex,
@@ -178,7 +248,10 @@ def search_hybrid_alpha(
     top_k: int,
     alpha: float = 0.5,
 ) -> list[SearchResult]:
-    """Hybrid search using alpha-weighted linear combination of normalized scores.
+    """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
+
+    Both score sets are min-max normalized independently before combining,
+    so alpha has a consistent meaning regardless of score magnitude.
 
     :param query: Search query string.
     :param model: Embedding model for semantic search.
@@ -187,13 +260,11 @@ def search_hybrid_alpha(
     :param chunks: All indexed chunks (parallel to BM25 index).
     :param hash_to_chunk: Mapping from content hash to chunk.
     :param top_k: Number of results to return.
-    :param alpha: Weight for the semantic score (1-alpha goes to BM25).
-        Higher alpha = more semantic, lower = more keyword. Default 0.5.
+    :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
     :returns: List of search results sorted by combined score descending.
     """
     n = top_k * 3
 
-    # Semantic scores: vicinity returns (hash, cosine_distance); convert to similarity
     qe = model.encode([query])[0]
     hits = semantic_index.query(qe, n)
     sem_raw: dict[str, float] = {}
@@ -204,8 +275,7 @@ def search_hybrid_alpha(
             sem_raw[content_hash] = 1.0 - float(distance)
             cmap[content_hash] = chunk
 
-    # BM25 scores (subword tokenizer for better recall)
-    bm25_scores = bm25_index.scores_subword(query)
+    bm25_scores = bm25_index.scores(query)
     bm25_raw: dict[str, float] = {}
     for idx in np.argsort(-bm25_scores)[:n]:
         if bm25_scores[idx] > 0:
@@ -213,7 +283,6 @@ def search_hybrid_alpha(
             bm25_raw[key] = float(bm25_scores[idx])
             cmap[key] = chunks[idx]
 
-    # Normalize each set independently, then combine
     sem_norm = _normalize(sem_raw)
     bm25_norm = _normalize(bm25_raw)
 
@@ -223,38 +292,3 @@ def search_hybrid_alpha(
 
     ranked = sorted(combined, key=lambda k: -combined[k])[:top_k]
     return [SearchResult(chunk=cmap[k], score=combined[k], source="hybrid") for k in ranked]
-
-
-def dedup_results(
-    results: list[SearchResult], embedding_cache: dict[str, npt.NDArray[np.float32]]
-) -> list[SearchResult]:
-    """Remove near-duplicate results by embedding cosine similarity."""
-    if len(results) <= 1:
-        return results
-
-    kept = [results[0]]
-    kept_hashes = {results[0].chunk.content_hash}
-
-    for r in results[1:]:
-        if r.chunk.content_hash in kept_hashes:
-            continue
-        r_emb = embedding_cache.get(r.chunk.content_hash)
-        if r_emb is None:
-            kept.append(r)
-            kept_hashes.add(r.chunk.content_hash)
-            continue
-        is_dup = False
-        for kr in kept:
-            kr_emb = embedding_cache.get(kr.chunk.content_hash)
-            if kr_emb is not None:
-                sim = float(
-                    np.dot(r_emb, kr_emb) / (np.linalg.norm(r_emb) * np.linalg.norm(kr_emb) + 1e-8)
-                )
-                if sim > _DEDUP_THRESHOLD:
-                    is_dup = True
-                    break
-        if not is_dup:
-            kept.append(r)
-            kept_hashes.add(r.chunk.content_hash)
-
-    return kept

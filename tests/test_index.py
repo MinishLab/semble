@@ -1,4 +1,4 @@
-"""Tests for semble._index (SembleIndex)."""
+"""Tests for semble.index (SembleIndex)."""
 
 from __future__ import annotations
 
@@ -93,10 +93,9 @@ def test_search_top_k_respected(index, tmp_project) -> None:
     assert len(results) <= 1
 
 
-def test_search_dedup_default(index, tmp_project) -> None:
+def test_search_no_duplicate_hashes(index, tmp_project) -> None:
     index.index_directory(tmp_project)
-    results = index.search("authenticate", top_k=5, dedup=True)
-    # All content hashes should be unique after dedup
+    results = index.search("authenticate", top_k=5)
     hashes = [r.chunk.content_hash for r in results]
     assert len(hashes) == len(set(hashes))
 

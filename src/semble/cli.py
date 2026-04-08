@@ -1,5 +1,3 @@
-"""CLI for semble."""
-
 from __future__ import annotations
 
 import argparse

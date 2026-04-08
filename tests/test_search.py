@@ -1,20 +1,19 @@
-"""Tests for semble._search."""
+"""Tests for semble.search."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from semble._search import (
+from semble.search import (
     BM25Index,
     SemanticIndex,
-    dedup_results,
     search_bm25,
-    search_hybrid_alpha,
+    search_hybrid,
     search_semantic,
     search_symbol,
 )
-from semble._types import Chunk, SearchResult, SymbolKind
+from semble.types import Chunk, SymbolKind
 
 
 def _make_chunk(content: str, file_path: str = "file.py", symbol_name: str | None = None) -> Chunk:
@@ -94,19 +93,19 @@ def test_bm25_no_results_for_garbage(bm25, chunks) -> None:
 
 
 def test_semantic_returns_results(chunks, embeddings, semantic, hash_to_chunk, mock_model) -> None:
-    results = search_semantic("login", mock_model, semantic, chunks, hash_to_chunk, top_k=3)
+    results = search_semantic("login", mock_model, semantic, hash_to_chunk, top_k=3)
     assert len(results) > 0
 
 
 def test_semantic_source_label(chunks, embeddings, semantic, hash_to_chunk, mock_model) -> None:
-    results = search_semantic("query", mock_model, semantic, chunks, hash_to_chunk, top_k=4)
+    results = search_semantic("query", mock_model, semantic, hash_to_chunk, top_k=4)
     assert all(r.source == "semantic" for r in results)
 
 
 def test_semantic_scores_between_0_and_1(
     chunks, embeddings, semantic, hash_to_chunk, mock_model
 ) -> None:
-    results = search_semantic("query", mock_model, semantic, chunks, hash_to_chunk, top_k=4)
+    results = search_semantic("query", mock_model, semantic, hash_to_chunk, top_k=4)
     for r in results:
         assert -1.0 <= r.score <= 1.0
 
@@ -168,41 +167,12 @@ def test_symbol_one_result_per_file(tmp_path) -> None:
 def test_hybrid_returns_results(
     chunks, embeddings, semantic, bm25, hash_to_chunk, mock_model
 ) -> None:
-    results = search_hybrid_alpha(
+    results = search_hybrid(
         "authenticate token", mock_model, semantic, bm25, chunks, hash_to_chunk, top_k=3
     )
     assert len(results) > 0
 
 
 def test_hybrid_source_label(chunks, embeddings, semantic, bm25, hash_to_chunk, mock_model) -> None:
-    results = search_hybrid_alpha(
-        "login", mock_model, semantic, bm25, chunks, hash_to_chunk, top_k=4
-    )
+    results = search_hybrid("login", mock_model, semantic, bm25, chunks, hash_to_chunk, top_k=4)
     assert all(r.source == "hybrid" for r in results)
-
-
-# Dedup tests
-
-
-def test_dedup_removes_exact_hash_duplicates(chunks, embeddings) -> None:
-    cache = {c.content_hash: embeddings[i] for i, c in enumerate(chunks)}
-    r = SearchResult(chunk=chunks[0], score=1.0, source="semantic")
-    results = [r, r]  # exact duplicate
-    deduped = dedup_results(results, cache)
-    assert len(deduped) == 1
-
-
-def test_dedup_keeps_distinct_results(chunks, embeddings) -> None:
-    cache = {c.content_hash: embeddings[i] for i, c in enumerate(chunks)}
-    results = [
-        SearchResult(chunk=c, score=1.0 - i * 0.1, source="semantic") for i, c in enumerate(chunks)
-    ]
-    deduped = dedup_results(results, cache)
-    # With random embeddings, all should be distinct
-    assert len(deduped) == len(chunks)
-
-
-def test_dedup_single_result_unchanged(chunks, embeddings) -> None:
-    cache = {chunks[0].content_hash: embeddings[0]}
-    results = [SearchResult(chunk=chunks[0], score=1.0, source="semantic")]
-    assert dedup_results(results, cache) == results

@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from semble._types import Chunk, IndexStats, SearchResult, SymbolKind
 from semble.cli import main
+from semble.types import Chunk, IndexStats, SearchResult, SymbolKind
 
 
 def _make_chunk(content: str = "def foo(): pass", file_path: str = "foo.py") -> Chunk:

@@ -1,5 +1,3 @@
-"""Core data types for semble."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field
