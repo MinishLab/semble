@@ -1,6 +1,29 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Protocol
+
+import numpy as np
+import numpy.typing as npt
+
+
+class SearchMode(str, Enum):
+    """Search mode for SembleIndex.search()."""
+
+    HYBRID = "hybrid"
+    SEMANTIC = "semantic"
+    BM25 = "bm25"
+    SYMBOL = "symbol"
+
+
+class Encoder(Protocol):
+    """Protocol for embedding models. Any object with a compatible encode() works."""
+
+    def encode(self, texts: Sequence[str], **kwargs: Any) -> npt.NDArray[np.float32]:
+        """Encode a sequence of texts into embeddings."""
+        ...  # pragma: no cover
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,6 +39,7 @@ class Chunk:
 
     @property
     def location(self) -> str:
+        """Return the file path and line range for this chunk."""
         return f"{self.file_path}:{self.start_line}-{self.end_line}"
 
 

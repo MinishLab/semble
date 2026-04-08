@@ -33,8 +33,24 @@ EXTENSION_MAP: dict[str, str] = {
 }
 
 
-def _content_hash(content: str) -> str:
-    return hashlib.sha256(content.encode()).hexdigest()[:16]
+def chunk_file(file_path: Path) -> list[Chunk]:
+    """Chunk a single file from disk."""
+    try:
+        source = file_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+
+    language = EXTENSION_MAP.get(file_path.suffix.lower())
+    return chunk_source(source, str(file_path), language)
+
+
+def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
+    """Chunk pre-read source text."""
+    if not source.strip():
+        return []
+    if language:
+        return _chunk_with_chonkie(source, file_path, language)
+    return chunk_by_lines(source, file_path, language)
 
 
 def chunk_by_lines(
@@ -78,36 +94,8 @@ def chunk_by_lines(
     return chunks
 
 
-def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
-    """Chunk pre-read source text using Chonkie with line-based fallback.
-
-    :param source: Source text to chunk.
-    :param file_path: Path of the source file (for metadata).
-    :param language: Language identifier, or None to use line-based chunking.
-    :returns: List of chunks.
-    """
-    if not source.strip():
-        return []
-    if language:
-        return _chunk_with_chonkie(source, file_path, language)
-    return chunk_by_lines(source, file_path, language)
-
-
-def chunk_file(file_path: Path) -> list[Chunk]:
-    """Chunk a single file, reading it from disk.
-
-    :param file_path: Path to the source file.
-    :returns: List of chunks extracted from the file.
-    """
-    try:
-        source = file_path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return []
-    language = EXTENSION_MAP.get(file_path.suffix.lower())
-    return chunk_source(source, str(file_path), language)
-
-
 def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
+    """Chunk source with Chonkie and fall back to line chunks on failure."""
     try:
         cc = CodeChunker(language=language, chunk_size=1500)
         raw = cc.chunk(source)
@@ -133,3 +121,8 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
             )
         )
     return chunks if chunks else chunk_by_lines(source, file_path, language)
+
+
+def _content_hash(content: str) -> str:
+    """Return a short stable hash for chunk content."""
+    return hashlib.sha256(content.encode()).hexdigest()[:16]

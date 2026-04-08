@@ -5,6 +5,7 @@ import os
 import time
 from collections.abc import Iterator
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -19,7 +20,7 @@ from semble.search import (
     search_semantic,
     search_symbol,
 )
-from semble.types import Chunk, IndexStats, SearchResult
+from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
 _DOC_EXTENSIONS: frozenset[str] = frozenset({".md", ".yaml", ".yml", ".toml", ".json"})
 ALL_EXTENSIONS: frozenset[str] = frozenset(EXTENSION_MAP)
@@ -57,9 +58,10 @@ class SembleIndex:
         results = index.search("how does auth work?", top_k=5)
     """
 
-    def __init__(self, model_name: str = "Pringled/potion-code-16M") -> None:
-        self._model_name = model_name
-        self._model: StaticModel | None = None
+    def __init__(self, model: str | Encoder = "Pringled/potion-code-16M") -> None:
+        """Create an empty index with a model name or encoder instance."""
+        self._model_name = model if isinstance(model, str) else None
+        self._model: Encoder | None = None if isinstance(model, str) else model
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
         self._bm25_index: BM25Index | None = None
@@ -67,11 +69,33 @@ class SembleIndex:
         self._file_lines: dict[str, list[str]] = {}
         self._stats = IndexStats()
 
+    @classmethod
+    def from_directory(
+        cls,
+        path: str | Path,
+        model: str | Encoder = "Pringled/potion-code-16M",
+        *,
+        extensions: frozenset[str] | None = None,
+        ignore: frozenset[str] | None = None,
+        include_docs: bool = False,
+    ) -> SembleIndex:
+        """Create an index and populate it from a directory."""
+        index = cls(model=model)
+        index.index_directory(
+            path,
+            extensions=extensions,
+            ignore=ignore,
+            include_docs=include_docs,
+        )
+        return index
+
     @property
-    def model(self) -> StaticModel:
+    def model(self) -> Encoder:
         """Lazily load the embedding model."""
         if self._model is None:
-            self._model = StaticModel.from_pretrained(self._model_name)
+            if self._model_name is None:
+                raise RuntimeError("Model name is not set")
+            self._model = cast(Encoder, StaticModel.from_pretrained(self._model_name))
         return self._model
 
     def index_directory(
@@ -134,7 +158,7 @@ class SembleIndex:
         self,
         query: str,
         top_k: int = 10,
-        mode: str = "hybrid",
+        mode: SearchMode | str = SearchMode.HYBRID,
         alpha: float = 0.5,
     ) -> list[SearchResult]:
         """Search the index.
@@ -149,30 +173,33 @@ class SembleIndex:
         if not self._chunks:
             return []
 
-        if mode == "semantic":
+        try:
+            mode = SearchMode(mode)
+        except ValueError as exc:
+            raise ValueError(
+                f"Unknown search mode: {mode!r}. Choose from: hybrid, semantic, bm25, symbol"
+            ) from exc
+
+        if mode is SearchMode.SEMANTIC:
             if self._semantic_index is None:
                 return []
             return search_semantic(query, self.model, self._semantic_index, top_k)
-        if mode == "bm25":
+        if mode is SearchMode.BM25:
             if self._bm25_index is None:
                 return []
             return search_bm25(query, self._bm25_index, self._chunks, top_k)
-        if mode == "symbol":
+        if mode is SearchMode.SYMBOL:
             return search_symbol(query, self._file_lines, top_k)
-        if mode == "hybrid":
-            if self._semantic_index is None or self._bm25_index is None:
-                return []
-            return search_hybrid(
-                query,
-                self.model,
-                self._semantic_index,
-                self._bm25_index,
-                self._chunks,
-                top_k,
-                alpha=alpha,
-            )
-        raise ValueError(
-            f"Unknown search mode: {mode!r}. Choose from: hybrid, semantic, bm25, symbol"
+        if self._semantic_index is None or self._bm25_index is None:
+            return []
+        return search_hybrid(
+            query,
+            self.model,
+            self._semantic_index,
+            self._bm25_index,
+            self._chunks,
+            top_k,
+            alpha=alpha,
         )
 
     def get_context(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
@@ -211,6 +238,7 @@ class SembleIndex:
         extensions: frozenset[str],
         ignore: frozenset[str],
     ) -> Iterator[Path]:
+        """Yield matching files while pruning ignored directories."""
         for dirpath, dirnames, filenames in os.walk(str(root)):
             dirnames[:] = sorted(d for d in dirnames if d not in ignore)
             for filename in sorted(filenames):
@@ -219,6 +247,7 @@ class SembleIndex:
                     yield p
 
     def _embed_chunks(self, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
+        """Embed chunks, reusing cached embeddings when available."""
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
         uncached = [

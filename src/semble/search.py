@@ -6,20 +6,35 @@ import re
 import bm25s
 import numpy as np
 import numpy.typing as npt
-from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble.types import Chunk, SearchResult
+from semble.types import Chunk, Encoder, SearchResult
+
+_TOKEN_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
+_DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |pub async fn )")
+_CONTEXT_LINES = 3
 
 
 def _tokenize(text: str) -> list[str]:
-    return re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", text.lower())
+    """Split text into lowercase identifier-like tokens."""
+    return _TOKEN_RE.findall(text.lower())
+
+
+def _normalize(scores: dict[str, float]) -> dict[str, float]:
+    """Min-max normalize a score mapping to the range [0, 1]."""
+    if not scores:
+        return scores
+    vals = np.array(list(scores.values()), dtype=np.float32)
+    mn, mx = float(vals.min()), float(vals.max())
+    denom = mx - mn if mx - mn > 1e-9 else 1e-9
+    return {k: float((v - mn) / denom) for k, v in scores.items()}
 
 
 class BM25Index:
     """Thin wrapper around bm25s."""
 
     def __init__(self, texts: list[str]) -> None:
+        """Build a BM25 index from texts."""
         tokens = [_tokenize(t) for t in texts]
         self._bm25 = bm25s.BM25()
         self._bm25.index(tokens, show_progress=False)
@@ -33,6 +48,7 @@ class SemanticIndex:
     """Wrapper around vicinity for cosine similarity search."""
 
     def __init__(self, chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> None:
+        """Build a semantic index from chunks and embeddings."""
         self._vicinity = Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
     def query(
@@ -45,10 +61,11 @@ class SemanticIndex:
 
 def search_semantic(
     query: str,
-    model: StaticModel,
+    model: Encoder,
     semantic_index: SemanticIndex,
     top_k: int,
 ) -> list[SearchResult]:
+    """Run semantic search for a query."""
     qe = model.encode([query])[0]
     hits = semantic_index.query(qe, top_k)
     return [
@@ -63,6 +80,7 @@ def search_bm25(
     chunks: list[Chunk],
     top_k: int,
 ) -> list[SearchResult]:
+    """Run BM25 search for a query."""
     scores = bm25_index.scores(query)
     indices = np.argsort(-scores)[:top_k]
     return [
@@ -70,10 +88,6 @@ def search_bm25(
         for i in indices
         if scores[i] > 0
     ]
-
-
-_DEF_RE = re.compile(r"^\s*(def |async def |class |function |func |fn |pub fn |pub async fn )")
-_CONTEXT_LINES = 3
 
 
 def search_symbol(
@@ -91,11 +105,7 @@ def search_symbol(
     :param top_k: Maximum number of results to return.
     :returns: List of search results sorted by score descending.
     """
-    tokens = list(
-        dict.fromkeys(
-            t.lower() for t in re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query) if len(t) >= 2
-        )
-    )
+    tokens = list(dict.fromkeys(t.lower() for t in _TOKEN_RE.findall(query) if len(t) >= 2))
     if not tokens:
         return []
 
@@ -130,19 +140,9 @@ def search_symbol(
     return results[:top_k]
 
 
-def _normalize(scores: dict[str, float]) -> dict[str, float]:
-    """Min-max normalize a score dict to [0, 1]."""
-    if not scores:
-        return scores
-    vals = np.array(list(scores.values()), dtype=np.float32)
-    mn, mx = float(vals.min()), float(vals.max())
-    denom = mx - mn if mx - mn > 1e-9 else 1e-9
-    return {k: float((v - mn) / denom) for k, v in scores.items()}
-
-
 def search_hybrid(
     query: str,
-    model: StaticModel,
+    model: Encoder,
     semantic_index: SemanticIndex,
     bm25_index: BM25Index,
     chunks: list[Chunk],

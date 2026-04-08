@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from semble import SembleIndex
+from semble import SearchMode, SembleIndex
 
 
 @pytest.fixture
@@ -77,7 +77,7 @@ def test_search_semantic(index: SembleIndex, tmp_project: Path) -> None:
 
 def test_search_symbol(index: SembleIndex, tmp_project: Path) -> None:
     index.index_directory(tmp_project)
-    results = index.search("authenticate", top_k=5, mode="symbol")
+    results = index.search("authenticate", top_k=5, mode=SearchMode.SYMBOL)
     assert len(results) > 0
     assert any("authenticate" in r.chunk.content for r in results)
 
@@ -128,3 +128,15 @@ def test_get_context_empty_before_index() -> None:
 def test_stats_property(index: SembleIndex, tmp_project: Path) -> None:
     stats = index.index_directory(tmp_project)
     assert index.stats is stats
+
+
+def test_from_directory(index: SembleIndex, tmp_project: Path, mock_model: Any) -> None:
+    built = SembleIndex.from_directory(tmp_project, model=mock_model)
+    assert built.stats.total_files >= 2
+    assert built.stats.total_chunks > 0
+
+
+def test_constructor_accepts_encoder(tmp_project: Path, mock_model: Any) -> None:
+    index = SembleIndex(model=mock_model)
+    index.index_directory(tmp_project)
+    assert index.model is mock_model

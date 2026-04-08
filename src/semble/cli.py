@@ -5,6 +5,7 @@ import sys
 
 
 def main() -> None:
+    """Run the command-line interface."""
     parser = argparse.ArgumentParser(
         prog="semble",
         description="Instant local code search for agents.",
@@ -30,7 +31,7 @@ def main() -> None:
     if args.command == "search":
         from semble import SembleIndex
 
-        index = SembleIndex(model_name=args.model)
+        index = SembleIndex(model=args.model)
         stats = index.index_directory(args.path, include_docs=args.include_docs)
         print(
             f"Indexed {stats.total_files} files → {stats.total_chunks} chunks"
