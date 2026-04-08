@@ -38,9 +38,6 @@ dev = [
     "sentence-transformers>=3.0",
 ]
 
-[project.scripts]
-semble = "semble.cli:main"
-
 [project.urls]
 Homepage = "https://github.com/MinishLab/semble"
 Repository = "https://github.com/MinishLab/semble"

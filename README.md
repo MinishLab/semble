@@ -36,19 +36,6 @@ results = index.search("UserService", mode=SearchMode.SYMBOL)
 related = index.get_context("src/auth.py", line=42, top_k=3)
 ```
 
-## CLI
-
-```bash
-# Search (hybrid by default)
-semble search "how does auth work?" .
-
-# Symbol search
-semble search "authenticate" . --mode symbol
-
-# More results, semantic only
-semble search "request validation" . -k 10 --mode semantic
-```
-
 ## Search modes
 
 | Mode | Description |
