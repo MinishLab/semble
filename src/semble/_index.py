@@ -22,7 +22,6 @@ from semble._search import (
     dedup_results,
     search_bm25,
     search_hybrid_alpha,
-    search_hybrid_rrf,
     search_semantic,
     search_symbol,
 )
@@ -209,9 +208,9 @@ class SembleIndex:
 
         :param query: Natural language or code query.
         :param top_k: Number of results to return.
-        :param mode: Search mode — one of "hybrid", "hybrid_rrf", "semantic", "bm25", "symbol".
+        :param mode: Search mode — one of "hybrid", "semantic", "bm25", "symbol".
         :param dedup: If True, remove near-duplicate results.
-        :param alpha: Semantic weight for hybrid mode (1-alpha goes to BM25). Default 0.7.
+        :param alpha: Semantic weight for hybrid mode (1-alpha goes to BM25). Default 0.5.
         :returns: List of search results, best first.
         :raises ValueError: If mode is not recognized.
         """
@@ -248,22 +247,9 @@ class SembleIndex:
                 top_k * 2,
                 alpha=alpha,
             )
-        elif mode == "hybrid_rrf":
-            if self._semantic_index is None or self._bm25_index is None:
-                return []
-            results = search_hybrid_rrf(
-                query,
-                self.model,
-                self._semantic_index,
-                self._bm25_index,
-                self._chunks,
-                self._hash_to_chunk,
-                top_k * 2,
-            )
         else:
             raise ValueError(
-                f"Unknown search mode: {mode!r}. "
-                "Choose from: hybrid, hybrid_rrf, semantic, bm25, symbol"
+                f"Unknown search mode: {mode!r}. Choose from: hybrid, semantic, bm25, symbol"
             )
 
         if dedup and len(results) > 1:

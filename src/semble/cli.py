@@ -10,7 +10,7 @@ import time
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="semble",
-        description="Instant local code memory for agents.",
+        description="Instant local code search for agents.",
     )
     sub = parser.add_subparsers(dest="command")
 

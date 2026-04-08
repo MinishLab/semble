@@ -5,7 +5,6 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import re
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import bm25s
@@ -19,9 +18,6 @@ from semble._types import Chunk, SearchResult, SymbolKind
 if TYPE_CHECKING:
     from model2vec import StaticModel
 
-_RRF_K = 60
-_SYMBOL_WEIGHT = 2.0
-_PATH_BOOST = 0.015
 _DEDUP_THRESHOLD = 0.92
 
 
@@ -162,64 +158,6 @@ def search_symbol(
     return results[:top_k]
 
 
-def search_hybrid_rrf(
-    query: str,
-    model: StaticModel,
-    semantic_index: SemanticIndex,
-    bm25_index: BM25Index,
-    chunks: list[Chunk],
-    hash_to_chunk: dict[str, Chunk],
-    top_k: int,
-) -> list[SearchResult]:
-    n = top_k * 3
-    rrf: dict[str, float] = {}
-    cmap: dict[str, Chunk] = {}
-
-    # Semantic (cosine distance — lower is better)
-    qe = model.encode([query])[0]
-    hits = semantic_index.query(qe, n)
-    for rank, (content_hash, _distance) in enumerate(hits):
-        chunk = hash_to_chunk.get(content_hash)
-        if chunk is not None:
-            rrf[content_hash] = rrf.get(content_hash, 0) + 1.0 / (_RRF_K + rank + 1)
-            cmap[content_hash] = chunk
-
-    # BM25 (subword tokenizer for better recall in hybrid)
-    scores = bm25_index.scores_subword(query)
-    for rank, idx in enumerate(np.argsort(-scores)[:n]):
-        if scores[idx] > 0:
-            key = chunks[idx].content_hash
-            rrf[key] = rrf.get(key, 0) + 1.0 / (_RRF_K + rank + 1)
-            cmap[key] = chunks[idx]
-
-    # Symbol (strong boost — 2x weight)
-    qt = set(tokenize_subword(query)) - QUERY_STOPS
-    sym_hits: list[tuple[Chunk, float]] = []
-    for chunk in chunks:
-        if chunk.symbol_name:
-            st = set(tokenize_subword(chunk.symbol_name)) - QUERY_STOPS
-            overlap = qt & st
-            if overlap:
-                sym_hits.append((chunk, len(overlap) / max(len(qt), 1)))
-    sym_hits.sort(key=lambda x: -x[1])
-    for rank, (chunk, _) in enumerate(sym_hits[:n]):
-        key = chunk.content_hash
-        rrf[key] = rrf.get(key, 0) + _SYMBOL_WEIGHT / (_RRF_K + rank + 1)
-        cmap[key] = chunk
-
-    # Path boost
-    for key, chunk in cmap.items():
-        path_terms: set[str] = set()
-        for part in Path(chunk.file_path).parts:
-            path_terms.update(t.lower() for t in re.findall(r"[a-zA-Z]{2,}", Path(part).stem))
-        overlap = qt & path_terms
-        if overlap:
-            rrf[key] += len(overlap) * _PATH_BOOST
-
-    ranked = sorted(rrf, key=lambda k: -rrf[k])[:top_k]
-    return [SearchResult(chunk=cmap[k], score=rrf[k], source="hybrid_rrf") for k in ranked]
-
-
 def _normalize(scores: dict[str, float]) -> dict[str, float]:
     """Min-max normalize a score dict to [0, 1]."""
     if not scores:
@@ -238,7 +176,7 @@ def search_hybrid_alpha(
     chunks: list[Chunk],
     hash_to_chunk: dict[str, Chunk],
     top_k: int,
-    alpha: float = 0.7,
+    alpha: float = 0.5,
 ) -> list[SearchResult]:
     """Hybrid search using alpha-weighted linear combination of normalized scores.
 
@@ -250,7 +188,7 @@ def search_hybrid_alpha(
     :param hash_to_chunk: Mapping from content hash to chunk.
     :param top_k: Number of results to return.
     :param alpha: Weight for the semantic score (1-alpha goes to BM25).
-        Higher alpha = more semantic, lower = more keyword. Default 0.7.
+        Higher alpha = more semantic, lower = more keyword. Default 0.5.
     :returns: List of search results sorted by combined score descending.
     """
     n = top_k * 3

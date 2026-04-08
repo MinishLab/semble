@@ -1,4 +1,4 @@
-"""semble: Instant local code memory for agents."""
+"""semble: Instant local code search for agents."""
 
 from semble._index import SembleIndex
 from semble._types import Chunk, IndexStats, SearchResult, SymbolKind

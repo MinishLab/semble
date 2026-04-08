@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "semble"
 version = "0.1.0"
-description = "Instant local code memory for agents. Static embeddings, hybrid search, zero API keys."
+description = "Instant local code search for agents. Static embeddings, hybrid search, zero API keys."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
