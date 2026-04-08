@@ -56,7 +56,7 @@ class SembleIndex:
     Usage::
 
         index = SembleIndex()
-        stats = index.index_directory("./my-project")
+        stats = index.index("./my-project")
         results = index.search("how does auth work?", top_k=5)
     """
 
@@ -71,7 +71,7 @@ class SembleIndex:
         self._stats = IndexStats()
 
     @classmethod
-    def from_directory(
+    def build(
         cls,
         path: str | Path,
         model: Encoder | None = None,
@@ -82,7 +82,7 @@ class SembleIndex:
     ) -> SembleIndex:
         """Create an index and populate it from a directory."""
         index = cls(model=model)
-        index.index_directory(
+        index.index(
             path,
             extensions=extensions,
             ignore=ignore,
@@ -90,7 +90,7 @@ class SembleIndex:
         )
         return index
 
-    def index_directory(
+    def index(
         self,
         path: str | Path,
         extensions: frozenset[str] | None = None,
@@ -111,23 +111,23 @@ class SembleIndex:
             extensions = ALL_EXTENSIONS if include_docs else CODE_EXTENSIONS
 
         all_chunks: list[Chunk] = []
-        lang_counts: dict[str, int] = {}
+        language_counts: dict[str, int] = {}
         self._file_lines = {}
 
-        for fp in self._walk_files(path, extensions, ignore):
-            language = EXTENSION_MAP.get(fp.suffix.lower())
+        for file_path in self._walk_files(path, extensions, ignore):
+            language = EXTENSION_MAP.get(file_path.suffix.lower())
             with contextlib.suppress(OSError):
-                source = fp.read_text(encoding="utf-8", errors="replace")
-                self._file_lines[str(fp)] = source.splitlines()
-                file_chunks = chunk_source(source, str(fp), language)
+                source = file_path.read_text(encoding="utf-8", errors="replace")
+                self._file_lines[str(file_path)] = source.splitlines()
+                file_chunks = chunk_source(source, str(file_path), language)
                 all_chunks.extend(file_chunks)
-                for c in file_chunks:
-                    if c.language:
-                        lang_counts[c.language] = lang_counts.get(c.language, 0) + 1
+                for chunk in file_chunks:
+                    if chunk.language:
+                        language_counts[chunk.language] = language_counts.get(chunk.language, 0) + 1
 
-        t_emb_start = time.perf_counter()
+        embedding_start_time = time.perf_counter()
         embeddings = self._embed_chunks(all_chunks)
-        t_emb = time.perf_counter() - t_emb_start
+        embedding_time_seconds = time.perf_counter() - embedding_start_time
 
         self._chunks = all_chunks
 
@@ -138,8 +138,8 @@ class SembleIndex:
         self._stats = IndexStats(
             total_files=len(self._file_lines),
             total_chunks=len(all_chunks),
-            embedding_time_ms=t_emb * 1000,
-            languages=lang_counts,
+            embedding_time_ms=embedding_time_seconds * 1000,
+            languages=language_counts,
         )
         return self._stats
 
@@ -190,32 +190,9 @@ class SembleIndex:
             alpha=alpha,
         )
 
-    def get_context(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
-        """Return chunks semantically related to the chunk at the given location.
-
-        :param file_path: Absolute path of the file being edited.
-        :param line: Line number within the file.
-        :param top_k: Number of related chunks to return.
-        :returns: Related chunks from the same or other files, excluding the target chunk.
-        """
-        if self._semantic_index is None or self.model is None:
-            return []
-        target = next(
-            (
-                c
-                for c in self._chunks
-                if c.file_path == file_path and c.start_line <= line <= c.end_line
-            ),
-            None,
-        )
-        if target is None:
-            return []
-        results = search_semantic(target.content, self.model, self._semantic_index, top_k + 1)
-        return [r for r in results if r.chunk.content_hash != target.content_hash][:top_k]
-
     @property
     def stats(self) -> IndexStats:
-        """Return indexing statistics from the last call to index_directory."""
+        """Return indexing statistics from the last call to index."""
         return self._stats
 
     # -- Private helpers --
@@ -230,9 +207,9 @@ class SembleIndex:
         for dirpath, dirnames, filenames in os.walk(str(root)):
             dirnames[:] = sorted(d for d in dirnames if d not in ignore)
             for filename in sorted(filenames):
-                p = Path(dirpath) / filename
-                if p.suffix.lower() in extensions:
-                    yield p
+                file_path = Path(dirpath) / filename
+                if file_path.suffix.lower() in extensions:
+                    yield file_path
 
     def _embed_chunks(self, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
         """Embed chunks, reusing cached embeddings when available."""
@@ -243,16 +220,18 @@ class SembleIndex:
             model = cast(Encoder, StaticModel.from_pretrained(DEFAULT_MODEL_NAME))
             self.model = model
         uncached = [
-            (i, c.content)
-            for i, c in enumerate(chunks)
-            if c.content_hash not in self._embedding_cache
+            (index, chunk.content)
+            for index, chunk in enumerate(chunks)
+            if chunk.content_hash not in self._embedding_cache
         ]
         if uncached:
             indices, texts = zip(*uncached, strict=True)
-            new_embs = model.encode(list(texts))
-            for idx, emb in zip(indices, new_embs, strict=True):
-                self._embedding_cache[chunks[idx].content_hash] = emb
-        return np.array([self._embedding_cache[c.content_hash] for c in chunks], dtype=np.float32)
+            new_embeddings = model.encode(list(texts))
+            for index, embedding in zip(indices, new_embeddings, strict=True):
+                self._embedding_cache[chunks[index].content_hash] = embedding
+        return np.array(
+            [self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32
+        )
 
     def _enrich_for_bm25(self, chunk: Chunk) -> str:
         """Append file stem to BM25 content to boost path-based queries."""

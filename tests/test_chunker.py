@@ -6,30 +6,30 @@ from pathlib import Path
 
 import pytest
 
-from semble.chunker import _chunk_with_chonkie, chunk_by_lines, chunk_file
+from semble.chunker import _chunk_with_chonkie, chunk_file, chunk_lines
 
 
-def test_chunk_by_lines_basic(tmp_path: Path) -> None:
+def test_chunk_lines_basic(tmp_path: Path) -> None:
     f = tmp_path / "test.py"
     f.write_text("\n".join(f"line {i}" for i in range(10)))
-    chunks = chunk_by_lines(f.read_text(), str(f), "python", max_lines=5, overlap_lines=1)
+    chunks = chunk_lines(f.read_text(), str(f), "python", max_lines=5, overlap_lines=1)
     assert len(chunks) >= 2
     for c in chunks:
         assert c.content.strip()
         assert c.content_hash
 
 
-def test_chunk_by_lines_empty(tmp_path: Path) -> None:
+def test_chunk_lines_empty(tmp_path: Path) -> None:
     f = tmp_path / "empty.py"
     f.write_text("")
-    chunks = chunk_by_lines("", str(f), "python")
+    chunks = chunk_lines("", str(f), "python")
     assert chunks == []
 
 
-def test_chunk_by_lines_line_numbers(tmp_path: Path) -> None:
+def test_chunk_lines_line_numbers(tmp_path: Path) -> None:
     content = "a\nb\nc\nd\ne\n"
     f = tmp_path / "t.py"
-    chunks = chunk_by_lines(content, str(f), "python", max_lines=3, overlap_lines=0)
+    chunks = chunk_lines(content, str(f), "python", max_lines=3, overlap_lines=0)
     # First chunk starts at line 1
     assert chunks[0].start_line == 1
 

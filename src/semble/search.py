@@ -24,10 +24,11 @@ def _normalize(scores: dict[str, float]) -> dict[str, float]:
     """Min-max normalize a score mapping to the range [0, 1]."""
     if not scores:
         return scores
-    vals = np.array(list(scores.values()), dtype=np.float32)
-    mn, mx = float(vals.min()), float(vals.max())
-    denom = mx - mn if mx - mn > 1e-9 else 1e-9
-    return {k: float((v - mn) / denom) for k, v in scores.items()}
+    values = np.array(list(scores.values()), dtype=np.float32)
+    minimum_score = float(values.min())
+    maximum_score = float(values.max())
+    denominator = maximum_score - minimum_score if maximum_score - minimum_score > 1e-9 else 1e-9
+    return {key: float((score - minimum_score) / denominator) for key, score in scores.items()}
 
 
 class BM25Index:
@@ -66,8 +67,8 @@ def search_semantic(
     top_k: int,
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
-    qe = model.encode([query])[0]
-    hits = semantic_index.query(qe, top_k)
+    query_embedding = model.encode([query])[0]
+    hits = semantic_index.query(query_embedding, top_k)
     return [
         SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC)
         for chunk, distance in hits
@@ -111,16 +112,16 @@ def search_symbol(
 
     patterns = [re.compile(r"\b" + re.escape(tok) + r"\b", re.IGNORECASE) for tok in tokens]
 
-    best: dict[str, tuple[float, SearchResult]] = {}
+    best_results_by_file: dict[str, tuple[float, SearchResult]] = {}
 
     for file_path, lines in file_lines.items():
         for lineno, line in enumerate(lines):
-            matches = sum(1 for p in patterns if p.search(line))
+            matches = sum(1 for pattern in patterns if pattern.search(line))
             if matches == 0:
                 continue
             is_def = bool(_DEF_RE.match(line))
             score = (matches / len(patterns)) * (1.5 if is_def else 1.0)
-            if file_path in best and best[file_path][0] >= score:
+            if file_path in best_results_by_file and best_results_by_file[file_path][0] >= score:
                 continue
             start = max(0, lineno - _CONTEXT_LINES)
             end = min(len(lines), lineno + _CONTEXT_LINES + 1)
@@ -133,12 +134,12 @@ def search_symbol(
                 language=None,
                 content_hash=hashlib.sha256(content.encode()).hexdigest()[:16],
             )
-            best[file_path] = (
+            best_results_by_file[file_path] = (
                 score,
                 SearchResult(chunk=chunk, score=score, source=SearchMode.SYMBOL),
             )
 
-    results = [sr for _, sr in best.values()]
+    results = [result for _, result in best_results_by_file.values()]
     results.sort(key=lambda r: -r.score)
     return results[:top_k]
 
@@ -166,32 +167,41 @@ def search_hybrid(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
     :returns: List of search results sorted by combined score descending.
     """
-    n = top_k * 3
+    candidate_count = top_k * 3
 
-    qe = model.encode([query])[0]
-    hits = semantic_index.query(qe, n)
-    sem_raw: dict[str, float] = {}
-    cmap: dict[str, Chunk] = {}
+    query_embedding = model.encode([query])[0]
+    hits = semantic_index.query(query_embedding, candidate_count)
+    semantic_scores: dict[str, float] = {}
+    chunks_by_hash: dict[str, Chunk] = {}
     for chunk, distance in hits:
-        sem_raw[chunk.content_hash] = 1.0 - float(distance)
-        cmap[chunk.content_hash] = chunk
+        semantic_scores[chunk.content_hash] = 1.0 - float(distance)
+        chunks_by_hash[chunk.content_hash] = chunk
 
     bm25_scores = bm25_index.scores(query)
-    bm25_raw: dict[str, float] = {}
-    for idx in np.argsort(-bm25_scores)[:n]:
-        if bm25_scores[idx] > 0:
-            key = chunks[idx].content_hash
-            bm25_raw[key] = float(bm25_scores[idx])
-            cmap[key] = chunks[idx]
+    bm25_result_scores: dict[str, float] = {}
+    for chunk_index in np.argsort(-bm25_scores)[:candidate_count]:
+        if bm25_scores[chunk_index] > 0:
+            chunk_hash = chunks[chunk_index].content_hash
+            bm25_result_scores[chunk_hash] = float(bm25_scores[chunk_index])
+            chunks_by_hash[chunk_hash] = chunks[chunk_index]
 
-    sem_norm = _normalize(sem_raw)
-    bm25_norm = _normalize(bm25_raw)
+    normalized_semantic_scores = _normalize(semantic_scores)
+    normalized_bm25_scores = _normalize(bm25_result_scores)
 
-    combined: dict[str, float] = {}
-    for key in set(sem_norm) | set(bm25_norm):
-        combined[key] = alpha * sem_norm.get(key, 0.0) + (1.0 - alpha) * bm25_norm.get(key, 0.0)
+    combined_scores: dict[str, float] = {}
+    for chunk_hash in set(normalized_semantic_scores) | set(normalized_bm25_scores):
+        combined_scores[chunk_hash] = alpha * normalized_semantic_scores.get(chunk_hash, 0.0) + (
+            1.0 - alpha
+        ) * normalized_bm25_scores.get(chunk_hash, 0.0)
 
-    ranked = sorted(combined, key=lambda k: -combined[k])[:top_k]
+    ranked_hashes = sorted(combined_scores, key=lambda chunk_hash: -combined_scores[chunk_hash])[
+        :top_k
+    ]
     return [
-        SearchResult(chunk=cmap[k], score=combined[k], source=SearchMode.HYBRID) for k in ranked
+        SearchResult(
+            chunk=chunks_by_hash[chunk_hash],
+            score=combined_scores[chunk_hash],
+            source=SearchMode.HYBRID,
+        )
+        for chunk_hash in ranked_hashes
     ]

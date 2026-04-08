@@ -18,7 +18,7 @@ pip install semble
 ```python
 from semble import SearchMode, SembleIndex
 
-index = SembleIndex.from_directory("./my-project")
+index = SembleIndex.build("./my-project")
 
 # Hybrid search (semantic + BM25)
 results = index.search("how does authentication work?", top_k=5)
@@ -31,9 +31,6 @@ results = index.search("JWT token", mode=SearchMode.BM25)
 
 # Symbol search (find function/class definitions)
 results = index.search("UserService", mode=SearchMode.SYMBOL)
-
-# Related code at a given location (for editor integrations)
-related = index.get_context("src/auth.py", line=42, top_k=3)
 ```
 
 ## Search modes

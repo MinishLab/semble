@@ -50,10 +50,10 @@ def chunk_source(source: str, file_path: str, language: str | None) -> list[Chun
         return []
     if language:
         return _chunk_with_chonkie(source, file_path, language)
-    return chunk_by_lines(source, file_path, language)
+    return chunk_lines(source, file_path, language)
 
 
-def chunk_by_lines(
+def chunk_lines(
     source: str,
     file_path: str,
     language: str | None = None,
@@ -97,30 +97,31 @@ def chunk_by_lines(
 def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
     """Chunk source with Chonkie and fall back to line chunks on failure."""
     try:
-        cc = CodeChunker(language=language, chunk_size=1500)
-        raw = cc.chunk(source)
+        code_chunker = CodeChunker(language=language, chunk_size=1500)
+        raw_chunks = code_chunker.chunk(source)
     except Exception:
-        return chunk_by_lines(source, file_path, language)
+        return chunk_lines(source, file_path, language)
 
-    if not raw:
-        return chunk_by_lines(source, file_path, language)
+    if not raw_chunks:
+        return chunk_lines(source, file_path, language)
 
     chunks: list[Chunk] = []
-    for c in raw:
-        text = c.text
+    for raw_chunk in raw_chunks:
+        text = raw_chunk.text
         if not text.strip():
             continue
         chunks.append(
             Chunk(
                 content=text,
                 file_path=file_path,
-                start_line=source[: c.start_index].count("\n") + 1,
-                end_line=source[: max(c.end_index - 1, c.start_index)].count("\n") + 1,
+                start_line=source[: raw_chunk.start_index].count("\n") + 1,
+                end_line=source[: max(raw_chunk.end_index - 1, raw_chunk.start_index)].count("\n")
+                + 1,
                 language=language,
                 content_hash=_content_hash(text),
             )
         )
-    return chunks if chunks else chunk_by_lines(source, file_path, language)
+    return chunks if chunks else chunk_lines(source, file_path, language)
 
 
 def _content_hash(content: str) -> str:
