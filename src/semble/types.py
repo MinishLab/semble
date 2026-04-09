@@ -53,6 +53,6 @@ class SearchResult:
 class IndexStats:
     """Statistics about the current index state."""
 
-    total_files: int = 0
+    indexed_files: int = 0
     total_chunks: int = 0
     languages: dict[str, int] = field(default_factory=dict)

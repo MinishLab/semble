@@ -22,19 +22,19 @@ def indexed_index(index: SembleIndex, tmp_project: Path) -> SembleIndex:
 def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
     """Indexing returns stats with file and chunk counts populated."""
     stats = index.index(tmp_project)
-    assert stats.total_files >= 2  # auth.py, utils.py
+    assert stats.indexed_files >= 2  # auth.py, utils.py
     assert stats.total_chunks > 0
 
 
 def test_index_excludes_markdown_by_default(indexed_index: SembleIndex) -> None:
     """Markdown files are excluded unless include_docs=True."""
-    assert ".md" not in [Path(chunk.file_path).suffix for chunk in indexed_index._chunks]
+    assert ".md" not in [Path(chunk.file_path).suffix for chunk in indexed_index.chunks]
 
 
 def test_index_includes_markdown_with_flag(index: SembleIndex, tmp_project: Path) -> None:
     """include_docs=True causes markdown files to be indexed."""
     index.index(tmp_project, include_docs=True)
-    suffixes = {Path(c.file_path).suffix for c in index._chunks}
+    suffixes = {Path(c.file_path).suffix for c in index.chunks}
     assert ".md" in suffixes
 
 
@@ -42,7 +42,7 @@ def test_index_empty_returns_zero_chunks(index: SembleIndex, tmp_path: Path) -> 
     """Indexing an empty directory yields zero files and chunks."""
     stats = index.index(tmp_path)
     assert stats.total_chunks == 0
-    assert stats.total_files == 0
+    assert stats.indexed_files == 0
 
 
 def test_index_language_counts(indexed_index: SembleIndex) -> None:
@@ -100,4 +100,4 @@ def test_reindex_does_not_re_embed(indexed_index: SembleIndex, tmp_project: Path
 
 def test_stats_property(indexed_index: SembleIndex) -> None:
     """Stats property reflects the most recent index call."""
-    assert indexed_index.stats.total_files >= 2
+    assert indexed_index.stats.indexed_files >= 2

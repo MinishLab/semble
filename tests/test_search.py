@@ -6,8 +6,9 @@ import numpy.typing as npt
 import pytest
 from vicinity import Metric, Vicinity
 
+from semble._utils import tokenize
 from semble.chunker import _content_hash
-from semble.search import _tokenize, search_bm25, search_hybrid, search_semantic
+from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, SearchMode
 
 
@@ -47,7 +48,7 @@ def embeddings(chunks: list[Chunk]) -> npt.NDArray[np.float32]:
 def bm25(chunks: list[Chunk]) -> bm25s.BM25:
     """Pre-built BM25 index over the chunks fixture."""
     index = bm25s.BM25()
-    index.index([_tokenize(chunk.content) for chunk in chunks], show_progress=False)
+    index.index([tokenize(chunk.content) for chunk in chunks], show_progress=False)
     return index
 
 

@@ -1,18 +1,10 @@
-import re
-
 import bm25s
 import numpy as np
 import numpy.typing as npt
 from vicinity import Vicinity
 
+from semble._utils import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
-
-_TOKEN_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
-
-
-def _tokenize(text: str) -> list[str]:
-    """Split text into lowercase identifier-like tokens."""
-    return _TOKEN_RE.findall(text.lower())
 
 
 def _normalize(scores: dict[str, float]) -> dict[str, float]:
@@ -59,7 +51,7 @@ def search_bm25(
     top_k: int,
 ) -> list[SearchResult]:
     """Run BM25 search for a query."""
-    scores: npt.NDArray[np.float32] = bm25_index.get_scores(_tokenize(query))
+    scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     indices = np.argsort(-scores)[:top_k]
     # Exclude chunks with zero score — no query tokens matched.
     return [
@@ -104,7 +96,7 @@ def search_hybrid(
         semantic_scores[chunk.content_hash] = 1.0 - float(distance)  # distance → similarity
         chunks_by_hash[chunk.content_hash] = chunk
 
-    bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(_tokenize(query))
+    bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     bm25_result_scores: dict[str, float] = {}
     for chunk_index in np.argsort(-bm25_scores)[:candidate_count]:
         if bm25_scores[chunk_index] > 0:  # exclude chunks with no matching tokens
