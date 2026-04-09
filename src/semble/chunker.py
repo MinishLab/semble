@@ -105,8 +105,7 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
                 content=text,
                 file_path=file_path,
                 start_line=source[: raw_chunk.start_index].count("\n") + 1,
-                end_line=source[: max(raw_chunk.end_index - 1, raw_chunk.start_index)].count("\n")
-                + 1,
+                end_line=source[: max(raw_chunk.end_index - 1, raw_chunk.start_index)].count("\n") + 1,
                 language=language,
                 content_hash=_content_hash(text),
             )

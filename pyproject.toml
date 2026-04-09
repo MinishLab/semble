@@ -1,21 +1,24 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "semble"
-version = "0.1.0"
-description = "Instant local code search for agents. Static embeddings, hybrid search, zero API keys."
-readme = "README.md"
-license = "MIT"
+description = "Instant local code search for agents."
+authors = [{name = "Thomas van Dongen", email = "thomas123@live.nl"}, { name = "Stéphan Tulkens", email = "stephantul@gmail.com"}]
+readme = { file = "README.md", content-type = "text/markdown" }
+dynamic = ["version"]
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
-authors = [{ name = "MinishLab" }]
 keywords = ["code-search", "embeddings", "model2vec", "semantic-search"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
 ]
 dependencies = [
     "model2vec>=0.4.0",
@@ -24,6 +27,10 @@ dependencies = [
     "bm25s>=0.2.0",
     "chonkie[code]>=1.6.2",
 ]
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
 
 [project.optional-dependencies]
 dev = [
@@ -36,24 +43,52 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/MinishLab/semble"
-Repository = "https://github.com/MinishLab/semble"
+"Homepage" = "https://github.com/MinishLab"
+"Bug Reports" = "https://github.com/MinishLab/semble/issues"
+"Source" = "https://github.com/MinishLab/semble"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/semble"]
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["semble"]
+license-files = []
+
+[tool.setuptools_scm]
+# can be empty if no extra settings are needed, presence enables setuptools_scm
+
+[tool.setuptools.dynamic]
+version = {attr = "semble.version.__version__"}
 
 [tool.ruff]
-src = ["src"]
-line-length = 100
+exclude = [".venv/"]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-
-[tool.mypy]
-python_version = "3.10"
-strict = true
-warn_return_any = true
-ignore_missing_imports = true
+select = [
+    # Annotations: Enforce type annotations
+    "ANN",
+    # Complexity: Enforce a maximum cyclomatic complexity
+    "C90",
+    # Pydocstyle: Enforce docstrings
+    "D",
+    # Isort: Enforce import order
+    "I",
+    # Numpy: Enforce numpy style
+    "NPY",
+    # Print: Forbid print statements
+    "T20",
+]
+ignore = [
+    # Allow Any type
+    "ANN401",
+    # Pydocstyle ignores
+    "D100", "D101", "D104", "D203", "D213", "D401",
+    # Allow use of f-strings in logging
+    "G004"
+]
 
 [tool.pydoclint]
 style = "sphinx"
@@ -62,6 +97,11 @@ allow-init-docstring = true
 arg-type-hints-in-docstring = false
 check-return-types = false
 require-return-section-when-returning-nothing = false
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

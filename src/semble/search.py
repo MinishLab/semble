@@ -37,8 +37,7 @@ def search_semantic(
     query_embedding = model.encode([query])[0]
     hits = cast(list[tuple[Chunk, float]], semantic_index.query(query_embedding[None], k=top_k)[0])
     return [
-        SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC)
-        for chunk, distance in hits
+        SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC) for chunk, distance in hits
     ]
 
 
@@ -52,9 +51,7 @@ def search_bm25(
     scores = cast(npt.NDArray[np.float32], bm25_index.get_scores(_tokenize(query)))
     indices = np.argsort(-scores)[:top_k]
     return [
-        SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25)
-        for i in indices
-        if scores[i] > 0
+        SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25) for i in indices if scores[i] > 0
     ]
 
 
@@ -111,9 +108,7 @@ def search_hybrid(
             1.0 - alpha
         ) * normalized_bm25_scores.get(chunk_hash, 0.0)
 
-    ranked_hashes = sorted(combined_scores, key=lambda chunk_hash: -combined_scores[chunk_hash])[
-        :top_k
-    ]
+    ranked_hashes = sorted(combined_scores, key=lambda chunk_hash: -combined_scores[chunk_hash])[:top_k]
     return [
         SearchResult(
             chunk=chunks_by_hash[chunk_hash],

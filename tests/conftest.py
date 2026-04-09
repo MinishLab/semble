@@ -1,5 +1,3 @@
-"""Shared fixtures for semble tests."""
-
 import textwrap
 from pathlib import Path
 from unittest.mock import MagicMock

@@ -1,5 +1,3 @@
-"""Tests for semble.search."""
-
 from typing import Any
 
 import bm25s
@@ -26,6 +24,7 @@ def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:
 
 @pytest.fixture
 def chunks() -> list[Chunk]:
+    """Four small code chunks covering authentication, login, user service, and utils."""
     return [
         _make_chunk("def authenticate(token):\n    return token == 'secret'", "auth.py"),
         _make_chunk("def login(username, password):\n    pass", "auth.py"),
@@ -36,6 +35,7 @@ def chunks() -> list[Chunk]:
 
 @pytest.fixture
 def embeddings(chunks: list[Chunk]) -> npt.NDArray[np.float32]:
+    """Deterministic random unit-norm embeddings for the chunks fixture."""
     rng = np.random.default_rng(0)
     embs = rng.standard_normal((len(chunks), 256)).astype(np.float32)
     norms = np.linalg.norm(embs, axis=1, keepdims=True)
@@ -44,6 +44,7 @@ def embeddings(chunks: list[Chunk]) -> npt.NDArray[np.float32]:
 
 @pytest.fixture
 def bm25(chunks: list[Chunk]) -> bm25s.BM25:
+    """Pre-built BM25 index over the chunks fixture."""
     index = bm25s.BM25()
     index.index([_tokenize(chunk.content) for chunk in chunks], show_progress=False)
     return index
@@ -51,6 +52,7 @@ def bm25(chunks: list[Chunk]) -> bm25s.BM25:
 
 @pytest.fixture
 def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> Vicinity:
+    """Pre-built ANNS index over the chunks fixture."""
     return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
 
@@ -58,16 +60,19 @@ def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> Vicini
 
 
 def test_bm25_returns_results(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
+    """BM25 search returns at least one result for a matching query."""
     results = search_bm25("authenticate token", bm25, chunks, top_k=3)
     assert len(results) > 0
 
 
 def test_bm25_relevant_result_first(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
+    """Top BM25 result contains the queried term."""
     results = search_bm25("authenticate token", bm25, chunks, top_k=4)
     assert "authenticate" in results[0].chunk.content
 
 
 def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
+    """Query with no matching tokens returns an empty list."""
     results = search_bm25("zzzznonexistentterm", bm25, chunks, top_k=3)
     assert results == []
 
@@ -76,19 +81,20 @@ def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> N
 
 
 def test_semantic_returns_results(semantic: Vicinity, mock_model: Any) -> None:
+    """Semantic search returns results for any query."""
     results = search_semantic("login", mock_model, semantic, top_k=3)
     assert len(results) > 0
 
 
 def test_semantic_scores_between_0_and_1(semantic: Vicinity, mock_model: Any) -> None:
+    """Semantic scores are cosine similarities in [-1, 1]."""
     results = search_semantic("query", mock_model, semantic, top_k=4)
     for r in results:
         assert -1.0 <= r.score <= 1.0
 
 
-def test_hybrid_returns_results(
-    chunks: list[Chunk], semantic: Vicinity, bm25: bm25s.BM25, mock_model: Any
-) -> None:
+def test_hybrid_returns_results(chunks: list[Chunk], semantic: Vicinity, bm25: bm25s.BM25, mock_model: Any) -> None:
+    """Hybrid search returns results combining semantic and BM25 signals."""
     results = search_hybrid("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
     assert len(results) > 0
 
@@ -110,6 +116,7 @@ def test_search_source_labels(
     bm25: bm25s.BM25,
     mock_model: Any,
 ) -> None:
+    """Each result carries a source label matching the search mode used."""
     if mode is SearchMode.BM25:
         results = search_bm25(query, bm25, chunks, top_k)
     elif mode is SearchMode.SEMANTIC:

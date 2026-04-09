@@ -1,6 +1,5 @@
 import contextlib
 import os
-import time
 from collections.abc import Iterator
 from pathlib import Path
 from typing import cast
@@ -90,18 +89,18 @@ class SembleIndex:
                     if chunk.language:
                         language_counts[chunk.language] = language_counts.get(chunk.language, 0) + 1
 
-        embedding_start_time = time.perf_counter()
         embeddings = self._embed_chunks(all_chunks)
-        embedding_time_seconds = time.perf_counter() - embedding_start_time
 
         self._chunks = all_chunks
 
         if all_chunks:
+            # Build BM25 index over tokenized, path-enriched chunk text.
             self._bm25_index = bm25s.BM25()
             self._bm25_index.index(
                 [_tokenize(self._enrich_for_bm25(chunk)) for chunk in all_chunks],
                 show_progress=False,
             )
+            # Build ANNS index over chunk embeddings for semantic search.
             self._semantic_index = Vicinity.from_vectors_and_items(
                 embeddings,
                 all_chunks,
@@ -111,7 +110,6 @@ class SembleIndex:
         self._stats = IndexStats(
             total_files=len(self._file_lines),
             total_chunks=len(all_chunks),
-            embedding_time_ms=embedding_time_seconds * 1000,
             languages=language_counts,
         )
         return self._stats
@@ -123,15 +121,18 @@ class SembleIndex:
         mode: SearchMode | str = SearchMode.HYBRID,
         alpha: float = 0.5,
     ) -> list[SearchResult]:
-        """Search the index."""
+        """Search the index and return the top-k most relevant chunks.
+
+        :param query: Natural-language or keyword query string.
+        :param top_k: Maximum number of results to return.
+        :param mode: Search strategy — ``"hybrid"`` (default), ``"semantic"``, or ``"bm25"``.
+        :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25.
+        :return: Ranked list of :class:`SearchResult` objects, best match first.
+        """
         if not self._chunks:
             return []
 
-        try:
-            mode = SearchMode(mode)
-        except ValueError as exc:
-            modes = ", ".join(str(value) for value in SearchMode)
-            raise ValueError(f"Unknown search mode: {mode!r}. Choose from: {modes}") from exc
+        mode = SearchMode(mode)
 
         if mode is SearchMode.SEMANTIC:
             if self._semantic_index is None or self.model is None:
@@ -190,9 +191,7 @@ class SembleIndex:
             new_embeddings = model.encode(list(texts))
             for index, embedding in zip(indices, new_embeddings, strict=True):
                 self._embedding_cache[chunks[index].content_hash] = embedding
-        return np.array(
-            [self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32
-        )
+        return np.array([self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32)
 
     def _enrich_for_bm25(self, chunk: Chunk) -> str:
         """Append file stem to BM25 content to boost path-based queries."""

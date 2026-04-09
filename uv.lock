@@ -1384,7 +1384,6 @@ wheels = [
 
 [[package]]
 name = "semble"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "bm25s" },

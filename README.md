@@ -1,10 +1,6 @@
 # semble
 
-Instant local code search for agents. Static embeddings, hybrid search, zero API keys.
-
-- **No API keys, no GPU** — uses [potion-code-16M](https://huggingface.co/Pringled/potion-code-16M), a 16M parameter static embedding model that runs on CPU in milliseconds
-- **Hybrid search** — combines semantic embeddings + BM25 keyword search for best-of-both recall
-- **Fast indexing** — a typical Python package indexes in under 500ms
+Instant local code search for agents.
 
 ## Install
 

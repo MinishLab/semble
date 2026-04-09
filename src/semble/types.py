@@ -57,5 +57,4 @@ class IndexStats:
 
     total_files: int = 0
     total_chunks: int = 0
-    embedding_time_ms: float = 0
     languages: dict[str, int] = field(default_factory=dict)
