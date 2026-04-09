@@ -110,3 +110,9 @@ addopts = ["--tb=short", "--strict-markers", "--cov=src", "--cov-report=term-mis
 [tool.coverage.report]
 skip_covered = true
 exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
+
+[tool.uv.sources]
+vicinity = { path = "../vicinity" }
+
+[dependency-groups]
+dev = []

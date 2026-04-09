@@ -32,6 +32,7 @@ def _vicinity_query(index: Vicinity, embedding: npt.NDArray[np.float32], k: int)
     Vicinity's type stubs declare stored items as ``str``, but the actual
     objects are whatever was passed to ``from_vectors_and_items``.
     This wrapper isolates that stub inaccuracy in one place.
+    TODO: remove once Vicinity adds generic support (Vicinity[T]).
     """
     return index.query(embedding[None], k=k)[0]  # type: ignore[return-value]
 
