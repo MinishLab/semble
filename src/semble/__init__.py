@@ -1,5 +1,6 @@
 from semble.index import SembleIndex
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
+from semble.version import __version__
 
 __all__ = [
     "SembleIndex",
@@ -8,5 +9,5 @@ __all__ = [
     "IndexStats",
     "SearchMode",
     "SearchResult",
+    "__version__",
 ]
-__version__ = "0.1.0"

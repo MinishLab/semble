@@ -1,7 +1,10 @@
 import hashlib
+import logging
 from pathlib import Path
 
 from chonkie.chunker import CodeChunker
+
+logger = logging.getLogger(__name__)
 
 from semble.types import Chunk
 
@@ -90,6 +93,7 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
         code_chunker = CodeChunker(language=language, chunk_size=1500)
         raw_chunks = code_chunker.chunk(source)
     except Exception:
+        logger.debug("Chonkie failed for language %r, falling back to line chunking", language, exc_info=True)
         return chunk_lines(source, file_path, language)
 
     if not raw_chunks:
@@ -100,12 +104,15 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
         text = raw_chunk.text
         if not text.strip():
             continue
+        # Clamp end_index - 1 to start_index to guard against zero-length chunks
+        # where end_index == start_index would otherwise produce an off-by-one.
+        end_index = max(raw_chunk.end_index - 1, raw_chunk.start_index)
         chunks.append(
             Chunk(
                 content=text,
                 file_path=file_path,
                 start_line=source[: raw_chunk.start_index].count("\n") + 1,
-                end_line=source[: max(raw_chunk.end_index - 1, raw_chunk.start_index)].count("\n") + 1,
+                end_line=source[:end_index].count("\n") + 1,
                 language=language,
                 content_hash=_content_hash(text),
             )

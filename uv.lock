@@ -1420,9 +1420,6 @@ requires-dist = [
 ]
 provides-extras = ["dev"]
 
-[package.metadata.requires-dev]
-dev = []
-
 [[package]]
 name = "setuptools"
 version = "82.0.1"

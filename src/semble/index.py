@@ -188,4 +188,5 @@ class SembleIndex:
     def _enrich_for_bm25(self, chunk: Chunk) -> str:
         """Append file stem to BM25 content to boost path-based queries."""
         stem = Path(chunk.file_path).stem
+        # Repeat the stem twice to up-weight file-path matches in BM25.
         return f"{chunk.content} {stem} {stem}"

@@ -86,8 +86,6 @@ ignore = [
     "ANN401",
     # Pydocstyle ignores
     "D100", "D101", "D104", "D203", "D213", "D401",
-    # Allow use of f-strings in logging
-    "G004"
 ]
 
 [tool.pydoclint]
@@ -113,6 +111,3 @@ exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
 
 [tool.uv.sources]
 vicinity = { path = "../vicinity" }
-
-[dependency-groups]
-dev = []
