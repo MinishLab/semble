@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 from pathlib import Path
 
@@ -6,38 +8,13 @@ import numpy as np
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble.chunker import EXTENSION_MAP, chunk_source
-from semble.filesystem import walk_files
+from semble.chunker import chunk_source
 from semble.search import search_bm25, search_hybrid, search_semantic
+from semble.sources import language_for_path, resolve_extensions, walk_files
 from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode, SearchResult
 from semble.utils import tokenize
 
-DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
-
-_DOC_EXTENSIONS: frozenset[str] = frozenset({".md", ".yaml", ".yml", ".toml", ".json"})
-ALL_EXTENSIONS: frozenset[str] = frozenset(EXTENSION_MAP)
-CODE_EXTENSIONS: frozenset[str] = ALL_EXTENSIONS - _DOC_EXTENSIONS
-
-DEFAULT_IGNORE: frozenset[str] = frozenset(
-    {
-        ".git",
-        ".hg",
-        ".svn",
-        "__pycache__",
-        "node_modules",
-        ".venv",
-        "venv",
-        ".env",
-        ".tox",
-        "dist",
-        "build",
-        ".eggs",
-        ".mypy_cache",
-        ".pytest_cache",
-        ".ruff_cache",
-        ".semble",
-    }
-)
+_DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
 
 
 class SembleIndex:
@@ -45,19 +22,40 @@ class SembleIndex:
 
     Usage::
 
-        index = SembleIndex()
-        stats = index.index("./my-project")
+        index = SembleIndex.from_path("./my-project")
         results = index.search("how does auth work?", top_k=5)
     """
 
     def __init__(self, model: Encoder | None = None) -> None:
-        """Create an empty index with an optional encoder."""
+        """Create a bare, unindexed instance. Prefer :meth:`from_path` for normal use."""
         self.model = model
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
         self._stats = IndexStats()
+
+    @classmethod
+    def from_path(
+        cls,
+        path: str | Path,
+        model: Encoder | None = None,
+        extensions: frozenset[str] | None = None,
+        ignore: frozenset[str] | None = None,
+        include_docs: bool = False,
+    ) -> SembleIndex:
+        """Create a ready-to-search index from a directory.
+
+        :param path: Root directory to index.
+        :param model: Embedding model to use. Defaults to ``Pringled/potion-code-16M``.
+        :param extensions: File extensions to include. Defaults to all code extensions.
+        :param ignore: Directory names to skip. Defaults to the standard ignored directories.
+        :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
+        :return: A fully indexed :class:`SembleIndex` ready for search.
+        """
+        instance = cls(model=model)
+        instance.index(path, extensions=extensions, ignore=ignore, include_docs=include_docs)
+        return instance
 
     def index(
         self,
@@ -66,18 +64,20 @@ class SembleIndex:
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
     ) -> IndexStats:
-        """Index all code files under the given directory."""
+        """Re-index a directory, replacing any previously indexed content.
+
+        For initial indexing, prefer :meth:`from_path`. Use this method to refresh
+        the index after the source tree has changed.
+        """
         path = Path(path).resolve()
-        ignore = ignore or DEFAULT_IGNORE
-        if extensions is None:
-            extensions = ALL_EXTENSIONS if include_docs else CODE_EXTENSIONS
+        extensions = resolve_extensions(extensions, include_docs=include_docs)
 
         all_chunks: list[Chunk] = []
         language_counts: dict[str, int] = {}
         indexed_files = 0
 
         for file_path in walk_files(path, extensions, ignore):
-            language = EXTENSION_MAP.get(file_path.suffix.lower())
+            language = language_for_path(file_path)
             with contextlib.suppress(OSError):
                 source = file_path.read_text(encoding="utf-8", errors="replace")
                 indexed_files += 1
@@ -119,19 +119,19 @@ class SembleIndex:
         :param mode: Search strategy — ``"hybrid"`` (default), ``"semantic"``, or ``"bm25"``.
         :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
+        :raises ValueError: If ``mode`` is not a recognised search strategy.
         """
-        # Snapshot to locals so mypy can narrow the types through the guard below.
         model, bm25_index, semantic_index = self.model, self._bm25_index, self._semantic_index
         if not self._chunks or model is None or bm25_index is None or semantic_index is None:
             return []
 
-        mode = SearchMode(mode)
-
-        if mode is SearchMode.SEMANTIC:
+        if mode == SearchMode.SEMANTIC:
             return search_semantic(query, model, semantic_index, top_k)
-        if mode is SearchMode.BM25:
+        if mode == SearchMode.BM25:
             return search_bm25(query, bm25_index, self._chunks, top_k)
-        return search_hybrid(query, model, semantic_index, bm25_index, self._chunks, top_k, alpha=alpha)
+        if mode == SearchMode.HYBRID:
+            return search_hybrid(query, model, semantic_index, bm25_index, self._chunks, top_k, alpha=alpha)
+        raise ValueError(f"Unknown search mode: {mode!r}")
 
     @property
     def chunks(self) -> list[Chunk]:
@@ -146,7 +146,7 @@ class SembleIndex:
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided."""
         if self.model is None:
-            model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
+            model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
             self.model = model
             return model
         return self.model

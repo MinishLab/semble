@@ -4,34 +4,10 @@ from pathlib import Path
 
 from chonkie.chunker import CodeChunker
 
+from semble.sources import language_for_path
 from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
-
-EXTENSION_MAP: dict[str, str] = {
-    ".py": "python",
-    ".js": "javascript",
-    ".jsx": "javascript",
-    ".ts": "typescript",
-    ".tsx": "typescript",
-    ".go": "go",
-    ".rs": "rust",
-    ".java": "java",
-    ".rb": "ruby",
-    ".php": "php",
-    ".c": "c",
-    ".h": "c",
-    ".cpp": "cpp",
-    ".hpp": "cpp",
-    ".cs": "csharp",
-    ".md": "markdown",
-    ".sql": "sql",
-    ".sh": "bash",
-    ".yaml": "yaml",
-    ".yml": "yaml",
-    ".toml": "toml",
-    ".json": "json",
-}
 
 
 def chunk_file(file_path: Path) -> list[Chunk]:
@@ -41,8 +17,7 @@ def chunk_file(file_path: Path) -> list[Chunk]:
     except OSError:
         return []
 
-    language = EXTENSION_MAP.get(file_path.suffix.lower())
-    return chunk_source(source, str(file_path), language)
+    return chunk_source(source, str(file_path), language_for_path(file_path))
 
 
 def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
@@ -104,8 +79,7 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
         text = raw_chunk.text
         if not text.strip():
             continue
-        # Clamp end_index - 1 to start_index to guard against zero-length chunks
-        # where end_index == start_index would otherwise produce an off-by-one.
+        # Clamp to start_index so zero-length chunks don't produce an off-by-one.
         end_index = max(raw_chunk.end_index - 1, raw_chunk.start_index)
         chunks.append(
             Chunk(

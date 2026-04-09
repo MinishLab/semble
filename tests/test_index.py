@@ -13,10 +13,9 @@ def index(mock_model: Any) -> SembleIndex:
 
 
 @pytest.fixture
-def indexed_index(index: SembleIndex, tmp_project: Path) -> SembleIndex:
-    """SembleIndex already indexed over the tmp_project fixture."""
-    index.index(tmp_project)
-    return index
+def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
+    """SembleIndex built from tmp_project via the primary constructor."""
+    return SembleIndex.from_path(tmp_project, model=mock_model)
 
 
 def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:

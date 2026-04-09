@@ -1,5 +1,3 @@
-from typing import TypeVar
-
 import bm25s
 import numpy as np
 import numpy.typing as npt
@@ -8,10 +6,8 @@ from vicinity import Vicinity
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
 from semble.utils import tokenize
 
-_K = TypeVar("_K")
 
-
-def _normalize(scores: dict[_K, float]) -> dict[_K, float]:
+def _normalize(scores: dict[Chunk, float]) -> dict[Chunk, float]:
     """Min-max normalize scores to [0, 1]."""
     if not scores:
         return scores
@@ -23,13 +19,7 @@ def _normalize(scores: dict[_K, float]) -> dict[_K, float]:
 
 
 def _vicinity_query(index: Vicinity, embedding: npt.NDArray[np.float32], k: int) -> list[tuple[Chunk, float]]:
-    """Query a Vicinity index and return hits typed as Chunks.
-
-    Vicinity's type stubs declare stored items as ``str``, but the actual
-    objects are whatever was passed to ``from_vectors_and_items``.
-    This wrapper isolates that stub inaccuracy in one place.
-    TODO: remove once Vicinity adds generic support (Vicinity[T]).
-    """
+    """Query a Vicinity index, working around its current lack of generic typing."""
     return index.query(embedding[None], k=k)[0]  # type: ignore[return-value]
 
 
@@ -86,30 +76,25 @@ def search_hybrid(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
     :returns: List of search results sorted by combined score descending.
     """
-    # Fetch more candidates than top_k from each index so the merged pool is large
-    # enough to still surface top_k good results after union and re-ranking.
+    # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
     candidate_count = top_k * 3
 
     query_embedding = model.encode([query])[0]
     hits = _vicinity_query(semantic_index, query_embedding, candidate_count)
 
-    # Keyed by Chunk for correct identity — two chunks with identical content but
-    # different file locations are distinct results.
     semantic_scores: dict[Chunk, float] = {}
     for chunk, distance in hits:
-        semantic_scores[chunk] = 1.0 - float(distance)  # distance → similarity
+        semantic_scores[chunk] = 1.0 - float(distance)
 
     bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     bm25_result_scores: dict[Chunk, float] = {}
     for chunk_index in np.argsort(-bm25_scores)[:candidate_count]:
-        if bm25_scores[chunk_index] > 0:  # exclude chunks with no matching tokens
+        if bm25_scores[chunk_index] > 0:
             bm25_result_scores[chunks[chunk_index]] = float(bm25_scores[chunk_index])
 
-    # Normalise each score set to [0, 1] independently so alpha has a consistent meaning.
     normalized_semantic_scores = _normalize(semantic_scores)
     normalized_bm25_scores = _normalize(bm25_result_scores)
 
-    # Union of both candidate sets; a chunk absent from one index scores 0 for that signal.
     combined_scores: dict[Chunk, float] = {}
     for chunk in set(normalized_semantic_scores) | set(normalized_bm25_scores):
         combined_scores[chunk] = alpha * normalized_semantic_scores.get(chunk, 0.0) + (
