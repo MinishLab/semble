@@ -18,16 +18,10 @@ _DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
 
 
 class SembleIndex:
-    """Fast local code index with hybrid search.
-
-    Usage::
-
-        index = SembleIndex.from_path("./my-project")
-        results = index.search("how does auth work?", top_k=5)
-    """
+    """Fast local code index with hybrid search."""
 
     def __init__(self, model: Encoder | None = None) -> None:
-        """Create a bare, unindexed instance. Prefer :meth:`from_path` for normal use."""
+        """Initialize a SembleIndex."""
         self.model = model
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
@@ -44,14 +38,14 @@ class SembleIndex:
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
     ) -> SembleIndex:
-        """Create a ready-to-search index from a directory.
+        """Create a SembleIndex index from a directory.
 
         :param path: Root directory to index.
         :param model: Embedding model to use. Defaults to ``Pringled/potion-code-16M``.
         :param extensions: File extensions to include. Defaults to all code extensions.
         :param ignore: Directory names to skip. Defaults to the standard ignored directories.
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
-        :return: A fully indexed :class:`SembleIndex` ready for search.
+        :return: An indexed SembleIndex.
         """
         instance = cls(model=model)
         instance.index(path, extensions=extensions, ignore=ignore, include_docs=include_docs)
@@ -64,11 +58,7 @@ class SembleIndex:
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
     ) -> IndexStats:
-        """Re-index a directory, replacing any previously indexed content.
-
-        For initial indexing, prefer :meth:`from_path`. Use this method to refresh
-        the index after the source tree has changed.
-        """
+        """Index a directory."""
         path = Path(path).resolve()
         extensions = resolve_extensions(extensions, include_docs=include_docs)
 
