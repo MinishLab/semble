@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-import os
-import tempfile
 from pathlib import Path
 
 import bm25s
@@ -10,6 +8,7 @@ import numpy as np
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
+from semble.cache import _CacheSpec, _EmbeddingCache
 from semble.chunker import chunk_source
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.sources import language_for_path, resolve_extensions, walk_files
@@ -17,46 +16,6 @@ from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode
 from semble.utils import tokenize
 
 _DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
-
-
-def _model_namespace(model_id: str) -> str:
-    """Return a safe directory name for *model_id*.
-
-    HuggingFace IDs contain ``/`` (e.g. ``Pringled/potion-code-16M``), so we
-    replace every ``/`` with ``--`` to keep the namespace human-readable while
-    staying safe as a single path segment.
-    """
-    return model_id.replace("/", "--")
-
-
-def _embedding_cache_path(cache_dir: Path, model_ns: str, content_hash: str) -> Path:
-    """Return the per-embedding file path inside *cache_dir*."""
-    return cache_dir / model_ns / content_hash[:2] / f"{content_hash}.npy"
-
-
-def _load_embedding(path: Path) -> EmbeddingMatrix | None:
-    """Load a single embedding from *path*, returning ``None`` on any error."""
-    try:
-        return np.load(path, allow_pickle=False)
-    except (FileNotFoundError, ValueError, OSError):
-        return None
-
-
-def _save_embedding_atomic(path: Path, embedding: EmbeddingMatrix) -> None:
-    """Write *embedding* to *path* atomically via a temp-file rename.
-
-    Atomic rename ensures concurrent processes never read a partial file.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".npy.tmp")
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            np.save(fh, embedding, allow_pickle=False)
-        os.replace(tmp, path)
-    except Exception:
-        with contextlib.suppress(OSError):
-            os.unlink(tmp)
-        raise
 
 
 class SembleIndex:
@@ -167,8 +126,7 @@ class SembleIndex:
 
         if all_chunks:
             _cache_dir = Path(cache_dir).expanduser() if cache_dir is not None else None
-            _model_ns = _model_namespace(model_id) if model_id is not None else None
-            embeddings = self._embed_chunks(all_chunks, cache_dir=_cache_dir, model_ns=_model_ns)
+            embeddings = self._embed_chunks(all_chunks, cache_dir=_cache_dir, model_id=model_id)
             self._bm25_index = self._build_bm25_index(all_chunks)
             self._semantic_index = self._build_semantic_index(embeddings, all_chunks)
         else:
@@ -254,44 +212,36 @@ class SembleIndex:
         self,
         chunks: list[Chunk],
         cache_dir: Path | None = None,
-        model_ns: str | None = None,
+        model_id: str | None = None,
     ) -> EmbeddingMatrix:
         """Embed *chunks*, consulting memory then disk before calling the model.
 
         Lookup order: in-memory cache → disk cache → encode. The model is loaded
         (or downloaded) only when there are genuine cache misses.
+
+        :param chunks: Chunks to embed.
+        :param cache_dir: Root directory for the disk cache, or ``None``.
+        :param model_id: Model identifier used as the cache namespace, or ``None``.
+        :return: Matrix of embeddings, one row per chunk, in input order.
         """
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
-        # Pass 1: identify misses after checking memory, then disk.
-        disk_hits: dict[str, EmbeddingMatrix] = {}
+        spec = _CacheSpec(cache_dir, model_id) if cache_dir is not None and model_id is not None else None
+        cache = _EmbeddingCache(self._embedding_cache, spec)
+
         miss_indices: list[int] = []
         miss_texts: list[str] = []
 
         for i, chunk in enumerate(chunks):
-            h = chunk.content_hash
-            if h in self._embedding_cache:
-                continue
-            if cache_dir is not None and model_ns is not None:
-                emb = _load_embedding(_embedding_cache_path(cache_dir, model_ns, h))
-                if emb is not None:
-                    disk_hits[h] = emb
-                    continue
-            miss_indices.append(i)
-            miss_texts.append(chunk.content)
+            if cache.get(chunk.content_hash) is None:
+                miss_indices.append(i)
+                miss_texts.append(chunk.content)
 
-        # Promote disk hits to the in-memory cache.
-        self._embedding_cache.update(disk_hits)
-
-        # Pass 2: encode only real misses (lazy-loads model when needed).
         if miss_indices:
             model = self._ensure_model()
             for i, embedding in zip(miss_indices, model.encode(miss_texts), strict=True):
-                h = chunks[i].content_hash
-                self._embedding_cache[h] = embedding
-                if cache_dir is not None and model_ns is not None:
-                    _save_embedding_atomic(_embedding_cache_path(cache_dir, model_ns, h), embedding)
+                cache.put(chunks[i].content_hash, embedding)
 
         return np.array([self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32)
 
