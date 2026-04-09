@@ -9,10 +9,10 @@ import numpy.typing as npt
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble._utils import tokenize
 from semble.chunker import EXTENSION_MAP, chunk_source
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
+from semble.utils import tokenize
 
 DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
 

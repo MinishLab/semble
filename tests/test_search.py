@@ -6,10 +6,10 @@ import numpy.typing as npt
 import pytest
 from vicinity import Metric, Vicinity
 
-from semble._utils import tokenize
 from semble.chunker import _content_hash
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, SearchMode
+from semble.utils import tokenize
 
 
 def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:

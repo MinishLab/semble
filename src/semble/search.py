@@ -3,8 +3,8 @@ import numpy as np
 import numpy.typing as npt
 from vicinity import Vicinity
 
-from semble._utils import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
+from semble.utils import tokenize
 
 
 def _normalize(scores: dict[str, float]) -> dict[str, float]:
@@ -53,7 +53,7 @@ def search_bm25(
     """Run BM25 search for a query."""
     scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     indices = np.argsort(-scores)[:top_k]
-    # Exclude chunks with zero score — no query tokens matched.
+    # Exclude chunks with zero score, no query tokens matched.
     return [
         SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25) for i in indices if scores[i] > 0
     ]
