@@ -4,9 +4,9 @@ from pathlib import Path
 
 from chonkie.chunker import CodeChunker
 
-logger = logging.getLogger(__name__)
-
 from semble.types import Chunk
+
+logger = logging.getLogger(__name__)
 
 EXTENSION_MAP: dict[str, str] = {
     ".py": "python",

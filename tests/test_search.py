@@ -6,7 +6,6 @@ import numpy.typing as npt
 import pytest
 from vicinity import Metric, Vicinity
 
-from semble.chunker import _content_hash
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, SearchMode
 from semble.utils import tokenize
@@ -19,7 +18,7 @@ def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:
         start_line=1,
         end_line=content.count("\n") + 1,
         language="python",
-        content_hash=_content_hash(content),
+        content_hash=content[:16],  # stable stand-in; tests don't rely on hash correctness
     )
 
 
@@ -99,6 +98,27 @@ def test_hybrid_returns_results(chunks: list[Chunk], semantic: Vicinity, bm25: b
     """Hybrid search returns results combining semantic and BM25 signals."""
     results = search_hybrid("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
     assert len(results) > 0
+
+
+def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> None:
+    """Identical chunk content in different files produces two distinct results."""
+    shared_content = "def helper():\n    pass"
+    chunk_a = _make_chunk(shared_content, "module_a.py")
+    chunk_b = _make_chunk(shared_content, "module_b.py")
+    all_chunks = [chunk_a, chunk_b]
+
+    rng = np.random.default_rng(1)
+    embs = rng.standard_normal((2, 256)).astype(np.float32)
+    embs /= np.linalg.norm(embs, axis=1, keepdims=True) + 1e-8
+
+    sem_index = Vicinity.from_vectors_and_items(embs, all_chunks, metric=Metric.COSINE)
+    bm25_index = bm25s.BM25()
+    bm25_index.index([tokenize(c.content) for c in all_chunks], show_progress=False)
+
+    results = search_hybrid("helper", mock_model, sem_index, bm25_index, all_chunks, top_k=5)
+    result_locations = {r.chunk.file_path for r in results}
+    assert "module_a.py" in result_locations
+    assert "module_b.py" in result_locations
 
 
 @pytest.mark.parametrize(

@@ -82,11 +82,10 @@ def test_search_top_k_respected(indexed_index: SembleIndex) -> None:
     assert len(results) <= 1
 
 
-def test_search_no_duplicate_hashes(indexed_index: SembleIndex) -> None:
+def test_search_no_duplicate_chunks(indexed_index: SembleIndex) -> None:
     """Each result chunk appears at most once in the result list."""
     results = indexed_index.search("authenticate", top_k=5)
-    hashes = [r.chunk.content_hash for r in results]
-    assert len(hashes) == len(set(hashes))
+    assert len(results) == len(set(r.chunk for r in results))
 
 
 def test_reindex_does_not_re_embed(indexed_index: SembleIndex, tmp_project: Path, mock_model: Any) -> None:

@@ -6,6 +6,8 @@ from typing import Any, Protocol
 import numpy as np
 import numpy.typing as npt
 
+EmbeddingMatrix = npt.NDArray[np.float32]
+
 
 class SearchMode(str, Enum):
     """Search mode for SembleIndex.search()."""

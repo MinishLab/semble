@@ -1,17 +1,15 @@
 import contextlib
-import os
-from collections.abc import Iterator
 from pathlib import Path
 
 import bm25s
 import numpy as np
-import numpy.typing as npt
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
 from semble.chunker import EXTENSION_MAP, chunk_source
+from semble.filesystem import walk_files
 from semble.search import search_bm25, search_hybrid, search_semantic
-from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
+from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode, SearchResult
 from semble.utils import tokenize
 
 DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
@@ -56,7 +54,7 @@ class SembleIndex:
         """Create an empty index with an optional encoder."""
         self.model = model
         self._chunks: list[Chunk] = []
-        self._embedding_cache: dict[str, npt.NDArray[np.float32]] = {}
+        self._embedding_cache: dict[str, EmbeddingMatrix] = {}
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
         self._stats = IndexStats()
@@ -78,7 +76,7 @@ class SembleIndex:
         language_counts: dict[str, int] = {}
         indexed_files = 0
 
-        for file_path in self._walk_files(path, extensions, ignore):
+        for file_path in walk_files(path, extensions, ignore):
             language = EXTENSION_MAP.get(file_path.suffix.lower())
             with contextlib.suppress(OSError):
                 source = file_path.read_text(encoding="utf-8", errors="replace")
@@ -145,20 +143,6 @@ class SembleIndex:
         """Return indexing statistics from the last call to index."""
         return self._stats
 
-    def _walk_files(
-        self,
-        root: Path,
-        extensions: frozenset[str],
-        ignore: frozenset[str],
-    ) -> Iterator[Path]:
-        """Yield matching files while pruning ignored directories."""
-        for dirpath, dirnames, filenames in os.walk(str(root)):
-            dirnames[:] = sorted(d for d in dirnames if d not in ignore)
-            for filename in sorted(filenames):
-                file_path = Path(dirpath) / filename
-                if file_path.suffix.lower() in extensions:
-                    yield file_path
-
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided."""
         if self.model is None:
@@ -167,7 +151,7 @@ class SembleIndex:
             return model
         return self.model
 
-    def _embed_chunks(self, model: Encoder, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
+    def _embed_chunks(self, model: Encoder, chunks: list[Chunk]) -> EmbeddingMatrix:
         """Embed chunks, reusing cached embeddings when available."""
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
@@ -189,7 +173,7 @@ class SembleIndex:
         )
         return bm25_index
 
-    def _build_semantic_index(self, embeddings: npt.NDArray[np.float32], chunks: list[Chunk]) -> Vicinity:
+    def _build_semantic_index(self, embeddings: EmbeddingMatrix, chunks: list[Chunk]) -> Vicinity:
         """Build an ANNS index over chunk embeddings for semantic search."""
         return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
