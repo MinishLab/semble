@@ -39,7 +39,8 @@ def embeddings(chunks: list[Chunk]) -> npt.NDArray[np.float32]:
     rng = np.random.default_rng(0)
     embs = rng.standard_normal((len(chunks), 256)).astype(np.float32)
     norms = np.linalg.norm(embs, axis=1, keepdims=True)
-    return embs / (norms + 1e-8)  # type: ignore[no-any-return]
+    normalized: npt.NDArray[np.float32] = embs / (norms + 1e-8)
+    return normalized
 
 
 @pytest.fixture

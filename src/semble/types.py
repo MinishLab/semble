@@ -6,8 +6,6 @@ from typing import Any, Protocol
 import numpy as np
 import numpy.typing as npt
 
-FileLines = dict[str, list[str]]
-
 
 class SearchMode(str, Enum):
     """Search mode for SembleIndex.search()."""
@@ -20,7 +18,7 @@ class SearchMode(str, Enum):
 class Encoder(Protocol):
     """Protocol for embedding models. Any object with a compatible encode() works."""
 
-    def encode(self, texts: Sequence[str], **kwargs: Any) -> npt.NDArray[np.floating[Any]]:
+    def encode(self, texts: Sequence[str], /) -> npt.NDArray[Any]:
         """Encode a sequence of texts into embeddings."""
         ...  # pragma: no cover
 

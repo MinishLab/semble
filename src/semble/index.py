@@ -2,7 +2,6 @@ import contextlib
 import os
 from collections.abc import Iterator
 from pathlib import Path
-from typing import cast
 
 import bm25s
 import numpy as np
@@ -76,24 +75,25 @@ class SembleIndex:
 
         all_chunks: list[Chunk] = []
         language_counts: dict[str, int] = {}
-        self._file_lines = {}
+        file_count = 0
 
         for file_path in self._walk_files(path, extensions, ignore):
             language = EXTENSION_MAP.get(file_path.suffix.lower())
             with contextlib.suppress(OSError):
                 source = file_path.read_text(encoding="utf-8", errors="replace")
-                self._file_lines[str(file_path)] = source.splitlines()
+                file_count += 1
                 file_chunks = chunk_source(source, str(file_path), language)
                 all_chunks.extend(file_chunks)
                 for chunk in file_chunks:
                     if chunk.language:
                         language_counts[chunk.language] = language_counts.get(chunk.language, 0) + 1
 
-        embeddings = self._embed_chunks(all_chunks)
-
         self._chunks = all_chunks
 
         if all_chunks:
+            model = self._ensure_model()
+            embeddings = self._embed_chunks(model, all_chunks)
+
             # Build BM25 index over tokenized, path-enriched chunk text.
             self._bm25_index = bm25s.BM25()
             self._bm25_index.index(
@@ -106,9 +106,12 @@ class SembleIndex:
                 all_chunks,
                 metric=Metric.COSINE,
             )
+        else:
+            self._bm25_index = None
+            self._semantic_index = None
 
         self._stats = IndexStats(
-            total_files=len(self._file_lines),
+            total_files=file_count,
             total_chunks=len(all_chunks),
             languages=language_counts,
         )
@@ -129,30 +132,18 @@ class SembleIndex:
         :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         """
-        if not self._chunks:
+        # Snapshot to locals so mypy can narrow the types through the guard below.
+        model, bm25_index, semantic_index = self.model, self._bm25_index, self._semantic_index
+        if not self._chunks or model is None or bm25_index is None or semantic_index is None:
             return []
 
         mode = SearchMode(mode)
 
         if mode is SearchMode.SEMANTIC:
-            if self._semantic_index is None or self.model is None:
-                return []
-            return search_semantic(query, self.model, self._semantic_index, top_k)
+            return search_semantic(query, model, semantic_index, top_k)
         if mode is SearchMode.BM25:
-            if self._bm25_index is None:
-                return []
-            return search_bm25(query, self._bm25_index, self._chunks, top_k)
-        if self._semantic_index is None or self._bm25_index is None or self.model is None:
-            return []
-        return search_hybrid(
-            query,
-            self.model,
-            self._semantic_index,
-            self._bm25_index,
-            self._chunks,
-            top_k,
-            alpha=alpha,
-        )
+            return search_bm25(query, bm25_index, self._chunks, top_k)
+        return search_hybrid(query, model, semantic_index, bm25_index, self._chunks, top_k, alpha=alpha)
 
     @property
     def stats(self) -> IndexStats:
@@ -173,24 +164,25 @@ class SembleIndex:
                 if file_path.suffix.lower() in extensions:
                     yield file_path
 
-    def _embed_chunks(self, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
+    def _ensure_model(self) -> Encoder:
+        """Return the current model, loading the default if none was provided."""
+        if self.model is None:
+            model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
+            self.model = model
+            return model
+        return self.model
+
+    def _embed_chunks(self, model: Encoder, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
         """Embed chunks, reusing cached embeddings when available."""
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
-        model = self.model
-        if model is None:
-            model = cast(Encoder, StaticModel.from_pretrained(DEFAULT_MODEL_NAME))
-            self.model = model
         uncached = [
-            (index, chunk.content)
-            for index, chunk in enumerate(chunks)
-            if chunk.content_hash not in self._embedding_cache
+            (i, chunk.content) for i, chunk in enumerate(chunks) if chunk.content_hash not in self._embedding_cache
         ]
         if uncached:
             indices, texts = zip(*uncached, strict=True)
-            new_embeddings = model.encode(list(texts))
-            for index, embedding in zip(indices, new_embeddings, strict=True):
-                self._embedding_cache[chunks[index].content_hash] = embedding
+            for i, embedding in zip(indices, model.encode(list(texts)), strict=True):
+                self._embedding_cache[chunks[i].content_hash] = embedding
         return np.array([self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32)
 
     def _enrich_for_bm25(self, chunk: Chunk) -> str:

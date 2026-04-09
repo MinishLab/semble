@@ -67,7 +67,8 @@ def mock_model() -> MagicMock:
     def _encode(texts: list[str]) -> npt.NDArray[np.float32]:
         embs = rng.standard_normal((len(texts), 256)).astype(np.float32)
         norms = np.linalg.norm(embs, axis=1, keepdims=True)
-        return embs / (norms + 1e-8)  # type: ignore[no-any-return]
+        normalized: npt.NDArray[np.float32] = embs / (norms + 1e-8)
+        return normalized
 
     model.encode.side_effect = _encode
     return model

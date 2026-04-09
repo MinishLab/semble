@@ -1,5 +1,4 @@
 import re
-from typing import cast
 
 import bm25s
 import numpy as np
@@ -17,7 +16,7 @@ def _tokenize(text: str) -> list[str]:
 
 
 def _normalize(scores: dict[str, float]) -> dict[str, float]:
-    """Min-max normalize scores."""
+    """Min-max normalize scores to [0, 1]."""
     if not scores:
         return scores
     values = np.array(list(scores.values()), dtype=np.float32)
@@ -25,6 +24,16 @@ def _normalize(scores: dict[str, float]) -> dict[str, float]:
     maximum_score = float(values.max())
     denominator = maximum_score - minimum_score if maximum_score - minimum_score > 1e-9 else 1e-9
     return {key: float((score - minimum_score) / denominator) for key, score in scores.items()}
+
+
+def _vicinity_query(index: Vicinity, embedding: npt.NDArray[np.float32], k: int) -> list[tuple[Chunk, float]]:
+    """Query a Vicinity index and return hits typed as Chunks.
+
+    Vicinity's type stubs declare stored items as ``str``, but the actual
+    objects are whatever was passed to ``from_vectors_and_items``.
+    This wrapper isolates that stub inaccuracy in one place.
+    """
+    return index.query(embedding[None], k=k)[0]  # type: ignore[return-value]
 
 
 def search_semantic(
@@ -35,7 +44,8 @@ def search_semantic(
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
     query_embedding = model.encode([query])[0]
-    hits = cast(list[tuple[Chunk, float]], semantic_index.query(query_embedding[None], k=top_k)[0])
+    hits = _vicinity_query(semantic_index, query_embedding, top_k)
+    # Vicinity returns cosine distance; convert to similarity so higher = better.
     return [
         SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC) for chunk, distance in hits
     ]
@@ -48,8 +58,9 @@ def search_bm25(
     top_k: int,
 ) -> list[SearchResult]:
     """Run BM25 search for a query."""
-    scores = cast(npt.NDArray[np.float32], bm25_index.get_scores(_tokenize(query)))
+    scores: npt.NDArray[np.float32] = bm25_index.get_scores(_tokenize(query))
     indices = np.argsort(-scores)[:top_k]
+    # Exclude chunks with zero score — no query tokens matched.
     return [
         SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25) for i in indices if scores[i] > 0
     ]
@@ -78,30 +89,33 @@ def search_hybrid(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
     :returns: List of search results sorted by combined score descending.
     """
+    # Fetch more candidates than top_k from each index so the merged pool is large
+    # enough to still surface top_k good results after union and re-ranking.
     candidate_count = top_k * 3
 
     query_embedding = model.encode([query])[0]
-    hits = cast(
-        list[tuple[Chunk, float]],
-        semantic_index.query(query_embedding[None], k=candidate_count)[0],
-    )
+    hits = _vicinity_query(semantic_index, query_embedding, candidate_count)
+
+    # Keyed by content_hash for O(1) merge with BM25 candidates.
     semantic_scores: dict[str, float] = {}
     chunks_by_hash: dict[str, Chunk] = {}
     for chunk, distance in hits:
-        semantic_scores[chunk.content_hash] = 1.0 - float(distance)
+        semantic_scores[chunk.content_hash] = 1.0 - float(distance)  # distance → similarity
         chunks_by_hash[chunk.content_hash] = chunk
 
-    bm25_scores = cast(npt.NDArray[np.float32], bm25_index.get_scores(_tokenize(query)))
+    bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(_tokenize(query))
     bm25_result_scores: dict[str, float] = {}
     for chunk_index in np.argsort(-bm25_scores)[:candidate_count]:
-        if bm25_scores[chunk_index] > 0:
+        if bm25_scores[chunk_index] > 0:  # exclude chunks with no matching tokens
             chunk_hash = chunks[chunk_index].content_hash
             bm25_result_scores[chunk_hash] = float(bm25_scores[chunk_index])
             chunks_by_hash[chunk_hash] = chunks[chunk_index]
 
+    # Normalise each score set to [0, 1] independently so alpha has a consistent meaning.
     normalized_semantic_scores = _normalize(semantic_scores)
     normalized_bm25_scores = _normalize(bm25_result_scores)
 
+    # Union of both candidate sets; a chunk absent from one index scores 0 for that signal.
     combined_scores: dict[str, float] = {}
     for chunk_hash in set(normalized_semantic_scores) | set(normalized_bm25_scores):
         combined_scores[chunk_hash] = alpha * normalized_semantic_scores.get(chunk_hash, 0.0) + (
