@@ -99,3 +99,19 @@ class _EmbeddingCache:
             with contextlib.suppress(OSError):
                 os.unlink(tmp)
             raise
+
+
+def make_embedding_cache(
+    memory: dict[str, EmbeddingMatrix],
+    cache_dir: Path | None,
+    model_id: str | None,
+) -> _EmbeddingCache:
+    """Build an :class:`_EmbeddingCache`, wiring up disk persistence when both args are set.
+
+    :param memory: Shared in-memory embedding dict.
+    :param cache_dir: Resolved (already expanded) root path for disk storage, or ``None``.
+    :param model_id: Model identifier used as the cache namespace, or ``None``.
+    :return: A configured :class:`_EmbeddingCache` instance.
+    """
+    spec = _CacheSpec(cache_dir, model_id) if cache_dir is not None and model_id is not None else None
+    return _EmbeddingCache(memory, spec)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+from dataclasses import dataclass
 from pathlib import Path
 
 import bm25s
@@ -8,7 +9,7 @@ import numpy as np
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble.cache import _CacheSpec, _EmbeddingCache
+from semble.cache import make_embedding_cache
 from semble.chunker import chunk_source
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.sources import language_for_path, resolve_extensions, walk_files
@@ -18,19 +19,59 @@ from semble.utils import tokenize
 _DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
 
 
+@dataclass(frozen=True, slots=True)
+class _IndexConfig:
+    """Immutable backend configuration for a :class:`SembleIndex`.
+
+    Separates the "which model and cache to use" decision (made at construction)
+    from the "which files to index" decision (made at each :meth:`SembleIndex.index` call).
+    """
+
+    model: Encoder | None
+    model_id: str | None
+    cache_dir: Path | None  # already expanduser()-resolved
+
+
 class SembleIndex:
     """Fast local code index with hybrid search."""
 
-    def __init__(self, model: Encoder | None = None) -> None:
-        """Initialize a SembleIndex."""
-        self.model = model
+    def __init__(
+        self,
+        model: Encoder | None = None,
+        *,
+        model_id: str | None = None,
+        cache_dir: str | Path | None = None,
+    ) -> None:
+        """Initialize a SembleIndex.
+
+        :param model: Embedding model to use. Defaults to ``Pringled/potion-code-16M``
+            (loaded lazily on first use).
+        :param model_id: Stable identifier for the encoder (e.g. its HuggingFace hub ID).
+            Required when *cache_dir* is set; used as the disk-cache namespace so
+            embeddings from different models never mix. For the built-in default model
+            pass ``model_id="Pringled/potion-code-16M"``. When using a custom model,
+            also pass a matching *model* object — otherwise semantic/hybrid search will
+            raise :class:`ValueError` to prevent silent dimensionality mismatches.
+        :param cache_dir: Directory for the disk embedding cache. When given, previously
+            computed embeddings are reused across runs. Only embeddings are persisted;
+            BM25 and the ANNS index are always rebuilt in-memory. ``~`` is expanded
+            automatically. *model_id* is required when this is set.
+        :raises ValueError: If *cache_dir* is given without *model_id*.
+        """
+        if cache_dir is not None and model_id is None:
+            raise ValueError("model_id is required when cache_dir is provided")
+        self._config = _IndexConfig(
+            model=model,
+            model_id=model_id,
+            cache_dir=Path(cache_dir).expanduser() if cache_dir is not None else None,
+        )
+        # Mutable runtime model reference — updated by _ensure_model() on lazy load.
+        self.model: Encoder | None = model
         self._chunks: list[Chunk] = []
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
         self._stats = IndexStats()
-        # Recorded during index() so _ensure_model() can validate lazy-load safety.
-        self._model_id: str | None = None
 
     @classmethod
     def from_path(
@@ -43,33 +84,23 @@ class SembleIndex:
         cache_dir: str | Path | None = None,
         model_id: str | None = None,
     ) -> SembleIndex:
-        """Create a SembleIndex index from a directory.
+        """Create and index a :class:`SembleIndex` from a directory.
+
+        Backend configuration (*model*, *model_id*, *cache_dir*) is forwarded to
+        the constructor; source-selection arguments (*extensions*, *ignore*,
+        *include_docs*) are forwarded to :meth:`index`.
 
         :param path: Root directory to index.
-        :param model: Embedding model to use. Defaults to ``Pringled/potion-code-16M``.
-        :param extensions: File extensions to include. Defaults to all code extensions.
-        :param ignore: Directory names to skip. Defaults to the standard ignored directories.
+        :param model: Embedding model to use.
+        :param extensions: File extensions to include.
+        :param ignore: Directory names to skip.
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
-        :param cache_dir: Directory for the disk embedding cache. When given, previously
-            computed embeddings are reused across runs. Only embeddings are cached; BM25
-            and the ANNS index are always rebuilt in-memory. *model_id* is required when
-            this is set. To cache with the built-in default model pass
-            ``model_id="Pringled/potion-code-16M"``. When using a custom model, you must
-            also pass a matching *model* object so that semantic/hybrid search can encode
-            queries with the same dimensionality as the cached embeddings.
-        :param model_id: Stable identifier for the encoder (e.g. its HuggingFace hub ID).
-            Used as the cache namespace so embeddings from different models never mix.
-        :return: An indexed SembleIndex.
+        :param cache_dir: Directory for the disk embedding cache.
+        :param model_id: Stable identifier for the encoder used as the cache namespace.
+        :return: An indexed :class:`SembleIndex`.
         """
-        instance = cls(model=model)
-        instance.index(
-            path,
-            extensions=extensions,
-            ignore=ignore,
-            include_docs=include_docs,
-            cache_dir=cache_dir,
-            model_id=model_id,
-        )
+        instance = cls(model=model, model_id=model_id, cache_dir=cache_dir)
+        instance.index(path, extensions=extensions, ignore=ignore, include_docs=include_docs)
         return instance
 
     def index(
@@ -78,34 +109,17 @@ class SembleIndex:
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
-        cache_dir: str | Path | None = None,
-        model_id: str | None = None,
     ) -> IndexStats:
-        """Index a directory.
+        """Index a directory using the backend configured at construction time.
 
         :param path: Root directory to index.
         :param extensions: File extensions to include.
         :param ignore: Directory names to skip.
         :param include_docs: If True, also index documentation files.
-        :param cache_dir: Directory for the disk embedding cache. *model_id* is required
-            when this is set. Only embeddings are persisted; BM25 and the ANNS index are
-            always rebuilt in-memory from cached embeddings. To cache with the built-in
-            default model pass ``model_id="Pringled/potion-code-16M"``. For a custom
-            model, also pass the matching *model* object so that semantic/hybrid search
-            can encode queries correctly.
-        :param model_id: Stable identifier for the encoder used as the cache namespace.
         :return: Statistics about the indexed files and chunks.
-        :raises ValueError: If *cache_dir* is given without *model_id*.
         """
-        if cache_dir is not None and model_id is None:
-            raise ValueError("model_id is required when cache_dir is provided")
-
         path = Path(path).resolve()
         extensions = resolve_extensions(extensions, include_docs=include_docs)
-
-        # Record which model namespace these embeddings belong to so that
-        # _ensure_model() can validate lazy-load safety at search time.
-        self._model_id = model_id
 
         all_chunks: list[Chunk] = []
         language_counts: dict[str, int] = {}
@@ -125,8 +139,7 @@ class SembleIndex:
         self._chunks = all_chunks
 
         if all_chunks:
-            _cache_dir = Path(cache_dir).expanduser() if cache_dir is not None else None
-            embeddings = self._embed_chunks(all_chunks, cache_dir=_cache_dir, model_id=model_id)
+            embeddings = self._embed_chunks(all_chunks)
             self._bm25_index = self._build_bm25_index(all_chunks)
             self._semantic_index = self._build_semantic_index(embeddings, all_chunks)
         else:
@@ -187,48 +200,43 @@ class SembleIndex:
         """Return the current model, loading the default if none was provided.
 
         :return: The active encoder.
-        :raises ValueError: If the index was built from a non-default model's cached
-            embeddings and no explicit model was supplied.  Lazy-loading the built-in
-            default model would produce query vectors with a different dimensionality
-            than the cached embeddings, causing silent shape mismatches in Vicinity.
+        :raises ValueError: If the index was configured with a non-default *model_id*
+            and no explicit *model* was supplied.  Lazy-loading the built-in default
+            model would produce query vectors with a different dimensionality than the
+            cached embeddings, causing silent shape mismatches in Vicinity.
         """
         if self.model is None:
             # Only safe to lazy-load the default when the embeddings in this index
             # were produced by (or are compatible with) the default model.  That is
-            # true when no model_id was recorded (no disk cache used) or when the
-            # recorded model_id matches the default model exactly.
-            if self._model_id is not None and self._model_id != _DEFAULT_MODEL_NAME:
+            # true when no model_id was set (no disk cache) or when model_id matches
+            # the default exactly.
+            model_id = self._config.model_id
+            if model_id is not None and model_id != _DEFAULT_MODEL_NAME:
                 raise ValueError(
-                    f"This index was built with model {self._model_id!r} but no model was "
+                    f"This index was configured with model {model_id!r} but no model was "
                     f"supplied at construction time.  Pass the matching model explicitly to "
                     f"avoid embedding dimensionality mismatches."
                 )
-            model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
-            self.model = model
-            return model
+            self.model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
         return self.model
 
-    def _embed_chunks(
-        self,
-        chunks: list[Chunk],
-        cache_dir: Path | None = None,
-        model_id: str | None = None,
-    ) -> EmbeddingMatrix:
+    def _embed_chunks(self, chunks: list[Chunk]) -> EmbeddingMatrix:
         """Embed *chunks*, consulting memory then disk before calling the model.
 
         Lookup order: in-memory cache → disk cache → encode. The model is loaded
         (or downloaded) only when there are genuine cache misses.
 
         :param chunks: Chunks to embed.
-        :param cache_dir: Root directory for the disk cache, or ``None``.
-        :param model_id: Model identifier used as the cache namespace, or ``None``.
         :return: Matrix of embeddings, one row per chunk, in input order.
         """
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
-        spec = _CacheSpec(cache_dir, model_id) if cache_dir is not None and model_id is not None else None
-        cache = _EmbeddingCache(self._embedding_cache, spec)
+        cache = make_embedding_cache(
+            self._embedding_cache,
+            self._config.cache_dir,
+            self._config.model_id,
+        )
 
         miss_indices: list[int] = []
         miss_texts: list[str] = []
