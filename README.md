@@ -35,44 +35,14 @@ results = index.search("JWT token", mode=SearchMode.BM25)
 
 ## Disk embedding cache
 
-Pass `cache_dir` and `model_id` to persist embeddings between runs. Only
-embeddings are cached on disk; BM25 and the ANNS index are always rebuilt
-in-memory (fast, no staleness risk). `~` is expanded automatically.
+Embeddings are cached to `~/.cache/semble` by default so re-indexing unchanged files is instant. Pass `cache_dir` to override the location, or disable caching entirely:
 
 ```python
-# First run: embeds everything and writes to ~/.cache/semble
-index = SembleIndex.from_path(
-    "./my-project",
-    cache_dir="~/.cache/semble",
-    model_id="Pringled/potion-code-16M",   # built-in default
-)
+# Custom cache directory
+index = SembleIndex.from_path("./my-project", cache_dir="~/.cache/my-cache")
 
-# Subsequent runs: loads all embeddings from disk, skips encoding entirely
-index = SembleIndex.from_path(
-    "./my-project",
-    cache_dir="~/.cache/semble",
-    model_id="Pringled/potion-code-16M",
-)
-results = index.search("authenticate", mode="bm25")   # works; BM25 needs no model
-results = index.search("authenticate")                # also works; default model loaded lazily
+# Disable caching
+index = SembleIndex.from_path("./my-project", enable_caching=False)
 ```
 
-`model_id` is the cache namespace — embeddings from different models never collide.
-The built-in default is `"Pringled/potion-code-16M"`.
-
-**Custom models:** when using a non-default model you must supply the matching
-`model` object every time you call `from_path` / `index`. If `model` is `None`
-and the recorded `model_id` is not the built-in default, semantic/hybrid search
-will raise `ValueError` rather than silently load an incompatible model.
-
-```python
-from my_encoder import MyModel
-
-model = MyModel()
-index = SembleIndex.from_path(
-    "./my-project",
-    model=model,
-    cache_dir="~/.cache/semble",
-    model_id="my-org/my-model",
-)
-```
+Only embeddings are cached; BM25 and the ANNS index are always rebuilt fresh.

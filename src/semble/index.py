@@ -25,30 +25,26 @@ class SembleIndex:
         self,
         model: Encoder | None = None,
         *,
-        model_id: str | None = None,
+        enable_caching: bool = True,
         cache_dir: str | Path | None = None,
+        model_name: str | None = None,
     ) -> None:
         """Initialize a SembleIndex.
 
-        :param model: Embedding model to use. Defaults to "Pringled/potion-code-16M"
+        :param model: Embedding model to use. Defaults to Pringled/potion-code-16M
             (loaded lazily on first use).
-        :param model_id: Stable identifier for the encoder (e.g. its HuggingFace hub ID).
-            Required when cache_dir is set; used as the disk-cache namespace so
-            embeddings from different models never mix. For the built-in default model
-            pass model_id="Pringled/potion-code-16M". When using a custom model,
-            also pass a matching model object — otherwise semantic/hybrid search will
-            raise ValueError to prevent silent dimensionality mismatches.
-        :param cache_dir: Directory for the disk embedding cache. When given, previously
-            computed embeddings are reused across runs. Only embeddings are persisted;
-            BM25 and the ANNS index are always rebuilt in-memory. ~ is expanded
-            automatically. model_id is required when this is set.
-        :raises ValueError: If cache_dir is given without model_id.
+        :param enable_caching: Whether to persist embeddings to disk between runs.
+            Enabled by default.
+        :param cache_dir: Override the cache directory. Defaults to ~/.cache/semble.
+            ~ is expanded automatically. Ignored when enable_caching is False.
+        :param model_name: Stable identifier for a custom encoder, used as the disk
+            cache namespace. Disk caching is silently disabled when a custom model
+            is passed without model_name.
         """
-        if cache_dir is not None and model_id is None:
-            raise ValueError("model_id is required when cache_dir is provided")
         self.model: Encoder | None = model
-        self.model_id = model_id
-        self.cache_dir = Path(cache_dir).expanduser() if cache_dir is not None else None
+        self.cache_dir, self.cache_namespace = self._resolve_cache_config(
+            model, enable_caching=enable_caching, cache_dir=cache_dir, model_name=model_name
+        )
         self.chunks: list[Chunk] = []
         self.stats = IndexStats()
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
@@ -63,25 +59,23 @@ class SembleIndex:
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
+        enable_caching: bool = True,
         cache_dir: str | Path | None = None,
-        model_id: str | None = None,
+        model_name: str | None = None,
     ) -> SembleIndex:
         """Create and index a SembleIndex from a directory.
-
-        Backend configuration (model, model_id, cache_dir) is forwarded to
-        the constructor; source-selection arguments (extensions, ignore,
-        include_docs) are forwarded to index.
 
         :param path: Root directory to index.
         :param model: Embedding model to use.
         :param extensions: File extensions to include.
         :param ignore: Directory names to skip.
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
-        :param cache_dir: Directory for the disk embedding cache.
-        :param model_id: Stable identifier for the encoder used as the cache namespace.
+        :param enable_caching: Whether to persist embeddings to disk between runs.
+        :param cache_dir: Override the cache directory. Defaults to ~/.cache/semble.
+        :param model_name: Stable identifier for a custom encoder, used as the disk cache namespace.
         :return: An indexed SembleIndex.
         """
-        instance = cls(model=model, model_id=model_id, cache_dir=cache_dir)
+        instance = cls(model=model, enable_caching=enable_caching, cache_dir=cache_dir, model_name=model_name)
         instance.index(path, extensions=extensions, ignore=ignore, include_docs=include_docs)
         return instance
 
@@ -146,10 +140,10 @@ class SembleIndex:
 
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
-        :param mode: Search strategy — "hybrid" (default), "semantic", or "bm25".
+        :param mode: Search strategy — ``"hybrid"`` (default), ``"semantic"``, or ``"bm25"``.
         :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25.
-        :return: Ranked list of SearchResult objects, best match first.
-        :raises ValueError: If mode is not a recognised search strategy.
+        :return: Ranked list of :class:`SearchResult` objects, best match first.
+        :raises ValueError: If ``mode`` is not a recognised search strategy.
         """
         bm25_index, semantic_index = self._bm25_index, self._semantic_index
         if not self.chunks or bm25_index is None or semantic_index is None:
@@ -158,7 +152,6 @@ class SembleIndex:
         if mode == SearchMode.BM25:
             return search_bm25(query, bm25_index, self.chunks, top_k)
 
-        # Semantic and hybrid both need an embedding model; load the default lazily.
         model = self._ensure_model()
         if mode == SearchMode.SEMANTIC:
             return search_semantic(query, model, semantic_index, top_k)
@@ -166,26 +159,29 @@ class SembleIndex:
             return search_hybrid(query, model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha)
         raise ValueError(f"Unknown search mode: {mode!r}")
 
+    @staticmethod
+    def _resolve_cache_config(
+        model: Encoder | None,
+        *,
+        enable_caching: bool,
+        cache_dir: str | Path | None,
+        model_name: str | None,
+    ) -> tuple[Path | None, str | None]:
+        if not enable_caching:
+            return None, None
+        root = Path(cache_dir).expanduser() if cache_dir is not None else Path.home() / ".cache" / "semble"
+        if model is None:
+            return root, _DEFAULT_MODEL_NAME
+        if model_name is not None:
+            return root, model_name
+        return None, None
+
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided.
 
         :return: The active encoder.
-        :raises ValueError: If the index was configured with a non-default model_id
-            and no explicit model was supplied.  Lazy-loading the built-in default
-            model would produce query vectors with a different dimensionality than the
-            cached embeddings, causing silent shape mismatches in Vicinity.
         """
         if self.model is None:
-            # Only safe to lazy-load the default when the embeddings in this index
-            # were produced by (or are compatible with) the default model.  That is
-            # true when no model_id was set (no disk cache) or when model_id matches
-            # the default exactly.
-            if self.model_id is not None and self.model_id != _DEFAULT_MODEL_NAME:
-                raise ValueError(
-                    f"This index was configured with model {self.model_id!r} but no model was "
-                    f"supplied at construction time.  Pass the matching model explicitly to "
-                    f"avoid embedding dimensionality mismatches."
-                )
             self.model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
         return self.model
 
@@ -201,7 +197,7 @@ class SembleIndex:
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
-        cache = make_embedding_cache(self._embedding_cache, self.cache_dir, self.model_id)
+        cache = make_embedding_cache(self._embedding_cache, self.cache_dir, self.cache_namespace)
 
         miss_indices: list[int] = []
         miss_texts: list[str] = []

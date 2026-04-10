@@ -11,18 +11,18 @@ from semble.types import EmbeddingMatrix
 
 @dataclass(frozen=True, slots=True)
 class _CacheSpec:
-    """Disk-cache location and model namespace derived from a root path and model ID."""
+    """Disk-cache location and model namespace derived from a root path and namespace."""
 
     root: Path
-    model_id: str
+    namespace: str
 
     @property
-    def namespace(self) -> str:
-        """Return a filesystem-safe directory name for the model ID.
+    def safe_namespace(self) -> str:
+        """Return a filesystem-safe directory name for the namespace.
 
-        :return: Model ID with / replaced by --.
+        :return: Namespace with / replaced by --.
         """
-        return self.model_id.replace("/", "--")
+        return self.namespace.replace("/", "--")
 
     def path_for(self, content_hash: str) -> Path:
         """Return the per-embedding file path for content_hash.
@@ -30,7 +30,7 @@ class _CacheSpec:
         :param content_hash: Hash of the chunk content used as the cache key.
         :return: Absolute path to the .npy file for this embedding.
         """
-        return self.root / self.namespace / content_hash[:2] / f"{content_hash}.npy"
+        return self.root / self.safe_namespace / content_hash[:2] / f"{content_hash}.npy"
 
 
 class _EmbeddingCache:
@@ -96,14 +96,14 @@ class _EmbeddingCache:
 def make_embedding_cache(
     memory: dict[str, EmbeddingMatrix],
     cache_dir: Path | None,
-    model_id: str | None,
+    cache_namespace: str | None,
 ) -> _EmbeddingCache:
     """Build an _EmbeddingCache with the given shared memory and optional disk cache spec.
 
     :param memory: Shared in-memory embedding dict.
     :param cache_dir: Resolved (already expanded) root path for disk storage, or None.
-    :param model_id: Model identifier used as the cache namespace, or None.
+    :param cache_namespace: Namespace string used to isolate embeddings by model, or None.
     :return: A configured _EmbeddingCache instance.
     """
-    spec = _CacheSpec(cache_dir, model_id) if cache_dir is not None and model_id is not None else None
+    spec = _CacheSpec(cache_dir, cache_namespace) if cache_dir is not None and cache_namespace is not None else None
     return _EmbeddingCache(memory, spec)
