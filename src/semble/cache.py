@@ -21,10 +21,6 @@ class EmbeddingCache:
         self._memory = memory
         self._root = cache_dir / cache_namespace.replace("/", "--") if cache_dir and cache_namespace else None
 
-    def _path_for(self, key: str) -> Path:
-        assert self._root is not None
-        return self._root / key[:2] / f"{key}.npy"
-
     def get(self, key: str) -> EmbeddingMatrix | None:
         """Return the embedding for key, promoting a disk hit to memory. None on miss."""
         if key in self._memory:
@@ -32,7 +28,7 @@ class EmbeddingCache:
         if self._root is None:
             return None
         try:
-            embedding = np.load(self._path_for(key), allow_pickle=False)
+            embedding = np.load(self._root / key[:2] / f"{key}.npy", allow_pickle=False)
         except (FileNotFoundError, ValueError, OSError):
             return None
         self._memory[key] = embedding
@@ -43,7 +39,7 @@ class EmbeddingCache:
         self._memory[key] = embedding
         if self._root is None:
             return
-        path = self._path_for(key)
+        path = self._root / key[:2] / f"{key}.npy"
         path.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".npy.tmp")
         try:

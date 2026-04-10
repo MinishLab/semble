@@ -156,12 +156,16 @@ class SembleIndex:
         cache_dir: str | Path | None,
         model_name: str | None,
     ) -> tuple[Path | None, str | None]:
+        """Determine cache directory and namespace based on constructor args."""
         if not enable_caching:
+            # Disable caching
             return None, None
         root = Path(cache_dir).expanduser() if cache_dir is not None else Path.home() / ".cache" / "semble"
         if model is None:
+            # Default model with default cache namespace
             return root, _DEFAULT_MODEL_NAME
         if model_name is not None:
+            # Custom model with user-specified namespace
             return root, model_name
         return None, None
 
