@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import contextlib
-from dataclasses import dataclass
 from pathlib import Path
 
 import bm25s
@@ -17,19 +16,6 @@ from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode
 from semble.utils import tokenize
 
 _DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
-
-
-@dataclass(frozen=True, slots=True)
-class _IndexConfig:
-    """Immutable backend configuration for a :class:`SembleIndex`.
-
-    Separates the "which model and cache to use" decision (made at construction)
-    from the "which files to index" decision (made at each :meth:`SembleIndex.index` call).
-    """
-
-    model: Encoder | None
-    model_id: str | None
-    cache_dir: Path | None  # already expanduser()-resolved
 
 
 class SembleIndex:
@@ -60,18 +46,14 @@ class SembleIndex:
         """
         if cache_dir is not None and model_id is None:
             raise ValueError("model_id is required when cache_dir is provided")
-        self._config = _IndexConfig(
-            model=model,
-            model_id=model_id,
-            cache_dir=Path(cache_dir).expanduser() if cache_dir is not None else None,
-        )
-        # Mutable runtime model reference — updated by _ensure_model() on lazy load.
         self.model: Encoder | None = model
-        self._chunks: list[Chunk] = []
+        self.model_id = model_id
+        self.cache_dir = Path(cache_dir).expanduser() if cache_dir is not None else None
+        self.chunks: list[Chunk] = []
+        self.stats = IndexStats()
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
-        self._stats = IndexStats()
 
     @classmethod
     def from_path(
@@ -136,7 +118,7 @@ class SembleIndex:
                     if chunk.language:
                         language_counts[chunk.language] = language_counts.get(chunk.language, 0) + 1
 
-        self._chunks = all_chunks
+        self.chunks = all_chunks
 
         if all_chunks:
             embeddings = self._embed_chunks(all_chunks)
@@ -146,12 +128,12 @@ class SembleIndex:
             self._bm25_index = None
             self._semantic_index = None
 
-        self._stats = IndexStats(
+        self.stats = IndexStats(
             indexed_files=indexed_files,
             total_chunks=len(all_chunks),
             languages=language_counts,
         )
-        return self._stats
+        return self.stats
 
     def search(
         self,
@@ -170,31 +152,19 @@ class SembleIndex:
         :raises ValueError: If ``mode`` is not a recognised search strategy.
         """
         bm25_index, semantic_index = self._bm25_index, self._semantic_index
-        if not self._chunks or bm25_index is None:
+        if not self.chunks or bm25_index is None or semantic_index is None:
             return []
 
         if mode == SearchMode.BM25:
-            return search_bm25(query, bm25_index, self._chunks, top_k)
+            return search_bm25(query, bm25_index, self.chunks, top_k)
 
         # Semantic and hybrid both need an embedding model; load the default lazily.
-        if semantic_index is None:
-            return []
         model = self._ensure_model()
         if mode == SearchMode.SEMANTIC:
             return search_semantic(query, model, semantic_index, top_k)
         if mode == SearchMode.HYBRID:
-            return search_hybrid(query, model, semantic_index, bm25_index, self._chunks, top_k, alpha=alpha)
+            return search_hybrid(query, model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha)
         raise ValueError(f"Unknown search mode: {mode!r}")
-
-    @property
-    def chunks(self) -> list[Chunk]:
-        """Return the indexed chunks from the last call to index."""
-        return self._chunks
-
-    @property
-    def stats(self) -> IndexStats:
-        """Return indexing statistics from the last call to index."""
-        return self._stats
 
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided.
@@ -210,10 +180,9 @@ class SembleIndex:
             # were produced by (or are compatible with) the default model.  That is
             # true when no model_id was set (no disk cache) or when model_id matches
             # the default exactly.
-            model_id = self._config.model_id
-            if model_id is not None and model_id != _DEFAULT_MODEL_NAME:
+            if self.model_id is not None and self.model_id != _DEFAULT_MODEL_NAME:
                 raise ValueError(
-                    f"This index was configured with model {model_id!r} but no model was "
+                    f"This index was configured with model {self.model_id!r} but no model was "
                     f"supplied at construction time.  Pass the matching model explicitly to "
                     f"avoid embedding dimensionality mismatches."
                 )
@@ -232,11 +201,7 @@ class SembleIndex:
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
-        cache = make_embedding_cache(
-            self._embedding_cache,
-            self._config.cache_dir,
-            self._config.model_id,
-        )
+        cache = make_embedding_cache(self._embedding_cache, self.cache_dir, self.model_id)
 
         miss_indices: list[int] = []
         miss_texts: list[str] = []
