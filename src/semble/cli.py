@@ -1,7 +1,3 @@
-"""CLI for semble."""
-
-from __future__ import annotations
-
 import argparse
 import asyncio
 import sys
@@ -11,7 +7,7 @@ def main() -> None:
     """Entry point for the semble command-line tool."""
     parser = argparse.ArgumentParser(
         prog="semble",
-        description="Instant local code memory for agents.",
+        description="Instant local code search for agents.",
     )
     parser.add_argument("path", help="Directory to index and serve.")
     args = parser.parse_args()
