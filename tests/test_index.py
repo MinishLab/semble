@@ -168,3 +168,25 @@ def test_disk_cache_disabled(mock_model: Any, tmp_project: Path, kwargs: dict[st
     idx = SembleIndex(model=mock_model, **kwargs)
     assert idx.cache_dir is None
     assert idx.cache_namespace is None
+
+
+def test_find_related_returns_similar_chunks(indexed_index: SembleIndex) -> None:
+    """find_related returns semantically similar chunks for a known file location."""
+    chunk = indexed_index.chunks[0]
+    results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
+    assert isinstance(results, list)
+    # The source chunk itself must not appear in the results.
+    assert all(r.chunk != chunk for r in results)
+    assert len(results) <= 3
+
+
+def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> None:
+    """find_related returns an empty list when the file is not in the index."""
+    results = indexed_index.find_related("/does/not/exist.py", 1)
+    assert results == []
+
+
+def test_find_related_before_indexing_returns_empty() -> None:
+    """find_related on an empty index returns an empty list."""
+    idx = SembleIndex()
+    assert idx.find_related("/any/file.py", 1) == []
