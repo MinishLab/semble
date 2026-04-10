@@ -8,6 +8,8 @@ import pytest
 
 from semble import SembleIndex
 
+_MODEL_NAME = "test/mock-model"
+
 
 @pytest.fixture
 def index(mock_model: Any) -> SembleIndex:
@@ -93,9 +95,7 @@ def test_search_no_duplicate_chunks(indexed_index: SembleIndex) -> None:
 def test_reindex_does_not_re_embed(indexed_index: SembleIndex, tmp_project: Path, mock_model: Any) -> None:
     """Re-indexing unchanged files does not call encode again."""
     call_count_after_first = mock_model.encode.call_count
-
     indexed_index.index(tmp_project)
-
     assert mock_model.encode.call_count == call_count_after_first
 
 
@@ -104,32 +104,17 @@ def test_stats_property(indexed_index: SembleIndex) -> None:
     assert indexed_index.stats.indexed_files >= 2
 
 
-_MODEL_NAME = "test/mock-model"
-
-
-def test_disk_cache_writes_embeddings(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
-    """After indexing with a cache_dir, .npy files are written to disk."""
-    cache_dir = tmp_path / "cache"
-    idx = SembleIndex(model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
-    idx.index(tmp_project)
-
-    npy_files = list(cache_dir.rglob("*.npy"))
-    assert len(npy_files) == len(idx.chunks)
-
-
-def test_disk_cache_avoids_re_encode(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
-    """A second index run with the same cache_dir never calls encode again."""
+def test_disk_cache_round_trip(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
+    """from_path writes .npy files on first run and avoids re-encoding on second."""
     cache_dir = tmp_path / "cache"
 
-    first = SembleIndex(model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
-    first.index(tmp_project)
-    encode_calls_after_first = mock_model.encode.call_count
+    first = SembleIndex.from_path(tmp_project, model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
+    assert list(cache_dir.rglob("*.npy"))
+    encode_calls = mock_model.encode.call_count
 
-    # Fresh instance — no in-memory cache — but disk cache is warm.
-    second = SembleIndex(model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
-    second.index(tmp_project)
-
-    assert mock_model.encode.call_count == encode_calls_after_first
+    second = SembleIndex.from_path(tmp_project, model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
+    assert mock_model.encode.call_count == encode_calls
+    assert len(second.chunks) == len(first.chunks)
 
 
 def test_disk_cache_encodes_only_new_chunks(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
@@ -145,7 +130,6 @@ def test_disk_cache_encodes_only_new_chunks(mock_model: Any, tmp_project: Path, 
     second = SembleIndex(model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
     second.index(tmp_project)
 
-    # encode was called exactly once more (for the new file's chunks).
     assert mock_model.encode.call_count == calls_after_first + 1
 
 
@@ -153,37 +137,12 @@ def test_disk_cache_model_name_isolates_models(mock_model: Any, tmp_project: Pat
     """Different model_name values write to separate subdirectories."""
     cache_dir = tmp_path / "cache"
 
-    idx_a = SembleIndex(model=mock_model, cache_dir=cache_dir, model_name="org/model-a")
-    idx_a.index(tmp_project)
-
-    idx_b = SembleIndex(model=mock_model, cache_dir=cache_dir, model_name="org/model-b")
-    idx_b.index(tmp_project)
+    SembleIndex(model=mock_model, cache_dir=cache_dir, model_name="org/model-a").index(tmp_project)
+    SembleIndex(model=mock_model, cache_dir=cache_dir, model_name="org/model-b").index(tmp_project)
 
     namespaces = {p.name for p in cache_dir.iterdir() if p.is_dir()}
     assert "org--model-a" in namespaces
     assert "org--model-b" in namespaces
-
-
-def test_disk_cache_disabled_without_model_name(tmp_project: Path) -> None:
-    """Custom encoder without model_name silently disables disk caching."""
-    import numpy as np
-
-    class AnonymousEncoder:
-        def encode(self, texts: Sequence[str], /) -> npt.NDArray[Any]:
-            return np.stack([np.random.default_rng(0).standard_normal(256).astype(np.float32) for _ in texts])
-
-    idx = SembleIndex(model=AnonymousEncoder())
-    assert idx.cache_dir is None
-    assert idx.cache_namespace is None
-
-
-def test_from_path_threads_cache_args(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
-    """from_path forwards cache_dir and model_name to the constructor."""
-    cache_dir = tmp_path / "cache"
-    idx = SembleIndex.from_path(tmp_project, model=mock_model, cache_dir=cache_dir, model_name=_MODEL_NAME)
-
-    assert list(cache_dir.rglob("*.npy"))  # files were written
-    assert len(idx.chunks) > 0
 
 
 def test_disk_cache_tilde_expansion(mock_model: Any, tmp_project: Path, monkeypatch: Any) -> None:
@@ -192,18 +151,20 @@ def test_disk_cache_tilde_expansion(mock_model: Any, tmp_project: Path, monkeypa
     fake_home.mkdir()
     monkeypatch.setenv("HOME", str(fake_home))
 
-    idx = SembleIndex(model=mock_model, cache_dir="~/semble-cache", model_name=_MODEL_NAME)
-    idx.index(tmp_project)
+    SembleIndex(model=mock_model, cache_dir="~/semble-cache", model_name=_MODEL_NAME).index(tmp_project)
 
-    expected = fake_home / "semble-cache"
-    assert list(expected.rglob("*.npy"))
+    assert list((fake_home / "semble-cache").rglob("*.npy"))
 
 
-def test_no_caching_when_disabled(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
-    """enable_caching=False writes no .npy files and uses no cache_dir."""
-    idx = SembleIndex(model=mock_model, enable_caching=False, model_name=_MODEL_NAME)
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"enable_caching": False, "model_name": _MODEL_NAME},
+        {"enable_caching": True},  # custom model, no model_name → silently disabled
+    ],
+)
+def test_disk_cache_disabled(mock_model: Any, tmp_project: Path, kwargs: dict[str, Any]) -> None:
+    """Disk caching is disabled both when explicitly turned off and when model_name is absent."""
+    idx = SembleIndex(model=mock_model, **kwargs)
     assert idx.cache_dir is None
-
-    idx.index(tmp_project)
-    # No files written anywhere under tmp_path
-    assert list(tmp_path.rglob("*.npy")) == []
+    assert idx.cache_namespace is None

@@ -57,18 +57,10 @@ def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> Vicini
     return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
 
-# BM25 tests
-
-
-def test_bm25_returns_results(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """BM25 search returns at least one result for a matching query."""
-    results = search_bm25("authenticate token", bm25, chunks, top_k=3)
-    assert len(results) > 0
-
-
-def test_bm25_relevant_result_first(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """Top BM25 result contains the queried term."""
+def test_bm25_search(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
+    """BM25 returns results with the most relevant chunk first."""
     results = search_bm25("authenticate token", bm25, chunks, top_k=4)
+    assert len(results) > 0
     assert "authenticate" in results[0].chunk.content
 
 
@@ -78,20 +70,11 @@ def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> N
     assert results == []
 
 
-# Semantic tests
-
-
-def test_semantic_returns_results(semantic: Vicinity, mock_model: Any) -> None:
-    """Semantic search returns results for any query."""
+def test_semantic_search(semantic: Vicinity, mock_model: Any) -> None:
+    """Semantic search returns results with scores in [-1, 1]."""
     results = search_semantic("login", mock_model, semantic, top_k=3)
     assert len(results) > 0
-
-
-def test_semantic_scores_between_0_and_1(semantic: Vicinity, mock_model: Any) -> None:
-    """Semantic scores are cosine similarities in [-1, 1]."""
-    results = search_semantic("query", mock_model, semantic, top_k=4)
-    for r in results:
-        assert -1.0 <= r.score <= 1.0
+    assert all(-1.0 <= r.score <= 1.0 for r in results)
 
 
 def test_hybrid_returns_results(chunks: list[Chunk], semantic: Vicinity, bm25: bm25s.BM25, mock_model: Any) -> None:
@@ -121,22 +104,6 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
     assert "module_b.py" in result_locations
 
 
-def _run_search(
-    mode: SearchMode,
-    query: str,
-    top_k: int,
-    chunks: list[Chunk],
-    semantic: Vicinity,
-    bm25: bm25s.BM25,
-    mock_model: Any,
-) -> list[Any]:
-    if mode is SearchMode.BM25:
-        return search_bm25(query, bm25, chunks, top_k)
-    if mode is SearchMode.SEMANTIC:
-        return search_semantic(query, mock_model, semantic, top_k)
-    return search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
-
-
 @pytest.mark.parametrize(
     ("mode", "query", "top_k"),
     [
@@ -155,5 +122,11 @@ def test_search_source_labels(
     mock_model: Any,
 ) -> None:
     """Each result carries a source label matching the search mode used."""
-    results = _run_search(mode, query, top_k, chunks, semantic, bm25, mock_model)
+    if mode is SearchMode.BM25:
+        results = search_bm25(query, bm25, chunks, top_k)
+    elif mode is SearchMode.SEMANTIC:
+        results = search_semantic(query, mock_model, semantic, top_k)
+    else:
+        results = search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
+    assert len(results) > 0
     assert all(result.source is mode for result in results)
