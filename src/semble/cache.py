@@ -19,7 +19,8 @@ class EmbeddingCache:
     ) -> None:
         """Initialize the cache."""
         self._memory = memory
-        self._root = cache_dir / cache_namespace.replace("/", "--") if cache_dir and cache_namespace else None
+        safe = cache_namespace.replace("/", "--").replace("..", "__") if cache_namespace else None
+        self._root = cache_dir / safe if cache_dir and safe else None
 
     def get(self, key: str) -> EmbeddingMatrix | None:
         """Return the embedding for key, promoting a disk hit to memory. None on miss."""

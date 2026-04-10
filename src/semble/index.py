@@ -55,7 +55,7 @@ class SembleIndex:
         """Create and index a SembleIndex from a directory.
 
         :param path: Root directory to index.
-        :param model: Embedding model to use. Defaults to potion-base-16M.
+        :param model: Embedding model to use. Defaults to potion-code-16M.
         :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
