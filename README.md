@@ -45,4 +45,10 @@ index = SembleIndex.from_path("./my-project", cache_dir="~/.cache/my-cache")
 index = SembleIndex.from_path("./my-project", enable_caching=False)
 ```
 
+When passing a custom encoder, provide `model_name` to enable disk caching. Without it, caching is silently disabled:
+
+```python
+index = SembleIndex.from_path("./my-project", model=my_model, model_name="my-org/my-model")
+```
+
 Only embeddings are cached; BM25 and the ANNS index are always rebuilt fresh.
