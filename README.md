@@ -42,3 +42,26 @@ index = SembleIndex.from_path("./my-project", model=my_model, model_name="my-org
 ```
 
 Only embeddings are cached; BM25 and the ANNS index are always rebuilt fresh.
+
+## MCP server
+
+Semble can run as an MCP server so agents (Claude Code, Cursor, etc.) can search your codebase directly.
+
+Install with the MCP extra:
+
+```bash
+pip install "semble[mcp]"
+```
+
+Register with Claude Code:
+
+```bash
+claude mcp add semble -- uvx --from "semble[mcp]" semble /path/to/repo
+```
+
+This indexes the directory at startup and exposes two tools:
+
+| Tool | Description |
+|------|-------------|
+| `search` | Search with a natural-language or code query. Supports `hybrid` (default), `semantic`, and `bm25` modes. |
+| `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
