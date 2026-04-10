@@ -35,17 +35,7 @@ results = index.search("JWT token", mode=SearchMode.BM25)
 
 ## Disk embedding cache
 
-Embeddings are cached to `~/.cache/semble` by default so re-indexing unchanged files is instant. Pass `cache_dir` to override the location, or disable caching entirely:
-
-```python
-# Custom cache directory
-index = SembleIndex.from_path("./my-project", cache_dir="~/.cache/my-cache")
-
-# Disable caching
-index = SembleIndex.from_path("./my-project", enable_caching=False)
-```
-
-When passing a custom encoder, provide `model_name` to enable disk caching. Without it, caching is silently disabled:
+Embeddings are cached to `~/.cache/semble` by default so re-indexing unchanged files is instant. When using a custom encoder, pass `model_name` to enable caching:
 
 ```python
 index = SembleIndex.from_path("./my-project", model=my_model, model_name="my-org/my-model")
