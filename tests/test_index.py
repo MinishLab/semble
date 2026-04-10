@@ -108,10 +108,10 @@ def test_stats_property(indexed_index: SembleIndex) -> None:
 _MODEL_ID = "test/model"
 
 
-def test_disk_cache_required_model_id(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:
+def test_disk_cache_required_model_id(tmp_path: Path) -> None:
     """Providing cache_dir without model_id raises ValueError."""
     with pytest.raises(ValueError, match="model_id"):
-        SembleIndex(model=mock_model, cache_dir=tmp_path / "cache")
+        SembleIndex(cache_dir=tmp_path / "cache")
 
 
 def test_disk_cache_writes_embeddings(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:

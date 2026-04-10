@@ -121,6 +121,22 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
     assert "module_b.py" in result_locations
 
 
+def _run_search(
+    mode: SearchMode,
+    query: str,
+    top_k: int,
+    chunks: list[Chunk],
+    semantic: Vicinity,
+    bm25: bm25s.BM25,
+    mock_model: Any,
+) -> list[Any]:
+    if mode is SearchMode.BM25:
+        return search_bm25(query, bm25, chunks, top_k)
+    if mode is SearchMode.SEMANTIC:
+        return search_semantic(query, mock_model, semantic, top_k)
+    return search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
+
+
 @pytest.mark.parametrize(
     ("mode", "query", "top_k"),
     [
@@ -139,10 +155,5 @@ def test_search_source_labels(
     mock_model: Any,
 ) -> None:
     """Each result carries a source label matching the search mode used."""
-    if mode is SearchMode.BM25:
-        results = search_bm25(query, bm25, chunks, top_k)
-    elif mode is SearchMode.SEMANTIC:
-        results = search_semantic(query, mock_model, semantic, top_k)
-    else:
-        results = search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
+    results = _run_search(mode, query, top_k, chunks, semantic, bm25, mock_model)
     assert all(result.source is mode for result in results)
