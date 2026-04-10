@@ -1,7 +1,10 @@
+"""CLI for semble."""
+
+from __future__ import annotations
+
 import argparse
 import asyncio
-
-from semble.mcp import serve
+import sys
 
 
 def main() -> None:
@@ -12,6 +15,15 @@ def main() -> None:
     )
     parser.add_argument("path", help="Directory to index and serve.")
     args = parser.parse_args()
+
+    try:
+        from semble.mcp import serve
+    except ImportError:
+        print(
+            'MCP support requires the mcp extra: pip install "semble[mcp]"',
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     asyncio.run(serve(args.path))
 

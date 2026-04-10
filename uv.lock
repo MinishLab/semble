@@ -1954,11 +1954,10 @@ wheels = [
 
 [[package]]
 name = "semble"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "bm25s" },
     { name = "chonkie", extra = ["code"] },
-    { name = "mcp" },
     { name = "model2vec" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -1974,12 +1973,15 @@ dev = [
     { name = "pytest-cov" },
     { name = "ruff" },
 ]
+mcp = [
+    { name = "mcp" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "bm25s", specifier = ">=0.2.0" },
     { name = "chonkie", extras = ["code"], specifier = ">=1.6.2" },
-    { name = "mcp", specifier = ">=1.0" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0" },
     { name = "model2vec", specifier = ">=0.4.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "numpy", specifier = ">=1.24.0" },
@@ -1990,7 +1992,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
     { name = "vicinity", directory = "../vicinity" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["mcp", "dev"]
 
 [[package]]
 name = "setuptools"

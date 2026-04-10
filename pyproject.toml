@@ -26,17 +26,12 @@ dependencies = [
     "numpy>=1.24.0",
     "bm25s>=0.2.0",
     "chonkie[code]>=1.6.2",
-    "mcp>=1.0",
 ]
 
-[build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8"]
-build-backend = "setuptools.build_meta"
-
-[project.scripts]
-semble = "semble.cli:main"
-
 [project.optional-dependencies]
+mcp = [
+    "mcp>=1.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",

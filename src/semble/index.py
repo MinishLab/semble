@@ -119,11 +119,7 @@ class SembleIndex:
         return self.stats
 
     def find_related(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
-        """Return chunks semantically similar to the chunk covering the given line.
-
-        Finds the indexed chunk that contains the requested line, then runs a
-        semantic search using that chunk's content as the query. The source chunk
-        itself is excluded from the results.
+        """Return chunks semantically similar to the chunk at the given file location.
 
         :param file_path: Absolute path to the file.
         :param line: Line number (1-indexed) used to identify the source chunk.
