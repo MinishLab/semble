@@ -29,18 +29,7 @@ class SembleIndex:
         cache_dir: str | Path | None = None,
         model_name: str | None = None,
     ) -> None:
-        """Initialize a SembleIndex.
-
-        :param model: Embedding model to use. Defaults to Pringled/potion-code-16M
-            (loaded lazily on first use).
-        :param enable_caching: Whether to persist embeddings to disk between runs.
-            Enabled by default.
-        :param cache_dir: Override the cache directory. Defaults to ~/.cache/semble.
-            ~ is expanded automatically. Ignored when enable_caching is False.
-        :param model_name: Stable identifier for a custom encoder, used as the disk
-            cache namespace. Disk caching is silently disabled when a custom model
-            is passed without model_name.
-        """
+        """Initialize a SembleIndex instance."""
         self.model: Encoder | None = model
         self.cache_dir, self.cache_namespace = self._resolve_cache_config(
             model, enable_caching=enable_caching, cache_dir=cache_dir, model_name=model_name
