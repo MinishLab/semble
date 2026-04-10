@@ -101,10 +101,6 @@ def test_stats_property(indexed_index: SembleIndex) -> None:
     assert indexed_index.stats.indexed_files >= 2
 
 
-# ---------------------------------------------------------------------------
-# Disk embedding cache
-# ---------------------------------------------------------------------------
-
 _MODEL_ID = "test/model"
 
 
