@@ -74,7 +74,7 @@ def search_hybrid(
     :param chunks: All indexed chunks (parallel to BM25 index).
     :param top_k: Number of results to return.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
-    :returns: List of search results sorted by combined score descending.
+    :return: List of search results sorted by combined score descending.
     """
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
     candidate_count = top_k * 3

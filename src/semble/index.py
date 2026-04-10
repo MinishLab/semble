@@ -30,19 +30,19 @@ class SembleIndex:
     ) -> None:
         """Initialize a SembleIndex.
 
-        :param model: Embedding model to use. Defaults to ``Pringled/potion-code-16M``
+        :param model: Embedding model to use. Defaults to "Pringled/potion-code-16M"
             (loaded lazily on first use).
         :param model_id: Stable identifier for the encoder (e.g. its HuggingFace hub ID).
-            Required when *cache_dir* is set; used as the disk-cache namespace so
+            Required when cache_dir is set; used as the disk-cache namespace so
             embeddings from different models never mix. For the built-in default model
-            pass ``model_id="Pringled/potion-code-16M"``. When using a custom model,
-            also pass a matching *model* object — otherwise semantic/hybrid search will
-            raise :class:`ValueError` to prevent silent dimensionality mismatches.
+            pass model_id="Pringled/potion-code-16M". When using a custom model,
+            also pass a matching model object — otherwise semantic/hybrid search will
+            raise ValueError to prevent silent dimensionality mismatches.
         :param cache_dir: Directory for the disk embedding cache. When given, previously
             computed embeddings are reused across runs. Only embeddings are persisted;
-            BM25 and the ANNS index are always rebuilt in-memory. ``~`` is expanded
-            automatically. *model_id* is required when this is set.
-        :raises ValueError: If *cache_dir* is given without *model_id*.
+            BM25 and the ANNS index are always rebuilt in-memory. ~ is expanded
+            automatically. model_id is required when this is set.
+        :raises ValueError: If cache_dir is given without model_id.
         """
         if cache_dir is not None and model_id is None:
             raise ValueError("model_id is required when cache_dir is provided")
@@ -66,11 +66,11 @@ class SembleIndex:
         cache_dir: str | Path | None = None,
         model_id: str | None = None,
     ) -> SembleIndex:
-        """Create and index a :class:`SembleIndex` from a directory.
+        """Create and index a SembleIndex from a directory.
 
-        Backend configuration (*model*, *model_id*, *cache_dir*) is forwarded to
-        the constructor; source-selection arguments (*extensions*, *ignore*,
-        *include_docs*) are forwarded to :meth:`index`.
+        Backend configuration (model, model_id, cache_dir) is forwarded to
+        the constructor; source-selection arguments (extensions, ignore,
+        include_docs) are forwarded to index.
 
         :param path: Root directory to index.
         :param model: Embedding model to use.
@@ -79,7 +79,7 @@ class SembleIndex:
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
         :param cache_dir: Directory for the disk embedding cache.
         :param model_id: Stable identifier for the encoder used as the cache namespace.
-        :return: An indexed :class:`SembleIndex`.
+        :return: An indexed SembleIndex.
         """
         instance = cls(model=model, model_id=model_id, cache_dir=cache_dir)
         instance.index(path, extensions=extensions, ignore=ignore, include_docs=include_docs)
@@ -146,10 +146,10 @@ class SembleIndex:
 
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
-        :param mode: Search strategy — ``"hybrid"`` (default), ``"semantic"``, or ``"bm25"``.
+        :param mode: Search strategy — "hybrid" (default), "semantic", or "bm25".
         :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25.
-        :return: Ranked list of :class:`SearchResult` objects, best match first.
-        :raises ValueError: If ``mode`` is not a recognised search strategy.
+        :return: Ranked list of SearchResult objects, best match first.
+        :raises ValueError: If mode is not a recognised search strategy.
         """
         bm25_index, semantic_index = self._bm25_index, self._semantic_index
         if not self.chunks or bm25_index is None or semantic_index is None:
@@ -170,8 +170,8 @@ class SembleIndex:
         """Return the current model, loading the default if none was provided.
 
         :return: The active encoder.
-        :raises ValueError: If the index was configured with a non-default *model_id*
-            and no explicit *model* was supplied.  Lazy-loading the built-in default
+        :raises ValueError: If the index was configured with a non-default model_id
+            and no explicit model was supplied.  Lazy-loading the built-in default
             model would produce query vectors with a different dimensionality than the
             cached embeddings, causing silent shape mismatches in Vicinity.
         """
@@ -190,7 +190,7 @@ class SembleIndex:
         return self.model
 
     def _embed_chunks(self, chunks: list[Chunk]) -> EmbeddingMatrix:
-        """Embed *chunks*, consulting memory then disk before calling the model.
+        """Embed chunks, consulting memory then disk before calling the model.
 
         Lookup order: in-memory cache → disk cache → encode. The model is loaded
         (or downloaded) only when there are genuine cache misses.
