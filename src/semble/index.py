@@ -8,7 +8,7 @@ import numpy as np
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble.cache import _EmbeddingCache
+from semble.cache import EmbeddingCache
 from semble.chunker import chunk_source
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.sources import language_for_path, resolve_extensions, walk_files
@@ -186,7 +186,7 @@ class SembleIndex:
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
-        cache = _EmbeddingCache(self._embedding_cache, self.cache_dir, self.cache_namespace)
+        cache = EmbeddingCache(self._embedding_cache, self.cache_dir, self.cache_namespace)
 
         miss_indices: list[int] = []
         miss_texts: list[str] = []

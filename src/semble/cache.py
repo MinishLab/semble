@@ -8,7 +8,7 @@ import numpy as np
 from semble.types import EmbeddingMatrix
 
 
-class _EmbeddingCache:
+class EmbeddingCache:
     """Embedding cache combining an in-memory dict with optional disk storage."""
 
     def __init__(
@@ -17,6 +17,7 @@ class _EmbeddingCache:
         cache_dir: Path | None,
         cache_namespace: str | None,
     ) -> None:
+        """Initialize the cache."""
         self._memory = memory
         self._root = cache_dir / cache_namespace.replace("/", "--") if cache_dir and cache_namespace else None
 
@@ -25,6 +26,7 @@ class _EmbeddingCache:
         return self._root / key[:2] / f"{key}.npy"
 
     def get(self, key: str) -> EmbeddingMatrix | None:
+        """Return the embedding for key, promoting a disk hit to memory. None on miss."""
         if key in self._memory:
             return self._memory[key]
         if self._root is None:
@@ -37,6 +39,7 @@ class _EmbeddingCache:
         return embedding
 
     def put(self, key: str, embedding: EmbeddingMatrix) -> None:
+        """Store embedding in memory and atomically write to disk if caching is enabled."""
         self._memory[key] = embedding
         if self._root is None:
             return
