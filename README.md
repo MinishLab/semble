@@ -25,24 +25,6 @@ for r in results:
 results = index.search("JWT token", mode=SearchMode.BM25)
 ```
 
-## Search modes
-
-| Mode | Description |
-|------|-------------|
-| `hybrid` | Semantic + BM25, normalized and combined (default) |
-| `semantic` | Embedding similarity only |
-| `bm25` | Keyword search only |
-
-## Disk embedding cache
-
-Embeddings are cached to `~/.cache/semble` by default so re-indexing unchanged files is instant. When using a custom encoder, pass `model_name` to enable caching:
-
-```python
-index = SembleIndex.from_path("./my-project", model=my_model, model_name="my-org/my-model")
-```
-
-Only embeddings are cached; BM25 and the ANNS index are always rebuilt fresh.
-
 ## MCP server
 
 Semble can run as an MCP server so agents (Claude Code, Cursor, etc.) can search your codebase directly.
