@@ -1,0 +1,99 @@
+[
+  {
+    "query": "how spawned tasks are scheduled onto threads",
+    "relevant": ["tokio/src/runtime/scheduler/multi_thread/worker.rs"],
+    "secondary": ["tokio/src/task/spawn.rs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how the async mutex prevents concurrent access",
+    "relevant": ["tokio/src/sync/mutex.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how a broadcast channel delivers messages to multiple receivers",
+    "relevant": ["tokio/src/sync/broadcast.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how the timer wheel tracks sleep deadlines",
+    "relevant": ["tokio/src/runtime/time/wheel/level.rs"],
+    "secondary": ["tokio/src/time/sleep.rs"],
+    "category": "architecture"
+  },
+  {
+    "query": "running non-async blocking code inside the async runtime",
+    "relevant": ["tokio/src/task/blocking.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how tasks that are not Send can run on a single thread",
+    "relevant": ["tokio/src/task/local.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "waiting for any of several futures to complete",
+    "relevant": ["tokio/src/macros/select.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the runtime builder configures thread pool size and flavour",
+    "relevant": ["tokio/src/runtime/builder.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "rate-limiting concurrent operations with a semaphore",
+    "relevant": ["tokio/src/sync/semaphore.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "watching a value and being notified when it changes",
+    "relevant": ["tokio/src/sync/watch.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "collecting results from a dynamic set of spawned tasks",
+    "relevant": ["tokio/src/task/join_set.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "integrating a non-async file descriptor with the tokio reactor",
+    "relevant": ["tokio/src/io/async_fd.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JoinSet",
+    "relevant": ["tokio/src/task/join_set.rs"],
+    "secondary": []
+  },
+  {
+    "query": "Semaphore",
+    "relevant": ["tokio/src/sync/semaphore.rs"],
+    "secondary": []
+  },
+  {
+    "query": "MissedTickBehavior",
+    "relevant": ["tokio/src/time/interval.rs"],
+    "secondary": []
+  },
+  {
+    "query": "LocalSet",
+    "relevant": ["tokio/src/task/local.rs"],
+    "secondary": []
+  },
+  {
+    "query": "Notify",
+    "relevant": ["tokio/src/sync/notify.rs"],
+    "secondary": []
+  }
+]

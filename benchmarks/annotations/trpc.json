@@ -1,0 +1,99 @@
+[
+  {
+    "query": "how a tRPC router is created and procedures are registered",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/router.ts"],
+    "secondary": ["packages/server/src/unstable-core-do-not-import/procedureBuilder.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "how middleware chains context transformations between procedures",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/middleware.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how input validation and parsing works for procedures",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/parser.ts"],
+    "secondary": ["packages/server/src/unstable-core-do-not-import/procedureBuilder.ts"],
+    "category": "semantic"
+  },
+  {
+    "query": "how HTTP requests are resolved to tRPC procedures",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/http/resolveResponse.ts"],
+    "secondary": ["packages/server/src/http.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "how error formatting and serialization works",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/error/formatter.ts"],
+    "secondary": ["packages/server/src/unstable-core-do-not-import/error/TRPCError.ts"],
+    "category": "semantic"
+  },
+  {
+    "query": "how server-sent events and subscriptions are streamed to the client",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/stream/sse.ts"],
+    "secondary": ["packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "how the observable pattern is used for subscriptions",
+    "relevant": ["packages/server/src/observable/observable.ts"],
+    "secondary": ["packages/server/src/observable/operators.ts"],
+    "category": "semantic"
+  },
+  {
+    "query": "how type inference extracts input and output types from procedures",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/clientish/inference.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "adapting tRPC to run as a Node.js HTTP server handler",
+    "relevant": ["packages/server/src/adapters/node-http/nodeHTTPRequestHandler.ts"],
+    "secondary": ["packages/server/src/adapters/node-http/incomingMessageToRequest.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "WebSocket adapter for real-time subscriptions",
+    "relevant": ["packages/server/src/adapters/ws.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how tRPC is initialized with root config and context factory",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/initTRPC.ts"],
+    "secondary": ["packages/server/src/unstable-core-do-not-import/rootConfig.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "how data transformer is applied to serialize and deserialize procedure payloads",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/transformer.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "TRPCError",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/error/TRPCError.ts"],
+    "secondary": []
+  },
+  {
+    "query": "AnyRouter",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/router.ts"],
+    "secondary": []
+  },
+  {
+    "query": "MiddlewareBuilder",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/middleware.ts"],
+    "secondary": []
+  },
+  {
+    "query": "inferProcedureInput",
+    "relevant": ["packages/server/src/unstable-core-do-not-import/procedure.ts"],
+    "secondary": []
+  },
+  {
+    "query": "fetchRequestHandler",
+    "relevant": ["packages/server/src/adapters/fetch/fetchRequestHandler.ts"],
+    "secondary": []
+  }
+]

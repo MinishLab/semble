@@ -1,0 +1,49 @@
+[
+  {
+    "query": "application boot process and initialization",
+    "relevant": ["railties/lib/rails/application.rb"],
+    "secondary": ["railties/lib/rails/configuration.rb"],
+    "category": "architecture"
+  },
+  {
+    "query": "engine configuration and load paths",
+    "relevant": ["railties/lib/rails/engine/configuration.rb"],
+    "secondary": ["railties/lib/rails/application.rb"],
+    "category": "architecture"
+  },
+  {
+    "query": "rack integration for rails applications",
+    "relevant": ["railties/lib/rails/rack.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "path management for rails apps",
+    "relevant": ["railties/lib/rails/paths.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Application",
+    "relevant": ["railties/lib/rails/application.rb"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Rails::Engine",
+    "relevant": [{"path": "railties/lib/rails/engine.rb", "start_line": 348, "end_line": 387}],
+    "secondary": ["railties/lib/rails/engine/configuration.rb"],
+    "category": "symbol",
+    "seed": {"path": "railties/lib/rails/engine/configuration.rb", "line": 73},
+    "related": [
+      {"path": "railties/lib/rails/engine/updater.rb", "start_line": 1, "end_line": 21},
+      {"path": "railties/lib/rails/railtie/configuration.rb", "start_line": 1, "end_line": 54}
+    ]
+  },
+  {
+    "query": "Rails::Paths",
+    "relevant": ["railties/lib/rails/paths.rb"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

@@ -1,0 +1,99 @@
+[
+  {
+    "query": "how the Functor type class defines mapping over a context",
+    "relevant": ["core/src/main/scala/cats/Functor.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Monad composes dependent effectful computations with flatMap",
+    "relevant": ["core/src/main/scala/cats/Monad.scala"],
+    "secondary": ["core/src/main/scala/cats/FlatMap.scala"],
+    "category": "architecture"
+  },
+  {
+    "query": "how Applicative combines independent effects",
+    "relevant": ["core/src/main/scala/cats/Applicative.scala"],
+    "secondary": ["core/src/main/scala/cats/Apply.scala"],
+    "category": "architecture"
+  },
+  {
+    "query": "how errors are handled and recovered in ApplicativeError and MonadError",
+    "relevant": ["core/src/main/scala/cats/ApplicativeError.scala"],
+    "secondary": ["core/src/main/scala/cats/MonadError.scala"],
+    "category": "semantic"
+  },
+  {
+    "query": "how Validated accumulates errors across independent computations",
+    "relevant": ["core/src/main/scala/cats/data/Validated.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how EitherT combines the Either monad with another effect",
+    "relevant": ["core/src/main/scala/cats/data/EitherT.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Kleisli composes functions that return monadic values",
+    "relevant": ["core/src/main/scala/cats/data/Kleisli.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Eval provides lazy and memoized evaluation",
+    "relevant": ["core/src/main/scala/cats/Eval.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Foldable traverses and reduces elements in a container",
+    "relevant": ["core/src/main/scala/cats/Foldable.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Chain provides O(1) concatenation as an alternative to List",
+    "relevant": ["core/src/main/scala/cats/data/Chain.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how natural transformations map between type constructors",
+    "relevant": ["core/src/main/scala/cats/arrow/FunctionK.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the Contravariant functor reverses the mapping direction",
+    "relevant": ["core/src/main/scala/cats/Contravariant.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Monad",
+    "relevant": ["core/src/main/scala/cats/Monad.scala"],
+    "secondary": []
+  },
+  {
+    "query": "Functor",
+    "relevant": ["core/src/main/scala/cats/Functor.scala"],
+    "secondary": []
+  },
+  {
+    "query": "EitherT",
+    "relevant": ["core/src/main/scala/cats/data/EitherT.scala"],
+    "secondary": []
+  },
+  {
+    "query": "Validated",
+    "relevant": ["core/src/main/scala/cats/data/Validated.scala"],
+    "secondary": []
+  },
+  {
+    "query": "Kleisli",
+    "relevant": ["core/src/main/scala/cats/data/Kleisli.scala"],
+    "secondary": []
+  }
+]

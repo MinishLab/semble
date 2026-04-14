@@ -1,0 +1,112 @@
+[
+  {
+    "query": "how does dependency injection work",
+    "relevant": ["fastapi/dependencies/utils.py"],
+    "secondary": ["fastapi/dependencies/models.py", "fastapi/params.py"]
+  },
+  {
+    "query": "request validation and error handling",
+    "relevant": ["fastapi/exceptions.py"],
+    "secondary": ["fastapi/exception_handlers.py"]
+  },
+  {
+    "query": "how are routes registered",
+    "relevant": ["fastapi/routing.py"],
+    "secondary": ["fastapi/applications.py"]
+  },
+  {
+    "query": "websocket endpoint implementation",
+    "relevant": ["fastapi/websockets.py"],
+    "secondary": ["fastapi/routing.py"]
+  },
+  {
+    "query": "OpenAPI schema generation",
+    "relevant": ["fastapi/openapi/utils.py"],
+    "secondary": ["fastapi/openapi/models.py"]
+  },
+  {
+    "query": "middleware stack and CORS",
+    "relevant": ["fastapi/middleware/cors.py"],
+    "secondary": ["fastapi/applications.py"]
+  },
+  {
+    "query": "file upload handling",
+    "relevant": ["fastapi/datastructures.py"],
+    "secondary": []
+  },
+  {
+    "query": "response model serialization",
+    "relevant": ["fastapi/encoders.py"],
+    "secondary": ["fastapi/routing.py"]
+  },
+  {
+    "query": "background tasks",
+    "relevant": ["fastapi/background.py"],
+    "secondary": []
+  },
+  {
+    "query": "security and OAuth2 authentication",
+    "relevant": ["fastapi/security/oauth2.py"],
+    "secondary": ["fastapi/security/http.py"]
+  },
+  {
+    "query": "how is response validation and serialization applied before sending",
+    "relevant": ["fastapi/routing.py"],
+    "secondary": ["fastapi/encoders.py"]
+  },
+  {
+    "query": "how are nested and sub-dependencies resolved",
+    "relevant": ["fastapi/dependencies/utils.py"],
+    "secondary": []
+  },
+  {
+    "query": "how does FastAPI run sync route functions without blocking",
+    "relevant": ["fastapi/concurrency.py"],
+    "secondary": ["fastapi/routing.py"]
+  },
+  {
+    "query": "how are path parameters extracted and type-converted",
+    "relevant": ["fastapi/routing.py"],
+    "secondary": ["fastapi/dependencies/utils.py"]
+  },
+  {
+    "query": "how does exception propagation work through dependency injection",
+    "relevant": ["fastapi/dependencies/utils.py"],
+    "secondary": ["fastapi/routing.py"]
+  },
+  {
+    "query": "Depends",
+    "relevant": [{"path": "fastapi/params.py", "start_line": 746, "end_line": 749}],
+    "secondary": ["fastapi/param_functions.py"],
+    "category": "symbol",
+    "seed": {"path": "fastapi/params.py", "line": 746},
+    "related": [
+      {"path": "fastapi/params.py", "start_line": 434, "end_line": 468},
+      {"path": "fastapi/params.py", "start_line": 627, "end_line": 664}
+    ]
+  },
+  {
+    "query": "HTTPException",
+    "relevant": [{"path": "fastapi/exceptions.py", "start_line": 17, "end_line": 66}],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "APIRouter",
+    "relevant": [{"path": "fastapi/routing.py", "start_line": 1005, "end_line": 1030}],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "BackgroundTasks",
+    "relevant": [{"path": "fastapi/background.py", "start_line": 11, "end_line": 39}],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "OAuth2PasswordBearer",
+    "relevant": [{"path": "fastapi/security/oauth2.py", "start_line": 433, "end_line": 471}],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

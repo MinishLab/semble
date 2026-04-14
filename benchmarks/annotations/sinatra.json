@@ -1,0 +1,100 @@
+[
+  {
+    "query": "core Sinatra DSL and routing behavior",
+    "relevant": ["lib/sinatra/base.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "application startup and command line entrypoint",
+    "relevant": ["lib/sinatra/main.rb"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "exception rendering and stack traces",
+    "relevant": ["lib/sinatra/show_exceptions.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request logging middleware",
+    "relevant": ["lib/sinatra/middleware/logger.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how route handlers are compiled and URL patterns matched",
+    "relevant": [{"path": "lib/sinatra/base.rb", "start_line": 1795, "end_line": 1817}],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "before and after filter hooks for the request lifecycle",
+    "relevant": [{"path": "lib/sinatra/base.rb", "start_line": 1486, "end_line": 1505}],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "response helper methods: halt, pass and redirect",
+    "relevant": [{"path": "lib/sinatra/base.rb", "start_line": 286, "end_line": 741}],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how templates are rendered with erb haml and other engines",
+    "relevant": [{"path": "lib/sinatra/base.rb", "start_line": 742, "end_line": 948}],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the Rack middleware stack is assembled before requests are handled",
+    "relevant": [{"path": "lib/sinatra/base.rb", "start_line": 1819, "end_line": 1888}],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "case-insensitive hash for request params",
+    "relevant": ["lib/sinatra/indifferent_hash.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Sinatra::Base",
+    "relevant": ["lib/sinatra/base.rb"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Sinatra::Application",
+    "relevant": ["lib/sinatra/main.rb"],
+    "secondary": ["lib/sinatra/base.rb"],
+    "category": "symbol"
+  },
+  {
+    "query": "Sinatra::ShowExceptions",
+    "relevant": ["lib/sinatra/show_exceptions.rb"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Sinatra::Helpers",
+    "relevant": [{"path": "lib/sinatra/base.rb", "start_line": 286, "end_line": 741}],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "IndifferentHash",
+    "relevant": ["lib/sinatra/indifferent_hash.rb"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how Sinatra::Application inherits and configures Base for standalone use",
+    "relevant": ["lib/sinatra/main.rb"],
+    "secondary": ["lib/sinatra/base.rb"],
+    "category": "architecture",
+    "seed": {"path": "lib/sinatra/main.rb", "line": 30},
+    "related": ["lib/sinatra/base.rb"]
+  }
+]

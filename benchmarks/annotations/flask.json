@@ -1,0 +1,90 @@
+[
+  {
+    "query": "how are routes registered",
+    "relevant": ["src/flask/sansio/scaffold.py"],
+    "secondary": ["src/flask/sansio/app.py"]
+  },
+  {
+    "query": "request context handling",
+    "relevant": ["src/flask/ctx.py"],
+    "secondary": []
+  },
+  {
+    "query": "session management",
+    "relevant": ["src/flask/sessions.py"],
+    "secondary": []
+  },
+  {
+    "query": "blueprint registration",
+    "relevant": ["src/flask/sansio/blueprints.py"],
+    "secondary": ["src/flask/blueprints.py"]
+  },
+  {
+    "query": "configuration loading",
+    "relevant": ["src/flask/config.py"],
+    "secondary": []
+  },
+  {
+    "query": "template rendering",
+    "relevant": ["src/flask/templating.py"],
+    "secondary": []
+  },
+  {
+    "query": "error handlers",
+    "relevant": ["src/flask/sansio/scaffold.py"],
+    "secondary": ["src/flask/app.py"]
+  },
+  {
+    "query": "CLI commands",
+    "relevant": ["src/flask/cli.py"],
+    "secondary": []
+  },
+  {
+    "query": "testing client",
+    "relevant": ["src/flask/testing.py"],
+    "secondary": []
+  },
+  {
+    "query": "JSON response helpers",
+    "relevant": ["src/flask/json/provider.py"],
+    "secondary": ["src/flask/helpers.py"]
+  },
+  {
+    "query": "how does the application context push and pop around requests",
+    "relevant": ["src/flask/ctx.py"],
+    "secondary": ["src/flask/app.py"]
+  },
+  {
+    "query": "how does Flask select which error handler to invoke for an exception",
+    "relevant": ["src/flask/app.py"],
+    "secondary": ["src/flask/sansio/app.py"]
+  },
+  {
+    "query": "how is g used to store data scoped to the current request",
+    "relevant": ["src/flask/ctx.py"],
+    "secondary": ["src/flask/globals.py"]
+  },
+  {
+    "query": "how are request lifecycle signals emitted",
+    "relevant": ["src/flask/signals.py"],
+    "secondary": ["src/flask/app.py"]
+  },
+  {
+    "query": "how does Flask convert a view return value into a response object",
+    "relevant": ["src/flask/app.py"],
+    "secondary": ["src/flask/wrappers.py"]
+  },
+  {"query": "Blueprint", "relevant": ["src/flask/sansio/blueprints.py"], "secondary": ["src/flask/blueprints.py"]},
+  {"query": "render_template", "relevant": ["src/flask/templating.py"], "secondary": []},
+  {"query": "Flask", "relevant": ["src/flask/app.py"], "secondary": []},
+  {"query": "session", "relevant": ["src/flask/sessions.py"], "secondary": ["src/flask/globals.py"]},
+  {"query": "g", "relevant": ["src/flask/globals.py"], "secondary": ["src/flask/ctx.py"]},
+  {
+    "query": "how Blueprint inherits routing behaviour from its sansio base class",
+    "relevant": ["src/flask/sansio/blueprints.py"],
+    "secondary": ["src/flask/blueprints.py"],
+    "category": "architecture",
+    "seed": {"path": "src/flask/blueprints.py", "line": 18},
+    "related": ["src/flask/sansio/blueprints.py"]
+  }
+]

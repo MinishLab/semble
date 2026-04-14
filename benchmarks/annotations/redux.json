@@ -1,0 +1,32 @@
+[
+  {
+    "query": "store creation and dispatch lifecycle",
+    "relevant": ["src/createStore.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "middleware pipeline composition",
+    "relevant": ["src/applyMiddleware.ts"],
+    "secondary": ["src/compose.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "combining reducers and validating reducer shape",
+    "relevant": ["src/combineReducers.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "function composition utility",
+    "relevant": ["src/compose.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "createStore",
+    "relevant": ["src/createStore.ts"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

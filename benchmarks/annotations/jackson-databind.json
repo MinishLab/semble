@@ -1,0 +1,49 @@
+[
+  {
+    "query": "ObjectMapper entry point for reading and writing JSON",
+    "relevant": ["src/main/java/tools/jackson/databind/ObjectMapper.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON-specific mapper builder",
+    "relevant": ["src/main/java/tools/jackson/databind/json/JsonMapper.java"],
+    "secondary": ["src/main/java/tools/jackson/databind/ObjectMapper.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "mutable JSON object node with named field operations",
+    "relevant": ["src/main/java/tools/jackson/databind/node/ObjectNode.java"],
+    "secondary": ["src/main/java/tools/jackson/databind/node/JsonNodeFactory.java"],
+    "category": "semantic"
+  },
+  {
+    "query": "polymorphic type resolution",
+    "relevant": ["src/main/java/tools/jackson/databind/jsontype/impl/StdTypeResolverBuilder.java"],
+    "secondary": ["src/main/java/tools/jackson/databind/jsontype/impl/TypeDeserializerBase.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "ObjectMapper",
+    "relevant": [{"path": "src/main/java/tools/jackson/databind/ObjectMapper.java", "start_line": 93, "end_line": 132}],
+    "secondary": [],
+    "category": "symbol",
+    "seed": {"path": "src/main/java/tools/jackson/databind/ObjectMapper.java", "line": 109},
+    "related": [
+      {"path": "src/main/java/tools/jackson/databind/ObjectMapper.java", "start_line": 356, "end_line": 387},
+      {"path": "src/main/java/tools/jackson/databind/cfg/MapperBuilder.java", "start_line": 338, "end_line": 344}
+    ]
+  },
+  {
+    "query": "JsonMapper",
+    "relevant": [{"path": "src/main/java/tools/jackson/databind/json/JsonMapper.java", "start_line": 16, "end_line": 44}],
+    "secondary": ["src/main/java/tools/jackson/databind/ObjectMapper.java"],
+    "category": "symbol"
+  },
+  {
+    "query": "ObjectNode",
+    "relevant": [{"path": "src/main/java/tools/jackson/databind/node/ObjectNode.java", "start_line": 21, "end_line": 60}],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

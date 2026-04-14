@@ -1,0 +1,32 @@
+[
+  {
+    "query": "core command execution and command tree",
+    "relevant": ["command.go"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "shell completion request handling",
+    "relevant": ["completions.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "bash completion generation",
+    "relevant": ["bash_completions.go"],
+    "secondary": ["completions.go"],
+    "category": "semantic"
+  },
+  {
+    "query": "positional argument validators",
+    "relevant": ["args.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Command",
+    "relevant": ["command.go"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

@@ -1,0 +1,93 @@
+[
+  {
+    "query": "how the HttpClient is configured with plugins and an engine",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/HttpClient.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/HttpClientConfig.kt"],
+    "category": "architecture"
+  },
+  {
+    "query": "how request and response pipelines process interceptors",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/request/HttpRequestPipeline.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/statement/HttpResponsePipeline.kt"],
+    "category": "architecture"
+  },
+  {
+    "query": "how HTTP caching stores and validates cached responses",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cache/HttpCache.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cache/HttpCacheEntry.kt"],
+    "category": "architecture"
+  },
+  {
+    "query": "how HTTP status codes are checked and exceptions raised on failure",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpCallValidator.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how request and response timeouts are enforced",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpTimeout.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how HTTP redirects are followed automatically",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRedirect.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how cookies are stored and sent with requests",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cookies/HttpCookies.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cookies/AcceptAllCookiesStorage.kt"],
+    "category": "semantic"
+  },
+  {
+    "query": "how multipart form data uploads are constructed",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/request/forms/FormDataContent.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/request/forms/formDsl.kt"],
+    "category": "semantic"
+  },
+  {
+    "query": "how WebSocket connections are established and messages exchanged",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/websocket/WebSockets.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/websocket/ClientSessions.kt"],
+    "category": "architecture"
+  },
+  {
+    "query": "how server-sent events are received and parsed from a streaming response",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/SSE.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/DefaultClientSSESession.kt"],
+    "category": "semantic"
+  },
+  {
+    "query": "how the engine abstraction separates the client API from the transport",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/engine/HttpClientEngine.kt"],
+    "secondary": ["ktor-client/ktor-client-core/common/src/io/ktor/client/engine/HttpClientEngineBase.kt"],
+    "category": "architecture"
+  },
+  {
+    "query": "HttpClient",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/HttpClient.kt"],
+    "secondary": []
+  },
+  {
+    "query": "HttpTimeout",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpTimeout.kt"],
+    "secondary": []
+  },
+  {
+    "query": "HttpRedirect",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRedirect.kt"],
+    "secondary": []
+  },
+  {
+    "query": "HttpCookies",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cookies/HttpCookies.kt"],
+    "secondary": []
+  },
+  {
+    "query": "HttpClientEngine",
+    "relevant": ["ktor-client/ktor-client-core/common/src/io/ktor/client/engine/HttpClientEngine.kt"],
+    "secondary": []
+  }
+]

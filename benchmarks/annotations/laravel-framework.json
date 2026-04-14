@@ -1,0 +1,32 @@
+[
+  {
+    "query": "queue connection resolution and connectors",
+    "relevant": ["src/Illuminate/Queue/QueueManager.php"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "database queue implementation",
+    "relevant": ["src/Illuminate/Queue/DatabaseQueue.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "queue worker command execution",
+    "relevant": ["src/Illuminate/Queue/Console/WorkCommand.php"],
+    "secondary": ["src/Illuminate/Queue/Worker.php"],
+    "category": "architecture"
+  },
+  {
+    "query": "session store behavior",
+    "relevant": ["src/Illuminate/Session/Store.php"],
+    "secondary": ["src/Illuminate/Session/SessionManager.php"],
+    "category": "semantic"
+  },
+  {
+    "query": "QueueManager",
+    "relevant": ["src/Illuminate/Queue/QueueManager.php"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

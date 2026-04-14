@@ -1,0 +1,82 @@
+[
+  {
+    "query": "how is BaseModel defined and instantiated",
+    "relevant": ["pydantic/main.py"],
+    "secondary": []
+  },
+  {
+    "query": "how are model fields declared and constrained",
+    "relevant": ["pydantic/fields.py"],
+    "secondary": ["pydantic/types.py"]
+  },
+  {
+    "query": "JSON schema generation from models",
+    "relevant": ["pydantic/json_schema.py"],
+    "secondary": []
+  },
+  {
+    "query": "custom field and model validators",
+    "relevant": ["pydantic/functional_validators.py"],
+    "secondary": ["pydantic/class_validators.py"]
+  },
+  {
+    "query": "how to serialize models to JSON",
+    "relevant": ["pydantic/functional_serializers.py"],
+    "secondary": ["pydantic/main.py"]
+  },
+  {
+    "query": "network types like URLs and email addresses",
+    "relevant": ["pydantic/networks.py"],
+    "secondary": []
+  },
+  {
+    "query": "model configuration and settings",
+    "relevant": ["pydantic/config.py"],
+    "secondary": []
+  },
+  {
+    "query": "validating data without a model using TypeAdapter",
+    "relevant": ["pydantic/type_adapter.py"],
+    "secondary": []
+  },
+  {
+    "query": "alias handling for field names",
+    "relevant": ["pydantic/aliases.py"],
+    "secondary": ["pydantic/alias_generators.py"]
+  },
+  {
+    "query": "root model for wrapping a single value",
+    "relevant": ["pydantic/root_model.py"],
+    "secondary": []
+  },
+  {
+    "query": "how discriminated unions select the right model variant",
+    "relevant": ["pydantic/types.py"],
+    "secondary": ["pydantic/main.py"]
+  },
+  {
+    "query": "how computed fields are defined on a model",
+    "relevant": ["pydantic/fields.py"],
+    "secondary": ["pydantic/functional_serializers.py"]
+  },
+  {
+    "query": "what runs after model initialisation in model_post_init",
+    "relevant": ["pydantic/main.py"],
+    "secondary": []
+  },
+  {
+    "query": "how model inheritance and field overriding works",
+    "relevant": ["pydantic/main.py"],
+    "secondary": ["pydantic/fields.py"]
+  },
+  {
+    "query": "how to validate a function's arguments with pydantic",
+    "relevant": ["pydantic/validate_call_decorator.py"],
+    "secondary": ["pydantic/decorator.py"]
+  },
+  {"query": "BaseModel", "relevant": ["pydantic/main.py"], "secondary": []},
+  {"query": "field_validator", "relevant": ["pydantic/functional_validators.py"], "secondary": []},
+  {"query": "model_validator", "relevant": ["pydantic/functional_validators.py"], "secondary": []},
+  {"query": "ConfigDict", "relevant": ["pydantic/config.py"], "secondary": []},
+  {"query": "Field", "relevant": ["pydantic/fields.py"], "secondary": []}
+]

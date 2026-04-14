@@ -1,0 +1,99 @@
+[
+  {
+    "query": "how the Session manages the underlying URLSession and dispatches requests",
+    "relevant": ["Source/Core/Session.swift"],
+    "secondary": ["Source/Core/SessionDelegate.swift"],
+    "category": "architecture"
+  },
+  {
+    "query": "how request retrying is implemented with backoff and retry conditions",
+    "relevant": ["Source/Features/RetryPolicy.swift"],
+    "secondary": ["Source/Features/RequestInterceptor.swift"],
+    "category": "architecture"
+  },
+  {
+    "query": "how response validation checks status codes and content types",
+    "relevant": ["Source/Features/Validation.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how response serialization decodes JSON, Decodable, and strings",
+    "relevant": ["Source/Features/ResponseSerialization.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how multipart form data encodes fields and file attachments",
+    "relevant": ["Source/Features/MultipartFormData.swift"],
+    "secondary": ["Source/Features/MultipartUpload.swift"],
+    "category": "semantic"
+  },
+  {
+    "query": "how authentication interceptors handle credential challenges",
+    "relevant": ["Source/Features/AuthenticationInterceptor.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how server trust evaluation handles SSL certificate pinning",
+    "relevant": ["Source/Features/ServerTrustEvaluation.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how URL query parameters are encoded from Encodable values",
+    "relevant": ["Source/Features/URLEncodedFormEncoder.swift"],
+    "secondary": ["Source/Core/ParameterEncoder.swift"],
+    "category": "semantic"
+  },
+  {
+    "query": "how network reachability is monitored to detect connectivity changes",
+    "relevant": ["Source/Features/NetworkReachabilityManager.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how download requests save responses to disk",
+    "relevant": ["Source/Core/DownloadRequest.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how request and response events are logged via EventMonitor",
+    "relevant": ["Source/Features/EventMonitor.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the Request class tracks lifecycle state transitions",
+    "relevant": ["Source/Core/Request.swift"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Session",
+    "relevant": ["Source/Core/Session.swift"],
+    "secondary": []
+  },
+  {
+    "query": "AFError",
+    "relevant": ["Source/Core/AFError.swift"],
+    "secondary": []
+  },
+  {
+    "query": "RetryPolicy",
+    "relevant": ["Source/Features/RetryPolicy.swift"],
+    "secondary": []
+  },
+  {
+    "query": "ServerTrustEvaluating",
+    "relevant": ["Source/Features/ServerTrustEvaluation.swift"],
+    "secondary": []
+  },
+  {
+    "query": "HTTPHeaders",
+    "relevant": ["Source/Core/HTTPHeaders.swift"],
+    "secondary": []
+  }
+]

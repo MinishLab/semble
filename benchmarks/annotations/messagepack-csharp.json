@@ -1,0 +1,98 @@
+[
+  {
+    "query": "how objects are serialized to MessagePack binary format",
+    "relevant": ["src/MessagePack/MessagePackSerializer.cs"],
+    "secondary": ["src/MessagePack/MessagePackWriter.cs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how binary data is deserialized back into typed C# objects",
+    "relevant": ["src/MessagePack/MessagePackSerializer.cs"],
+    "secondary": ["src/MessagePack/MessagePackReader.cs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how custom formatters are registered and resolved for types",
+    "relevant": ["src/MessagePack/IFormatterResolver.cs"],
+    "secondary": ["src/MessagePack/Resolvers/CompositeResolver.cs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how the dynamic object resolver generates serialization code at runtime",
+    "relevant": ["src/MessagePack/Resolvers/DynamicObjectResolver.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how collections and arrays are serialized",
+    "relevant": ["src/MessagePack/Formatters/CollectionFormatter.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how union types with subtypes are handled in serialization",
+    "relevant": ["src/MessagePack/Resolvers/DynamicUnionResolver.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how serializer options control compression and resolver configuration",
+    "relevant": ["src/MessagePack/MessagePackSerializerOptions.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how enums are serialized as integers or strings",
+    "relevant": ["src/MessagePack/Resolvers/DynamicEnumResolver.cs"],
+    "secondary": ["src/MessagePack/Formatters/GenericEnumFormatter`1.cs", "src/MessagePack/Formatters/EnumAsStringFormatter`1.cs"],
+    "category": "semantic"
+  },
+  {
+    "query": "reading MessagePack data from a stream incrementally",
+    "relevant": ["src/MessagePack/MessagePackStreamReader.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the sequence pool manages buffer reuse during serialization",
+    "relevant": ["src/MessagePack/SequencePool.cs"],
+    "secondary": ["src/MessagePack/BufferWriter.cs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how LZ4 compression is applied to MessagePack payloads",
+    "relevant": ["src/MessagePack/MessagePackSerializer.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "MessagePackSerializer",
+    "relevant": ["src/MessagePack/MessagePackSerializer.cs"],
+    "secondary": []
+  },
+  {
+    "query": "MessagePackReader",
+    "relevant": ["src/MessagePack/MessagePackReader.cs"],
+    "secondary": []
+  },
+  {
+    "query": "IMessagePackFormatter",
+    "relevant": ["src/MessagePack/Formatters/IMessagePackFormatter`1.cs"],
+    "secondary": []
+  },
+  {
+    "query": "CompositeResolver",
+    "relevant": ["src/MessagePack/Resolvers/CompositeResolver.cs"],
+    "secondary": []
+  },
+  {
+    "query": "MessagePackSerializerOptions",
+    "relevant": ["src/MessagePack/MessagePackSerializerOptions.cs"],
+    "secondary": []
+  },
+  {
+    "query": "StandardResolver",
+    "relevant": ["src/MessagePack/Resolvers/StandardResolver.cs"],
+    "secondary": []
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "query": "main Gson API for toJson and fromJson",
+    "relevant": ["gson/src/main/java/com/google/gson/Gson.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "GsonBuilder configuration and create",
+    "relevant": ["gson/src/main/java/com/google/gson/GsonBuilder.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "reflection-based field serialization and deserialization",
+    "relevant": ["gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "TypeAdapter",
+    "relevant": ["gson/src/main/java/com/google/gson/TypeAdapter.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JsonParser",
+    "relevant": ["gson/src/main/java/com/google/gson/JsonParser.java"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "query": "logger handler stack and processors",
+    "relevant": ["src/Monolog/Logger.php"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "stream log handler writes to files and streams",
+    "relevant": ["src/Monolog/Handler/StreamHandler.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "line formatter output formatting",
+    "relevant": ["src/Monolog/Formatter/LineFormatter.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "json log formatting",
+    "relevant": ["src/Monolog/Formatter/JsonFormatter.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Logger",
+    "relevant": ["src/Monolog/Logger.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "StreamHandler",
+    "relevant": ["src/Monolog/Handler/StreamHandler.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JsonFormatter",
+    "relevant": ["src/Monolog/Formatter/JsonFormatter.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how log handlers are registered and invoked by Logger",
+    "relevant": ["src/Monolog/Logger.php"],
+    "secondary": ["src/Monolog/Handler/AbstractHandler.php"],
+    "category": "architecture",
+    "seed": {"path": "src/Monolog/Logger.php", "line": 207},
+    "related": ["src/Monolog/Handler/AbstractHandler.php", "src/Monolog/Handler/HandlerInterface.php"]
+  }
+]

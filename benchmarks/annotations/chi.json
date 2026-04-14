@@ -1,0 +1,32 @@
+[
+  {
+    "query": "HTTP router and middleware composition",
+    "relevant": ["mux.go"],
+    "secondary": ["chain.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "radix tree path matching",
+    "relevant": ["tree.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request routing context storage",
+    "relevant": ["context.go"],
+    "secondary": ["mux.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "request logging middleware",
+    "relevant": ["middleware/logger.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Mux",
+    "relevant": ["mux.go"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

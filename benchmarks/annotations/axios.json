@@ -1,0 +1,46 @@
+[
+  {
+    "query": "how HTTP requests are dispatched through the configured adapter",
+    "relevant": ["lib/core/dispatchRequest.js"],
+    "secondary": ["lib/adapters/adapters.js"],
+    "category": "architecture"
+  },
+  {
+    "query": "request and response interceptors",
+    "relevant": ["lib/core/InterceptorManager.js"],
+    "secondary": ["lib/core/Axios.js"],
+    "category": "semantic"
+  },
+  {
+    "query": "node HTTP adapter implementation",
+    "relevant": ["lib/adapters/http.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how config defaults are merged before a request is sent",
+    "relevant": ["lib/core/mergeConfig.js"],
+    "secondary": ["lib/core/Axios.js"],
+    "category": "architecture"
+  },
+  {
+    "query": "Axios",
+    "relevant": [{"path": "lib/core/Axios.js", "start_line": 22, "end_line": 61}],
+    "secondary": [],
+    "category": "symbol",
+    "seed": {"path": "lib/core/Axios.js", "line": 46},
+    "related": [{"path": "lib/core/Axios.js", "start_line": 179, "end_line": 239}]
+  },
+  {
+    "query": "InterceptorManager",
+    "relevant": [{"path": "lib/core/InterceptorManager.js", "start_line": 5, "end_line": 33}],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "mergeConfig",
+    "relevant": [{"path": "lib/core/mergeConfig.js", "start_line": 17, "end_line": 106}],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

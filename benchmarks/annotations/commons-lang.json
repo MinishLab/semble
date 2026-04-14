@@ -1,0 +1,43 @@
+[
+  {
+    "query": "null-safe string operations and text helpers",
+    "relevant": ["src/main/java/org/apache/commons/lang3/StringUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "argument validation helpers and exception rules",
+    "relevant": ["src/main/java/org/apache/commons/lang3/Validate.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "reflection-based equals implementation",
+    "relevant": ["src/main/java/org/apache/commons/lang3/builder/EqualsBuilder.java"],
+    "secondary": ["src/main/java/org/apache/commons/lang3/ClassUtils.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "range object with inclusive bounds and comparator support",
+    "relevant": ["src/main/java/org/apache/commons/lang3/Range.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "StringUtils",
+    "relevant": ["src/main/java/org/apache/commons/lang3/StringUtils.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "reflection equals builder internals",
+    "relevant": [{"path": "src/main/java/org/apache/commons/lang3/builder/EqualsBuilder.java", "start_line": 89, "end_line": 99}],
+    "secondary": [],
+    "category": "architecture",
+    "seed": {"path": "src/main/java/org/apache/commons/lang3/builder/EqualsBuilder.java", "line": 89},
+    "related": [
+      {"path": "src/main/java/org/apache/commons/lang3/builder/HashCodeBuilder.java", "start_line": 105, "end_line": 141},
+      {"path": "src/main/java/org/apache/commons/lang3/builder/IDKey.java", "start_line": 27, "end_line": 74}
+    ]
+  }
+]

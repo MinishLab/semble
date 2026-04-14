@@ -1,0 +1,40 @@
+[
+  {
+    "query": "how routes are grouped and registered",
+    "relevant": ["routergroup.go"],
+    "secondary": ["gin.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "radix tree path matching",
+    "relevant": ["tree.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request context lifecycle and helpers",
+    "relevant": ["context.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "panic recovery middleware",
+    "relevant": ["recovery.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON request binding and validation",
+    "relevant": ["binding/json.go"],
+    "secondary": ["binding/default_validator.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "how the Gin Engine embeds RouterGroup and uses Context per request",
+    "relevant": ["gin.go"],
+    "secondary": ["routergroup.go", "context.go"],
+    "category": "architecture",
+    "seed": {"path": "gin.go", "line": 92},
+    "related": ["context.go", "routergroup.go"]
+  }
+]

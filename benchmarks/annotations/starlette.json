@@ -1,0 +1,90 @@
+[
+  {
+    "query": "how are URL routes registered and matched",
+    "relevant": ["starlette/routing.py"],
+    "secondary": ["starlette/convertors.py"]
+  },
+  {
+    "query": "how does authentication middleware work",
+    "relevant": ["starlette/middleware/authentication.py"],
+    "secondary": ["starlette/authentication.py"]
+  },
+  {
+    "query": "websocket connection and message handling",
+    "relevant": ["starlette/websockets.py"],
+    "secondary": []
+  },
+  {
+    "query": "how are static files served",
+    "relevant": ["starlette/staticfiles.py"],
+    "secondary": []
+  },
+  {
+    "query": "parsing form data and file uploads",
+    "relevant": ["starlette/formparsers.py"],
+    "secondary": ["starlette/datastructures.py"]
+  },
+  {
+    "query": "how does the test client simulate requests",
+    "relevant": ["starlette/testclient.py"],
+    "secondary": []
+  },
+  {
+    "query": "background task scheduling and execution",
+    "relevant": ["starlette/background.py"],
+    "secondary": []
+  },
+  {
+    "query": "application lifespan startup and shutdown events",
+    "relevant": ["starlette/routing.py"],
+    "secondary": ["starlette/applications.py"]
+  },
+  {
+    "query": "streaming response implementation",
+    "relevant": ["starlette/responses.py"],
+    "secondary": []
+  },
+  {
+    "query": "how base middleware wraps request handling",
+    "relevant": ["starlette/middleware/base.py"],
+    "secondary": []
+  },
+  {
+    "query": "how request state persists arbitrary data across middleware",
+    "relevant": ["starlette/requests.py"],
+    "secondary": []
+  },
+  {
+    "query": "how path convertor types work for route parameters",
+    "relevant": ["starlette/convertors.py"],
+    "secondary": ["starlette/routing.py"]
+  },
+  {
+    "query": "how session data is signed and stored in cookies",
+    "relevant": ["starlette/middleware/sessions.py"],
+    "secondary": []
+  },
+  {
+    "query": "how CORS preflight requests are handled",
+    "relevant": ["starlette/middleware/cors.py"],
+    "secondary": []
+  },
+  {
+    "query": "how errors in ASGI apps are caught and turned into responses",
+    "relevant": ["starlette/middleware/errors.py"],
+    "secondary": ["starlette/middleware/exceptions.py"]
+  },
+  {"query": "BaseHTTPMiddleware", "relevant": ["starlette/middleware/base.py"], "secondary": []},
+  {"query": "Request", "relevant": ["starlette/requests.py"], "secondary": []},
+  {"query": "WebSocket", "relevant": ["starlette/websockets.py"], "secondary": []},
+  {"query": "BackgroundTask", "relevant": ["starlette/background.py"], "secondary": []},
+  {"query": "Router", "relevant": ["starlette/routing.py"], "secondary": []},
+  {
+    "query": "how the Starlette application delegates routing and lifespan to Router",
+    "relevant": ["starlette/applications.py"],
+    "secondary": ["starlette/routing.py"],
+    "category": "architecture",
+    "seed": {"path": "starlette/applications.py", "line": 19},
+    "related": ["starlette/routing.py"]
+  }
+]

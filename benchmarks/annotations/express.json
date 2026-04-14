@@ -1,0 +1,32 @@
+[
+  {
+    "query": "application initialization and default configuration",
+    "relevant": ["lib/application.js"],
+    "secondary": ["lib/express.js"],
+    "category": "architecture"
+  },
+  {
+    "query": "request API helpers and header access",
+    "relevant": ["lib/request.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "response sending and content negotiation",
+    "relevant": ["lib/response.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "template view lookup and rendering",
+    "relevant": ["lib/view.js"],
+    "secondary": ["lib/application.js"],
+    "category": "architecture"
+  },
+  {
+    "query": "response",
+    "relevant": ["lib/response.js"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

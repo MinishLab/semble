@@ -1,0 +1,82 @@
+[
+  {
+    "query": "how the StaticModel encodes text to embeddings",
+    "relevant": ["model2vec/model.py"],
+    "secondary": ["model2vec/inference/model.py"]
+  },
+  {
+    "query": "how a model is distilled from a sentence transformer",
+    "relevant": ["model2vec/distill/distillation.py"],
+    "secondary": []
+  },
+  {
+    "query": "tokenizer construction and vocabulary building",
+    "relevant": ["model2vec/tokenizer/tokenizer.py"],
+    "secondary": ["model2vec/distill/utils.py"]
+  },
+  {
+    "query": "saving and loading models from disk",
+    "relevant": ["model2vec/persistence/persistence.py"],
+    "secondary": ["model2vec/persistence/datamodels.py"]
+  },
+  {
+    "query": "quantization of model weights",
+    "relevant": ["model2vec/quantization.py"],
+    "secondary": ["model2vec/vocabulary_quantization.py"]
+  },
+  {
+    "query": "pushing and loading models from HuggingFace Hub",
+    "relevant": ["model2vec/persistence/hf.py"],
+    "secondary": []
+  },
+  {
+    "query": "distillation inference and embedding extraction",
+    "relevant": ["model2vec/distill/inference.py"],
+    "secondary": []
+  },
+  {
+    "query": "training a classifier on top of embeddings",
+    "relevant": ["model2vec/train/classifier.py"],
+    "secondary": ["model2vec/train/base.py"]
+  },
+  {
+    "query": "generating model cards for publication",
+    "relevant": ["model2vec/modelcards/modelcards.py"],
+    "secondary": []
+  },
+  {
+    "query": "utility functions used across the package",
+    "relevant": ["model2vec/utils.py"],
+    "secondary": ["model2vec/distill/utils.py"]
+  },
+  {
+    "query": "how mean pooling is applied over token embeddings during distillation",
+    "relevant": ["model2vec/distill/inference.py"],
+    "secondary": []
+  },
+  {
+    "query": "how PCA reduces embedding dimensionality",
+    "relevant": ["model2vec/distill/distillation.py"],
+    "secondary": ["model2vec/distill/inference.py"]
+  },
+  {
+    "query": "how out-of-vocabulary tokens are handled at inference time",
+    "relevant": ["model2vec/model.py"],
+    "secondary": ["model2vec/tokenizer/tokenizer.py"]
+  },
+  {
+    "query": "how vocabulary is pruned during distillation",
+    "relevant": ["model2vec/distill/utils.py"],
+    "secondary": ["model2vec/distill/distillation.py"]
+  },
+  {
+    "query": "how subword token weights are aggregated for whole-word embeddings",
+    "relevant": ["model2vec/distill/inference.py"],
+    "secondary": ["model2vec/distill/distillation.py"]
+  },
+  {"query": "StaticModel", "relevant": ["model2vec/model.py"], "secondary": []},
+  {"query": "distill", "relevant": ["model2vec/distill/distillation.py"], "secondary": []},
+  {"query": "PoolingMode", "relevant": ["model2vec/distill/inference.py"], "secondary": []},
+  {"query": "quantize", "relevant": ["model2vec/quantization.py"], "secondary": []},
+  {"query": "Tokenizer", "relevant": ["model2vec/tokenizer/tokenizer.py"], "secondary": []}
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "query": "HTTP request wrapper and forwarded headers",
+    "relevant": ["lib/rack/request.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HTTP response construction",
+    "relevant": ["lib/rack/response.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "middleware builder DSL",
+    "relevant": ["lib/rack/builder.rb"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "URL path mapping across mounted apps",
+    "relevant": ["lib/rack/urlmap.rb"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Request",
+    "relevant": ["lib/rack/request.rb"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Rack::Response",
+    "relevant": [{"path": "lib/rack/response.rb", "start_line": 23, "end_line": 62}],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Rack::Builder",
+    "relevant": [{"path": "lib/rack/builder.rb", "start_line": 36, "end_line": 80}],
+    "secondary": [],
+    "category": "symbol"
+  }
+]
