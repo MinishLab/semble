@@ -7,38 +7,9 @@ from semble.types import Chunk
 # Matches queries that look like symbol lookups (no spaces, or namespace-separated identifiers).
 _SYMBOL_QUERY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*((::|\\|\.|->)[A-Za-z_][A-Za-z0-9_]*)*$")
 
-
-def _is_symbol_query(query: str) -> bool:
-    """Return True if the query looks like a bare symbol or namespace-qualified identifier."""
-    return _SYMBOL_QUERY_RE.match(query.strip()) is not None
-
-
-def _extract_symbol_name(query: str) -> str:
-    """Extract the final identifier from a possibly namespace-qualified query.
-
-    Examples: ``"Sinatra::Base"`` → ``"Base"``, ``"Client"`` → ``"Client"``.
-    """
-    for separator in ("::", "\\", "->", "."):
-        if separator in query:
-            return query.rsplit(separator, 1)[-1]
-    return query.strip()
-
-
 # Alpha values for query-adaptive blending.
 _ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching
 _ALPHA_NL = 0.6  # Natural language queries: lean semantic for meaning matching
-
-
-def resolve_alpha(query: str, alpha: float | None) -> float:
-    """Return the blending weight for semantic scores, auto-detecting from query type.
-
-    Keeping ``_ALPHA_SYMBOL``, ``_ALPHA_NL``, and ``_is_symbol_query`` fully
-    contained within this module means callers never import private symbols.
-    """
-    if alpha is not None:
-        return alpha
-    return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
-
 
 # Definition keywords used across common languages.
 # Case-sensitive: most language keywords are lowercase by convention, and applying
@@ -83,6 +54,33 @@ _KW_PREFIX = r"(?:^|(?<=\s))(?:"
 _DEFINITION_KW_BODY = "|".join(re.escape(kw) for kw in _DEFINITION_KEYWORDS)
 _SQL_KW_BODY = "|".join(re.escape(kw) for kw in _SQL_DEFINITION_KEYWORDS)
 
+# Additive boost multiplier for chunks that define a queried symbol.
+_DEFINITION_BOOST_MULTIPLIER = 2.0
+
+# Additive boost multiplier for NL queries when file stems match query words.
+_STEM_BOOST_MULTIPLIER = 0.5
+
+# Common English stopwords excluded from file-stem matching for NL queries.
+_STOPWORDS = frozenset(
+    "a an and are as at be by do does for from has have how if in is it not of on or the to was what when where which who why with".split()
+)
+
+
+def _is_symbol_query(query: str) -> bool:
+    """Return True if the query looks like a bare symbol or namespace-qualified identifier."""
+    return _SYMBOL_QUERY_RE.match(query.strip()) is not None
+
+
+def _extract_symbol_name(query: str) -> str:
+    """Extract the final identifier from a possibly namespace-qualified query.
+
+    Examples: ``"Sinatra::Base"`` → ``"Base"``, ``"Client"`` → ``"Client"``.
+    """
+    for separator in ("::", "\\", "->", "."):
+        if separator in query:
+            return query.rsplit(separator, 1)[-1]
+    return query.strip()
+
 
 def _make_definition_pattern(symbol_name: str) -> re.Pattern[str]:
     """Build the case-sensitive definition-keyword pattern for *symbol_name*."""
@@ -100,18 +98,6 @@ def _make_sql_pattern(symbol_name: str) -> re.Pattern[str]:
         _KW_PREFIX + _SQL_KW_BODY + r")\s+" + sym + r"(?:\s|[<({:\[;]|$)",
         re.MULTILINE | re.IGNORECASE,
     )
-
-
-# Additive boost multiplier for chunks that define a queried symbol.
-_DEFINITION_BOOST_MULTIPLIER = 2.0
-
-# Additive boost multiplier for NL queries when file stems match query words.
-_STEM_BOOST_MULTIPLIER = 0.5
-
-# Common English stopwords excluded from file-stem matching for NL queries.
-_STOPWORDS = frozenset(
-    "a an and are as at be by do does for from has have how if in is it not of on or the to was what when where which who why with".split()
-)
 
 
 def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
@@ -255,6 +241,17 @@ def _boost_stem_matches(
             match_ratio = n_matches / len(keywords)
             if match_ratio >= 0.20:
                 boosted[chunk] += boost * match_ratio
+
+
+def resolve_alpha(query: str, alpha: float | None) -> float:
+    """Return the blending weight for semantic scores, auto-detecting from query type.
+
+    Keeping ``_ALPHA_SYMBOL``, ``_ALPHA_NL``, and ``_is_symbol_query`` fully
+    contained within this module means callers never import private symbols.
+    """
+    if alpha is not None:
+        return alpha
+    return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
 
 
 def apply_query_boost(
