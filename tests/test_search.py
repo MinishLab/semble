@@ -7,8 +7,8 @@ import pytest
 from vicinity import Metric, Vicinity
 
 from semble.search import search_bm25, search_hybrid, search_semantic
+from semble.tokens import tokenize
 from semble.types import Chunk, SearchMode
-from semble.utils import tokenize
 
 
 def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:
@@ -54,7 +54,7 @@ def bm25(chunks: list[Chunk]) -> bm25s.BM25:
 @pytest.fixture
 def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> Vicinity:
     """Pre-built ANNS index over the chunks fixture."""
-    return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
+    return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE, store_vectors=True)
 
 
 def test_bm25_search(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
@@ -94,7 +94,7 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
     embs = rng.standard_normal((2, 256)).astype(np.float32)
     embs /= np.linalg.norm(embs, axis=1, keepdims=True) + 1e-8
 
-    sem_index = Vicinity.from_vectors_and_items(embs, all_chunks, metric=Metric.COSINE)
+    sem_index = Vicinity.from_vectors_and_items(embs, all_chunks, metric=Metric.COSINE, store_vectors=True)
     bm25_index = bm25s.BM25()
     bm25_index.index([tokenize(c.content) for c in all_chunks], show_progress=False)
 

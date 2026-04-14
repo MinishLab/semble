@@ -21,6 +21,8 @@ FILE_TYPES: dict[str, FileType] = {
     ".go": FileType("go"),
     ".rs": FileType("rust"),
     ".java": FileType("java"),
+    ".kt": FileType("kotlin"),
+    ".kts": FileType("kotlin"),
     ".rb": FileType("ruby"),
     ".php": FileType("php"),
     ".c": FileType("c"),
@@ -28,6 +30,11 @@ FILE_TYPES: dict[str, FileType] = {
     ".cpp": FileType("cpp"),
     ".hpp": FileType("cpp"),
     ".cs": FileType("csharp"),
+    ".swift": FileType("swift"),
+    ".scala": FileType("scala"),
+    ".sbt": FileType("scala"),
+    ".dart": FileType("dart"),
+    ".lua": FileType("lua"),
     ".sql": FileType("sql"),
     ".sh": FileType("bash"),
     ".md": FileType("markdown", index_by_default=False),
@@ -55,6 +62,13 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
         ".pytest_cache",
         ".ruff_cache",
         ".semble",
+        # CI / GitHub Actions — infrastructure scripts, not library code.
+        ".github",
+        ".circleci",
+        ".gitlab",
+        # Legacy / deprecated code directories — these typically contain
+        # compatibility shims that compete with (and obscure) the current API.
+        "deprecated",
     }
 )
 

@@ -46,16 +46,21 @@ dev = [
 "Bug Reports" = "https://github.com/MinishLab/semble/issues"
 "Source" = "https://github.com/MinishLab/semble"
 
+[project.scripts]
+semble = "semble.cli:main"
+
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["semble"]
 license-files = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools_scm]
 # can be empty if no extra settings are needed, presence enables setuptools_scm
 
 [tool.setuptools.dynamic]
-version = {attr = "semble.version.__version__"}
+version = {attr = "semble.__version__"}
 
 [tool.ruff]
 exclude = [".venv/"]
@@ -65,7 +70,7 @@ target-version = "py310"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN"]
 "src/semble/cli.py" = ["T20"]
-"local/benchmarks/*.py" = ["T20"]
+"benchmarks/*.py" = ["T20", "D"]
 
 [tool.ruff.lint]
 select = [

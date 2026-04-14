@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import contextlib
+import os
+import tempfile
 from pathlib import Path
 
 import bm25s
@@ -8,14 +10,56 @@ import numpy as np
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
-from semble.cache import EmbeddingCache
 from semble.chunker import chunk_source
+from semble.file_walker import language_for_path, resolve_extensions, walk_files
 from semble.search import search_bm25, search_hybrid, search_semantic
-from semble.sources import language_for_path, resolve_extensions, walk_files
+from semble.tokens import tokenize
 from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode, SearchResult
-from semble.utils import tokenize
 
 _DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
+
+
+class _EmbeddingCache:
+    """Embedding cache combining an in-memory dict with optional disk storage."""
+
+    def __init__(
+        self,
+        memory: dict[str, EmbeddingMatrix],
+        cache_dir: Path | None,
+        cache_namespace: str | None,
+    ) -> None:
+        self._memory = memory
+        safe = cache_namespace.replace("/", "--").replace("..", "__") if cache_namespace else None
+        self._root = cache_dir / safe if cache_dir and safe else None
+
+    def get(self, key: str) -> EmbeddingMatrix | None:
+        """Return the embedding for key, promoting a disk hit to memory. None on miss."""
+        if key in self._memory:
+            return self._memory[key]
+        if self._root is None:
+            return None
+        try:
+            embedding = np.load(self._root / key[:2] / f"{key}.npy", allow_pickle=False)
+        except (FileNotFoundError, ValueError, OSError):
+            return None
+        self._memory[key] = embedding
+        return embedding
+
+    def put(self, key: str, embedding: EmbeddingMatrix) -> None:
+        """Store embedding in memory and atomically write to disk if caching is enabled."""
+        self._memory[key] = embedding
+        if self._root is None:
+            return
+        path = self._root / key[:2] / f"{key}.npy"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".npy.tmp")
+        try:
+            with os.fdopen(fd, "wb") as fh:
+                np.save(fh, embedding, allow_pickle=False)
+            os.replace(tmp, path)
+        finally:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp)
 
 
 class SembleIndex:
@@ -39,6 +83,7 @@ class SembleIndex:
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
+        self._index_root: Path | None = None
 
     @classmethod
     def from_path(
@@ -84,6 +129,7 @@ class SembleIndex:
         :return: Statistics about the indexed files and chunks.
         """
         path = Path(path).resolve()
+        self._index_root = path
         extensions = resolve_extensions(extensions, include_docs=include_docs)
 
         all_chunks: list[Chunk] = []
@@ -141,14 +187,14 @@ class SembleIndex:
         query: str,
         top_k: int = 10,
         mode: SearchMode | str = SearchMode.HYBRID,
-        alpha: float = 0.5,
+        alpha: float | None = None,
     ) -> list[SearchResult]:
         """Search the index and return the top-k most relevant chunks.
 
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
         :param mode: Search strategy — ``"hybrid"`` (default), ``"semantic"``, or ``"bm25"``.
-        :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25.
+        :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25. None = auto-detect.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         :raises ValueError: If ``mode`` is not a recognised search strategy.
         """
@@ -205,7 +251,7 @@ class SembleIndex:
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
-        cache = EmbeddingCache(self._embedding_cache, self.cache_dir, self.cache_namespace)
+        cache = _EmbeddingCache(self._embedding_cache, self.cache_dir, self.cache_namespace)
 
         miss_indices: list[int] = []
         miss_texts: list[str] = []
@@ -226,7 +272,7 @@ class SembleIndex:
         """Build a BM25 index over tokenized, path-enriched chunk text."""
         bm25_index = bm25s.BM25()
         bm25_index.index(
-            [tokenize(self._enrich_for_bm25(chunk)) for chunk in chunks],
+            [tokenize(self._enrich_for_bm25(chunk, self._index_root)) for chunk in chunks],
             show_progress=False,
         )
         return bm25_index
@@ -235,8 +281,21 @@ class SembleIndex:
         """Build an ANNS index over chunk embeddings for semantic search."""
         return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
-    def _enrich_for_bm25(self, chunk: Chunk) -> str:
-        """Append file stem to BM25 content to boost path-based queries."""
-        stem = Path(chunk.file_path).stem
+    def _enrich_for_bm25(self, chunk: Chunk, root: Path | None) -> str:
+        """Append file path components to BM25 content to boost path-based queries.
+
+        Uses a repo-relative path so that machine-specific directory components
+        (usernames, workspace names, temp dirs) are never indexed as tokens.
+        Includes file stem (repeated for emphasis) and parent directory names,
+        so queries referencing module names or directory structure get BM25 signal.
+        """
+        path = Path(chunk.file_path)
+        if root is not None:
+            with contextlib.suppress(ValueError):
+                path = path.relative_to(root)
+        stem = path.stem
+        # Collect directory names from the (now relative) path, skipping filesystem roots.
+        dir_parts = [p for p in path.parent.parts if p not in (".", "/")]
+        dir_text = " ".join(dir_parts[-3:])  # Last 3 repo-relative directory components
         # Repeat the stem twice to up-weight file-path matches in BM25.
-        return f"{chunk.content} {stem} {stem}"
+        return f"{chunk.content} {stem} {stem} {dir_text}"

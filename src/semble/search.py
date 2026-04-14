@@ -1,21 +1,32 @@
+"""Retrieval pipeline: semantic, BM25, and hybrid search.
+
+Ranking concerns live in the ``ranking`` subpackage:
+- ``ranking/boosting.py``  — query-type detection, alpha resolution, and score boosting
+- ``ranking/selection.py`` — diverse top-k with file-path penalties
+- ``ranking/penalties.py`` — file-path penalty classification
+"""
+
 import bm25s
 import numpy as np
 import numpy.typing as npt
 from vicinity import Vicinity
 
+from semble.ranking import apply_query_boost, diverse_topk, resolve_alpha
+from semble.tokens import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
-from semble.utils import tokenize
+
+_RRF_K = 60
 
 
-def _normalize(scores: dict[Chunk, float]) -> dict[Chunk, float]:
-    """Min-max normalize scores to [0, 1]."""
+def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:
+    """Convert raw scores to reciprocal rank scores: 1/(k + rank).
+
+    Higher raw scores get lower rank numbers (rank 1 = best).
+    """
     if not scores:
         return scores
-    values = np.array(list(scores.values()), dtype=np.float32)
-    minimum_score = float(values.min())
-    maximum_score = float(values.max())
-    denominator = maximum_score - minimum_score if maximum_score - minimum_score > 1e-9 else 1e-9
-    return {key: float((score - minimum_score) / denominator) for key, score in scores.items()}
+    ranked = sorted(scores, key=lambda c: -scores[c])
+    return {chunk: 1.0 / (_RRF_K + rank) for rank, chunk in enumerate(ranked, 1)}
 
 
 def _vicinity_query(index: Vicinity, embedding: npt.NDArray[np.float32], k: int) -> list[tuple[Chunk, float]]:
@@ -60,12 +71,13 @@ def search_hybrid(
     bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
-    alpha: float = 0.5,
+    alpha: float | None = None,
 ) -> list[SearchResult]:
     """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
 
-    Both score sets are min-max normalized independently before combining,
-    so alpha has a consistent meaning regardless of score magnitude.
+    Both score sets are converted to Reciprocal Rank Fusion (RRF) scores
+    before combining, so alpha has a consistent meaning regardless of
+    raw score magnitude.
 
     :param query: Search query string.
     :param model: Embedding model for semantic search.
@@ -73,18 +85,23 @@ def search_hybrid(
     :param bm25_index: Pre-built BM25 index.
     :param chunks: All indexed chunks (parallel to BM25 index).
     :param top_k: Number of results to return.
-    :param alpha: Weight for semantic score (1-alpha goes to BM25). Default 0.5.
+    :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :return: List of search results sorted by combined score descending.
     """
+    # Resolve alpha here so the weighted combination below uses the right value.
+    # _ALPHA_SYMBOL/_ALPHA_NL and _is_symbol_query stay private to ranking.boosting.
+    a = resolve_alpha(query, alpha)
+
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
-    candidate_count = top_k * 3
+    # Tested at 5x, 10x, 15x: NDCG@10 is identical across all values (non-candidate scanning
+    # handles definition files that fall outside the top-N pool), and latency difference is
+    # negligible.  5x is sufficient.
+    candidate_count = top_k * 5
 
     query_embedding = model.encode([query])[0]
     hits = _vicinity_query(semantic_index, query_embedding, candidate_count)
 
-    semantic_scores: dict[Chunk, float] = {}
-    for chunk, distance in hits:
-        semantic_scores[chunk] = 1.0 - float(distance)
+    semantic_scores: dict[Chunk, float] = {chunk: 1.0 - float(distance) for chunk, distance in hits}
 
     bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     bm25_result_scores: dict[Chunk, float] = {}
@@ -92,14 +109,15 @@ def search_hybrid(
         if bm25_scores[chunk_index] > 0:
             bm25_result_scores[chunks[chunk_index]] = float(bm25_scores[chunk_index])
 
-    normalized_semantic_scores = _normalize(semantic_scores)
-    normalized_bm25_scores = _normalize(bm25_result_scores)
+    normalized_semantic = _rrf_scores(semantic_scores)
+    normalized_bm25 = _rrf_scores(bm25_result_scores)
 
-    combined_scores: dict[Chunk, float] = {}
-    for chunk in set(normalized_semantic_scores) | set(normalized_bm25_scores):
-        combined_scores[chunk] = alpha * normalized_semantic_scores.get(chunk, 0.0) + (
-            1.0 - alpha
-        ) * normalized_bm25_scores.get(chunk, 0.0)
+    combined_scores: dict[Chunk, float] = {
+        chunk: a * normalized_semantic.get(chunk, 0.0) + (1.0 - a) * normalized_bm25.get(chunk, 0.0)
+        for chunk in set(normalized_semantic) | set(normalized_bm25)
+    }
 
-    ranked = sorted(combined_scores, key=lambda c: -combined_scores[c])[:top_k]
+    combined_scores = apply_query_boost(combined_scores, query, chunks)
+
+    ranked = diverse_topk(combined_scores, top_k)
     return [SearchResult(chunk=chunk, score=combined_scores[chunk], source=SearchMode.HYBRID) for chunk in ranked]
