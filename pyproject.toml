@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "model2vec>=0.4.0",
-    "vicinity>=0.4.0",
+    "vicinity>=0.4.4",
     "numpy>=1.24.0",
     "bm25s>=0.2.0",
     "chonkie[code]>=1.6.2",
@@ -114,6 +114,3 @@ addopts = ["--tb=short", "--strict-markers", "--cov=src", "--cov-report=term-mis
 [tool.coverage.report]
 skip_covered = true
 exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
-
-[tool.uv.sources]
-vicinity = { path = "../vicinity" }

@@ -18,20 +18,15 @@ def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:
     return {chunk: 1.0 / (_RRF_K + rank) for rank, chunk in enumerate(ranked, 1)}
 
 
-def _vicinity_query(index: Vicinity, embedding: npt.NDArray[np.float32], k: int) -> list[tuple[Chunk, float]]:
-    """Query a Vicinity index, working around its current lack of generic typing."""
-    return index.query(embedding[None], k=k)[0]  # type: ignore[return-value]
-
-
 def search_semantic(
     query: str,
     model: Encoder,
-    semantic_index: Vicinity,
+    semantic_index: Vicinity[Chunk],
     top_k: int,
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
     query_embedding = model.encode([query])[0]
-    hits = _vicinity_query(semantic_index, query_embedding, top_k)
+    hits = semantic_index.query(query_embedding[None], k=top_k)[0]
     # Vicinity returns cosine distance; convert to similarity so higher = better.
     return [
         SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC) for chunk, distance in hits
@@ -56,7 +51,7 @@ def search_bm25(
 def search_hybrid(
     query: str,
     model: Encoder,
-    semantic_index: Vicinity,
+    semantic_index: Vicinity[Chunk],
     bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
@@ -83,7 +78,7 @@ def search_hybrid(
     candidate_count = top_k * 5
 
     query_embedding = model.encode([query])[0]
-    hits = _vicinity_query(semantic_index, query_embedding, candidate_count)
+    hits = semantic_index.query(query_embedding[None], k=candidate_count)[0]
 
     semantic_scores: dict[Chunk, float] = {chunk: 1.0 - float(distance) for chunk, distance in hits}
 

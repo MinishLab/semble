@@ -1990,7 +1990,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
-    { name = "vicinity", directory = "../vicinity" },
+    { name = "vicinity", specifier = ">=0.4.4" },
 ]
 provides-extras = ["mcp", "dev"]
 
@@ -2264,59 +2264,18 @@ wheels = [
 
 [[package]]
 name = "vicinity"
-source = { directory = "../vicinity" }
+version = "0.4.4"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "orjson" },
     { name = "tqdm" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "annoy", marker = "extra == 'all'" },
-    { name = "annoy", marker = "extra == 'annoy'" },
-    { name = "annoy", marker = "extra == 'backends'" },
-    { name = "black", marker = "extra == 'dev'" },
-    { name = "datasets", marker = "extra == 'all'" },
-    { name = "datasets", marker = "extra == 'huggingface'" },
-    { name = "datasets", marker = "extra == 'integrations'" },
-    { name = "faiss-cpu", marker = "extra == 'all'" },
-    { name = "faiss-cpu", marker = "extra == 'backends'" },
-    { name = "faiss-cpu", marker = "extra == 'faiss'" },
-    { name = "hnswlib", marker = "extra == 'all'" },
-    { name = "hnswlib", marker = "extra == 'backends'" },
-    { name = "hnswlib", marker = "extra == 'hnsw'" },
-    { name = "ipython", marker = "extra == 'dev'" },
-    { name = "llvmlite", marker = "extra == 'all'", specifier = ">=0.42.0" },
-    { name = "llvmlite", marker = "extra == 'backends'", specifier = ">=0.42.0" },
-    { name = "llvmlite", marker = "extra == 'pynndescent'", specifier = ">=0.42.0" },
-    { name = "mypy", marker = "extra == 'dev'" },
-    { name = "numba", marker = "extra == 'all'", specifier = ">=0.59.0" },
-    { name = "numba", marker = "extra == 'backends'", specifier = ">=0.59.0" },
-    { name = "numba", marker = "extra == 'pynndescent'", specifier = ">=0.59.0" },
-    { name = "numpy" },
-    { name = "numpy", marker = "extra == 'all'", specifier = ">=1.24.0" },
-    { name = "numpy", marker = "extra == 'backends'", specifier = ">=1.24.0" },
-    { name = "numpy", marker = "extra == 'pynndescent'", specifier = ">=1.24.0" },
-    { name = "orjson" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
-    { name = "pynndescent", marker = "extra == 'all'", specifier = ">=0.5.10" },
-    { name = "pynndescent", marker = "extra == 'backends'", specifier = ">=0.5.10" },
-    { name = "pynndescent", marker = "extra == 'pynndescent'", specifier = ">=0.5.10" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest-coverage", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "setuptools", marker = "extra == 'dev'" },
-    { name = "tqdm" },
-    { name = "usearch", marker = "extra == 'all'" },
-    { name = "usearch", marker = "extra == 'backends'" },
-    { name = "usearch", marker = "extra == 'usearch'" },
-    { name = "voyager", marker = "extra == 'all'" },
-    { name = "voyager", marker = "extra == 'backends'" },
-    { name = "voyager", marker = "extra == 'voyager'" },
+sdist = { url = "https://files.pythonhosted.org/packages/e7/bb/53571f1635ca2abbc99747732fe0d346da070ae3d483821e8f3628003c3a/vicinity-0.4.4.tar.gz", hash = "sha256:4e0ffe1bb078ce4604da7627d2f320c39d96d2529485d0eaa5e2c4cb2bb32b2b", size = 808513, upload-time = "2026-04-14T15:08:59.025Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/da/55/519ef784441cee96bbea7a7c176aabae609cb881d59c617b5fa080afff3c/vicinity-0.4.4-py3-none-any.whl", hash = "sha256:38c34008229b0c4c88f94a21dbd3071f72d8110a2885de19005822306de2d20d", size = 28837, upload-time = "2026-04-14T15:08:57.431Z" },
 ]
-provides-extras = ["dev", "huggingface", "integrations", "hnsw", "pynndescent", "annoy", "faiss", "usearch", "voyager", "backends", "all"]
 
 [[package]]
 name = "virtualenv"
