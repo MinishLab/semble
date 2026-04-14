@@ -18,10 +18,10 @@ class SearchMode(str, Enum):
 
 
 class Encoder(Protocol):
-    """Protocol for embedding models. Any object with a compatible encode() works."""
+    """Protocol for embedding models."""
 
     def encode(self, texts: Sequence[str], /) -> npt.NDArray[Any]:
-        """Encode a sequence of texts into embeddings."""
+        """Encode texts into embeddings."""
         ...  # pragma: no cover
 
 
@@ -38,7 +38,7 @@ class Chunk:
 
     @property
     def location(self) -> str:
-        """Return the file path and line range for this chunk."""
+        """File path and line range as a string."""
         return f"{self.file_path}:{self.start_line}-{self.end_line}"
 
 

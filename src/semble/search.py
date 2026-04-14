@@ -11,10 +11,7 @@ _RRF_K = 60
 
 
 def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:
-    """Convert raw scores to reciprocal rank scores: 1/(k + rank).
-
-    Higher raw scores get lower rank numbers (rank 1 = best).
-    """
+    """Convert raw scores to RRF scores 1/(k + rank); higher raw score → rank 1."""
     if not scores:
         return scores
     ranked = sorted(scores, key=lambda c: -scores[c])
@@ -47,7 +44,7 @@ def search_bm25(
     chunks: list[Chunk],
     top_k: int,
 ) -> list[SearchResult]:
-    """Run BM25 search for a query."""
+    """Return chunks ranked by BM25 score, excluding zero-score results."""
     scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     indices = np.argsort(-scores)[:top_k]
     # Exclude chunks with zero score, no query tokens matched.
@@ -80,8 +77,6 @@ def search_hybrid(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :return: List of search results sorted by combined score descending.
     """
-    # Resolve alpha here so the weighted combination below uses the right value.
-    # _ALPHA_SYMBOL/_ALPHA_NL and _is_symbol_query stay private to ranking.boosting.
     a = resolve_alpha(query, alpha)
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.

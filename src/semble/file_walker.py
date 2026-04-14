@@ -74,13 +74,13 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
 
 
 def language_for_path(path: Path) -> str | None:
-    """Return the chunking language for a file, or None if the extension is unknown."""
+    """Return the language for a file path, or None for unknown extensions."""
     spec = FILE_TYPES.get(path.suffix.lower())
     return None if spec is None else spec.language
 
 
 def resolve_extensions(extensions: frozenset[str] | None, *, include_docs: bool) -> frozenset[str]:
-    """Return the effective set of file extensions to index."""
+    """Return the set of file extensions to index."""
     if extensions is not None:
         return extensions
     return frozenset(ext for ext, spec in FILE_TYPES.items() if include_docs or spec.index_by_default)

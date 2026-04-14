@@ -120,10 +120,7 @@ def create_server(index: SembleIndex) -> Server:
 
 
 async def serve(path: str) -> None:
-    """Index path and start an MCP stdio server.
-
-    :param path: Directory to index and serve.
-    """
+    """Index path and start an MCP stdio server."""
     index = SembleIndex()
     index.index(str(Path(path).resolve()))
 

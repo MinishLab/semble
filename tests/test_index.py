@@ -16,7 +16,7 @@ def index(mock_model: Any) -> SembleIndex:
 
 @pytest.fixture
 def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
-    """SembleIndex built from tmp_project via the primary constructor."""
+    """SembleIndex built from tmp_project."""
     return SembleIndex.from_path(tmp_project, model=mock_model, enable_caching=False)
 
 
@@ -169,7 +169,6 @@ def test_find_related_returns_similar_chunks(indexed_index: SembleIndex) -> None
     chunk = indexed_index.chunks[0]
     results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
     assert isinstance(results, list)
-    # The source chunk itself must not appear in the results.
     assert all(r.chunk != chunk for r in results)
     assert len(results) <= 3
 

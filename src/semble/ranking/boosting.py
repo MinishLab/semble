@@ -67,11 +67,7 @@ _STOPWORDS = frozenset(
 
 
 def resolve_alpha(query: str, alpha: float | None) -> float:
-    """Return the blending weight for semantic scores, auto-detecting from query type.
-
-    Keeping `_ALPHA_SYMBOL`, `_ALPHA_NL`, and `_is_symbol_query` fully
-    contained within this module means callers never import private symbols.
-    """
+    """Return the blending weight for semantic scores, auto-detecting from query type."""
     if alpha is not None:
         return alpha
     return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
@@ -139,10 +135,7 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
 
 
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Return True if the chunk's file stem matches the symbol name (case-insensitive).
-
-    Handles snake_case to PascalCase: "handler_stack" matches "HandlerStack".
-    """
+    """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/PascalCase-aware)."""
     stem = Path(chunk.file_path).stem.lower()
     return stem == symbol_name.lower() or stem.replace("_", "") == symbol_name.lower()
 
@@ -208,10 +201,9 @@ def _boost_symbol_definitions(
 
 
 def _path_parts(file_path: str) -> set[str]:
-    """Extract lowered keyword parts from the file stem and immediate parent directory.
+    """Extract lowercased tokens from the file stem and immediate parent directory.
 
-    Only the immediate parent is considered to avoid noise from repo-root
-    or system-path components.
+    Stops at one level up to avoid noise from repo-root or system paths.
     """
     p = Path(file_path)
     parts = set(_split_identifier(p.stem))

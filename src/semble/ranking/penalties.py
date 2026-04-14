@@ -52,16 +52,16 @@ _TEST_FILE_RE = re.compile(
     r")$"
 )
 
-# Directories whose contents are almost always test/spec code.
+# Test/spec directories.
 _TEST_DIR_RE = re.compile(r"(?:^|/)(?:tests?|__tests__|spec|testing)(?:/|$)")
 
-# Regex matching path components that suggest a compatibility/legacy layer.
+# Compat/legacy path components.
 _COMPAT_DIR_RE = re.compile(r"(?:^|/)(?:compat|_compat|legacy)(?:/|$)")
 
-# Regex matching path components that are examples or documentation code.
+# Examples/docs path components.
 _EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 
-# Regex matching TypeScript declaration files (stubs, not implementations).
+# TypeScript declaration files (.d.ts stubs).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
@@ -137,7 +137,7 @@ def rerank_topk(
 
 
 def _is_test_file(file_path: str) -> bool:
-    """Return True if the file path matches common test-file naming conventions or lives in a test directory."""
+    """Return True if the path matches test-file naming conventions or a test directory."""
     normalised = file_path.replace("\\", "/")
     return _TEST_FILE_RE.search(normalised) is not None or _TEST_DIR_RE.search(normalised) is not None
 
@@ -154,12 +154,7 @@ def _is_init_file(file_path: str) -> bool:
 
 
 def _file_path_penalty(file_path: str, *, is_test: bool) -> float:
-    """Compute a multiplicative penalty for a file based on its path.
-
-    Penalties are combined multiplicatively so that a file matching multiple
-    patterns (e.g. a test helper in a compat directory) receives all applicable
-    discounts.
-    """
+    """Return a combined multiplicative penalty for all applicable path patterns."""
     normalised = file_path.replace("\\", "/")
     penalty = 1.0
     if is_test:

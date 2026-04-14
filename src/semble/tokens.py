@@ -1,4 +1,4 @@
-"""Tokenization utilities for BM25 indexing and identifier splitting."""
+"""Tokenization utilities for BM25 indexing."""
 
 import re
 
@@ -29,7 +29,6 @@ def _split_identifier(token: str) -> list[str]:
         # camelCase / PascalCase splitting
         parts = [m.lower() for m in _CAMEL_RE.findall(token)]
 
-    # Only emit sub-tokens if we actually split into 2+ parts
     if len(parts) >= 2:
         return [lower] + parts
     return [lower]
