@@ -1,5 +1,3 @@
-"""Unit tests for ranking heuristics: symbol detection, path penalties, definition boosting."""
-
 import pytest
 
 from semble.ranking.boosting import _chunk_defines_symbol, _is_symbol_query
