@@ -1,10 +1,4 @@
-"""Retrieval pipeline: semantic, BM25, and hybrid search.
-
-Ranking concerns live in the ``ranking`` subpackage:
-- ``ranking/boosting.py``  — query-type detection, alpha resolution, and score boosting
-- ``ranking/selection.py`` — diverse top-k with file-path penalties
-- ``ranking/penalties.py`` — file-path penalty classification
-"""
+"""Retrieval pipeline: semantic, BM25, and hybrid search."""
 
 import bm25s
 import numpy as np
@@ -93,9 +87,7 @@ def search_hybrid(
     a = resolve_alpha(query, alpha)
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
-    # Tested at 5x, 10x, 15x: NDCG@10 is identical across all values (non-candidate scanning
-    # handles definition files that fall outside the top-N pool), and latency difference is
-    # negligible.  5x is sufficient.
+    # 5x is sufficient; latency difference vs larger multipliers is negligible.
     candidate_count = top_k * 5
 
     query_embedding = model.encode([query])[0]
@@ -120,4 +112,4 @@ def search_hybrid(
     combined_scores = apply_query_boost(combined_scores, query, chunks)
 
     ranked = diverse_topk(combined_scores, top_k)
-    return [SearchResult(chunk=chunk, score=combined_scores[chunk], source=SearchMode.HYBRID) for chunk in ranked]
+    return [SearchResult(chunk=chunk, score=score, source=SearchMode.HYBRID) for chunk, score in ranked]

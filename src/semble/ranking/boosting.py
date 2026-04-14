@@ -1,10 +1,4 @@
-"""Query-type detection and query-adaptive score boosting.
-
-- ``_is_symbol_query``       — detect bare symbol / namespace-qualified identifier queries
-- ``_extract_symbol_name``   — extract the bare name from a qualified query
-- ``resolve_alpha``           — query-type-adaptive semantic/BM25 blend weight
-- ``apply_query_boost``      — public entry point: dispatches to symbol or NL boosting
-"""
+"""Query-type detection and query-adaptive score boosting."""
 
 import re
 from pathlib import Path
@@ -230,10 +224,8 @@ def _boost_symbol_definitions(
             boosted[chunk] += tier
 
     # Scan non-candidate chunks whose file stem matches the symbol.
-    # Despite BM25 stem enrichment (stem x2, α=0.3), definition files
-    # in repos with thousands of chunks may not rank in the top-100
-    # candidates.  Confirmed by ablation: removing this causes −0.137
-    # on gson and −0.061 on commons-lang.
+    # In large repos the definition file may not rank in the top-N candidates
+    # despite BM25 stem enrichment; scanning by stem ensures it is found.
     symbol_lower = symbol_name.lower()
     for chunk in all_chunks:
         if chunk in boosted:

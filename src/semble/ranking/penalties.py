@@ -91,9 +91,15 @@ _TYPE_DEFS_PENALTY = _MILD_PENALTY
 # ---------------------------------------------------------------------------
 
 
+def _normalise_path(file_path: str) -> str:
+    """Normalise path separators to forward slashes for cross-platform regex matching."""
+    return file_path.replace("\\", "/")
+
+
 def _is_test_file(file_path: str) -> bool:
     """Return True if the file path matches common test-file naming conventions or lives in a test directory."""
-    return _TEST_FILE_RE.search(file_path) is not None or _TEST_DIR_RE.search(file_path) is not None
+    normalised = _normalise_path(file_path)
+    return _TEST_FILE_RE.search(normalised) is not None or _TEST_DIR_RE.search(normalised) is not None
 
 
 def _is_init_file(file_path: str) -> bool:
@@ -118,15 +124,16 @@ def _file_path_penalty(file_path: str, *, is_test: bool) -> float:
     :param is_test: Whether the file was already identified as a test file.
     :return: A multiplier in (0, 1] to apply to the chunk score.
     """
+    normalised = _normalise_path(file_path)
     penalty = 1.0
     if is_test:
         penalty *= _TEST_FILE_PENALTY
     if _is_init_file(file_path):
         penalty *= _INIT_FILE_PENALTY
-    if _COMPAT_DIR_RE.search(file_path):
+    if _COMPAT_DIR_RE.search(normalised):
         penalty *= _COMPAT_DIR_PENALTY
-    if _EXAMPLES_DIR_RE.search(file_path):
+    if _EXAMPLES_DIR_RE.search(normalised):
         penalty *= _EXAMPLES_DIR_PENALTY
-    if _TYPE_DEFS_RE.search(file_path):
+    if _TYPE_DEFS_RE.search(normalised):
         penalty *= _TYPE_DEFS_PENALTY
     return penalty

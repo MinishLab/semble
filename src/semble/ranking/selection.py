@@ -20,7 +20,7 @@ _FILE_SATURATION_DECAY = 0.5
 def diverse_topk(
     scores: dict[Chunk, float],
     top_k: int,
-) -> list[Chunk]:
+) -> list[tuple[Chunk, float]]:
     """Select top-k results with file-path penalties and file-saturation decay.
 
     File-path penalties (test files, init files, compat dirs, etc.) are applied
@@ -31,7 +31,7 @@ def diverse_topk(
 
     :param scores: Combined scores for all candidate chunks.
     :param top_k: Number of results to return.
-    :return: Selected chunks in descending effective-score order.
+    :return: Selected (chunk, effective_score) pairs in descending effective-score order.
     """
     if not scores:
         return []
@@ -79,4 +79,4 @@ def diverse_topk(
             min_selected = min(s for s, _ in selected)
 
     selected.sort(key=lambda t: -t[0])
-    return [chunk for _, chunk in selected[:top_k]]
+    return [(chunk, score) for score, chunk in selected[:top_k]]
