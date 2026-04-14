@@ -214,37 +214,19 @@ def _boost_symbol_definitions(
             boosted[chunk] = tier
 
 
-def _path_parts(file_path: str) -> set[str]:
-    """Extract lowercased tokens from the file stem and immediate parent directory.
-
-    Stops at one level up to avoid noise from repo-root or system paths.
-    """
-    path = Path(file_path)
-    parts = set(_split_identifier(path.stem))
-    if path.parent.name and path.parent.name not in (".", "/", ".."):
-        parts.update(_split_identifier(path.parent.name))
-    return parts
-
-
 def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
-    """Count how many query keywords match path parts using prefix matching.
-
-    Either string being a prefix of the other (min 3 chars) counts as a match,
-    allowing "dependency"→"dependencies", "distill"→"distillation".
-    """
+    """Count query keywords that match path parts, allowing prefix overlap (min 3 chars)."""
     exact = keywords & parts
     if len(exact) == len(keywords):
         return len(exact)
-
-    remaining = keywords - exact
-    count = len(exact)
-    for keyword in remaining:
+    n_matches = len(exact)
+    for keyword in keywords - exact:
         for part in parts:
             shorter, longer = (keyword, part) if len(keyword) <= len(part) else (part, keyword)
             if len(shorter) >= 3 and longer.startswith(shorter):
-                count += 1
+                n_matches += 1
                 break
-    return count
+    return n_matches
 
 
 def _boost_stem_matches(
@@ -269,7 +251,11 @@ def _boost_stem_matches(
     path_cache: dict[str, set[str]] = {}
     for chunk in list(boosted):
         if chunk.file_path not in path_cache:
-            path_cache[chunk.file_path] = _path_parts(chunk.file_path)
+            path = Path(chunk.file_path)
+            parts: set[str] = set(_split_identifier(path.stem))
+            if path.parent.name and path.parent.name not in (".", "/", ".."):
+                parts.update(_split_identifier(path.parent.name))
+            path_cache[chunk.file_path] = parts
         n_matches = _fuzzy_keyword_overlap(keywords, path_cache[chunk.file_path])
         if n_matches > 0:
             match_ratio = n_matches / len(keywords)

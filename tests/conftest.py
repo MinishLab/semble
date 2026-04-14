@@ -6,6 +6,20 @@ import numpy as np
 import numpy.typing as npt
 import pytest
 
+from semble.types import Chunk
+
+
+def make_chunk(content: str, file_path: str = "src/module.py") -> Chunk:
+    """Create a minimal Chunk for use in tests."""
+    return Chunk(
+        content=content,
+        file_path=file_path,
+        start_line=1,
+        end_line=content.count("\n") + 1,
+        language="python",
+        content_hash=content[:16],
+    )
+
 
 @pytest.fixture
 def tmp_py_file(tmp_path: Path) -> Path:

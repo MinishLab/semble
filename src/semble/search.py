@@ -64,9 +64,8 @@ def search_hybrid(
 ) -> list[SearchResult]:
     """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
 
-    Both score sets are converted to Reciprocal Rank Fusion (RRF) scores
-    before combining, so alpha has a consistent meaning regardless of
-    raw score magnitude.
+    Both score sets are converted to RRF scores before combining, so alpha has
+    a consistent meaning regardless of raw score magnitude.
 
     :param query: Search query string.
     :param model: Embedding model for semantic search.

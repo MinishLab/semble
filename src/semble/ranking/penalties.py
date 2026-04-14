@@ -83,11 +83,10 @@ def rerank_topk(
 ) -> list[tuple[Chunk, float]]:
     """Select top-k results with optional file-path penalties and file-saturation decay.
 
-    File-path penalties are applied first when `penalise_paths` is True.
-    Candidates are then processed in descending penalised-score order with
-    saturation decay applied greedily.  Because decay only reduces scores and
-    candidates are sorted by penalised score descending, we can stop early once
-    the remaining scores cannot beat the current top-k floor.
+    When `penalise_paths` is True, path penalties are applied before sorting.
+    Saturation decay is applied greedily during the greedy pass; because decay
+    only reduces scores and candidates are pre-sorted descending, early exit is
+    safe once the remaining scores cannot beat the current k-th best.
 
     :param scores: Combined scores for candidate chunks.
     :param top_k: Maximum number of results to return.
@@ -104,8 +103,7 @@ def rerank_topk(
     for chunk, score in scores.items():
         if penalise_paths:
             if chunk.file_path not in penalty_cache:
-                is_test = _is_test_file(chunk.file_path)
-                penalty_cache[chunk.file_path] = _file_path_penalty(chunk.file_path, is_test=is_test)
+                penalty_cache[chunk.file_path] = _file_path_penalty(chunk.file_path)
             penalised[chunk] = score * penalty_cache[chunk.file_path]
         else:
             penalised[chunk] = score
@@ -113,14 +111,6 @@ def rerank_topk(
     # Sort by penalised score (highest first) — single sort.
     ranked = sorted(penalised, key=lambda c: -penalised[c])
 
-    # Greedy pass with file-saturation decay and early-exit.
-    # Candidates are already sorted by pen_score descending, so pen_score is
-    # an upper bound on any future eff_score (decay only reduces scores).
-    # Once we have top_k items, any candidate whose pen_score cannot beat the
-    # current k-th best effective score can be skipped — and so can every
-    # subsequent candidate, so we break.
-    # min_selected tracks the minimum effective score among the top_k collected
-    # so far; it is recomputed after each addition to stay accurate.
     file_selected: dict[str, int] = {}
     selected: list[tuple[float, Chunk]] = []
     min_selected = float("+inf")
@@ -147,30 +137,13 @@ def rerank_topk(
     return [(chunk, score) for score, chunk in selected[:top_k]]
 
 
-def _is_test_file(file_path: str) -> bool:
-    """Return True if the path matches test-file naming conventions or a test directory."""
-    normalised = file_path.replace("\\", "/")
-    return _TEST_FILE_RE.search(normalised) is not None or _TEST_DIR_RE.search(normalised) is not None
-
-
-def _is_init_file(file_path: str) -> bool:
-    """Return True if the file is a Python `__init__.py`.
-
-    These files typically re-export a module's public API but rarely contain
-    the implementation.  `index.js`/`index.ts` and `mod.rs` are NOT
-    penalised because they frequently hold primary implementation code
-    (e.g. Express's `index.js` IS `createApplication`).
-    """
-    return Path(file_path).name == "__init__.py"
-
-
-def _file_path_penalty(file_path: str, *, is_test: bool) -> float:
+def _file_path_penalty(file_path: str) -> float:
     """Return a combined multiplicative penalty for all applicable path patterns."""
     normalised = file_path.replace("\\", "/")
     penalty = 1.0
-    if is_test:
+    if _TEST_FILE_RE.search(normalised) is not None or _TEST_DIR_RE.search(normalised) is not None:
         penalty *= _STRONG_PENALTY
-    if _is_init_file(file_path):
+    if Path(file_path).name == "__init__.py":
         penalty *= _MODERATE_PENALTY
     if _COMPAT_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY

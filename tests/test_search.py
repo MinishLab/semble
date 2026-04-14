@@ -9,27 +9,17 @@ from vicinity import Metric, Vicinity
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
 from semble.types import Chunk, SearchMode
-
-
-def _make_chunk(content: str, file_path: str = "file.py") -> Chunk:
-    return Chunk(
-        content=content,
-        file_path=file_path,
-        start_line=1,
-        end_line=content.count("\n") + 1,
-        language="python",
-        content_hash=content[:16],  # stable stand-in; tests don't rely on hash correctness
-    )
+from tests.conftest import make_chunk
 
 
 @pytest.fixture
 def chunks() -> list[Chunk]:
     """Four small code chunks covering authentication, login, user service, and utils."""
     return [
-        _make_chunk("def authenticate(token):\n    return token == 'secret'", "auth.py"),
-        _make_chunk("def login(username, password):\n    pass", "auth.py"),
-        _make_chunk("class UserService:\n    pass", "users.py"),
-        _make_chunk("def format_date(dt):\n    return str(dt)", "utils.py"),
+        make_chunk("def authenticate(token):\n    return token == 'secret'", "auth.py"),
+        make_chunk("def login(username, password):\n    pass", "auth.py"),
+        make_chunk("class UserService:\n    pass", "users.py"),
+        make_chunk("def format_date(dt):\n    return str(dt)", "utils.py"),
     ]
 
 
@@ -86,8 +76,8 @@ def test_hybrid_returns_results(chunks: list[Chunk], semantic: Vicinity, bm25: b
 def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> None:
     """Identical chunk content in different files produces two distinct results."""
     shared_content = "def helper():\n    pass"
-    chunk_a = _make_chunk(shared_content, "module_a.py")
-    chunk_b = _make_chunk(shared_content, "module_b.py")
+    chunk_a = make_chunk(shared_content, "module_a.py")
+    chunk_b = make_chunk(shared_content, "module_b.py")
     all_chunks = [chunk_a, chunk_b]
 
     rng = np.random.default_rng(1)
