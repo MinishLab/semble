@@ -52,14 +52,14 @@ class _EmbeddingCache:
             return
         path = self._root / key[:2] / f"{key}.npy"
         path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".npy.tmp")
+        file_descriptor, tmp_file = tempfile.mkstemp(dir=path.parent, suffix=".npy.tmp")
         try:
-            with os.fdopen(fd, "wb") as fh:
-                np.save(fh, embedding, allow_pickle=False)
-            os.replace(tmp, path)
+            with os.fdopen(file_descriptor, "wb") as file_handle:
+                np.save(file_handle, embedding, allow_pickle=False)
+            os.replace(tmp_file, path)
         finally:
             with contextlib.suppress(OSError):
-                os.unlink(tmp)
+                os.unlink(tmp_file)
 
 
 class SembleIndex:
@@ -274,7 +274,7 @@ class SembleIndex:
                 path = path.relative_to(root)
         stem = path.stem
         # Collect directory names from the (now relative) path, skipping filesystem roots.
-        dir_parts = [p for p in path.parent.parts if p not in (".", "/")]
+        dir_parts = [part for part in path.parent.parts if part not in (".", "/")]
         dir_text = " ".join(dir_parts[-3:])  # Last 3 repo-relative directory components
         # Repeat the stem twice to up-weight file-path matches in BM25.
         return f"{chunk.content} {stem} {stem} {dir_text}"

@@ -77,7 +77,7 @@ def search_hybrid(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :return: List of search results sorted by combined score descending.
     """
-    a = resolve_alpha(query, alpha)
+    alpha_weight = resolve_alpha(query, alpha)
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
     # 5x is sufficient; latency difference vs larger multipliers is negligible.
@@ -98,11 +98,12 @@ def search_hybrid(
     normalized_bm25 = _rrf_scores(bm25_result_scores)
 
     combined_scores: dict[Chunk, float] = {
-        chunk: a * normalized_semantic.get(chunk, 0.0) + (1.0 - a) * normalized_bm25.get(chunk, 0.0)
+        chunk: alpha_weight * normalized_semantic.get(chunk, 0.0)
+        + (1.0 - alpha_weight) * normalized_bm25.get(chunk, 0.0)
         for chunk in set(normalized_semantic) | set(normalized_bm25)
     }
 
     combined_scores = apply_query_boost(combined_scores, query, chunks)
 
-    ranked = rerank_topk(combined_scores, top_k, penalise_paths=a < 1.0)
+    ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
     return [SearchResult(chunk=chunk, score=score, source=SearchMode.HYBRID) for chunk, score in ranked]

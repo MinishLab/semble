@@ -138,8 +138,8 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     from e.g. `Module.new` in Ruby or `Class` in docstrings), then
     case-insensitive for SQL DDL keywords where mixed-case is common.
     """
-    sym = re.escape(symbol_name)
-    suffix = r")\s+" + sym + r"(?:\s|[<({:\[;]|$)"
+    escaped_symbol = re.escape(symbol_name)
+    suffix = r")\s+" + escaped_symbol + r"(?:\s|[<({:\[;]|$)"
     if re.compile(_KEYWORD_PREFIX + _DEFINITION_KEYWORD_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
         return True
     return (
@@ -219,10 +219,10 @@ def _path_parts(file_path: str) -> set[str]:
 
     Stops at one level up to avoid noise from repo-root or system paths.
     """
-    p = Path(file_path)
-    parts = set(_split_identifier(p.stem))
-    if p.parent.name and p.parent.name not in (".", "/", ".."):
-        parts.update(_split_identifier(p.parent.name))
+    path = Path(file_path)
+    parts = set(_split_identifier(path.stem))
+    if path.parent.name and path.parent.name not in (".", "/", ".."):
+        parts.update(_split_identifier(path.parent.name))
     return parts
 
 
@@ -258,7 +258,9 @@ def _boost_stem_matches(
     "dependencies").  Matches file stems and the immediate parent directory name.
     """
     keywords = {
-        w.lower() for w in re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query) if len(w) > 2 and w.lower() not in _STOPWORDS
+        word.lower()
+        for word in re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query)
+        if len(word) > 2 and word.lower() not in _STOPWORDS
     }
     if not keywords:
         return
