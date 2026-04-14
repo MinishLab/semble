@@ -143,12 +143,12 @@ def _is_test_file(file_path: str) -> bool:
 
 
 def _is_init_file(file_path: str) -> bool:
-    """Return True if the file is a Python ``__init__.py``.
+    """Return True if the file is a Python `__init__.py`.
 
     These files typically re-export a module's public API but rarely contain
-    the implementation.  ``index.js``/``index.ts`` and ``mod.rs`` are NOT
+    the implementation.  `index.js`/`index.ts` and `mod.rs` are NOT
     penalised because they frequently hold primary implementation code
-    (e.g. Express's ``index.js`` IS ``createApplication``).
+    (e.g. Express's `index.js` IS `createApplication`).
     """
     return Path(file_path).name == "__init__.py"
 

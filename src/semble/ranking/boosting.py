@@ -69,7 +69,7 @@ _STOPWORDS = frozenset(
 def resolve_alpha(query: str, alpha: float | None) -> float:
     """Return the blending weight for semantic scores, auto-detecting from query type.
 
-    Keeping ``_ALPHA_SYMBOL``, ``_ALPHA_NL``, and ``_is_symbol_query`` fully
+    Keeping `_ALPHA_SYMBOL`, `_ALPHA_NL`, and `_is_symbol_query` fully
     contained within this module means callers never import private symbols.
     """
     if alpha is not None:
@@ -114,7 +114,7 @@ def _is_symbol_query(query: str) -> bool:
 def _extract_symbol_name(query: str) -> str:
     """Extract the final identifier from a possibly namespace-qualified query.
 
-    Examples: ``"Sinatra::Base"`` → ``"Base"``, ``"Client"`` → ``"Client"``.
+    Examples: "Sinatra::Base" → "Base", "Client" → "Client".
     """
     for separator in ("::", "\\", "->", "."):
         if separator in query:
@@ -126,7 +126,7 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     """Check whether a chunk contains a definition of *symbol_name*.
 
     Two passes: case-sensitive for general keywords (to avoid false positives
-    from e.g. ``Module.new`` in Ruby or ``Class`` in docstrings), then
+    from e.g. `Module.new` in Ruby or `Class` in docstrings), then
     case-insensitive for SQL DDL keywords where mixed-case is common.
     """
     sym = re.escape(symbol_name)
@@ -141,7 +141,7 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
     """Return True if the chunk's file stem matches the symbol name (case-insensitive).
 
-    Handles snake_case to PascalCase: ``"handler_stack"`` matches ``"HandlerStack"``.
+    Handles snake_case to PascalCase: "handler_stack" matches "HandlerStack".
     """
     stem = Path(chunk.file_path).stem.lower()
     return stem == symbol_name.lower() or stem.replace("_", "") == symbol_name.lower()
@@ -173,7 +173,7 @@ def _boost_symbol_definitions(
     definition file may not rank in the top-N candidates despite BM25 stem
     enrichment.
 
-    Definition tiers (see ``_definition_tier``):
+    Definition tiers (see `_definition_tier`):
       - 1.5x boost_unit: definition keyword + file-stem match
       - 1.0x boost_unit: definition keyword only
     """
