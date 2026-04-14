@@ -1,14 +1,7 @@
-"""Diverse top-k selection.
-
-- ``diverse_topk`` — file-penalty + saturation-decay greedy top-k
-"""
+"""Diverse top-k selection with file-path penalties and saturation decay."""
 
 from semble.ranking.penalties import _file_path_penalty, _is_test_file
 from semble.types import Chunk
-
-# ---------------------------------------------------------------------------
-# Diverse top-k selection
-# ---------------------------------------------------------------------------
 
 # Maximum chunks from the same file before a saturation penalty is applied.
 _FILE_SATURATION_THRESHOLD = 2

@@ -75,9 +75,17 @@ class SembleIndex:
     ) -> None:
         """Initialize a SembleIndex instance."""
         self.model: Encoder | None = model
-        self.cache_dir, self.cache_namespace = self._resolve_cache_config(
-            model, enable_caching=enable_caching, cache_dir=cache_dir, model_name=model_name
-        )
+        if not enable_caching:
+            self.cache_dir: Path | None = None
+            self.cache_namespace: str | None = None
+        else:
+            root = Path(cache_dir).expanduser() if cache_dir is not None else Path.home() / ".cache" / "semble"
+            if model is None:
+                self.cache_dir, self.cache_namespace = root, _DEFAULT_MODEL_NAME
+            elif model_name is not None:
+                self.cache_dir, self.cache_namespace = root, model_name
+            else:
+                self.cache_dir, self.cache_namespace = None, None
         self.chunks: list[Chunk] = []
         self.stats = IndexStats()
         self._embedding_cache: dict[str, EmbeddingMatrix] = {}
@@ -211,24 +219,6 @@ class SembleIndex:
         if mode == SearchMode.HYBRID:
             return search_hybrid(query, model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha)
         raise ValueError(f"Unknown search mode: {mode!r}")
-
-    @staticmethod
-    def _resolve_cache_config(
-        model: Encoder | None,
-        *,
-        enable_caching: bool,
-        cache_dir: str | Path | None,
-        model_name: str | None,
-    ) -> tuple[Path | None, str | None]:
-        """Determine cache directory and namespace based on constructor args."""
-        if not enable_caching:
-            return None, None
-        root = Path(cache_dir).expanduser() if cache_dir is not None else Path.home() / ".cache" / "semble"
-        if model is None:
-            return root, _DEFAULT_MODEL_NAME
-        if model_name is not None:
-            return root, model_name
-        return None, None
 
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided.

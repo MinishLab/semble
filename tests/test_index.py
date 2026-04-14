@@ -1,9 +1,6 @@
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-import numpy.typing as npt
 import pytest
 
 from semble import SembleIndex
@@ -28,18 +25,20 @@ def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
     stats = index.index(tmp_project)
     assert stats.indexed_files >= 2  # auth.py, utils.py
     assert stats.total_chunks > 0
+    assert index.stats == stats
 
 
-def test_index_excludes_markdown_by_default(indexed_index: SembleIndex) -> None:
-    """Markdown files are excluded unless include_docs=True."""
-    assert ".md" not in [Path(chunk.file_path).suffix for chunk in indexed_index.chunks]
-
-
-def test_index_includes_markdown_with_flag(index: SembleIndex, tmp_project: Path) -> None:
-    """include_docs=True causes markdown files to be indexed."""
-    index.index(tmp_project, include_docs=True)
-    suffixes = {Path(c.file_path).suffix for c in index.chunks}
-    assert ".md" in suffixes
+@pytest.mark.parametrize(
+    ("include_docs", "md_in_results"),
+    [(False, False), (True, True)],
+)
+def test_index_markdown_inclusion(
+    index: SembleIndex, tmp_project: Path, include_docs: bool, md_in_results: bool
+) -> None:
+    """Markdown files are excluded by default and included when include_docs=True."""
+    index.index(tmp_project, include_docs=include_docs)
+    has_md = ".md" in {Path(c.file_path).suffix for c in index.chunks}
+    assert has_md is md_in_results
 
 
 def test_index_empty_returns_zero_chunks(index: SembleIndex, tmp_path: Path) -> None:
@@ -97,11 +96,6 @@ def test_reindex_does_not_re_embed(indexed_index: SembleIndex, tmp_project: Path
     call_count_after_first = mock_model.encode.call_count
     indexed_index.index(tmp_project)
     assert mock_model.encode.call_count == call_count_after_first
-
-
-def test_stats_property(indexed_index: SembleIndex) -> None:
-    """Stats property reflects the most recent index call."""
-    assert indexed_index.stats.indexed_files >= 2
 
 
 def test_disk_cache_round_trip(mock_model: Any, tmp_project: Path, tmp_path: Path) -> None:

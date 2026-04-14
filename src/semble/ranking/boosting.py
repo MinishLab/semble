@@ -243,12 +243,6 @@ def _boost_symbol_definitions(
 # ---------------------------------------------------------------------------
 
 
-def _extract_query_keywords(query: str) -> set[str]:
-    """Extract meaningful keywords from an NL query, excluding stopwords and short tokens."""
-    words = re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query)
-    return {w.lower() for w in words if len(w) > 2 and w.lower() not in _STOPWORDS}
-
-
 def _path_parts(file_path: str) -> set[str]:
     """Extract lowered keyword parts from the file stem AND immediate parent directory.
 
@@ -299,7 +293,9 @@ def _boost_stem_matches(
     :param query: The raw query string.
     :param max_score: Maximum score in the candidate pool.
     """
-    keywords = _extract_query_keywords(query)
+    keywords = {
+        w.lower() for w in re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query) if len(w) > 2 and w.lower() not in _STOPWORDS
+    }
     if not keywords:
         return
 
