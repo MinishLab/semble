@@ -11,18 +11,14 @@ pip install semble
 ## Python API
 
 ```python
-from semble import SearchMode, SembleIndex
+from semble import SembleIndex
 
 index = SembleIndex.from_path("./my-project")
 
-# Hybrid search (semantic + BM25, default)
 results = index.search("how does authentication work?", top_k=5)
 for r in results:
     print(r.chunk.location, f"score={r.score:.3f}")
     print(r.chunk.content[:200])
-
-# Keyword-only
-results = index.search("JWT token", mode=SearchMode.BM25)
 ```
 
 ## MCP server
@@ -45,5 +41,5 @@ This indexes the directory at startup and exposes two tools:
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search with a natural-language or code query. Supports `hybrid` (default), `semantic`, and `bm25` modes. |
+| `search` | Search your codebase with a natural-language or code query. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
