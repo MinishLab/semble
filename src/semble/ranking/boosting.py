@@ -122,24 +122,6 @@ def _extract_symbol_name(query: str) -> str:
     return query.strip()
 
 
-def _make_definition_pattern(symbol_name: str) -> re.Pattern[str]:
-    """Build the case-sensitive definition-keyword pattern for *symbol_name*."""
-    sym = re.escape(symbol_name)
-    return re.compile(
-        _KW_PREFIX + _DEFINITION_KW_BODY + r")\s+" + sym + r"(?:\s|[<({:\[;]|$)",
-        re.MULTILINE,
-    )
-
-
-def _make_sql_pattern(symbol_name: str) -> re.Pattern[str]:
-    """Build the case-insensitive SQL DDL pattern for *symbol_name*."""
-    sym = re.escape(symbol_name)
-    return re.compile(
-        _KW_PREFIX + _SQL_KW_BODY + r")\s+" + sym + r"(?:\s|[<({:\[;]|$)",
-        re.MULTILINE | re.IGNORECASE,
-    )
-
-
 def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     """Check whether a chunk contains a definition of *symbol_name*.
 
@@ -147,9 +129,13 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     from e.g. ``Module.new`` in Ruby or ``Class`` in docstrings), then
     case-insensitive for SQL DDL keywords where mixed-case is common.
     """
-    if _make_definition_pattern(symbol_name).search(chunk.content) is not None:
+    sym = re.escape(symbol_name)
+    suffix = r")\s+" + sym + r"(?:\s|[<({:\[;]|$)"
+    if re.compile(_KW_PREFIX + _DEFINITION_KW_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
         return True
-    return _make_sql_pattern(symbol_name).search(chunk.content) is not None
+    return (
+        re.compile(_KW_PREFIX + _SQL_KW_BODY + suffix, re.MULTILINE | re.IGNORECASE).search(chunk.content) is not None
+    )
 
 
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:

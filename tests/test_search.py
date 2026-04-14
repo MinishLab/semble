@@ -105,14 +105,15 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
 
 
 @pytest.mark.parametrize(
-    ("mode", "query", "top_k"),
+    ("search_fn", "mode", "query", "top_k"),
     [
-        (SearchMode.BM25, "authenticate", 3),
-        (SearchMode.SEMANTIC, "query", 4),
-        (SearchMode.HYBRID, "login", 4),
+        (lambda q, m, s, b, c, k: search_bm25(q, b, c, k), SearchMode.BM25, "authenticate", 3),
+        (lambda q, m, s, b, c, k: search_semantic(q, m, s, k), SearchMode.SEMANTIC, "query", 4),
+        (lambda q, m, s, b, c, k: search_hybrid(q, m, s, b, c, k), SearchMode.HYBRID, "login", 4),
     ],
 )
 def test_search_source_labels(
+    search_fn: Any,
     mode: SearchMode,
     query: str,
     top_k: int,
@@ -122,11 +123,6 @@ def test_search_source_labels(
     mock_model: Any,
 ) -> None:
     """Each result carries a source label matching the search mode used."""
-    if mode is SearchMode.BM25:
-        results = search_bm25(query, bm25, chunks, top_k)
-    elif mode is SearchMode.SEMANTIC:
-        results = search_semantic(query, mock_model, semantic, top_k)
-    else:
-        results = search_hybrid(query, mock_model, semantic, bm25, chunks, top_k)
+    results = search_fn(query, mock_model, semantic, bm25, chunks, top_k)
     assert len(results) > 0
     assert all(result.source is mode for result in results)

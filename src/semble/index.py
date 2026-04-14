@@ -73,7 +73,13 @@ class SembleIndex:
         cache_dir: str | Path | None = None,
         model_name: str | None = None,
     ) -> None:
-        """Initialize a SembleIndex instance."""
+        """Configure the index and caching backend.
+
+        :param model: Embedding model to use. Defaults to potion-code-16M.
+        :param enable_caching: Whether to persist embeddings to disk between runs.
+        :param cache_dir: Override the cache directory. Defaults to ~/.cache/semble.
+        :param model_name: Stable identifier for a custom encoder, used as the disk cache namespace.
+        """
         self.model: Encoder | None = model
         if not enable_caching:
             self.cache_dir: Path | None = None
@@ -159,8 +165,12 @@ class SembleIndex:
 
         if all_chunks:
             embeddings = self._embed_chunks(all_chunks)
-            self._bm25_index = self._build_bm25_index(all_chunks)
-            self._semantic_index = self._build_semantic_index(embeddings, all_chunks)
+            self._bm25_index = bm25s.BM25()
+            self._bm25_index.index(
+                [tokenize(self._enrich_for_bm25(chunk, self._index_root)) for chunk in all_chunks],
+                show_progress=False,
+            )
+            self._semantic_index = Vicinity.from_vectors_and_items(embeddings, all_chunks, metric=Metric.COSINE)
         else:
             self._bm25_index = None
             self._semantic_index = None
@@ -251,19 +261,6 @@ class SembleIndex:
                 cache.put(chunks[i].content_hash, embedding)
 
         return np.array([self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32)
-
-    def _build_bm25_index(self, chunks: list[Chunk]) -> bm25s.BM25:
-        """Build a BM25 index over tokenized, path-enriched chunk text."""
-        bm25_index = bm25s.BM25()
-        bm25_index.index(
-            [tokenize(self._enrich_for_bm25(chunk, self._index_root)) for chunk in chunks],
-            show_progress=False,
-        )
-        return bm25_index
-
-    def _build_semantic_index(self, embeddings: EmbeddingMatrix, chunks: list[Chunk]) -> Vicinity:
-        """Build an ANNS index over chunk embeddings for semantic search."""
-        return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE)
 
     def _enrich_for_bm25(self, chunk: Chunk, root: Path | None) -> str:
         """Append file path components to BM25 content to boost path-based queries.

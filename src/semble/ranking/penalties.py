@@ -68,12 +68,6 @@ _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
 _MODERATE_PENALTY = 0.5  # __init__.py re-exports
 _MILD_PENALTY = 0.7  # .d.ts declaration stubs (still carry useful type info)
 
-_TEST_FILE_PENALTY = _STRONG_PENALTY
-_INIT_FILE_PENALTY = _MODERATE_PENALTY
-_COMPAT_DIR_PENALTY = _STRONG_PENALTY
-_EXAMPLES_DIR_PENALTY = _STRONG_PENALTY
-_TYPE_DEFS_PENALTY = _MILD_PENALTY
-
 # Maximum chunks from the same file before a saturation penalty is applied.
 _FILE_SATURATION_THRESHOLD = 2
 
@@ -142,14 +136,9 @@ def rerank_topk(
     return [(chunk, score) for score, chunk in selected[:top_k]]
 
 
-def _normalise_path(file_path: str) -> str:
-    """Normalise path separators to forward slashes for cross-platform regex matching."""
-    return file_path.replace("\\", "/")
-
-
 def _is_test_file(file_path: str) -> bool:
     """Return True if the file path matches common test-file naming conventions or lives in a test directory."""
-    normalised = _normalise_path(file_path)
+    normalised = file_path.replace("\\", "/")
     return _TEST_FILE_RE.search(normalised) is not None or _TEST_DIR_RE.search(normalised) is not None
 
 
@@ -171,16 +160,16 @@ def _file_path_penalty(file_path: str, *, is_test: bool) -> float:
     patterns (e.g. a test helper in a compat directory) receives all applicable
     discounts.
     """
-    normalised = _normalise_path(file_path)
+    normalised = file_path.replace("\\", "/")
     penalty = 1.0
     if is_test:
-        penalty *= _TEST_FILE_PENALTY
+        penalty *= _STRONG_PENALTY
     if _is_init_file(file_path):
-        penalty *= _INIT_FILE_PENALTY
+        penalty *= _MODERATE_PENALTY
     if _COMPAT_DIR_RE.search(normalised):
-        penalty *= _COMPAT_DIR_PENALTY
+        penalty *= _STRONG_PENALTY
     if _EXAMPLES_DIR_RE.search(normalised):
-        penalty *= _EXAMPLES_DIR_PENALTY
+        penalty *= _STRONG_PENALTY
     if _TYPE_DEFS_RE.search(normalised):
-        penalty *= _TYPE_DEFS_PENALTY
+        penalty *= _MILD_PENALTY
     return penalty
