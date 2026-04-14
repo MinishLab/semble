@@ -16,9 +16,9 @@ from semble import SembleIndex
 index = SembleIndex.from_path("./my-project")
 
 results = index.search("how does authentication work?", top_k=5)
-for r in results:
-    print(r.chunk.location, f"score={r.score:.3f}")
-    print(r.chunk.content[:200])
+for result in results:
+    print(result.chunk.location, f"score={result.score:.3f}")
+    print(result.chunk.content[:200])
 ```
 
 ## MCP server
