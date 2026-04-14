@@ -3,7 +3,7 @@ import numpy as np
 import numpy.typing as npt
 from vicinity import Vicinity
 
-from semble.ranking import apply_query_boost, diverse_topk, resolve_alpha
+from semble.ranking import apply_query_boost, rerank_topk, resolve_alpha
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
 
@@ -109,5 +109,5 @@ def search_hybrid(
 
     combined_scores = apply_query_boost(combined_scores, query, chunks)
 
-    ranked = diverse_topk(combined_scores, top_k)
+    ranked = rerank_topk(combined_scores, top_k)
     return [SearchResult(chunk=chunk, score=score, source=SearchMode.HYBRID) for chunk, score in ranked]
