@@ -1,10 +1,6 @@
 import re
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Patterns
-# ---------------------------------------------------------------------------
-
 # Patterns that identify test files across common languages.
 # Grouped by language for readability; combined into a single compiled regex.
 _TEST_FILE_RE = re.compile(
@@ -66,10 +62,6 @@ _EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 # Regex matching TypeScript declaration files (stubs, not implementations).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
-# ---------------------------------------------------------------------------
-# Penalty constants
-# ---------------------------------------------------------------------------
-
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
 _MODERATE_PENALTY = 0.5  # __init__.py re-exports
 _MILD_PENALTY = 0.7  # .d.ts declaration stubs (still carry useful type info)
@@ -79,10 +71,6 @@ _INIT_FILE_PENALTY = _MODERATE_PENALTY
 _COMPAT_DIR_PENALTY = _STRONG_PENALTY
 _EXAMPLES_DIR_PENALTY = _STRONG_PENALTY
 _TYPE_DEFS_PENALTY = _MILD_PENALTY
-
-# ---------------------------------------------------------------------------
-# Predicates and penalty computation
-# ---------------------------------------------------------------------------
 
 
 def _normalise_path(file_path: str) -> str:

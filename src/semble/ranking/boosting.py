@@ -66,6 +66,46 @@ _STOPWORDS = frozenset(
 )
 
 
+def resolve_alpha(query: str, alpha: float | None) -> float:
+    """Return the blending weight for semantic scores, auto-detecting from query type.
+
+    Keeping ``_ALPHA_SYMBOL``, ``_ALPHA_NL``, and ``_is_symbol_query`` fully
+    contained within this module means callers never import private symbols.
+    """
+    if alpha is not None:
+        return alpha
+    return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
+
+
+def apply_query_boost(
+    combined_scores: dict[Chunk, float],
+    query: str,
+    all_chunks: list[Chunk],
+) -> dict[Chunk, float]:
+    """Apply query-type-specific boosts to candidate scores.
+
+    Dispatches to symbol-definition boosting or NL file-stem boosting
+    based on query type.
+
+    :param combined_scores: Existing combined scores for candidate chunks.
+    :param query: The raw query string.
+    :param all_chunks: The full chunk list (used for non-candidate definition scanning).
+    :return: Updated scores dict with boosts applied.
+    """
+    if not combined_scores:
+        return combined_scores
+
+    max_score = max(combined_scores.values())
+    boosted = dict(combined_scores)
+
+    if _is_symbol_query(query):
+        _boost_symbol_definitions(boosted, query, max_score, all_chunks)
+    else:
+        _boost_stem_matches(boosted, query, max_score)
+
+    return boosted
+
+
 def _is_symbol_query(query: str) -> bool:
     """Return True if the query looks like a bare symbol or namespace-qualified identifier."""
     return _SYMBOL_QUERY_RE.match(query.strip()) is not None
@@ -241,43 +281,3 @@ def _boost_stem_matches(
             match_ratio = n_matches / len(keywords)
             if match_ratio >= 0.20:
                 boosted[chunk] += boost * match_ratio
-
-
-def resolve_alpha(query: str, alpha: float | None) -> float:
-    """Return the blending weight for semantic scores, auto-detecting from query type.
-
-    Keeping ``_ALPHA_SYMBOL``, ``_ALPHA_NL``, and ``_is_symbol_query`` fully
-    contained within this module means callers never import private symbols.
-    """
-    if alpha is not None:
-        return alpha
-    return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
-
-
-def apply_query_boost(
-    combined_scores: dict[Chunk, float],
-    query: str,
-    all_chunks: list[Chunk],
-) -> dict[Chunk, float]:
-    """Apply query-type-specific boosts to candidate scores.
-
-    Dispatches to symbol-definition boosting or NL file-stem boosting
-    based on query type.
-
-    :param combined_scores: Existing combined scores for candidate chunks.
-    :param query: The raw query string.
-    :param all_chunks: The full chunk list (used for non-candidate definition scanning).
-    :return: Updated scores dict with boosts applied.
-    """
-    if not combined_scores:
-        return combined_scores
-
-    max_score = max(combined_scores.values())
-    boosted = dict(combined_scores)
-
-    if _is_symbol_query(query):
-        _boost_symbol_definitions(boosted, query, max_score, all_chunks)
-    else:
-        _boost_stem_matches(boosted, query, max_score)
-
-    return boosted
