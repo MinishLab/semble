@@ -63,9 +63,9 @@ _SQL_DEFINITION_KEYWORDS = (
 # Precompiled alternation bodies — the fixed part of each pattern.
 # Only symbol_name changes per call; re.escape(symbol_name) is substituted
 # into the suffix at call time.
-_KW_PREFIX = r"(?:^|(?<=\s))(?:"
-_DEFINITION_KW_BODY = "|".join(re.escape(kw) for kw in _DEFINITION_KEYWORDS)
-_SQL_KW_BODY = "|".join(re.escape(kw) for kw in _SQL_DEFINITION_KEYWORDS)
+_KEYWORD_PREFIX = r"(?:^|(?<=\s))(?:"
+_DEFINITION_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _DEFINITION_KEYWORDS)
+_SQL_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _SQL_DEFINITION_KEYWORDS)
 
 # Additive boost multiplier for chunks that define a queried symbol.
 _DEFINITION_BOOST_MULTIPLIER = 2.0
@@ -140,10 +140,11 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     """
     sym = re.escape(symbol_name)
     suffix = r")\s+" + sym + r"(?:\s|[<({:\[;]|$)"
-    if re.compile(_KW_PREFIX + _DEFINITION_KW_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
+    if re.compile(_KEYWORD_PREFIX + _DEFINITION_KEYWORD_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
         return True
     return (
-        re.compile(_KW_PREFIX + _SQL_KW_BODY + suffix, re.MULTILINE | re.IGNORECASE).search(chunk.content) is not None
+        re.compile(_KEYWORD_PREFIX + _SQL_KEYWORD_BODY + suffix, re.MULTILINE | re.IGNORECASE).search(chunk.content)
+        is not None
     )
 
 
@@ -237,9 +238,9 @@ def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
 
     remaining = keywords - exact
     count = len(exact)
-    for kw in remaining:
+    for keyword in remaining:
         for part in parts:
-            shorter, longer = (kw, part) if len(kw) <= len(part) else (part, kw)
+            shorter, longer = (keyword, part) if len(keyword) <= len(part) else (part, keyword)
             if len(shorter) >= 3 and longer.startswith(shorter):
                 count += 1
                 break
