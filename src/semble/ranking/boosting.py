@@ -164,8 +164,8 @@ def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
 def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
     """Return the boost amount for a chunk that defines one of *names*.
 
-    Tier 1.5 × boost_unit if the file stem also matches (strong signal).
-    Tier 1.0 × boost_unit for definition keyword match alone.
+    Tier 1.5 x boost_unit if the file stem also matches (strong signal).
+    Tier 1.0 x boost_unit for definition keyword match alone.
     Returns 0.0 if the chunk does not define any of *names*.
     """
     if not any(_chunk_defines_symbol(chunk, name) for name in names):
@@ -188,8 +188,8 @@ def _boost_symbol_definitions(
     enrichment.
 
     Definition tiers (see ``_definition_tier``):
-      - 1.5× boost_unit: definition keyword + file-stem match
-      - 1.0× boost_unit: definition keyword only
+      - 1.5x boost_unit: definition keyword + file-stem match
+      - 1.0x boost_unit: definition keyword only
     """
     symbol_name = _extract_symbol_name(query)
     if not symbol_name:
