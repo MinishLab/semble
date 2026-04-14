@@ -221,10 +221,7 @@ class SembleIndex:
         raise ValueError(f"Unknown search mode: {mode!r}")
 
     def _ensure_model(self) -> Encoder:
-        """Return the current model, loading the default if none was provided.
-
-        :return: The active encoder.
-        """
+        """Return the current model, loading the default if none was provided."""
         if self.model is None:
             self.model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
         return self.model
@@ -234,9 +231,6 @@ class SembleIndex:
 
         Lookup order: in-memory cache → disk cache → encode. The model is loaded
         (or downloaded) only when there are genuine cache misses.
-
-        :param chunks: Chunks to embed.
-        :return: Matrix of embeddings, one row per chunk, in input order.
         """
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
@@ -276,8 +270,6 @@ class SembleIndex:
 
         Uses a repo-relative path so that machine-specific directory components
         (usernames, workspace names, temp dirs) are never indexed as tokens.
-        Includes file stem (repeated for emphasis) and parent directory names,
-        so queries referencing module names or directory structure get BM25 signal.
         """
         path = Path(chunk.file_path)
         if root is not None:

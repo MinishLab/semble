@@ -1,14 +1,8 @@
-"""Query-type detection and query-adaptive score boosting."""
-
 import re
 from pathlib import Path
 
 from semble.tokens import _split_identifier
 from semble.types import Chunk
-
-# ---------------------------------------------------------------------------
-# Symbol-query detection
-# ---------------------------------------------------------------------------
 
 # Matches queries that look like symbol lookups (no spaces, or namespace-separated identifiers).
 _SYMBOL_QUERY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*((::|\\|\.|->)[A-Za-z_][A-Za-z0-9_]*)*$")
@@ -23,19 +17,12 @@ def _extract_symbol_name(query: str) -> str:
     """Extract the final identifier from a possibly namespace-qualified query.
 
     Examples: ``"Sinatra::Base"`` → ``"Base"``, ``"Client"`` → ``"Client"``.
-
-    :param query: The raw query string.
-    :return: The bare symbol name to search for in definitions.
     """
     for separator in ("::", "\\", "->", "."):
         if separator in query:
             return query.rsplit(separator, 1)[-1]
     return query.strip()
 
-
-# ---------------------------------------------------------------------------
-# Alpha resolution
-# ---------------------------------------------------------------------------
 
 # Alpha values for query-adaptive blending.
 _ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching
@@ -47,19 +34,11 @@ def resolve_alpha(query: str, alpha: float | None) -> float:
 
     Keeping ``_ALPHA_SYMBOL``, ``_ALPHA_NL``, and ``_is_symbol_query`` fully
     contained within this module means callers never import private symbols.
-
-    :param query: The raw query string.
-    :param alpha: Explicit override, or None to auto-detect.
-    :return: Resolved alpha in [0, 1].
     """
     if alpha is not None:
         return alpha
     return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
 
-
-# ---------------------------------------------------------------------------
-# Definition-keyword patterns
-# ---------------------------------------------------------------------------
 
 # Definition keywords used across common languages.
 # Case-sensitive: most language keywords are lowercase by convention, and applying
@@ -123,10 +102,6 @@ def _make_sql_pattern(symbol_name: str) -> re.Pattern[str]:
     )
 
 
-# ---------------------------------------------------------------------------
-# Boost constants and helpers
-# ---------------------------------------------------------------------------
-
 # Additive boost multiplier for chunks that define a queried symbol.
 _DEFINITION_BOOST_MULTIPLIER = 2.0
 
@@ -145,10 +120,6 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     Two passes: case-sensitive for general keywords (to avoid false positives
     from e.g. ``Module.new`` in Ruby or ``Class`` in docstrings), then
     case-insensitive for SQL DDL keywords where mixed-case is common.
-
-    :param chunk: The code chunk to inspect.
-    :param symbol_name: The bare symbol name (e.g. ``"Base"``).
-    :return: True if a definition pattern is found.
     """
     if _make_definition_pattern(symbol_name).search(chunk.content) is not None:
         return True
@@ -156,13 +127,9 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
 
 
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Check if the chunk's file stem matches the symbol name (case-insensitive).
+    """Return True if the chunk's file stem matches the symbol name (case-insensitive).
 
-    Handles snake_case to PascalCase conversion: ``"handler_stack"`` matches ``"HandlerStack"``.
-
-    :param chunk: The code chunk to inspect.
-    :param symbol_name: The bare symbol name.
-    :return: True if the file stem matches.
+    Handles snake_case to PascalCase: ``"handler_stack"`` matches ``"HandlerStack"``.
     """
     stem = Path(chunk.file_path).stem.lower()
     return stem == symbol_name.lower() or stem.replace("_", "") == symbol_name.lower()
@@ -181,11 +148,6 @@ def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
     return boost_unit * (1.5 if has_stem else 1.0)
 
 
-# ---------------------------------------------------------------------------
-# Symbol-definition boosting
-# ---------------------------------------------------------------------------
-
-
 def _boost_symbol_definitions(
     boosted: dict[Chunk, float],
     query: str,
@@ -195,18 +157,13 @@ def _boost_symbol_definitions(
     """Boost chunks that define the queried symbol (in-place).
 
     Scans both candidates and non-candidates whose file stem matches the
-    symbol.  Non-candidate scanning is needed for large repos (e.g. Java
-    with thousands of chunks) where the definition file may not rank in
-    the top-N candidates despite BM25 stem enrichment.
+    symbol.  Non-candidate scanning is needed for large repos where the
+    definition file may not rank in the top-N candidates despite BM25 stem
+    enrichment.
 
     Definition tiers (see ``_definition_tier``):
       - 1.5× boost_unit: definition keyword + file-stem match
       - 1.0× boost_unit: definition keyword only
-
-    :param boosted: Mutable scores dict to update.
-    :param query: The raw query string.
-    :param max_score: Maximum score in the candidate pool.
-    :param all_chunks: The full chunk list for non-candidate scanning.
     """
     symbol_name = _extract_symbol_name(query)
     if not symbol_name:
@@ -238,17 +195,10 @@ def _boost_symbol_definitions(
             boosted[chunk] = tier
 
 
-# ---------------------------------------------------------------------------
-# NL stem boosting
-# ---------------------------------------------------------------------------
-
-
 def _path_parts(file_path: str) -> set[str]:
-    """Extract lowered keyword parts from the file stem AND immediate parent directory.
+    """Extract lowered keyword parts from the file stem and immediate parent directory.
 
-    This enables NL queries to match on directory names (e.g. "distillation" matching
-    the ``distill/`` directory, or "openapi" matching ``openapi/``).
-    Only the immediate parent directory is considered to avoid noise from repo-root
+    Only the immediate parent is considered to avoid noise from repo-root
     or system-path components.
     """
     p = Path(file_path)
@@ -259,10 +209,10 @@ def _path_parts(file_path: str) -> set[str]:
 
 
 def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
-    """Count how many query keywords match path parts, using prefix matching.
+    """Count how many query keywords match path parts using prefix matching.
 
-    A keyword matches a part if either is a prefix of the other (min 3 chars),
-    allowing "dependency"→"dependencies", "distill"→"distillation", "config"→"configuration".
+    Either string being a prefix of the other (min 3 chars) counts as a match,
+    allowing "dependency"→"dependencies", "distill"→"distillation".
     """
     exact = keywords & parts
     if len(exact) == len(keywords):
@@ -288,10 +238,6 @@ def _boost_stem_matches(
 
     Uses prefix matching for morphological variants (e.g. "dependency" matches
     "dependencies").  Matches file stems and the immediate parent directory name.
-
-    :param boosted: Mutable scores dict to update.
-    :param query: The raw query string.
-    :param max_score: Maximum score in the candidate pool.
     """
     keywords = {
         w.lower() for w in re.findall(r"[a-zA-Z_][a-zA-Z0-9_]*", query) if len(w) > 2 and w.lower() not in _STOPWORDS
@@ -309,11 +255,6 @@ def _boost_stem_matches(
             match_ratio = n_matches / len(keywords)
             if match_ratio >= 0.20:
                 boosted[chunk] += boost * match_ratio
-
-
-# ---------------------------------------------------------------------------
-# Public entry point
-# ---------------------------------------------------------------------------
 
 
 def apply_query_boost(

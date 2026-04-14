@@ -1,5 +1,3 @@
-"""Retrieval pipeline: semantic, BM25, and hybrid search."""
-
 import bm25s
 import numpy as np
 import numpy.typing as npt

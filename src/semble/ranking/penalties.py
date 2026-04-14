@@ -1,9 +1,3 @@
-"""File-path penalty classification.
-
-Static knowledge about codebase structure: which files are tests, init files,
-compat shims, examples, or type stubs.  No dependency on query content.
-"""
-
 import re
 from pathlib import Path
 
@@ -119,10 +113,6 @@ def _file_path_penalty(file_path: str, *, is_test: bool) -> float:
     Penalties are combined multiplicatively so that a file matching multiple
     patterns (e.g. a test helper in a compat directory) receives all applicable
     discounts.
-
-    :param file_path: The path of the file to evaluate.
-    :param is_test: Whether the file was already identified as a test file.
-    :return: A multiplier in (0, 1] to apply to the chunk score.
     """
     normalised = _normalise_path(file_path)
     penalty = 1.0

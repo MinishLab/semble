@@ -1,5 +1,3 @@
-"""Diverse top-k selection with file-path penalties and saturation decay."""
-
 from semble.ranking.penalties import _file_path_penalty, _is_test_file
 from semble.types import Chunk
 
@@ -16,15 +14,11 @@ def diverse_topk(
 ) -> list[tuple[Chunk, float]]:
     """Select top-k results with file-path penalties and file-saturation decay.
 
-    File-path penalties (test files, init files, compat dirs, etc.) are applied
-    first.  Then candidates are processed in descending penalised-score order
-    with file-saturation decay applied greedily.  Because decay only reduces
-    scores and candidates are sorted by penalised score descending, we can stop
-    early once the remaining penalised scores cannot beat the current top-k floor.
-
-    :param scores: Combined scores for all candidate chunks.
-    :param top_k: Number of results to return.
-    :return: Selected (chunk, effective_score) pairs in descending effective-score order.
+    File-path penalties are applied first.  Candidates are then processed in
+    descending penalised-score order with saturation decay applied greedily.
+    Because decay only reduces scores and candidates are sorted by penalised
+    score descending, we can stop early once the remaining scores cannot beat
+    the current top-k floor.
     """
     if not scores:
         return []
