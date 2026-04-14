@@ -60,7 +60,7 @@ where = ["src"]
 # can be empty if no extra settings are needed, presence enables setuptools_scm
 
 [tool.setuptools.dynamic]
-version = {attr = "semble.__version__"}
+version = {attr = "semble.version.__version__"}
 
 [tool.ruff]
 exclude = [".venv/"]

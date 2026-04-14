@@ -4,8 +4,21 @@ from pathlib import Path
 from semble.tokens import _split_identifier
 from semble.types import Chunk
 
-# Matches queries that look like symbol lookups (no spaces, or namespace-separated identifiers).
-_SYMBOL_QUERY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*((::|\\|\.|->)[A-Za-z_][A-Za-z0-9_]*)*$")
+# Matches queries that look like symbol lookups. A query is treated as a symbol if it:
+#   - is namespace-qualified (e.g. Sinatra::Base, self->field, a.b)
+#   - starts with an underscore (e.g. _private, __init__)
+#   - contains an uppercase letter or underscore (e.g. HTTPAdapter, field_validator, getUser)
+#   - starts with an uppercase letter (e.g. URL, Base)
+# Purely lowercase single words (e.g. "session", "response") are NOT matched —
+# those are natural language queries that should use semantic search.
+_SYMBOL_QUERY_RE = re.compile(
+    r"^(?:"
+    r"[A-Za-z_][A-Za-z0-9_]*(?:(?:::|\\|->|\.)[A-Za-z_][A-Za-z0-9_]*)+"  # namespace-qualified
+    r"|_[A-Za-z0-9_]*"  # leading underscore (_private, __init__)
+    r"|[A-Za-z][A-Za-z0-9]*[A-Z_][A-Za-z0-9_]*"  # contains uppercase or underscore after pos 0
+    r"|[A-Z][A-Za-z0-9]*"  # starts with uppercase (URL, Base, HTTPAdapter)
+    r")$"
+)
 
 # Alpha values for query-adaptive blending.
 _ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching

@@ -62,13 +62,6 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
         ".pytest_cache",
         ".ruff_cache",
         ".semble",
-        # CI / GitHub Actions — infrastructure scripts, not library code.
-        ".github",
-        ".circleci",
-        ".gitlab",
-        # Legacy / deprecated code directories — these typically contain
-        # compatibility shims that compete with (and obscure) the current API.
-        "deprecated",
     }
 )
 

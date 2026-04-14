@@ -212,7 +212,7 @@ class SembleIndex:
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
         :param mode: Search strategy — "hybrid" (default), "semantic", or "bm25".
-        :param alpha: Blend weight for hybrid mode; 1.0 = pure semantic, 0.0 = pure BM25. None = auto-detect.
+        :param alpha: Blend weight for hybrid score combination; 1.0 = full semantic weight, 0.0 = full BM25 weight. File-path penalties and diversity reranking are applied regardless. None = auto-detect from query type.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         :raises ValueError: If `mode` is not a recognised search strategy.
         """
