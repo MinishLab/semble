@@ -104,5 +104,5 @@ def search_hybrid(
 
     combined_scores = apply_query_boost(combined_scores, query, chunks)
 
-    ranked = rerank_topk(combined_scores, top_k)
+    ranked = rerank_topk(combined_scores, top_k, penalise_paths=a < 1.0)
     return [SearchResult(chunk=chunk, score=score, source=SearchMode.HYBRID) for chunk, score in ranked]

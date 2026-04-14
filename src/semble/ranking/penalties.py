@@ -78,14 +78,22 @@ _FILE_SATURATION_DECAY = 0.5
 def rerank_topk(
     scores: dict[Chunk, float],
     top_k: int,
+    *,
+    penalise_paths: bool = True,
 ) -> list[tuple[Chunk, float]]:
-    """Select top-k results with file-path penalties and file-saturation decay.
+    """Select top-k results with optional file-path penalties and file-saturation decay.
 
-    File-path penalties are applied first.  Candidates are then processed in
-    descending penalised-score order with saturation decay applied greedily.
-    Because decay only reduces scores and candidates are sorted by penalised
-    score descending, we can stop early once the remaining scores cannot beat
-    the current top-k floor.
+    File-path penalties are applied first when `penalise_paths` is True.
+    Candidates are then processed in descending penalised-score order with
+    saturation decay applied greedily.  Because decay only reduces scores and
+    candidates are sorted by penalised score descending, we can stop early once
+    the remaining scores cannot beat the current top-k floor.
+
+    :param scores: Combined scores for candidate chunks.
+    :param top_k: Maximum number of results to return.
+    :param penalise_paths: Apply file-path penalties (test files, __init__.py, compat dirs,
+        etc.). Set to False for pure-semantic queries where these priors do not apply.
+    :return: Sorted list of (chunk, score) pairs, highest score first.
     """
     if not scores:
         return []
@@ -94,10 +102,13 @@ def rerank_topk(
     penalty_cache: dict[str, float] = {}
     penalised: dict[Chunk, float] = {}
     for chunk, score in scores.items():
-        if chunk.file_path not in penalty_cache:
-            is_test = _is_test_file(chunk.file_path)
-            penalty_cache[chunk.file_path] = _file_path_penalty(chunk.file_path, is_test=is_test)
-        penalised[chunk] = score * penalty_cache[chunk.file_path]
+        if penalise_paths:
+            if chunk.file_path not in penalty_cache:
+                is_test = _is_test_file(chunk.file_path)
+                penalty_cache[chunk.file_path] = _file_path_penalty(chunk.file_path, is_test=is_test)
+            penalised[chunk] = score * penalty_cache[chunk.file_path]
+        else:
+            penalised[chunk] = score
 
     # Sort by penalised score (highest first) — single sort.
     ranked = sorted(penalised, key=lambda c: -penalised[c])
