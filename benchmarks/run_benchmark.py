@@ -6,7 +6,9 @@ import sys
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import cast
 
+import numpy as np
 from model2vec import StaticModel
 
 from benchmarks.data import (
@@ -43,6 +45,9 @@ class RepoResult:
     ndcg5: float
     ndcg10: float
     p50_ms: float
+    p90_ms: float
+    p95_ms: float
+    p99_ms: float
     index_ms: float
 
 
@@ -63,7 +68,7 @@ def _ndcg_at_k(relevant_ranks: list[int], n_relevant: int, k: int) -> float:
     return _dcg(relevances) / ideal if ideal > 0 else 0.0
 
 
-def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -> tuple[float, float, float]:
+def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -> tuple[float, float, list[float]]:
     """Return mean NDCG@5, NDCG@10, and median query latency (ms) across all tasks."""
     ndcg5_sum = 0.0
     ndcg10_sum = 0.0
@@ -71,11 +76,13 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
 
     for task in tasks:
         query_latencies: list[float] = []
+        # Bind results
+        results = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
             results = index.search(task.query, top_k=_DIRECT_TOP_K)
             query_latencies.append((time.perf_counter() - started) * 1000)
-        latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
+        latencies.append(np.median(query_latencies))
 
         relevant_ranks = [rank for target in task.all_relevant if (rank := _target_rank(results, target)) is not None]
         n_relevant = sum(
@@ -102,8 +109,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
             print(f"               top-5:   {top_files}", file=sys.stderr)
 
     total = len(tasks)
-    latencies.sort()
-    return ndcg5_sum / total, ndcg10_sum / total, latencies[len(latencies) // 2]
+    return ndcg5_sum / total, ndcg10_sum / total, latencies
 
 
 def _print_summary(results: list[RepoResult]) -> None:
@@ -114,6 +120,9 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
     avg_p50 = sum(r.p50_ms for r in results) / len(results)
+    avg_p90 = sum(r.p90_ms for r in results) / len(results)
+    avg_p95 = sum(r.p95_ms for r in results) / len(results)
+    avg_p99 = sum(r.p99_ms for r in results) / len(results)
     avg_index = sum(r.index_ms for r in results) / len(results)
 
     print(file=sys.stderr)
@@ -124,6 +133,9 @@ def _print_summary(results: list[RepoResult]) -> None:
             + f"  ndcg@5={sum(r.ndcg5 for r in grouped) / len(grouped):.3f}"
             + f"  ndcg@10={sum(r.ndcg10 for r in grouped) / len(grouped):.3f}"
             + f"  p50={sum(r.p50_ms for r in grouped) / len(grouped):.2f}ms"
+            + f"  p90={sum(r.p90_ms for r in grouped) / len(grouped):.2f}ms"
+            + f"  p95={sum(r.p95_ms for r in grouped) / len(grouped):.2f}ms"
+            + f"  p99={sum(r.p99_ms for r in grouped) / len(grouped):.2f}ms"
             + f"  index={sum(r.index_ms for r in grouped) / len(grouped):.0f}ms",
             file=sys.stderr,
         )
@@ -137,14 +149,23 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     ndcg_row = [f"{avg_ndcg10:>9.3f}"]
     p50_row = [f"{avg_p50:>8.2f}ms"]
+    p90_row = [f"{avg_p90:>8.2f}ms"]
+    p95_row = [f"{avg_p95:>8.2f}ms"]
+    p99_row = [f"{avg_p99:>8.2f}ms"]
     index_row = [f"{avg_index:>7.0f}ms"]
     for language, language_results in by_language.items():
         ndcg_row.append(f"{sum(r.ndcg10 for r in language_results) / len(language_results):>9.3f}")
         p50_row.append(f"{sum(r.p50_ms for r in language_results) / len(language_results):>8.2f}ms")
+        p90_row.append(f"{sum(r.p90_ms for r in language_results) / len(language_results):>8.2f}ms")
+        p95_row.append(f"{sum(r.p95_ms for r in language_results) / len(language_results):>8.2f}ms")
+        p99_row.append(f"{sum(r.p99_ms for r in language_results) / len(language_results):>8.2f}ms")
         index_row.append(f"{sum(r.index_ms for r in language_results) / len(language_results):>7.0f}ms")
 
     print(f"  {'NDCG@10':<28}  " + "  ".join(ndcg_row), file=sys.stderr)
     print(f"  {'q-p50':<28}  " + "  ".join(p50_row), file=sys.stderr)
+    print(f"  {'q-p90':<28}  " + "  ".join(p90_row), file=sys.stderr)
+    print(f"  {'q-p95':<28}  " + "  ".join(p95_row), file=sys.stderr)
+    print(f"  {'q-p99':<28}  " + "  ".join(p99_row), file=sys.stderr)
     print(f"  {'index':<28}  " + "  ".join(index_row), file=sys.stderr)
 
 
@@ -153,30 +174,38 @@ def _bench_quality(
 ) -> list[RepoResult]:
     """Run quality benchmarks (NDCG@5, NDCG@10, latency) for each repo."""
     print(
-        f"{'Repo':<12} {'language':<12} {'chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8}",
+        f"{'Repo':<12} {'language':<12} {'chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8} {'p90':>8}"
+        f" {'p95':>8} {'p99':>8}",
         file=sys.stderr,
     )
-    print(f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 9} {'-' * 8} {'-' * 8} {'-' * 8}", file=sys.stderr)
+    print(
+        f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 10} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}",
+        file=sys.stderr,
+    )
     results: list[RepoResult] = []
     for repo, tasks in sorted(repo_tasks.items()):
         spec = specs[repo]
         started = time.perf_counter()
         index = SembleIndex.from_path(spec.benchmark_dir, model=model)
         index_ms = (time.perf_counter() - started) * 1000
-        ndcg5, ndcg10, p50_ms = _evaluate(index, tasks, verbose=verbose)
+        ndcg5, ndcg10, latencies = _evaluate(index, tasks, verbose=verbose)
+        p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
         result = RepoResult(
             repo=repo,
             language=spec.language,
             chunks=len(index.chunks),
             ndcg5=ndcg5,
             ndcg10=ndcg10,
-            p50_ms=p50_ms,
+            p50_ms=p50,
+            p90_ms=p90,
+            p95_ms=p95,
+            p99_ms=p99,
             index_ms=index_ms,
         )
         results.append(result)
         print(
             f"{repo:<12} {spec.language:<12} {len(index.chunks):>6} "
-            f"{index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50_ms:>7.2f}ms",
+            f"{index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50:>7.2f}ms {p90:>7.2f}ms {p95:>7.2f}ms {p99:>7.2f}ms",
             file=sys.stderr,
         )
     return results
@@ -198,6 +227,9 @@ def _save_results(results: list[RepoResult]) -> None:
         "summary": {
             "ndcg10": round(sum(r.ndcg10 for r in results) / len(results), 4),
             "p50_ms": round(sum(r.p50_ms for r in results) / len(results), 3),
+            "p90_ms": round(sum(r.p90_ms for r in results) / len(results), 3),
+            "p95_ms": round(sum(r.p95_ms for r in results) / len(results), 3),
+            "p99_ms": round(sum(r.p99_ms for r in results) / len(results), 3),
             "index_ms": round(sum(r.index_ms for r in results) / len(results), 1),
         },
         "by_language": {
@@ -205,6 +237,9 @@ def _save_results(results: list[RepoResult]) -> None:
                 "repos": len(grouped),
                 "ndcg10": round(sum(r.ndcg10 for r in grouped) / len(grouped), 4),
                 "p50_ms": round(sum(r.p50_ms for r in grouped) / len(grouped), 3),
+                "p90_ms": round(sum(r.p90_ms for r in grouped) / len(grouped), 3),
+                "p95_ms": round(sum(r.p95_ms for r in grouped) / len(grouped), 3),
+                "p99_ms": round(sum(r.p99_ms for r in grouped) / len(grouped), 3),
                 "index_ms": round(sum(r.index_ms for r in grouped) / len(grouped), 1),
             }
             for lang, grouped in by_language.items()
