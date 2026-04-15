@@ -28,19 +28,15 @@ for result in results:
 
 Semble can run as an MCP server so agents (Claude Code, Cursor, etc.) can search any codebase directly.
 
-Install with the MCP extra:
-
-```bash
-pip install "semble[mcp]"
-```
-
 Register with Claude Code:
 
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
+The agent will clone and index repos on demand as you ask questions. Indexes are cached for the lifetime of the session.
+
 | Tool | Description |
 |------|-------------|
-| `search` | Search a codebase with a natural-language or code query. |
+| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a git URL or local path. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
