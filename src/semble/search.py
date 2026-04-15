@@ -25,8 +25,8 @@ def search_semantic(
     top_k: int,
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
-    query_embedding = model.encode([query])[0]
-    hits = semantic_index.query(query_embedding[None], k=top_k)[0]
+    query_embedding = model.encode([query])
+    hits = semantic_index.query(query_embedding, k=top_k)[0]
     # Vicinity returns cosine distance; convert to similarity so higher = better.
     return [
         SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC) for chunk, distance in hits
@@ -87,16 +87,12 @@ def search_hybrid(
     # 5x is sufficient; latency difference vs larger multipliers is negligible.
     candidate_count = top_k * 5
 
-    query_embedding = model.encode([query])[0]
-    hits = semantic_index.query(query_embedding[None], k=candidate_count)[0]
-
-    semantic_scores: dict[Chunk, float] = {chunk: 1.0 - float(distance) for chunk, distance in hits}
-
-    bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
-    bm25_result_scores: dict[Chunk, float] = {}
-    for chunk_index in _sort_top_k(bm25_scores, candidate_count):
-        if bm25_scores[chunk_index] > 0:
-            bm25_result_scores[chunks[chunk_index]] = float(bm25_scores[chunk_index])
+    semantic = search_semantic(query, model, semantic_index, candidate_count)
+    semantic_scores: dict[Chunk, float] = {result.chunk: result.score for result in semantic}
+    bm25_result_scores = {}
+    for result in search_bm25(query, bm25_index, chunks, candidate_count):
+        if result.score:
+            bm25_result_scores[result.chunk] = result.score
 
     normalized_semantic = _rrf_scores(semantic_scores)
     normalized_bm25 = _rrf_scores(bm25_result_scores)
