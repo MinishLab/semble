@@ -175,7 +175,7 @@ class SembleIndex:
                 cache_dir=cache_dir,
                 model_name=model_name,
             )
-            # Resolve to handle OS-level symlinks (e.g. /var → /private/var on macOS).
+            # Remap to relative paths and resolve to handle OS-level symlinks.
             instance._remap_to_relative(Path(tmp_dir).resolve())
             return instance
 
@@ -238,9 +238,9 @@ class SembleIndex:
         """Return chunks semantically similar to the chunk at the given file location.
 
         :param file_path: Path to the file, in the same format stored by the index.
-            For indexes built with :meth:`from_path` this is an absolute path; for
-            indexes built with :meth:`from_git` this is a repo-relative path
-            (e.g. ``src/foo.py``).  Use ``chunk.file_path`` from a prior search result
+            For indexes built with `from_path` this is an absolute path; for
+            indexes built with `from_git` this is a repo-relative path
+            (e.g. ``src/foo.py``).  Use `chunk.file_path` from a prior search result
             to guarantee the correct format.
         :param line: Line number (1-indexed) used to identify the source chunk.
         :param top_k: Number of similar chunks to return.
