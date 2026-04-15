@@ -1,7 +1,6 @@
 import argparse
 import json
 import math
-import shutil
 import subprocess
 import sys
 import time
@@ -22,7 +21,6 @@ from benchmarks.common import (
 from semble import SembleIndex
 from semble.types import SearchResult
 
-_CACHE_DIR = Path("/tmp/semble-bench-cache")
 _MODEL_NAME = "Pringled/potion-code-16M"
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
@@ -42,11 +40,10 @@ class RepoResult:
     repo: str
     language: str
     chunks: int
+    ndcg5: float
     ndcg10: float
     p50_ms: float
-    ndcg5: float | None = None
-    cold_ms: float | None = None
-    warm_ms: float | None = None
+    index_ms: float
 
 
 def _dcg(relevances: list[int]) -> float:
@@ -117,16 +114,17 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
     avg_p50 = sum(r.p50_ms for r in results) / len(results)
+    avg_index = sum(r.index_ms for r in results) / len(results)
 
     print(file=sys.stderr)
     print("By language", file=sys.stderr)
     for language, grouped in by_language.items():
-        ndcg5_values = [r.ndcg5 for r in grouped if r.ndcg5 is not None]
-        ndcg5_str = f"  ndcg@5={sum(ndcg5_values) / len(ndcg5_values):.3f}" if ndcg5_values else ""
         print(
-            f"  {language}: repos={len(grouped)}{ndcg5_str}"
+            f"  {language}: repos={len(grouped)}"
+            + f"  ndcg@5={sum(r.ndcg5 for r in grouped) / len(grouped):.3f}"
             + f"  ndcg@10={sum(r.ndcg10 for r in grouped) / len(grouped):.3f}"
-            + f"  p50={sum(r.p50_ms for r in grouped) / len(grouped):.2f}ms",
+            + f"  p50={sum(r.p50_ms for r in grouped) / len(grouped):.2f}ms"
+            + f"  index={sum(r.index_ms for r in grouped) / len(grouped):.0f}ms",
             file=sys.stderr,
         )
 
@@ -139,12 +137,15 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     ndcg_row = [f"{avg_ndcg10:>9.3f}"]
     p50_row = [f"{avg_p50:>8.2f}ms"]
+    index_row = [f"{avg_index:>7.0f}ms"]
     for language, language_results in by_language.items():
         ndcg_row.append(f"{sum(r.ndcg10 for r in language_results) / len(language_results):>9.3f}")
         p50_row.append(f"{sum(r.p50_ms for r in language_results) / len(language_results):>8.2f}ms")
+        index_row.append(f"{sum(r.index_ms for r in language_results) / len(language_results):>7.0f}ms")
 
     print(f"  {'NDCG@10':<28}  " + "  ".join(ndcg_row), file=sys.stderr)
     print(f"  {'q-p50':<28}  " + "  ".join(p50_row), file=sys.stderr)
+    print(f"  {'index':<28}  " + "  ".join(index_row), file=sys.stderr)
 
 
 def _bench_quality(
@@ -164,7 +165,13 @@ def _bench_quality(
         index_ms = (time.perf_counter() - started) * 1000
         ndcg5, ndcg10, p50_ms = _evaluate(index, tasks, verbose=verbose)
         result = RepoResult(
-            repo=repo, language=spec.language, chunks=len(index.chunks), ndcg5=ndcg5, ndcg10=ndcg10, p50_ms=p50_ms
+            repo=repo,
+            language=spec.language,
+            chunks=len(index.chunks),
+            ndcg5=ndcg5,
+            ndcg10=ndcg10,
+            p50_ms=p50_ms,
+            index_ms=index_ms,
         )
         results.append(result)
         print(
@@ -174,52 +181,8 @@ def _bench_quality(
     return results
 
 
-def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel, specs: dict[str, RepoSpec]) -> list[RepoResult]:
-    """Run cold vs warm index timing benchmarks using the disk embedding cache."""
-    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"Cache dir: {_CACHE_DIR}", file=sys.stderr)
-    print(file=sys.stderr)
-    print(
-        f"{'Repo':<12} {'language':<12} {'chunks':>6} {'cold':>9} {'warm':>9} {'speedup':>8} {'NDCG@10':>8}",
-        file=sys.stderr,
-    )
-    print(f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 9} {'-' * 9} {'-' * 8} {'-' * 8}", file=sys.stderr)
-    results: list[RepoResult] = []
-    model_ns = _MODEL_NAME.replace("/", "--")
-    for repo, tasks in sorted(repo_tasks.items()):
-        spec = specs[repo]
-        namespace_dir = _CACHE_DIR / model_ns
-        if namespace_dir.exists():
-            shutil.rmtree(namespace_dir)
-        started = time.perf_counter()
-        cold = SembleIndex.from_path(spec.benchmark_dir, model=model, cache_dir=_CACHE_DIR, model_name=_MODEL_NAME)
-        cold_ms = (time.perf_counter() - started) * 1000
-        started = time.perf_counter()
-        warm = SembleIndex.from_path(spec.benchmark_dir, model=model, cache_dir=_CACHE_DIR, model_name=_MODEL_NAME)
-        warm_ms = (time.perf_counter() - started) * 1000
-        _, ndcg10, p50_ms = _evaluate(warm, tasks)
-        result = RepoResult(
-            repo=repo,
-            language=spec.language,
-            chunks=len(cold.chunks),
-            ndcg10=ndcg10,
-            p50_ms=p50_ms,
-            cold_ms=cold_ms,
-            warm_ms=warm_ms,
-        )
-        results.append(result)
-        speedup = cold_ms / warm_ms if warm_ms > 0 else float("inf")
-        print(
-            f"{repo:<12} {spec.language:<12} {len(cold.chunks):>6} {cold_ms:>8.0f}ms {warm_ms:>8.0f}ms {speedup:>7.1f}x {ndcg10:>8.3f}",
-            file=sys.stderr,
-        )
-    print(file=sys.stderr)
-    print("Warm time still includes file walk plus BM25/Vicinity rebuild; only embedding is skipped.", file=sys.stderr)
-    return results
-
-
-def _save_results(results: list[RepoResult], *, cache_mode: bool) -> None:
-    """Write results to benchmarks/results/<sha>[-cache].json."""
+def _save_results(results: list[RepoResult]) -> None:
+    """Write results to benchmarks/results/<sha>.json."""
     try:
         sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     except subprocess.CalledProcessError:
@@ -231,16 +194,17 @@ def _save_results(results: list[RepoResult], *, cache_mode: bool) -> None:
     output = {
         "sha": sha,
         "model": _MODEL_NAME,
-        "cache_mode": cache_mode,
         "summary": {
             "ndcg10": round(sum(r.ndcg10 for r in results) / len(results), 4),
             "p50_ms": round(sum(r.p50_ms for r in results) / len(results), 3),
+            "index_ms": round(sum(r.index_ms for r in results) / len(results), 1),
         },
         "by_language": {
             lang: {
                 "repos": len(grouped),
                 "ndcg10": round(sum(r.ndcg10 for r in grouped) / len(grouped), 4),
                 "p50_ms": round(sum(r.p50_ms for r in grouped) / len(grouped), 3),
+                "index_ms": round(sum(r.index_ms for r in grouped) / len(grouped), 1),
             }
             for lang, grouped in by_language.items()
         },
@@ -249,8 +213,7 @@ def _save_results(results: list[RepoResult], *, cache_mode: bool) -> None:
 
     results_dir = Path(__file__).parent / "results"
     results_dir.mkdir(exist_ok=True)
-    suffix = "-cache" if cache_mode else ""
-    out_path = results_dir / f"{sha[:12]}{suffix}.json"
+    out_path = results_dir / f"{sha[:12]}.json"
     out_path.write_text(json.dumps(output, indent=2), encoding="utf-8")
     print(f"\nResults saved to {out_path}", file=sys.stderr)
 
@@ -258,7 +221,6 @@ def _save_results(results: list[RepoResult], *, cache_mode: bool) -> None:
 def main() -> None:
     """Parse arguments and run the selected benchmark mode."""
     parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
-    parser.add_argument("--cache", action="store_true", help="Show cold vs warm index time using the disk cache.")
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
     parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
@@ -277,14 +239,10 @@ def main() -> None:
     repo_tasks: dict[str, list[Task]] = {}
     for task in tasks:
         repo_tasks.setdefault(task.repo, []).append(task)
-    results = (
-        _bench_cache(repo_tasks, model, repo_specs)
-        if args.cache
-        else _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
-    )
+    results = _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
     _print_summary(results)
     if not args.repo and not args.language:
-        _save_results(results, cache_mode=args.cache)
+        _save_results(results)
 
 
 if __name__ == "__main__":
