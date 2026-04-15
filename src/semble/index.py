@@ -157,10 +157,7 @@ class SembleIndex:
         :raises RuntimeError: If git is not on PATH or the clone fails.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
-            cmd = ["git", "clone", "--depth", "1"]
-            if ref is not None:
-                cmd += ["--branch", ref]
-            cmd += [url, tmp_dir]
+            cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), url, tmp_dir]
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True)
             except FileNotFoundError:
@@ -177,24 +174,8 @@ class SembleIndex:
                 cache_dir=cache_dir,
                 model_name=model_name,
             )
-            # Remap absolute temp-dir paths to repo-relative paths before the
-            # TemporaryDirectory is torn down, so callers get stable, meaningful paths.
-            # Resolve both sides to handle OS-level symlinks (e.g. /var → /private/var on macOS).
-            tmp_root = Path(tmp_dir).resolve()
-            remapped = [
-                dataclasses.replace(chunk, file_path=str(Path(chunk.file_path).relative_to(tmp_root)))
-                for chunk in instance.chunks
-            ]
-            instance.chunks = remapped
-            # Set to None: paths are now repo-relative so there is no meaningful local root.
-            # If .index() is called again later it will set a new root from the given path.
-            instance._index_root = None
-            if remapped and instance._semantic_index is not None:
-                # Only file_path changed, not content — pull embeddings straight from the
-                # in-memory cache rather than going through _embed_chunks, which could
-                # misleadingly look like a re-encode.
-                embeddings = np.array([instance._embedding_cache[c.content_hash] for c in remapped], dtype=np.float32)
-                instance._semantic_index = Vicinity.from_vectors_and_items(embeddings, remapped, metric=Metric.COSINE)
+            # Resolve to handle OS-level symlinks (e.g. /var → /private/var on macOS).
+            instance._remap_to_relative(Path(tmp_dir).resolve())
             return instance
 
     def index(
@@ -335,6 +316,29 @@ class SembleIndex:
                 cache.put(chunks[i].content_hash, embedding)
 
         return np.array([self._embedding_cache[chunk.content_hash] for chunk in chunks], dtype=np.float32)
+
+    def _remap_to_relative(self, tmp_root: Path) -> None:
+        """Rewrite chunk file_paths from absolute temp-dir paths to repo-relative paths.
+
+        Called by :meth:`from_git` before the TemporaryDirectory is torn down so that
+        callers receive stable, meaningful paths instead of paths into a deleted temp dir.
+
+        :param tmp_root: Resolved absolute path to the cloned repo root.
+        """
+        remapped = [
+            dataclasses.replace(chunk, file_path=str(Path(chunk.file_path).relative_to(tmp_root)))
+            for chunk in self.chunks
+        ]
+        self.chunks = remapped
+        # Set to None: paths are now repo-relative so there is no meaningful local root.
+        # If .index() is called again later it will set a new root from the given path.
+        self._index_root = None
+        if self._semantic_index is not None:
+            # Only file_path changed, not content — pull embeddings straight from the
+            # in-memory cache rather than going through _embed_chunks, which could
+            # misleadingly look like a re-encode.
+            embeddings = np.array([self._embedding_cache[c.content_hash] for c in remapped], dtype=np.float32)
+            self._semantic_index = Vicinity.from_vectors_and_items(embeddings, remapped, metric=Metric.COSINE)
 
     def _enrich_for_bm25(self, chunk: Chunk, root: Path | None) -> str:
         """Append file path components to BM25 content to boost path-based queries.
