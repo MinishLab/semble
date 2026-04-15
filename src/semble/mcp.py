@@ -63,7 +63,10 @@ _TOOLS: list[mcp_types.Tool] = [
         inputSchema={
             "type": "object",
             "properties": {
-                "file_path": {"type": "string", "description": "Absolute path to the file."},
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to the file as stored in the index (use the file_path from a search result).",
+                },
                 "line": {"type": "integer", "description": "Line number (1-indexed)."},
                 "top_k": {
                     "type": "integer",

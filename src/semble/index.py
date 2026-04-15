@@ -186,9 +186,14 @@ class SembleIndex:
                 for chunk in instance.chunks
             ]
             instance.chunks = remapped
+            # Set to None: paths are now repo-relative so there is no meaningful local root.
+            # If .index() is called again later it will set a new root from the given path.
             instance._index_root = None
             if remapped and instance._semantic_index is not None:
-                embeddings = instance._embed_chunks(remapped)
+                # Only file_path changed, not content — pull embeddings straight from the
+                # in-memory cache rather than going through _embed_chunks, which could
+                # misleadingly look like a re-encode.
+                embeddings = np.array([instance._embedding_cache[c.content_hash] for c in remapped], dtype=np.float32)
                 instance._semantic_index = Vicinity.from_vectors_and_items(embeddings, remapped, metric=Metric.COSINE)
             return instance
 
@@ -250,7 +255,11 @@ class SembleIndex:
     def find_related(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically similar to the chunk at the given file location.
 
-        :param file_path: Absolute path to the file.
+        :param file_path: Path to the file, in the same format stored by the index.
+            For indexes built with :meth:`from_path` this is an absolute path; for
+            indexes built with :meth:`from_git` this is a repo-relative path
+            (e.g. ``src/foo.py``).  Use ``chunk.file_path`` from a prior search result
+            to guarantee the correct format.
         :param line: Line number (1-indexed) used to identify the source chunk.
         :param top_k: Number of similar chunks to return.
         :return: Ranked list of SearchResult objects, most similar first.
