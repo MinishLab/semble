@@ -187,10 +187,6 @@ def test_find_related_before_indexing_returns_empty() -> None:
     assert idx.find_related("/any/file.py", 1) == []
 
 
-# ---------------------------------------------------------------------------
-# from_git tests
-# ---------------------------------------------------------------------------
-
 _GIT_ENV = {
     **os.environ,
     "GIT_AUTHOR_NAME": "test",

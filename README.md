@@ -16,7 +16,7 @@ from semble import SembleIndex
 # Index a local directory
 index = SembleIndex.from_path("./my-project")
 
-# Index a remote git repository (cloned to a temp dir automatically)
+# Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
 
 results = index.search("load a pretrained model", top_k=5)

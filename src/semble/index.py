@@ -9,6 +9,7 @@ from pathlib import Path
 
 import bm25s
 import numpy as np
+from huggingface_hub import utils as hf_utils
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
 
@@ -290,7 +291,12 @@ class SembleIndex:
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided."""
         if self.model is None:
-            self.model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
+            # Disable HF progress bars since the model is loaded silently in the background during indexing.
+            hf_utils.disable_progress_bars()
+            try:
+                self.model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
+            finally:
+                hf_utils.enable_progress_bars()
         return self.model
 
     def _embed_chunks(self, chunks: list[Chunk]) -> EmbeddingMatrix:
