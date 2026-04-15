@@ -5,12 +5,14 @@ import dataclasses
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import cast
 
 import bm25s
 import numpy as np
 from huggingface_hub import utils as hf_utils
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
+from vicinity.backends.basic import BasicBackend
 
 from semble.chunker import chunk_source
 from semble.file_walker import language_for_path, resolve_extensions, walk_files
@@ -35,7 +37,6 @@ class SembleIndex:
         self.model: Encoder | None = model
         self.chunks: list[Chunk] = []
         self.stats = IndexStats()
-        self._embeddings: EmbeddingMatrix | None = None
         self._bm25_index: bm25s.BM25 | None = None
         self._semantic_index: Vicinity | None = None
         self._index_root: Path | None = None
@@ -136,7 +137,6 @@ class SembleIndex:
 
         if all_chunks:
             embeddings = self._embed_chunks(all_chunks)
-            self._embeddings = embeddings
             self._bm25_index = bm25s.BM25()
             self._bm25_index.index(
                 [tokenize(self._enrich_for_bm25(chunk, self._index_root)) for chunk in all_chunks],
@@ -238,8 +238,10 @@ class SembleIndex:
         self.chunks = remapped
         # No meaningful local root once paths are repo-relative.
         self._index_root = None
-        if self._semantic_index is not None and self._embeddings is not None:
-            self._semantic_index = Vicinity.from_vectors_and_items(self._embeddings, remapped, metric=Metric.COSINE)
+        if self._semantic_index is not None:
+            self._semantic_index = Vicinity.from_vectors_and_items(
+                cast(BasicBackend, self._semantic_index.backend).vectors, remapped, metric=Metric.COSINE
+            )
 
     def _enrich_for_bm25(self, chunk: Chunk, root: Path | None) -> str:
         """Append file path components to BM25 content to boost path-based queries.
