@@ -1,0 +1,363 @@
+{
+  "sha": "2bd010b154d43e317e6de81e0ad00905eb3d5e9b",
+  "model": "Pringled/potion-code-16M",
+  "cache_mode": false,
+  "summary": {
+    "ndcg10": 0.8668,
+    "p50_ms": 0.697
+  },
+  "by_language": {
+    "csharp": {
+      "repos": 1,
+      "ndcg10": 0.8263,
+      "p50_ms": 1.883
+    },
+    "go": {
+      "repos": 3,
+      "ndcg10": 0.9515,
+      "p50_ms": 0.485
+    },
+    "java": {
+      "repos": 3,
+      "ndcg10": 0.842,
+      "p50_ms": 1.239
+    },
+    "javascript": {
+      "repos": 3,
+      "ndcg10": 0.9282,
+      "p50_ms": 0.386
+    },
+    "kotlin": {
+      "repos": 1,
+      "ndcg10": 0.7631,
+      "p50_ms": 0.832
+    },
+    "php": {
+      "repos": 3,
+      "ndcg10": 0.906,
+      "p50_ms": 0.867
+    },
+    "python": {
+      "repos": 8,
+      "ndcg10": 0.8233,
+      "p50_ms": 0.479
+    },
+    "ruby": {
+      "repos": 3,
+      "ndcg10": 0.8911,
+      "p50_ms": 0.578
+    },
+    "rust": {
+      "repos": 1,
+      "ndcg10": 0.8878,
+      "p50_ms": 0.868
+    },
+    "scala": {
+      "repos": 1,
+      "ndcg10": 0.8415,
+      "p50_ms": 0.829
+    },
+    "swift": {
+      "repos": 1,
+      "ndcg10": 0.9316,
+      "p50_ms": 0.496
+    },
+    "typescript": {
+      "repos": 1,
+      "ndcg10": 0.7431,
+      "p50_ms": 0.808
+    }
+  },
+  "repos": [
+    {
+      "repo": "aiohttp",
+      "language": "python",
+      "chunks": 756,
+      "ndcg10": 0.7821229638714016,
+      "p50_ms": 0.5519580008694902,
+      "ndcg5": 0.7132626857513019,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "alamofire",
+      "language": "swift",
+      "chunks": 649,
+      "ndcg10": 0.9315768229529695,
+      "p50_ms": 0.4956250049872324,
+      "ndcg5": 0.900172569211564,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "axios",
+      "language": "javascript",
+      "chunks": 166,
+      "ndcg10": 0.9671522420975631,
+      "p50_ms": 0.5629590013995767,
+      "ndcg5": 0.9671522420975631,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "cats",
+      "language": "scala",
+      "chunks": 1254,
+      "ndcg10": 0.8414671964692401,
+      "p50_ms": 0.8292909988085739,
+      "ndcg5": 0.8157722039023972,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "chi",
+      "language": "go",
+      "chunks": 262,
+      "ndcg10": 0.9455120441745608,
+      "p50_ms": 0.6020420041750185,
+      "ndcg5": 0.9455120441745608,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "cobra",
+      "language": "go",
+      "chunks": 394,
+      "ndcg10": 0.970068981106951,
+      "p50_ms": 0.3933749976567924,
+      "ndcg5": 0.970068981106951,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "commons-lang",
+      "language": "java",
+      "chunks": 3152,
+      "ndcg10": 0.8052591049306037,
+      "p50_ms": 0.8624999973108061,
+      "ndcg5": 0.7688578654609097,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "express",
+      "language": "javascript",
+      "chunks": 52,
+      "ndcg10": 0.9593872208972474,
+      "p50_ms": 0.2536250030971132,
+      "ndcg5": 0.9593872208972474,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "fastapi",
+      "language": "python",
+      "chunks": 597,
+      "ndcg10": 0.7693095302894921,
+      "p50_ms": 0.4379579986562021,
+      "ndcg5": 0.7314364449312006,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "flask",
+      "language": "python",
+      "chunks": 291,
+      "ndcg10": 0.8767012186349079,
+      "p50_ms": 0.42783399840118363,
+      "ndcg5": 0.8570900833760776,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "gin",
+      "language": "go",
+      "chunks": 576,
+      "ndcg10": 0.939064318485603,
+      "p50_ms": 0.45987500197952613,
+      "ndcg5": 0.8807555442147937,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "gson",
+      "language": "java",
+      "chunks": 1460,
+      "ndcg10": 0.9261859507142916,
+      "p50_ms": 1.0446250016684644,
+      "ndcg5": 0.9261859507142916,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "guzzle",
+      "language": "php",
+      "chunks": 206,
+      "ndcg10": 0.844506786325837,
+      "p50_ms": 0.5477500017150305,
+      "ndcg5": 0.8326908338735671,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "httpx",
+      "language": "python",
+      "chunks": 248,
+      "ndcg10": 0.871159099521697,
+      "p50_ms": 0.44858400360681117,
+      "ndcg5": 0.8519694264932337,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "jackson-databind",
+      "language": "java",
+      "chunks": 4570,
+      "ndcg10": 0.7944291752941182,
+      "p50_ms": 1.810874993680045,
+      "ndcg5": 0.7667968319202225,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "ktor",
+      "language": "kotlin",
+      "chunks": 425,
+      "ndcg10": 0.7630927329648237,
+      "p50_ms": 0.8315000013681129,
+      "ndcg5": 0.726275662513606,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "laravel-framework",
+      "language": "php",
+      "chunks": 6197,
+      "ndcg10": 0.967888315659275,
+      "p50_ms": 1.207750006869901,
+      "ndcg5": 0.967888315659275,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "messagepack-csharp",
+      "language": "csharp",
+      "chunks": 1125,
+      "ndcg10": 0.8262866007393468,
+      "p50_ms": 1.882749995274935,
+      "ndcg5": 0.8164536328001585,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "model2vec",
+      "language": "python",
+      "chunks": 107,
+      "ndcg10": 0.695271294655741,
+      "p50_ms": 0.4195000001345761,
+      "ndcg5": 0.6593701861221591,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "monolog",
+      "language": "php",
+      "chunks": 417,
+      "ndcg10": 0.9055096182921145,
+      "p50_ms": 0.8463749982183799,
+      "ndcg5": 0.9055096182921145,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "pydantic",
+      "language": "python",
+      "chunks": 1518,
+      "ndcg10": 0.7070408064407742,
+      "p50_ms": 0.6517500005429611,
+      "ndcg5": 0.6795591269045096,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "rack",
+      "language": "ruby",
+      "chunks": 249,
+      "ndcg10": 1.0,
+      "p50_ms": 0.4828749952139333,
+      "ndcg5": 1.0,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "rails",
+      "language": "ruby",
+      "chunks": 465,
+      "ndcg10": 0.8346443747935481,
+      "p50_ms": 0.9173330035991967,
+      "ndcg5": 0.7466134836472739,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "redux",
+      "language": "javascript",
+      "chunks": 53,
+      "ndcg10": 0.8580772959099011,
+      "p50_ms": 0.3419580025365576,
+      "ndcg5": 0.8226294385530917,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "requests",
+      "language": "python",
+      "chunks": 169,
+      "ndcg10": 0.9550842629661954,
+      "p50_ms": 0.40808300400385633,
+      "ndcg5": 0.9550842629661954,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "sinatra",
+      "language": "ruby",
+      "chunks": 68,
+      "ndcg10": 0.8387325493217617,
+      "p50_ms": 0.3345000004628673,
+      "ndcg5": 0.8387325493217617,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "starlette",
+      "language": "python",
+      "chunks": 213,
+      "ndcg10": 0.9294136613951622,
+      "p50_ms": 0.4845000003115274,
+      "ndcg5": 0.9058681185722455,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "tokio",
+      "language": "rust",
+      "chunks": 2730,
+      "ndcg10": 0.8878478903956787,
+      "p50_ms": 0.8677080040797591,
+      "ndcg5": 0.8750003941122573,
+      "cold_ms": null,
+      "warm_ms": null
+    },
+    {
+      "repo": "trpc",
+      "language": "typescript",
+      "chunks": 362,
+      "ndcg10": 0.7431267778412411,
+      "p50_ms": 0.8075000005192123,
+      "ndcg5": 0.6949834508995433,
+      "cold_ms": null,
+      "warm_ms": null
+    }
+  ]
+}

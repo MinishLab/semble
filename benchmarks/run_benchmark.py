@@ -1,9 +1,11 @@
 import argparse
+import json
 import math
 import shutil
+import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from model2vec import StaticModel
@@ -216,6 +218,43 @@ def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel, specs: d
     return results
 
 
+def _save_results(results: list[RepoResult], *, cache_mode: bool) -> None:
+    """Write results to benchmarks/results/<sha>[-cache].json."""
+    try:
+        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except subprocess.CalledProcessError:
+        sha = "unknown"
+
+    languages = sorted({r.language for r in results})
+    by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
+
+    output = {
+        "sha": sha,
+        "model": _MODEL_NAME,
+        "cache_mode": cache_mode,
+        "summary": {
+            "ndcg10": round(sum(r.ndcg10 for r in results) / len(results), 4),
+            "p50_ms": round(sum(r.p50_ms for r in results) / len(results), 3),
+        },
+        "by_language": {
+            lang: {
+                "repos": len(grouped),
+                "ndcg10": round(sum(r.ndcg10 for r in grouped) / len(grouped), 4),
+                "p50_ms": round(sum(r.p50_ms for r in grouped) / len(grouped), 3),
+            }
+            for lang, grouped in by_language.items()
+        },
+        "repos": [asdict(r) for r in results],
+    }
+
+    results_dir = Path(__file__).parent / "results"
+    results_dir.mkdir(exist_ok=True)
+    suffix = "-cache" if cache_mode else ""
+    out_path = results_dir / f"{sha[:12]}{suffix}.json"
+    out_path.write_text(json.dumps(output, indent=2), encoding="utf-8")
+    print(f"\nResults saved to {out_path}", file=sys.stderr)
+
+
 def main() -> None:
     """Parse arguments and run the selected benchmark mode."""
     parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
@@ -244,6 +283,8 @@ def main() -> None:
         else _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
     )
     _print_summary(results)
+    if not args.repo and not args.language:
+        _save_results(results, cache_mode=args.cache)
 
 
 if __name__ == "__main__":
