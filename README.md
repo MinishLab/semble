@@ -19,10 +19,7 @@ index = SembleIndex.from_path("./my-project")
 # Index a remote git repository (cloned to a temp dir automatically)
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
 
-# Pin a specific branch or tag
-index = SembleIndex.from_git("https://github.com/MinishLab/model2vec", ref="v0.4.0")
-
-results = index.search("how does authentication work?", top_k=5)
+results = index.search("load a pretrained model", top_k=5)
 for result in results:
     print(result.chunk.location, f"score={result.score:.3f}")
     print(result.chunk.content[:200])
