@@ -267,7 +267,9 @@ class SembleIndex:
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
         :param mode: Search strategy — "hybrid" (default), "semantic", or "bm25".
-        :param alpha: Blend weight for hybrid score combination; 1.0 = full semantic weight, 0.0 = full BM25 weight. File-path penalties and diversity reranking are applied regardless. None = auto-detect from query type.
+        :param alpha: Blend weight for hybrid score combination; 1.0 = full semantic
+            weight, 0.0 = full BM25 weight. File-path penalties and diversity reranking
+            are applied regardless. ``None`` auto-detects from query type.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         :raises ValueError: If `mode` is not a recognised search strategy.
         """
@@ -316,8 +318,6 @@ class SembleIndex:
     def _remap_to_relative(self, tmp_root: Path) -> None:
         """Rewrite chunk file_paths from absolute temp-dir paths to repo-relative paths.
 
-        Called by :meth:`from_git` before the TemporaryDirectory is deleted.
-
         :param tmp_root: Resolved absolute path to the cloned repo root.
         """
         remapped = [
@@ -328,7 +328,7 @@ class SembleIndex:
         # No meaningful local root once paths are repo-relative.
         self._index_root = None
         if self._semantic_index is not None:
-            # file_path only changed — read from cache, no re-encode.
+            # file_path only changed: read from cache.
             embeddings = np.array([self._embedding_cache[c.content_hash] for c in remapped], dtype=np.float32)
             self._semantic_index = Vicinity.from_vectors_and_items(embeddings, remapped, metric=Metric.COSINE)
 

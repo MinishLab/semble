@@ -75,7 +75,8 @@ _STEM_BOOST_MULTIPLIER = 0.5
 
 # Common English stopwords excluded from file-stem matching for NL queries.
 _STOPWORDS = frozenset(
-    "a an and are as at be by do does for from has have how if in is it not of on or the to was what when where which who why with".split()
+    "a an and are as at be by do does for from has have how if in is it not of on or the to was"
+    " what when where which who why with".split()
 )
 
 

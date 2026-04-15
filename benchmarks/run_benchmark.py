@@ -175,7 +175,8 @@ def _bench_quality(
         )
         results.append(result)
         print(
-            f"{repo:<12} {spec.language:<12} {len(index.chunks):>6} {index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50_ms:>7.2f}ms",
+            f"{repo:<12} {spec.language:<12} {len(index.chunks):>6} "
+            f"{index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50_ms:>7.2f}ms",
             file=sys.stderr,
         )
     return results
