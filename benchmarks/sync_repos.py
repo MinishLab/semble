@@ -2,17 +2,12 @@ import argparse
 import subprocess
 import sys
 
-from benchmarks.common import BENCH_ROOT, load_repo_specs
+from benchmarks.data import BENCH_ROOT, load_repo_specs
 
 
 def _run(*args: str) -> None:
     """Run a subprocess command, raising on non-zero exit."""
     subprocess.run(args, check=True)
-
-
-def _output(*args: str) -> str:
-    """Run a subprocess command and return its stripped stdout."""
-    return subprocess.check_output(args, text=True).strip()
 
 
 def _sync_repo(name: str, url: str, revision: str) -> None:
@@ -31,7 +26,7 @@ def _check_repo(name: str, revision: str) -> str | None:
     repo_dir = BENCH_ROOT / name
     if not (repo_dir / ".git").exists():
         return f"{name}: missing checkout at {repo_dir}"
-    head = _output("git", "-C", str(repo_dir), "rev-parse", "HEAD")
+    head = subprocess.check_output(("git", "-C", str(repo_dir), "rev-parse", "HEAD"), text=True).strip()
     if head != revision:
         return f"{name}: expected {revision}, found {head}"
     return None

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from model2vec import StaticModel
 
-from benchmarks.common import (
+from benchmarks.data import (
     RepoSpec,
     Target,
     Task,

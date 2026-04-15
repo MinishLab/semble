@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-BENCH_ROOT = Path("/tmp/bench")
+BENCH_ROOT = Path.home() / ".cache" / "semble-bench"
 BENCHMARKS_DIR = Path(__file__).parent
 ANNOTATIONS_DIR = BENCHMARKS_DIR / "annotations"
 REPOS_PATH = BENCHMARKS_DIR / "repos.json"

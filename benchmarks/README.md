@@ -2,7 +2,7 @@
 
 Reproducible local benchmarks for `semble`.
 
-Pinned repositories live in `repos.json` and are checked out into `/tmp/bench`.
+Pinned repositories live in `repos.json` and are checked out into `~/.cache/semble-bench`.
 
 ## Setup
 
@@ -15,10 +15,9 @@ uv run python -m benchmarks.sync_repos --check
 
 ```bash
 uv run python -m benchmarks.run_benchmark
-uv run python -m benchmarks.run_benchmark --cache
 uv run python -m benchmarks.run_benchmark --repo fastapi --repo axios
 uv run python -m benchmarks.run_benchmark --language python
 ```
 
-`--cache` measures cold vs warm index time. Warm time still includes the file walk and
-BM25/Vicinity rebuild; only embedding is skipped.
+Full runs (no `--repo`/`--language` filters) automatically save results to
+`benchmarks/results/<sha>.json`.
