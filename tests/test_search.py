@@ -6,7 +6,7 @@ import numpy.typing as npt
 import pytest
 from vicinity import Metric, Vicinity
 
-from semble.search import search_bm25, search_hybrid, search_semantic
+from semble.search import _sort_top_k, search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
 from semble.types import Chunk, SearchMode
 from tests.conftest import make_chunk
@@ -116,3 +116,12 @@ def test_search_source_labels(
     results = search_fn(query, mock_model, semantic, bm25, chunks, top_k)
     assert len(results) > 0
     assert all(result.source is mode for result in results)
+
+
+def test_sort_top_k() -> None:
+    """Test that the sort top k is a faster version of argsort."""
+    gen = np.random.default_rng()
+    x = gen.standard_normal(size=(10000,))
+    top_k = 100
+    indices = _sort_top_k(x, top_k)
+    assert np.all(indices == np.argsort(-x)[:top_k])

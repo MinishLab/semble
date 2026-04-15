@@ -33,6 +33,15 @@ def search_semantic(
     ]
 
 
+def _sort_top_k(arr: npt.NDArray, top_k: int) -> npt.NDArray[np.int_]:
+    """Get the top k indices of an array in sort order."""
+    neg_arr = -arr
+    if top_k >= len(arr):
+        return np.argsort(neg_arr)
+    partitioned = np.argpartition(neg_arr, kth=top_k)[:top_k]
+    return partitioned[np.argsort(neg_arr[partitioned])]
+
+
 def search_bm25(
     query: str,
     bm25_index: bm25s.BM25,
@@ -41,7 +50,8 @@ def search_bm25(
 ) -> list[SearchResult]:
     """Return chunks ranked by BM25 score, excluding zero-score results."""
     scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
-    indices = np.argsort(-scores)[:top_k]
+    indices = _sort_top_k(scores, top_k)
+
     # Exclude chunks with zero score, no query tokens matched.
     return [
         SearchResult(chunk=chunks[i], score=float(scores[i]), source=SearchMode.BM25) for i in indices if scores[i] > 0
