@@ -16,12 +16,11 @@ from benchmarks.common import (
     Task,
     apply_task_filters,
     available_repo_specs,
-    count_indexed_targets,
     load_tasks,
     target_matches_location,
 )
 from semble import SembleIndex
-from semble.types import SearchResult
+from semble.types import Chunk, SearchResult
 
 _CACHE_DIR = Path("/tmp/semble-bench-cache")
 _MODEL_NAME = "Pringled/potion-code-16M"
@@ -29,7 +28,17 @@ _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
 
 
+def count_indexed_targets(chunks: list[Chunk], targets: tuple[Target, ...]) -> int:
+    """Count how many targets are covered by at least one chunk in the index."""
+    return sum(
+        1
+        for target in targets
+        if any(target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target) for chunk in chunks)
+    )
+
+
 def _target_rank(results: list[SearchResult], target: Target) -> int | None:
+    """Return the 1-based rank of the first result covering target, or None."""
     for index, result in enumerate(results, 1):
         chunk = result.chunk
         if target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target):
@@ -50,10 +59,12 @@ class RepoResult:
 
 
 def _dcg(relevances: list[int]) -> float:
+    """Compute Discounted Cumulative Gain for a ranked relevance list."""
     return sum(rel / math.log2(i + 2) for i, rel in enumerate(relevances))
 
 
 def _ndcg_at_k(relevant_ranks: list[int], n_relevant: int, k: int) -> float:
+    """Compute NDCG@k given the ranks of relevant results and the total relevant count."""
     if n_relevant == 0:
         return 0.0
     relevances = [0] * k
@@ -65,6 +76,7 @@ def _ndcg_at_k(relevant_ranks: list[int], n_relevant: int, k: int) -> float:
 
 
 def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -> tuple[float, float, float]:
+    """Return mean NDCG@5, NDCG@10, and median query latency (ms) across all tasks."""
     ndcg5_sum = 0.0
     ndcg10_sum = 0.0
     latencies: list[float] = []
@@ -103,6 +115,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
 
 
 def _print_summary(results: list[RepoResult]) -> None:
+    """Print per-language and overall benchmark summary to stderr."""
     languages = sorted({result.language for result in results})
     columns = ["Avg", *[lang.title() for lang in languages]]
 
@@ -143,6 +156,7 @@ def _print_summary(results: list[RepoResult]) -> None:
 def _bench_quality(
     repo_tasks: dict[str, list[Task]], model: StaticModel, specs: dict[str, RepoSpec], *, verbose: bool = False
 ) -> list[RepoResult]:
+    """Run quality benchmarks (NDCG@5, NDCG@10, latency) for each repo."""
     print(
         f"{'Repo':<12} {'language':<12} {'chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8}",
         file=sys.stderr,
@@ -167,6 +181,7 @@ def _bench_quality(
 
 
 def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel, specs: dict[str, RepoSpec]) -> list[RepoResult]:
+    """Run cold vs warm index timing benchmarks using the disk embedding cache."""
     _CACHE_DIR.mkdir(parents=True, exist_ok=True)
     print(f"Cache dir: {_CACHE_DIR}", file=sys.stderr)
     print(file=sys.stderr)
@@ -210,6 +225,7 @@ def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel, specs: d
 
 
 def main() -> None:
+    """Parse arguments and run the selected benchmark mode."""
     parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
     parser.add_argument("--cache", action="store_true", help="Show cold vs warm index time using the disk cache.")
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")

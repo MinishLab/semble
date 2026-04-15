@@ -8,14 +8,17 @@ from benchmarks.common import BENCH_ROOT, load_repo_specs
 
 
 def _run(*args: str) -> None:
+    """Run a subprocess command, raising on non-zero exit."""
     subprocess.run(args, check=True)
 
 
 def _output(*args: str) -> str:
+    """Run a subprocess command and return its stripped stdout."""
     return subprocess.check_output(args, text=True).strip()
 
 
 def _sync_repo(name: str, url: str, revision: str) -> None:
+    """Clone the repo if absent, then fetch and checkout the pinned revision."""
     repo_dir = BENCH_ROOT / name
     if not repo_dir.exists():
         print(f"cloning {name} -> {repo_dir}")
@@ -26,6 +29,7 @@ def _sync_repo(name: str, url: str, revision: str) -> None:
 
 
 def _check_repo(name: str, revision: str) -> str | None:
+    """Return an error string if the local checkout is missing or at the wrong revision."""
     repo_dir = BENCH_ROOT / name
     if not (repo_dir / ".git").exists():
         return f"{name}: missing checkout at {repo_dir}"
@@ -36,6 +40,7 @@ def _check_repo(name: str, revision: str) -> str | None:
 
 
 def main() -> None:
+    """Parse arguments and sync or verify the pinned benchmark repositories."""
     parser = argparse.ArgumentParser(description="Clone or update pinned benchmark repositories.")
     parser.add_argument("--repo", action="append", default=[], help="Restrict to one or more repo names.")
     parser.add_argument("--check", action="store_true", help="Only verify local checkouts against pinned revisions.")

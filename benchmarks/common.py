@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
 
 BENCH_ROOT = Path("/tmp/bench")
 BENCHMARKS_DIR = Path(__file__).parent
@@ -19,13 +18,8 @@ class Target:
 
     @property
     def has_span(self) -> bool:
+        """Return True if both start_line and end_line are set."""
         return self.start_line is not None and self.end_line is not None
-
-
-class _ChunkLike(Protocol):
-    file_path: str
-    start_line: int
-    end_line: int
 
 
 @dataclass(frozen=True)
@@ -38,10 +32,12 @@ class RepoSpec:
 
     @property
     def checkout_dir(self) -> Path:
+        """Return the local checkout directory for this repo."""
         return BENCH_ROOT / self.name
 
     @property
     def benchmark_dir(self) -> Path:
+        """Return the root directory to index for benchmarking."""
         return self.checkout_dir if self.benchmark_root is None else self.checkout_dir / self.benchmark_root
 
 
@@ -56,10 +52,12 @@ class Task:
 
     @property
     def all_relevant(self) -> tuple[Target, ...]:
+        """Return primary and secondary relevant targets combined."""
         return self.relevant + self.secondary
 
 
 def infer_category(query: str) -> str:
+    """Infer a task category from the query text."""
     if " " not in query.strip():
         return "symbol"
     lowered = query.lower()
@@ -69,12 +67,14 @@ def infer_category(query: str) -> str:
 
 
 def _coerce_int(value: object) -> int:
+    """Coerce a string or int value to int, raising TypeError otherwise."""
     if not isinstance(value, int | str):
         raise TypeError(f"expected int-compatible value, got {type(value).__name__}")
     return int(value)
 
 
 def _parse_target(raw: str | dict[str, object]) -> Target:
+    """Parse a target from a string path or a mapping with optional line span."""
     if isinstance(raw, str):
         return Target(path=raw)
     if not isinstance(raw, dict):
@@ -89,11 +89,13 @@ def _parse_target(raw: str | dict[str, object]) -> Target:
 
 
 def load_repo_specs(path: Path = REPOS_PATH) -> dict[str, RepoSpec]:
+    """Load all repo specs from the JSON file at the given path."""
     raw = json.loads(path.read_text(encoding="utf-8"))
     return {item["name"]: RepoSpec(**item) for item in raw}
 
 
 def available_repo_specs() -> dict[str, RepoSpec]:
+    """Return only the repo specs that have a local checkout and annotation file."""
     return {
         name: spec
         for name, spec in load_repo_specs().items()
@@ -102,6 +104,7 @@ def available_repo_specs() -> dict[str, RepoSpec]:
 
 
 def load_tasks(repo_specs: dict[str, RepoSpec] | None = None) -> list[Task]:
+    """Load all benchmark tasks from annotation files, filtered to available repo specs."""
     specs = load_repo_specs() if repo_specs is None else repo_specs
     tasks: list[Task] = []
     for annotation_file in sorted(ANNOTATIONS_DIR.glob("*.json")):
@@ -133,11 +136,13 @@ def apply_task_filters(
     repos: list[str] | None = None,
     languages: list[str] | None = None,
 ) -> list[Task]:
+    """Filter tasks to the given repos and/or languages; None means no filter."""
     filtered = [task for task in tasks if not repos or task.repo in repos]
     return [task for task in filtered if not languages or task.language in languages]
 
 
 def target_matches_location(file_path: str, start_line: int, end_line: int, target: Target) -> bool:
+    """Return True if the chunk at file_path:start_line-end_line covers the target."""
     norm_file = file_path.replace("\\", "/")
     norm_target = target.path.replace("\\", "/")
     if not (norm_file == norm_target or norm_file.endswith(f"/{norm_target}")):
@@ -145,11 +150,3 @@ def target_matches_location(file_path: str, start_line: int, end_line: int, targ
     if not target.has_span:
         return True
     return not (end_line < target.start_line or start_line > target.end_line)  # type: ignore[operator]
-
-
-def count_indexed_targets(chunks: list[_ChunkLike], targets: tuple[Target, ...]) -> int:
-    return sum(
-        1
-        for target in targets
-        if any(target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target) for chunk in chunks)
-    )

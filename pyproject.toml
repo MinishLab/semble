@@ -70,7 +70,7 @@ target-version = "py310"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN"]
 "src/semble/cli.py" = ["T20"]
-"benchmarks/*.py" = ["T20", "D"]
+"benchmarks/*.py" = ["T20"]
 
 [tool.ruff.lint]
 select = [
