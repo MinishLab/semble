@@ -39,8 +39,7 @@ class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process.
 
     A single embedding model is shared across all indexes to avoid redundant loads and
-    multiplied RAM usage when the session touches several repos.  Per-source locks prevent
-    duplicate clones/embeds when concurrent calls arrive against the same cold source.
+    multiplied RAM usage when the session touches several repos.
     """
 
     def __init__(self, model: Encoder) -> None:
@@ -50,37 +49,28 @@ class _IndexCache:
         """
         self._model = model
         self._cache: dict[str, SembleIndex] = {}
-        self._locks: dict[str, asyncio.Lock] = {}
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return a cached index for *source*, building it on first access.
 
         Indexing is run in a thread-pool executor so it does not block the event loop.
-        A per-source lock ensures the source is only indexed once even under concurrent calls.
 
         :param source: Local directory path or remote git URL.
         :param ref: Branch or tag to check out (git URLs only).
         :return: A fully-built SembleIndex ready to search.
         """
-        if source in self._cache:
-            return self._cache[source]
-        if source not in self._locks:
-            self._locks[source] = asyncio.Lock()
-        async with self._locks[source]:
-            if source not in self._cache:
-                model = self._model
-                loop = asyncio.get_event_loop()
-                if _is_git_url(source):
-                    captured_ref = ref
-                    self._cache[source] = await loop.run_in_executor(
-                        None, lambda: SembleIndex.from_git(source, ref=captured_ref, model=model)
-                    )
-                else:
-                    resolved = str(Path(source).resolve())
-                    self._cache[source] = await loop.run_in_executor(
-                        None, lambda: SembleIndex.from_path(resolved, model=model)
-                    )
-        return self._cache[source]
+        key = source if _is_git_url(source) else str(Path(source).resolve())
+        if key not in self._cache:
+            model = self._model
+            loop = asyncio.get_event_loop()
+            if _is_git_url(source):
+                captured_ref = ref
+                self._cache[key] = await loop.run_in_executor(
+                    None, lambda: SembleIndex.from_git(source, ref=captured_ref, model=model)
+                )
+            else:
+                self._cache[key] = await loop.run_in_executor(None, lambda: SembleIndex.from_path(key, model=model))
+        return self._cache[key]
 
 
 _REPO_DESCRIPTION = (
