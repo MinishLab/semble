@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -126,6 +127,52 @@ class SembleIndex:
         instance = cls(model=model, enable_caching=enable_caching, cache_dir=cache_dir, model_name=model_name)
         instance.index(path, extensions=extensions, ignore=ignore, include_docs=include_docs)
         return instance
+
+    @classmethod
+    def from_git(
+        cls,
+        url: str,
+        ref: str | None = None,
+        model: Encoder | None = None,
+        extensions: frozenset[str] | None = None,
+        ignore: frozenset[str] | None = None,
+        include_docs: bool = False,
+        enable_caching: bool = True,
+        cache_dir: str | Path | None = None,
+        model_name: str | None = None,
+    ) -> SembleIndex:
+        """Clone a git repository and index it.
+
+        :param url: URL of the git repository to clone (any git provider).
+        :param ref: Branch, tag, or commit to check out. Defaults to the remote HEAD.
+        :param model: Embedding model to use. Defaults to potion-code-16M.
+        :param extensions: File extensions to include. Defaults to a standard set of code extensions.
+        :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
+        :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
+        :param enable_caching: Whether to persist embeddings to disk between runs.
+        :param cache_dir: Override the cache directory. Defaults to ~/.cache/semble.
+        :param model_name: Stable identifier for a custom encoder, used as the disk cache namespace.
+        :return: An indexed SembleIndex.
+        :raises RuntimeError: If git is not on PATH or the clone fails.
+        """
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            cmd = ["git", "clone", "--depth", "1"]
+            if ref is not None:
+                cmd += ["--branch", ref]
+            cmd += [url, tmp_dir]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
+            return cls.from_path(
+                tmp_dir,
+                model=model,
+                extensions=extensions,
+                ignore=ignore,
+                include_docs=include_docs,
+                enable_caching=enable_caching,
+                cache_dir=cache_dir,
+                model_name=model_name,
+            )
 
     def index(
         self,
