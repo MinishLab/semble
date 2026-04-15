@@ -19,9 +19,9 @@ from benchmarks.data import (
     target_matches_location,
 )
 from semble import SembleIndex
+from semble.index import DEFAULT_MODEL_NAME
 from semble.types import SearchResult
 
-_MODEL_NAME = "minishlab/potion-code-16M"
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
 
@@ -193,7 +193,7 @@ def _save_results(results: list[RepoResult]) -> None:
 
     output = {
         "sha": sha,
-        "model": _MODEL_NAME,
+        "model": DEFAULT_MODEL_NAME,
         "summary": {
             "ndcg10": round(sum(r.ndcg10 for r in results) / len(results), 4),
             "p50_ms": round(sum(r.p50_ms for r in results) / len(results), 3),
@@ -233,7 +233,7 @@ def main() -> None:
         raise SystemExit("No benchmark tasks matched the requested filters.")
     print("Loading model...", file=sys.stderr)
     started = time.perf_counter()
-    model = StaticModel.from_pretrained(_MODEL_NAME)
+    model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f} ms", file=sys.stderr)
     print(file=sys.stderr)
     repo_tasks: dict[str, list[Task]] = {}

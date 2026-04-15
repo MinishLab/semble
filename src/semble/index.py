@@ -16,7 +16,7 @@ from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
 from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode, SearchResult
 
-_DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
+DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
 
 
 class _EmbeddingCache:
@@ -87,7 +87,7 @@ class SembleIndex:
         else:
             root = Path(cache_dir).expanduser() if cache_dir is not None else Path.home() / ".cache" / "semble"
             if model is None:
-                self.cache_dir, self.cache_namespace = root, _DEFAULT_MODEL_NAME
+                self.cache_dir, self.cache_namespace = root, DEFAULT_MODEL_NAME
             elif model_name is not None:
                 self.cache_dir, self.cache_namespace = root, model_name
             else:
@@ -233,7 +233,7 @@ class SembleIndex:
     def _ensure_model(self) -> Encoder:
         """Return the current model, loading the default if none was provided."""
         if self.model is None:
-            self.model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
+            self.model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
         return self.model
 
     def _embed_chunks(self, chunks: list[Chunk]) -> EmbeddingMatrix:
