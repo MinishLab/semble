@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol, cast
 
-from semble import Chunk
-
 BENCH_ROOT = Path("/tmp/bench")
 BENCHMARKS_DIR = Path(__file__).parent
 ANNOTATIONS_DIR = BENCHMARKS_DIR / "annotations"
@@ -28,10 +26,6 @@ class _ChunkLike(Protocol):
     file_path: str
     start_line: int
     end_line: int
-
-
-class _ResultLike(Protocol):
-    chunk: Chunk
 
 
 @dataclass(frozen=True)
@@ -122,10 +116,14 @@ def load_tasks(
     tasks: list[Task] = []
     annotation_files = sorted(path.glob("*.json")) if path.is_dir() else [path]
     for annotation_file in annotation_files:
+        if annotation_file.stem not in specs:
+            continue
         raw = json.loads(annotation_file.read_text(encoding="utf-8"))
         default_repo = annotation_file.stem
         for item in raw:
             repo = item.get("repo", default_repo)
+            if repo not in specs:
+                continue
             spec = specs[repo]
             category = item.get("category")
             tasks.append(
@@ -169,14 +167,6 @@ def span_overlaps(start_line: int, end_line: int, target: Target) -> bool:
 
 def target_matches_location(file_path: str, start_line: int, end_line: int, target: Target) -> bool:
     return path_matches(file_path, target.path) and span_overlaps(start_line, end_line, target)
-
-
-def target_rank(results: list[_ResultLike], target: Target) -> int | None:
-    for index, result in enumerate(results, 1):
-        chunk = result.chunk
-        if target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target):
-            return index
-    return None
 
 
 def count_indexed_targets(chunks: list[_ChunkLike], targets: tuple[Target, ...]) -> int:

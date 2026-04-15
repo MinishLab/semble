@@ -11,6 +11,7 @@ from pathlib import Path
 from model2vec import StaticModel
 
 from benchmarks.common import (
+    Target,
     Task,
     apply_task_filters,
     available_repo_specs,
@@ -18,7 +19,6 @@ from benchmarks.common import (
     grouped_tasks,
     load_tasks,
     target_matches_location,
-    target_rank,
 )
 from semble import SembleIndex
 from semble.types import SearchResult
@@ -27,6 +27,14 @@ _CACHE_DIR = Path("/tmp/semble-bench-cache")
 _MODEL_NAME = "Pringled/potion-code-16M"
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
+
+
+def _target_rank(results: list[SearchResult], target: Target) -> int | None:
+    for index, result in enumerate(results, 1):
+        chunk = result.chunk
+        if target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target):
+            return index
+    return None
 
 
 @dataclass(frozen=True)
@@ -88,7 +96,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
 
         chunk_results = results[:_DIRECT_TOP_K]
         relevant_ranks = [
-            rank for target in task.all_relevant if (rank := target_rank(chunk_results, target)) is not None
+            rank for target in task.all_relevant if (rank := _target_rank(chunk_results, target)) is not None
         ]
         n_relevant = count_indexed_targets(index.chunks, task.all_relevant)
         q_ndcg5 = _ndcg_at_k(relevant_ranks, n_relevant, 5)
@@ -203,12 +211,12 @@ def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel) -> list[
         started = time.perf_counter()
         warm = SembleIndex.from_path(spec.benchmark_dir, model=model, cache_dir=_CACHE_DIR, model_name=_MODEL_NAME)
         warm_ms = (time.perf_counter() - started) * 1000
-        _, ndcg10, p50_ms = _evaluate(warm, tasks)
+        ndcg5, ndcg10, p50_ms = _evaluate(warm, tasks)
         result = RepoResult(
             repo=repo,
             language=spec.language,
             chunks=len(cold.chunks),
-            ndcg5=0.0,
+            ndcg5=ndcg5,
             ndcg10=ndcg10,
             p50_ms=p50_ms,
             cold_ms=cold_ms,
