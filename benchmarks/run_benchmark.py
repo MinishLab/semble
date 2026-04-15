@@ -20,21 +20,12 @@ from benchmarks.common import (
     target_matches_location,
 )
 from semble import SembleIndex
-from semble.types import Chunk, SearchResult
+from semble.types import SearchResult
 
 _CACHE_DIR = Path("/tmp/semble-bench-cache")
 _MODEL_NAME = "Pringled/potion-code-16M"
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
-
-
-def count_indexed_targets(chunks: list[Chunk], targets: tuple[Target, ...]) -> int:
-    """Count how many targets are covered by at least one chunk in the index."""
-    return sum(
-        1
-        for target in targets
-        if any(target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target) for chunk in chunks)
-    )
 
 
 def _target_rank(results: list[SearchResult], target: Target) -> int | None:
@@ -90,7 +81,11 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
         relevant_ranks = [rank for target in task.all_relevant if (rank := _target_rank(results, target)) is not None]
-        n_relevant = count_indexed_targets(index.chunks, task.all_relevant)
+        n_relevant = sum(
+            1
+            for target in task.all_relevant
+            if any(target_matches_location(c.file_path, c.start_line, c.end_line, target) for c in index.chunks)
+        )
         q_ndcg5 = _ndcg_at_k(relevant_ranks, n_relevant, 5)
         q_ndcg10 = _ndcg_at_k(relevant_ranks, n_relevant, 10)
         ndcg5_sum += q_ndcg5
@@ -117,6 +112,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
 def _print_summary(results: list[RepoResult]) -> None:
     """Print per-language and overall benchmark summary to stderr."""
     languages = sorted({result.language for result in results})
+    by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
     columns = ["Avg", *[lang.title() for lang in languages]]
 
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
@@ -124,8 +120,7 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     print(file=sys.stderr)
     print("By language", file=sys.stderr)
-    for language in languages:
-        grouped = [r for r in results if r.language == language]
+    for language, grouped in by_language.items():
         ndcg5_values = [r.ndcg5 for r in grouped if r.ndcg5 is not None]
         ndcg5_str = f"  ndcg@5={sum(ndcg5_values) / len(ndcg5_values):.3f}" if ndcg5_values else ""
         print(
@@ -144,8 +139,7 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     ndcg_row = [f"{avg_ndcg10:>9.3f}"]
     p50_row = [f"{avg_p50:>8.2f}ms"]
-    for language in languages:
-        language_results = [r for r in results if r.language == language]
+    for language, language_results in by_language.items():
         ndcg_row.append(f"{sum(r.ndcg10 for r in language_results) / len(language_results):>9.3f}")
         p50_row.append(f"{sum(r.p50_ms for r in language_results) / len(language_results):>8.2f}ms")
 
