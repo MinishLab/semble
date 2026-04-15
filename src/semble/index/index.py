@@ -118,6 +118,7 @@ class SembleIndex:
                 extensions=extensions,
                 ignore=ignore,
                 include_docs=include_docs,
+                display_root=resolved_path,
             )
 
             index = SembleIndex(model, bm25, vicinity, chunks, resolved_path)
