@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -54,7 +53,6 @@ class Task:
     relevant: tuple[Target, ...]
     secondary: tuple[Target, ...]
     category: str
-    category_inferred: bool
 
     @property
     def all_relevant(self) -> tuple[Target, ...]:
@@ -95,11 +93,10 @@ def load_repo_specs(path: Path = REPOS_PATH) -> dict[str, RepoSpec]:
     return {item["name"]: RepoSpec(**item) for item in raw}
 
 
-def available_repo_specs(repo_specs: dict[str, RepoSpec] | None = None) -> dict[str, RepoSpec]:
-    specs = load_repo_specs() if repo_specs is None else repo_specs
+def available_repo_specs() -> dict[str, RepoSpec]:
     return {
         name: spec
-        for name, spec in specs.items()
+        for name, spec in load_repo_specs().items()
         if spec.checkout_dir.exists() and (ANNOTATIONS_DIR / f"{name}.json").exists()
     }
 
@@ -126,7 +123,6 @@ def load_tasks(repo_specs: dict[str, RepoSpec] | None = None) -> list[Task]:
                     relevant=tuple(_parse_target(t) for t in item.get("relevant", [])),
                     secondary=tuple(_parse_target(t) for t in item.get("secondary", [])),
                     category=category if isinstance(category, str) else infer_category(item["query"]),
-                    category_inferred=category is None,
                 )
             )
     return tasks
@@ -157,10 +153,3 @@ def count_indexed_targets(chunks: list[_ChunkLike], targets: tuple[Target, ...])
         for target in targets
         if any(target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target) for chunk in chunks)
     )
-
-
-def grouped_tasks(tasks: list[Task]) -> dict[str, list[Task]]:
-    result: dict[str, list[Task]] = defaultdict(list)
-    for task in tasks:
-        result[task.repo].append(task)
-    return dict(result)

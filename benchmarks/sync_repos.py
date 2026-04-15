@@ -7,13 +7,6 @@ import sys
 from benchmarks.common import BENCH_ROOT, load_repo_specs
 
 
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Clone or update pinned benchmark repositories.")
-    parser.add_argument("--repo", action="append", default=[], help="Restrict to one or more repo names.")
-    parser.add_argument("--check", action="store_true", help="Only verify local checkouts against pinned revisions.")
-    return parser.parse_args()
-
-
 def _run(*args: str) -> None:
     subprocess.run(args, check=True)
 
@@ -43,7 +36,10 @@ def _check_repo(name: str, revision: str) -> str | None:
 
 
 def main() -> None:
-    args = _parse_args()
+    parser = argparse.ArgumentParser(description="Clone or update pinned benchmark repositories.")
+    parser.add_argument("--repo", action="append", default=[], help="Restrict to one or more repo names.")
+    parser.add_argument("--check", action="store_true", help="Only verify local checkouts against pinned revisions.")
+    args = parser.parse_args()
     specs = load_repo_specs()
     selected = {name: spec for name, spec in specs.items() if not args.repo or name in args.repo}
     BENCH_ROOT.mkdir(parents=True, exist_ok=True)

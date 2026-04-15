@@ -17,7 +17,6 @@ from benchmarks.common import (
     apply_task_filters,
     available_repo_specs,
     count_indexed_targets,
-    grouped_tasks,
     load_tasks,
     target_matches_location,
 )
@@ -48,15 +47,6 @@ class RepoResult:
     ndcg5: float | None = None
     cold_ms: float | None = None
     warm_ms: float | None = None
-
-
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
-    parser.add_argument("--cache", action="store_true", help="Show cold vs warm index time using the disk cache.")
-    parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
-    parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
-    parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
-    return parser.parse_args()
 
 
 def _dcg(relevances: list[int]) -> float:
@@ -112,29 +102,25 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
     return ndcg5_sum / total, ndcg10_sum / total, latencies[len(latencies) // 2]
 
 
-def _print_group_summary(results: list[RepoResult], group_by: str) -> None:
+def _print_summary(results: list[RepoResult]) -> None:
+    languages = sorted({result.language for result in results})
+    columns = ["Avg", *[lang.title() for lang in languages]]
+
+    avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
+    avg_p50 = sum(r.p50_ms for r in results) / len(results)
+
     print(file=sys.stderr)
-    print(f"By {group_by}", file=sys.stderr)
-    groups = sorted({getattr(result, group_by) for result in results})
-    for value in groups:
-        grouped = [result for result in results if getattr(result, group_by) == value]
+    print("By language", file=sys.stderr)
+    for language in languages:
+        grouped = [r for r in results if r.language == language]
         ndcg5_values = [r.ndcg5 for r in grouped if r.ndcg5 is not None]
         ndcg5_str = f"  ndcg@5={sum(ndcg5_values) / len(ndcg5_values):.3f}" if ndcg5_values else ""
         print(
-            "  "
-            + f"{value}: repos={len(grouped)}{ndcg5_str}"
+            f"  {language}: repos={len(grouped)}{ndcg5_str}"
             + f"  ndcg@10={sum(r.ndcg10 for r in grouped) / len(grouped):.3f}"
             + f"  p50={sum(r.p50_ms for r in grouped) / len(grouped):.2f}ms",
             file=sys.stderr,
         )
-
-
-def _print_language_table(results: list[RepoResult]) -> None:
-    present = sorted({result.language for result in results})
-    columns = ["Avg", *[language.title() for language in present]]
-
-    avg_ndcg10 = sum(result.ndcg10 for result in results) / len(results)
-    avg_p50 = sum(result.p50_ms for result in results) / len(results)
 
     print(file=sys.stderr)
     print(f"{'=' * 104}", file=sys.stderr)
@@ -145,10 +131,10 @@ def _print_language_table(results: list[RepoResult]) -> None:
 
     ndcg_row = [f"{avg_ndcg10:>9.3f}"]
     p50_row = [f"{avg_p50:>8.2f}ms"]
-    for language in present:
-        language_results = [result for result in results if result.language == language]
-        ndcg_row.append(f"{sum(result.ndcg10 for result in language_results) / len(language_results):>9.3f}")
-        p50_row.append(f"{sum(result.p50_ms for result in language_results) / len(language_results):>8.2f}ms")
+    for language in languages:
+        language_results = [r for r in results if r.language == language]
+        ndcg_row.append(f"{sum(r.ndcg10 for r in language_results) / len(language_results):>9.3f}")
+        p50_row.append(f"{sum(r.p50_ms for r in language_results) / len(language_results):>8.2f}ms")
 
     print(f"  {'NDCG@10':<28}  " + "  ".join(ndcg_row), file=sys.stderr)
     print(f"  {'q-p50':<28}  " + "  ".join(p50_row), file=sys.stderr)
@@ -224,7 +210,12 @@ def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel, specs: d
 
 
 def main() -> None:
-    args = _parse_args()
+    parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
+    parser.add_argument("--cache", action="store_true", help="Show cold vs warm index time using the disk cache.")
+    parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
+    parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
+    parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
+    args = parser.parse_args()
     repo_specs = available_repo_specs()
     tasks = apply_task_filters(
         load_tasks(repo_specs=repo_specs), repos=args.repo or None, languages=args.language or None
@@ -236,14 +227,15 @@ def main() -> None:
     model = StaticModel.from_pretrained(_MODEL_NAME)
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f} ms", file=sys.stderr)
     print(file=sys.stderr)
-    repo_tasks = grouped_tasks(tasks)
+    repo_tasks: dict[str, list[Task]] = {}
+    for task in tasks:
+        repo_tasks.setdefault(task.repo, []).append(task)
     results = (
         _bench_cache(repo_tasks, model, repo_specs)
         if args.cache
         else _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
     )
-    _print_group_summary(results, "language")
-    _print_language_table(results)
+    _print_summary(results)
 
 
 if __name__ == "__main__":
