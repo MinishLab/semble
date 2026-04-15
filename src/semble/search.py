@@ -94,7 +94,7 @@ def search_hybrid(
 
     bm25_scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
     bm25_result_scores: dict[Chunk, float] = {}
-    for chunk_index in np.argsort(-bm25_scores)[:candidate_count]:
+    for chunk_index in _sort_top_k(bm25_scores, candidate_count):
         if bm25_scores[chunk_index] > 0:
             bm25_result_scores[chunks[chunk_index]] = float(bm25_scores[chunk_index])
 
