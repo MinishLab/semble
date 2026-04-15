@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import os
 import subprocess
 import tempfile
@@ -144,7 +145,7 @@ class SembleIndex:
         """Clone a git repository and index it.
 
         :param url: URL of the git repository to clone (any git provider).
-        :param ref: Branch, tag, or commit to check out. Defaults to the remote HEAD.
+        :param ref: Branch or tag to check out. Defaults to the remote HEAD.
         :param model: Embedding model to use. Defaults to potion-code-16M.
         :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
@@ -152,7 +153,7 @@ class SembleIndex:
         :param enable_caching: Whether to persist embeddings to disk between runs.
         :param cache_dir: Override the cache directory. Defaults to ~/.cache/semble.
         :param model_name: Stable identifier for a custom encoder, used as the disk cache namespace.
-        :return: An indexed SembleIndex.
+        :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH or the clone fails.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -160,10 +161,13 @@ class SembleIndex:
             if ref is not None:
                 cmd += ["--branch", ref]
             cmd += [url, tmp_dir]
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+            except FileNotFoundError:
+                raise RuntimeError("git is not installed or not on PATH") from None
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
-            return cls.from_path(
+            instance = cls.from_path(
                 tmp_dir,
                 model=model,
                 extensions=extensions,
@@ -173,6 +177,20 @@ class SembleIndex:
                 cache_dir=cache_dir,
                 model_name=model_name,
             )
+            # Remap absolute temp-dir paths to repo-relative paths before the
+            # TemporaryDirectory is torn down, so callers get stable, meaningful paths.
+            # Resolve both sides to handle OS-level symlinks (e.g. /var → /private/var on macOS).
+            tmp_root = Path(tmp_dir).resolve()
+            remapped = [
+                dataclasses.replace(chunk, file_path=str(Path(chunk.file_path).relative_to(tmp_root)))
+                for chunk in instance.chunks
+            ]
+            instance.chunks = remapped
+            instance._index_root = None
+            if remapped and instance._semantic_index is not None:
+                embeddings = instance._embed_chunks(remapped)
+                instance._semantic_index = Vicinity.from_vectors_and_items(embeddings, remapped, metric=Metric.COSINE)
+            return instance
 
     def index(
         self,

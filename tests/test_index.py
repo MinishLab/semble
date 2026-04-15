@@ -191,23 +191,29 @@ def test_find_related_before_indexing_returns_empty() -> None:
 # from_git tests
 # ---------------------------------------------------------------------------
 
+_GIT_ENV = {
+    **os.environ,
+    "GIT_AUTHOR_NAME": "test",
+    "GIT_AUTHOR_EMAIL": "t@t.com",
+    "GIT_COMMITTER_NAME": "test",
+    "GIT_COMMITTER_EMAIL": "t@t.com",
+}
+
+
+def _make_git_repo(path: Path) -> None:
+    """Initialise a git repo at *path* with git user config set."""
+    subprocess.run(["git", "init", str(path)], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(path), "config", "user.email", "t@t.com"], check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(path), "config", "user.name", "test"], check=True, capture_output=True)
+
 
 @pytest.fixture
 def git_repo(tmp_path: Path) -> Path:
     """Create a minimal local git repository with one Python file."""
-    env = {
-        **os.environ,
-        "GIT_AUTHOR_NAME": "test",
-        "GIT_AUTHOR_EMAIL": "t@t.com",
-        "GIT_COMMITTER_NAME": "test",
-        "GIT_COMMITTER_EMAIL": "t@t.com",
-    }
-    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.email", "t@t.com"], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(tmp_path), "config", "user.name", "test"], check=True, capture_output=True)
+    _make_git_repo(tmp_path)
     (tmp_path / "main.py").write_text("def hello():\n    return 'hello'\n")
-    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True, capture_output=True, env=env)
-    subprocess.run(["git", "-C", str(tmp_path), "commit", "-m", "init"], check=True, capture_output=True, env=env)
+    subprocess.run(["git", "-C", str(tmp_path), "add", "."], check=True, capture_output=True, env=_GIT_ENV)
+    subprocess.run(["git", "-C", str(tmp_path), "commit", "-m", "init"], check=True, capture_output=True, env=_GIT_ENV)
     return tmp_path
 
 
@@ -219,31 +225,29 @@ def test_from_git_indexes_local_repo(mock_model: Any, git_repo: Path) -> None:
     assert any("main.py" in c.file_path for c in idx.chunks)
 
 
+def test_from_git_paths_are_repo_relative(mock_model: Any, git_repo: Path) -> None:
+    """Chunk file_paths are repo-relative after cloning, not absolute temp-dir paths."""
+    idx = SembleIndex.from_git(str(git_repo), model=mock_model, enable_caching=False)
+    for chunk in idx.chunks:
+        assert not Path(chunk.file_path).is_absolute(), f"Expected relative path, got: {chunk.file_path}"
+
+
 def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
     """from_git with ref= checks out the specified branch."""
-    env = {
-        **os.environ,
-        "GIT_AUTHOR_NAME": "test",
-        "GIT_AUTHOR_EMAIL": "t@t.com",
-        "GIT_COMMITTER_NAME": "test",
-        "GIT_COMMITTER_EMAIL": "t@t.com",
-    }
     repo = tmp_path / "repo"
     repo.mkdir()
-    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(repo), "config", "user.email", "t@t.com"], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(repo), "config", "user.name", "test"], check=True, capture_output=True)
+    _make_git_repo(repo)
 
     # Commit on main
     (repo / "main.py").write_text("def on_main(): pass\n")
     subprocess.run(["git", "-C", str(repo), "add", "."], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(repo), "commit", "-m", "main"], check=True, capture_output=True, env=env)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "main"], check=True, capture_output=True, env=_GIT_ENV)
 
     # Create feature branch with a different file
     subprocess.run(["git", "-C", str(repo), "checkout", "-b", "feature"], check=True, capture_output=True)
     (repo / "feature.py").write_text("def on_feature(): pass\n")
     subprocess.run(["git", "-C", str(repo), "add", "."], check=True, capture_output=True)
-    subprocess.run(["git", "-C", str(repo), "commit", "-m", "feature"], check=True, capture_output=True, env=env)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "feature"], check=True, capture_output=True, env=_GIT_ENV)
 
     idx = SembleIndex.from_git(str(repo), ref="feature", model=mock_model, enable_caching=False)
     file_names = {Path(c.file_path).name for c in idx.chunks}
