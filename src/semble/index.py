@@ -292,11 +292,7 @@ class SembleIndex:
         return self.model
 
     def _embed_chunks(self, chunks: list[Chunk]) -> EmbeddingMatrix:
-        """Embed chunks, consulting memory then disk before calling the model.
-
-        Lookup order: in-memory cache → disk cache → encode. The model is loaded
-        (or downloaded) only when there are genuine cache misses.
-        """
+        """Embed chunks, consulting memory then disk before calling the model."""
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
 
@@ -320,8 +316,7 @@ class SembleIndex:
     def _remap_to_relative(self, tmp_root: Path) -> None:
         """Rewrite chunk file_paths from absolute temp-dir paths to repo-relative paths.
 
-        Called by :meth:`from_git` before the TemporaryDirectory is torn down so that
-        callers receive stable, meaningful paths instead of paths into a deleted temp dir.
+        Called by :meth:`from_git` before the TemporaryDirectory is deleted.
 
         :param tmp_root: Resolved absolute path to the cloned repo root.
         """
@@ -330,13 +325,10 @@ class SembleIndex:
             for chunk in self.chunks
         ]
         self.chunks = remapped
-        # Set to None: paths are now repo-relative so there is no meaningful local root.
-        # If .index() is called again later it will set a new root from the given path.
+        # No meaningful local root once paths are repo-relative.
         self._index_root = None
         if self._semantic_index is not None:
-            # Only file_path changed, not content — pull embeddings straight from the
-            # in-memory cache rather than going through _embed_chunks, which could
-            # misleadingly look like a re-encode.
+            # file_path only changed — read from cache, no re-encode.
             embeddings = np.array([self._embedding_cache[c.content_hash] for c in remapped], dtype=np.float32)
             self._semantic_index = Vicinity.from_vectors_and_items(embeddings, remapped, metric=Metric.COSINE)
 
