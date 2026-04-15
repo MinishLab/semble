@@ -19,10 +19,9 @@ index = SembleIndex.from_path("./my-project")
 # Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
 
-results = index.search("load a pretrained model", top_k=5)
+results = index.search("load a pretrained model", top_k=3)
 for result in results:
-    print(result.chunk.location, f"score={result.score:.3f}")
-    print(result.chunk.content[:200])
+    print(result)
 ```
 
 ## MCP server

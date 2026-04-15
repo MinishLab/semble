@@ -50,6 +50,12 @@ class SearchResult:
     score: float
     source: SearchMode
 
+    def __str__(self) -> str:
+        """Return a human-readable summary of the result."""
+        header = f"{self.chunk.location}  score={self.score:.3f}"
+        separator = "-" * len(header)
+        return f"{header}\n{separator}\n{self.chunk.content.strip()}\n"
+
 
 @dataclass(frozen=True, slots=True)
 class IndexStats:
