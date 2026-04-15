@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import subprocess
 import tempfile
 from collections import defaultdict
@@ -105,14 +104,8 @@ class SembleIndex:
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
             cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), url, tmp_dir]
-            ssh_cmd = os.environ.get("GIT_SSH_COMMAND", "ssh")
-            env = {
-                **os.environ,
-                "GIT_TERMINAL_PROMPT": "0",
-                "GIT_SSH_COMMAND": f"{ssh_cmd} -o BatchMode=yes",
-            }
             try:
-                result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, env=env)
+                result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
             except FileNotFoundError:
                 raise RuntimeError("git is not installed or not on PATH") from None
             if result.returncode != 0:
