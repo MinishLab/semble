@@ -16,7 +16,7 @@ from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
 from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode, SearchResult
 
-_DEFAULT_MODEL_NAME = "Pringled/potion-code-16M"
+_DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
 
 
 class _EmbeddingCache:

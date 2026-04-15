@@ -21,7 +21,7 @@ from benchmarks.data import (
 from semble import SembleIndex
 from semble.types import SearchResult
 
-_MODEL_NAME = "Pringled/potion-code-16M"
+_MODEL_NAME = "minishlab/potion-code-16M"
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
 
