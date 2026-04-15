@@ -11,6 +11,7 @@ from pathlib import Path
 from model2vec import StaticModel
 
 from benchmarks.common import (
+    RepoSpec,
     Target,
     Task,
     apply_task_filters,
@@ -56,14 +57,6 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
     parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
     return parser.parse_args()
-
-
-def _is_relevant(result: SearchResult, task: Task) -> bool:
-    chunk = result.chunk
-    return any(
-        target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target)
-        for target in task.all_relevant
-    )
 
 
 def _dcg(relevances: list[int]) -> float:
@@ -161,14 +154,15 @@ def _print_language_table(results: list[RepoResult]) -> None:
     print(f"  {'q-p50':<28}  " + "  ".join(p50_row), file=sys.stderr)
 
 
-def _bench_quality(repo_tasks: dict[str, list[Task]], model: StaticModel, *, verbose: bool = False) -> list[RepoResult]:
+def _bench_quality(
+    repo_tasks: dict[str, list[Task]], model: StaticModel, specs: dict[str, RepoSpec], *, verbose: bool = False
+) -> list[RepoResult]:
     print(
         f"{'Repo':<12} {'language':<12} {'chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8}",
         file=sys.stderr,
     )
     print(f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 9} {'-' * 8} {'-' * 8} {'-' * 8}", file=sys.stderr)
     results: list[RepoResult] = []
-    specs = available_repo_specs()
     for repo, tasks in sorted(repo_tasks.items()):
         spec = specs[repo]
         started = time.perf_counter()
@@ -186,7 +180,7 @@ def _bench_quality(repo_tasks: dict[str, list[Task]], model: StaticModel, *, ver
     return results
 
 
-def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel) -> list[RepoResult]:
+def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel, specs: dict[str, RepoSpec]) -> list[RepoResult]:
     _CACHE_DIR.mkdir(parents=True, exist_ok=True)
     print(f"Cache dir: {_CACHE_DIR}", file=sys.stderr)
     print(file=sys.stderr)
@@ -196,7 +190,6 @@ def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel) -> list[
     )
     print(f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 9} {'-' * 9} {'-' * 8} {'-' * 8}", file=sys.stderr)
     results: list[RepoResult] = []
-    specs = available_repo_specs()
     model_ns = _MODEL_NAME.replace("/", "--")
     for repo, tasks in sorted(repo_tasks.items()):
         spec = specs[repo]
@@ -244,7 +237,11 @@ def main() -> None:
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f} ms", file=sys.stderr)
     print(file=sys.stderr)
     repo_tasks = grouped_tasks(tasks)
-    results = _bench_cache(repo_tasks, model) if args.cache else _bench_quality(repo_tasks, model, verbose=args.verbose)
+    results = (
+        _bench_cache(repo_tasks, model, repo_specs)
+        if args.cache
+        else _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
+    )
     _print_group_summary(results, "language")
     _print_language_table(results)
 

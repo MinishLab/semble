@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Protocol
 
 BENCH_ROOT = Path("/tmp/bench")
 BENCHMARKS_DIR = Path(__file__).parent
@@ -75,16 +76,11 @@ def _coerce_int(value: object) -> int:
     return int(value)
 
 
-def _coerce_mapping(raw: object) -> dict[str, object]:
-    if not isinstance(raw, dict):
-        raise TypeError(f"expected mapping, got {type(raw).__name__}")
-    return cast(dict[str, object], raw)
-
-
 def _parse_target(raw: str | dict[str, object]) -> Target:
     if isinstance(raw, str):
         return Target(path=raw)
-    raw = _coerce_mapping(raw)
+    if not isinstance(raw, dict):
+        raise TypeError(f"expected mapping, got {type(raw).__name__}")
     start_line = raw.get("start_line")
     end_line = raw.get("end_line")
     return Target(
@@ -108,14 +104,10 @@ def available_repo_specs(repo_specs: dict[str, RepoSpec] | None = None) -> dict[
     }
 
 
-def load_tasks(
-    path: Path = ANNOTATIONS_DIR,
-    repo_specs: dict[str, RepoSpec] | None = None,
-) -> list[Task]:
+def load_tasks(repo_specs: dict[str, RepoSpec] | None = None) -> list[Task]:
     specs = load_repo_specs() if repo_specs is None else repo_specs
     tasks: list[Task] = []
-    annotation_files = sorted(path.glob("*.json")) if path.is_dir() else [path]
-    for annotation_file in annotation_files:
+    for annotation_file in sorted(ANNOTATIONS_DIR.glob("*.json")):
         if annotation_file.stem not in specs:
             continue
         raw = json.loads(annotation_file.read_text(encoding="utf-8"))
@@ -144,29 +136,19 @@ def apply_task_filters(
     tasks: list[Task],
     repos: list[str] | None = None,
     languages: list[str] | None = None,
-    limit: int | None = None,
 ) -> list[Task]:
     filtered = [task for task in tasks if not repos or task.repo in repos]
-    filtered = [task for task in filtered if not languages or task.language in languages]
-    return filtered if limit is None else filtered[:limit]
-
-
-def path_matches(file_path: str, relative_path: str) -> bool:
-    normalized_file = file_path.replace("\\", "/")
-    normalized_relative = relative_path.replace("\\", "/")
-    return normalized_file == normalized_relative or normalized_file.endswith(f"/{normalized_relative}")
-
-
-def span_overlaps(start_line: int, end_line: int, target: Target) -> bool:
-    if not target.has_span:
-        return True
-    target_start: int = target.start_line  # type: ignore[assignment]
-    target_end: int = target.end_line  # type: ignore[assignment]
-    return not (end_line < target_start or start_line > target_end)
+    return [task for task in filtered if not languages or task.language in languages]
 
 
 def target_matches_location(file_path: str, start_line: int, end_line: int, target: Target) -> bool:
-    return path_matches(file_path, target.path) and span_overlaps(start_line, end_line, target)
+    norm_file = file_path.replace("\\", "/")
+    norm_target = target.path.replace("\\", "/")
+    if not (norm_file == norm_target or norm_file.endswith(f"/{norm_target}")):
+        return False
+    if not target.has_span:
+        return True
+    return not (end_line < target.start_line or start_line > target.end_line)  # type: ignore[operator]
 
 
 def count_indexed_targets(chunks: list[_ChunkLike], targets: tuple[Target, ...]) -> int:
@@ -178,7 +160,7 @@ def count_indexed_targets(chunks: list[_ChunkLike], targets: tuple[Target, ...])
 
 
 def grouped_tasks(tasks: list[Task]) -> dict[str, list[Task]]:
-    grouped: dict[str, list[Task]] = {}
+    result: dict[str, list[Task]] = defaultdict(list)
     for task in tasks:
-        grouped.setdefault(task.repo, []).append(task)
-    return grouped
+        result[task.repo].append(task)
+    return dict(result)
