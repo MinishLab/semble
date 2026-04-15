@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from semble import SembleIndex
-from semble.index.utils import create_index_from_path
+from semble.index.create import create_index_from_path
 from semble.types import Encoder
 
 

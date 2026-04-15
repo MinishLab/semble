@@ -7,8 +7,8 @@ from pathlib import Path
 from bm25s import BM25
 from vicinity import Vicinity
 
+from semble.index.create import create_index_from_path
 from semble.index.dense import load_model
-from semble.index.utils import create_index_from_path
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
