@@ -1,24 +1,22 @@
 from __future__ import annotations
 
 import contextlib
-import dataclasses
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import cast
 
 import bm25s
 import numpy as np
+import numpy.typing as npt
 from huggingface_hub import utils as hf_utils
 from model2vec import StaticModel
 from vicinity import Metric, Vicinity
-from vicinity.backends.basic import BasicBackend
 
 from semble.chunker import chunk_source
 from semble.file_walker import language_for_path, resolve_extensions, walk_files
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
-from semble.types import Chunk, EmbeddingMatrix, Encoder, IndexStats, SearchMode, SearchResult
+from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
 DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
 
@@ -92,11 +90,14 @@ class SembleIndex:
                 raise RuntimeError("git is not installed or not on PATH") from None
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
-            instance = cls.from_path(
-                tmp_dir, model=model, extensions=extensions, ignore=ignore, include_docs=include_docs
+            instance = cls(model=model)
+            instance.index(
+                tmp_dir,
+                extensions=extensions,
+                ignore=ignore,
+                include_docs=include_docs,
+                _display_root=Path(tmp_dir).resolve(),
             )
-            # Remap to relative paths and resolve to handle OS-level symlinks.
-            instance._remap_to_relative(Path(tmp_dir).resolve())
             return instance
 
     def index(
@@ -105,6 +106,7 @@ class SembleIndex:
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
+        _display_root: Path | None = None,
     ) -> IndexStats:
         """Index a directory using the backend configured at construction time.
 
@@ -112,10 +114,11 @@ class SembleIndex:
         :param extensions: File extensions to include.
         :param ignore: Directory names to skip.
         :param include_docs: If True, also index documentation files.
+        :param _display_root: If set, chunk file paths are stored relative to this root instead of absolute.
         :return: Statistics about the indexed files and chunks.
         """
         path = Path(path).resolve()
-        self._index_root = path
+        self._index_root = None if _display_root is not None else path
         extensions = resolve_extensions(extensions, include_docs=include_docs)
 
         all_chunks: list[Chunk] = []
@@ -127,7 +130,8 @@ class SembleIndex:
             with contextlib.suppress(OSError):
                 source = file_path.read_text(encoding="utf-8", errors="replace")
                 indexed_files += 1
-                file_chunks = chunk_source(source, str(file_path), language)
+                chunk_path = str(file_path.relative_to(_display_root)) if _display_root else str(file_path)
+                file_chunks = chunk_source(source, chunk_path, language)
                 all_chunks.extend(file_chunks)
                 for chunk in file_chunks:
                     if chunk.language:
@@ -219,29 +223,12 @@ class SembleIndex:
                 hf_utils.enable_progress_bars()
         return self.model
 
-    def _embed_chunks(self, chunks: list[Chunk]) -> EmbeddingMatrix:
+    def _embed_chunks(self, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
         """Embed chunks using the configured model."""
         if not chunks:
             return np.empty((0, 256), dtype=np.float32)
         model = self._ensure_model()
         return np.array(model.encode([c.content for c in chunks]), dtype=np.float32)
-
-    def _remap_to_relative(self, tmp_root: Path) -> None:
-        """Rewrite chunk file_paths from absolute temp-dir paths to repo-relative paths.
-
-        :param tmp_root: Resolved absolute path to the cloned repo root.
-        """
-        remapped = [
-            dataclasses.replace(chunk, file_path=str(Path(chunk.file_path).relative_to(tmp_root)))
-            for chunk in self.chunks
-        ]
-        self.chunks = remapped
-        # No meaningful local root once paths are repo-relative.
-        self._index_root = None
-        if self._semantic_index is not None:
-            self._semantic_index = Vicinity.from_vectors_and_items(
-                cast(BasicBackend, self._semantic_index.backend).vectors, remapped, metric=Metric.COSINE
-            )
 
     def _enrich_for_bm25(self, chunk: Chunk, root: Path | None) -> str:
         """Append file path components to BM25 content to boost path-based queries.
