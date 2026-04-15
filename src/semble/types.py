@@ -34,7 +34,6 @@ class Chunk:
     start_line: int
     end_line: int
     language: str | None = None
-    content_hash: str = ""
 
     @property
     def location(self) -> str:

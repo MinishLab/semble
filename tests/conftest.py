@@ -17,7 +17,6 @@ def make_chunk(content: str, file_path: str = "src/module.py") -> Chunk:
         start_line=1,
         end_line=content.count("\n") + 1,
         language="python",
-        content_hash=content[:16],
     )
 
 

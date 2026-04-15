@@ -6,14 +6,13 @@ from semble.chunker import _chunk_with_chonkie, chunk_file, chunk_lines
 
 
 def test_chunk_lines_basic(tmp_path: Path) -> None:
-    """Chunks are produced with non-empty content and a content hash."""
+    """Chunks are produced with non-empty content."""
     f = tmp_path / "test.py"
     f.write_text("\n".join(f"line {i}" for i in range(10)))
     chunks = chunk_lines(f.read_text(), str(f), "python", max_lines=5, overlap_lines=1)
     assert len(chunks) >= 2
     for c in chunks:
         assert c.content.strip()
-        assert c.content_hash
 
 
 def test_chunk_lines_empty(tmp_path: Path) -> None:
@@ -74,10 +73,3 @@ def test_chunk_file_unknown_extension(tmp_path: Path) -> None:
     f.write_text("hello world\n" * 5)
     chunks = chunk_file(f)
     assert isinstance(chunks, list)
-
-
-def test_chunk_content_hash_unique(tmp_py_file: Path) -> None:
-    """Each chunk has a distinct content hash."""
-    chunks = chunk_file(tmp_py_file)
-    hashes = [c.content_hash for c in chunks]
-    assert len(hashes) == len(set(hashes))

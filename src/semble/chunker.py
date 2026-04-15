@@ -1,4 +1,3 @@
-import hashlib
 import logging
 from pathlib import Path
 
@@ -54,7 +53,6 @@ def chunk_lines(
                     start_line=start + 1,
                     end_line=end,
                     language=language,
-                    content_hash=_content_hash(content),
                 )
             )
         start = end - overlap_lines if end < len(lines) else end
@@ -88,11 +86,6 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
                 start_line=source[: raw_chunk.start_index].count("\n") + 1,
                 end_line=source[:end_index].count("\n") + 1,
                 language=language,
-                content_hash=_content_hash(text),
             )
         )
     return chunks if chunks else chunk_lines(source, file_path, language)
-
-
-def _content_hash(content: str) -> str:
-    return hashlib.sha256(content.encode()).hexdigest()[:16]
