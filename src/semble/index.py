@@ -91,12 +91,12 @@ class SembleIndex:
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
             instance = cls(model=model)
-            instance.index(
-                tmp_dir,
+            instance._index_path(
+                Path(tmp_dir).resolve(),
                 extensions=extensions,
                 ignore=ignore,
                 include_docs=include_docs,
-                _display_root=Path(tmp_dir).resolve(),
+                display_root=Path(tmp_dir).resolve(),
             )
             return instance
 
@@ -106,7 +106,6 @@ class SembleIndex:
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
         include_docs: bool = False,
-        _display_root: Path | None = None,
     ) -> IndexStats:
         """Index a directory using the backend configured at construction time.
 
@@ -114,11 +113,28 @@ class SembleIndex:
         :param extensions: File extensions to include.
         :param ignore: Directory names to skip.
         :param include_docs: If True, also index documentation files.
-        :param _display_root: If set, chunk file paths are stored relative to this root instead of absolute.
         :return: Statistics about the indexed files and chunks.
         """
-        path = Path(path).resolve()
-        self._index_root = None if _display_root is not None else path
+        return self._index_path(Path(path).resolve(), extensions=extensions, ignore=ignore, include_docs=include_docs)
+
+    def _index_path(
+        self,
+        path: Path,
+        extensions: frozenset[str] | None = None,
+        ignore: frozenset[str] | None = None,
+        include_docs: bool = False,
+        display_root: Path | None = None,
+    ) -> IndexStats:
+        """Index a resolved directory, optionally storing chunk paths relative to display_root.
+
+        :param path: Resolved absolute path to index.
+        :param extensions: File extensions to include.
+        :param ignore: Directory names to skip.
+        :param include_docs: If True, also index documentation files.
+        :param display_root: If set, chunk file paths are stored relative to this root.
+        :return: Statistics about the indexed files and chunks.
+        """
+        self._index_root = None if display_root is not None else path
         extensions = resolve_extensions(extensions, include_docs=include_docs)
 
         all_chunks: list[Chunk] = []
@@ -130,7 +146,7 @@ class SembleIndex:
             with contextlib.suppress(OSError):
                 source = file_path.read_text(encoding="utf-8", errors="replace")
                 indexed_files += 1
-                chunk_path = str(file_path.relative_to(_display_root)) if _display_root else str(file_path)
+                chunk_path = str(file_path.relative_to(display_root)) if display_root else str(file_path)
                 file_chunks = chunk_source(source, chunk_path, language)
                 all_chunks.extend(file_chunks)
                 for chunk in file_chunks:
