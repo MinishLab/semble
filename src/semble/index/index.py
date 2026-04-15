@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import tempfile
+from collections import defaultdict
 from pathlib import Path
 
 from bm25s import BM25
@@ -34,10 +35,23 @@ class SembleIndex:
         """
         self.model: Encoder = model
         self.chunks: list[Chunk] = chunks
-        self.stats = IndexStats()
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: Vicinity = semantic_index
         self._index_root: Path = index_root
+
+    @property
+    def stats(self) -> IndexStats:
+        """Stats of an index."""
+        indexed_files = set()
+        total_chunks = len(self.chunks)
+        language_counts: dict[str, int] = defaultdict(int)
+
+        for chunk in self.chunks:
+            indexed_files.add(chunk.file_path)
+            if chunk.language:
+                language_counts[chunk.language] += 1
+
+        return IndexStats(indexed_files=len(indexed_files), total_chunks=total_chunks, languages=dict(language_counts))
 
     @classmethod
     def from_path(
@@ -58,12 +72,12 @@ class SembleIndex:
         :return: An indexed SembleIndex.
         """
         model = model or load_model()
-        bm25, vicinity, chunks, stats, index_root = cls.index(
+        path = Path(path)
+        bm25, vicinity, chunks = create_index_from_path(
             path, model=model, extensions=extensions, ignore=ignore, include_docs=include_docs
         )
 
-        index = SembleIndex(model, bm25, vicinity, chunks, index_root)
-        index.stats = stats
+        index = SembleIndex(model, bm25, vicinity, chunks, path)
 
         return index
 
@@ -98,41 +112,17 @@ class SembleIndex:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
             model = model or load_model()
             resolved_path = Path(tmp_dir).resolve()
-            bm25, vicinity, chunks, stats, index_root = create_index_from_path(
+            bm25, vicinity, chunks = create_index_from_path(
                 resolved_path,
                 model=model,
                 extensions=extensions,
                 ignore=ignore,
                 include_docs=include_docs,
-                display_root=resolved_path,
             )
 
-            index = SembleIndex(model, bm25, vicinity, chunks, index_root)
-            index.stats = stats
+            index = SembleIndex(model, bm25, vicinity, chunks, resolved_path)
 
             return index
-
-    @classmethod
-    def index(
-        cls,
-        path: str | Path,
-        model: Encoder,
-        extensions: frozenset[str] | None = None,
-        ignore: frozenset[str] | None = None,
-        include_docs: bool = False,
-    ) -> tuple[BM25, Vicinity, list[Chunk], IndexStats, Path]:
-        """Index a directory using the backend configured at construction time.
-
-        :param path: Root directory to index.
-        :param model: The model used to index.
-        :param extensions: File extensions to include.
-        :param ignore: Directory names to skip.
-        :param include_docs: If True, also index documentation files.
-        :return: Statistics about the indexed files and chunks.
-        """
-        return create_index_from_path(
-            Path(path).resolve(), model, extensions=extensions, ignore=ignore, include_docs=include_docs
-        )
 
     def find_related(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically similar to the chunk at the given file location.

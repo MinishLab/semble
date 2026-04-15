@@ -16,13 +16,6 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
     return SembleIndex.from_path(tmp_project, model=mock_model)
 
 
-def test_index_returns_stats(mock_model: Encoder, tmp_project: Path) -> None:
-    """Indexing returns stats with file and chunk counts populated."""
-    _, _, _, stats, _ = create_index_from_path(tmp_project, mock_model)
-    assert stats.indexed_files >= 2  # auth.py, utils.py
-    assert stats.total_chunks > 0
-
-
 @pytest.mark.parametrize(
     ("include_docs", "md_in_results"),
     [(False, False), (True, True)],
@@ -31,7 +24,7 @@ def test_index_markdown_inclusion(
     mock_model: Encoder, tmp_project: Path, include_docs: bool, md_in_results: bool
 ) -> None:
     """Markdown files are excluded by default and included when include_docs=True."""
-    _, _, chunks, _, _ = create_index_from_path(tmp_project, mock_model, include_docs=include_docs)
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, include_docs=include_docs)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 
