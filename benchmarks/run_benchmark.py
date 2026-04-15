@@ -214,7 +214,7 @@ def _save_results(results: list[RepoResult]) -> None:
     results_dir = Path(__file__).parent / "results"
     results_dir.mkdir(exist_ok=True)
     out_path = results_dir / f"{sha[:12]}.json"
-    out_path.write_text(json.dumps(output, indent=2), encoding="utf-8")
+    out_path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
     print(f"\nResults saved to {out_path}", file=sys.stderr)
 
 
