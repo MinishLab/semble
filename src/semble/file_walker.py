@@ -97,7 +97,7 @@ def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | 
     ignore = (ignore or frozenset()) | DEFAULT_IGNORED_DIRS
     for dirpath, _, filenames in os.walk(root):
         dirpath_as_path = Path(dirpath)
-        if dirpath_as_path.parts[-1] in ignore:
+        if set(dirpath_as_path.parts) & ignore:
             continue
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename
