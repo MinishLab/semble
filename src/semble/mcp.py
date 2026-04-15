@@ -9,7 +9,8 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 from semble.index import SembleIndex
-from semble.types import SearchResult
+from semble.index.dense import load_model
+from semble.types import Encoder, SearchResult
 
 
 def _is_git_url(path: str) -> bool:
@@ -35,31 +36,50 @@ def _format_results(header: str, results: list[SearchResult]) -> list[mcp_types.
 
 
 class _IndexCache:
-    """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
+    """Cache of indexed repos and local paths for the lifetime of the MCP server process.
 
-    def __init__(self) -> None:
-        """Initialise an empty cache."""
+    A single embedding model is shared across all indexes to avoid redundant loads and
+    multiplied RAM usage when the session touches several repos.  Per-source locks prevent
+    duplicate clones/embeds when concurrent calls arrive against the same cold source.
+    """
+
+    def __init__(self, model: Encoder) -> None:
+        """Initialise an empty cache with a shared embedding model.
+
+        :param model: Shared encoder passed to every SembleIndex built by this cache.
+        """
+        self._model = model
         self._cache: dict[str, SembleIndex] = {}
+        self._locks: dict[str, asyncio.Lock] = {}
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return a cached index for *source*, building it on first access.
 
         Indexing is run in a thread-pool executor so it does not block the event loop.
+        A per-source lock ensures the source is only indexed once even under concurrent calls.
 
         :param source: Local directory path or remote git URL.
         :param ref: Branch or tag to check out (git URLs only).
         :return: A fully-built SembleIndex ready to search.
         """
-        if source not in self._cache:
-            loop = asyncio.get_event_loop()
-            if _is_git_url(source):
-                captured_ref = ref
-                self._cache[source] = await loop.run_in_executor(
-                    None, lambda: SembleIndex.from_git(source, ref=captured_ref)
-                )
-            else:
-                resolved = str(Path(source).resolve())
-                self._cache[source] = await loop.run_in_executor(None, lambda: SembleIndex.from_path(resolved))
+        if source in self._cache:
+            return self._cache[source]
+        if source not in self._locks:
+            self._locks[source] = asyncio.Lock()
+        async with self._locks[source]:
+            if source not in self._cache:
+                model = self._model
+                loop = asyncio.get_event_loop()
+                if _is_git_url(source):
+                    captured_ref = ref
+                    self._cache[source] = await loop.run_in_executor(
+                        None, lambda: SembleIndex.from_git(source, ref=captured_ref, model=model)
+                    )
+                else:
+                    resolved = str(Path(source).resolve())
+                    self._cache[source] = await loop.run_in_executor(
+                        None, lambda: SembleIndex.from_path(resolved, model=model)
+                    )
         return self._cache[source]
 
 
@@ -199,7 +219,8 @@ async def serve(path: str | None = None, ref: str | None = None) -> None:
     :param path: Local directory path or remote git URL to pre-index at startup (optional).
     :param ref: Branch or tag to check out when *path* is a git URL.
     """
-    cache = _IndexCache()
+    model = await asyncio.get_event_loop().run_in_executor(None, load_model)
+    cache = _IndexCache(model=model)
     if path:
         await cache.get(path, ref=ref)
 
