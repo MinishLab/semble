@@ -14,10 +14,10 @@ uv run python -m benchmarks.sync_repos --check
 ## Run
 
 ```bash
-uv run python -m benchmarks.bench_hybrid
-uv run python -m benchmarks.bench_hybrid --cache
-uv run python -m benchmarks.bench_hybrid --repo fastapi --repo axios
-uv run python -m benchmarks.bench_hybrid --language python
+uv run python -m benchmarks.run_benchmark
+uv run python -m benchmarks.run_benchmark --cache
+uv run python -m benchmarks.run_benchmark --repo fastapi --repo axios
+uv run python -m benchmarks.run_benchmark --language python
 ```
 
 `--cache` measures cold vs warm index time. Warm time still includes the file walk and
