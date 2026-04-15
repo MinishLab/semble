@@ -28,13 +28,36 @@ for result in results:
 
 Semble can run as an MCP server so agents (Claude Code, Cursor, etc.) can search any codebase directly.
 
-Register with Claude Code:
+The agent will clone and index repos on demand as you ask questions. Indexes are cached for the lifetime of the session.
 
+
+### Installation
+
+#### Claude Code
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-The agent will clone and index repos on demand as you ask questions. Indexes are cached for the lifetime of the session.
+#### Codex
+Add to `~/.codex/config.toml`:
+```toml
+[mcp_servers.semble]
+command = "uvx"
+args = ["--from", "semble[mcp]", "semble"]
+```
+
+#### OpenCode
+Add to `~/.opencode/config.json`:
+```json
+{
+  "mcp": {
+    "semble": {
+      "type": "local",
+      "command": ["uvx", "--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
 
 | Tool | Description |
 |------|-------------|
