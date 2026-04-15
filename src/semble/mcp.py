@@ -124,8 +124,7 @@ def create_server(index: SembleIndex) -> Server:
 
 async def serve(path: str) -> None:
     """Index path and start an MCP stdio server."""
-    index = SembleIndex()
-    index.index(str(Path(path).resolve()))
+    index = SembleIndex.from_path(Path(path))
 
     server = create_server(index)
     async with stdio_server() as (read_stream, write_stream):

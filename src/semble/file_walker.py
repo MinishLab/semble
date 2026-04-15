@@ -1,7 +1,13 @@
 import os
 from collections.abc import Iterator
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
+
+
+class FileTypeType(str, Enum):
+    CODE = "CODE"
+    DOCUMENT = "DOCUMENT"
 
 
 @dataclass(frozen=True)
@@ -9,39 +15,39 @@ class FileType:
     """Language and indexing policy for a file extension."""
 
     language: str
-    index_by_default: bool = True
+    type: FileTypeType
 
 
 FILE_TYPES: dict[str, FileType] = {
-    ".py": FileType("python"),
-    ".js": FileType("javascript"),
-    ".jsx": FileType("javascript"),
-    ".ts": FileType("typescript"),
-    ".tsx": FileType("typescript"),
-    ".go": FileType("go"),
-    ".rs": FileType("rust"),
-    ".java": FileType("java"),
-    ".kt": FileType("kotlin"),
-    ".kts": FileType("kotlin"),
-    ".rb": FileType("ruby"),
-    ".php": FileType("php"),
-    ".c": FileType("c"),
-    ".h": FileType("c"),
-    ".cpp": FileType("cpp"),
-    ".hpp": FileType("cpp"),
-    ".cs": FileType("csharp"),
-    ".swift": FileType("swift"),
-    ".scala": FileType("scala"),
-    ".sbt": FileType("scala"),
-    ".dart": FileType("dart"),
-    ".lua": FileType("lua"),
-    ".sql": FileType("sql"),
-    ".sh": FileType("bash"),
-    ".md": FileType("markdown", index_by_default=False),
-    ".yaml": FileType("yaml", index_by_default=False),
-    ".yml": FileType("yaml", index_by_default=False),
-    ".toml": FileType("toml", index_by_default=False),
-    ".json": FileType("json", index_by_default=False),
+    ".py": FileType("python", FileTypeType.CODE),
+    ".js": FileType("javascript", FileTypeType.CODE),
+    ".jsx": FileType("javascript", FileTypeType.CODE),
+    ".ts": FileType("typescript", FileTypeType.CODE),
+    ".tsx": FileType("typescript", FileTypeType.CODE),
+    ".go": FileType("go", FileTypeType.CODE),
+    ".rs": FileType("rust", FileTypeType.CODE),
+    ".java": FileType("java", FileTypeType.CODE),
+    ".kt": FileType("kotlin", FileTypeType.CODE),
+    ".kts": FileType("kotlin", FileTypeType.CODE),
+    ".rb": FileType("ruby", FileTypeType.CODE),
+    ".php": FileType("php", FileTypeType.CODE),
+    ".c": FileType("c", FileTypeType.CODE),
+    ".h": FileType("c", FileTypeType.CODE),
+    ".cpp": FileType("cpp", FileTypeType.CODE),
+    ".hpp": FileType("cpp", FileTypeType.CODE),
+    ".cs": FileType("csharp", FileTypeType.CODE),
+    ".swift": FileType("swift", FileTypeType.CODE),
+    ".scala": FileType("scala", FileTypeType.CODE),
+    ".sbt": FileType("scala", FileTypeType.CODE),
+    ".dart": FileType("dart", FileTypeType.CODE),
+    ".lua": FileType("lua", FileTypeType.CODE),
+    ".sql": FileType("sql", FileTypeType.CODE),
+    ".sh": FileType("bash", FileTypeType.CODE),
+    ".md": FileType("markdown", FileTypeType.DOCUMENT),
+    ".yaml": FileType("yaml", FileTypeType.DOCUMENT),
+    ".yml": FileType("yaml", FileTypeType.DOCUMENT),
+    ".toml": FileType("toml", FileTypeType.DOCUMENT),
+    ".json": FileType("json", FileTypeType.DOCUMENT),
 }
 
 DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
@@ -68,22 +74,31 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
 
 def language_for_path(path: Path) -> str | None:
     """Return the language for a file path, or None for unknown extensions."""
-    spec = FILE_TYPES.get(path.suffix.lower())
-    return None if spec is None else spec.language
+    if spec := FILE_TYPES.get(path.suffix.lower()):
+        return spec.language
+    return None
 
 
-def resolve_extensions(extensions: frozenset[str] | None, *, include_docs: bool) -> frozenset[str]:
+def filter_extensions(extensions: frozenset[str] | None, *, include_docs: bool) -> frozenset[str]:
     """Return the set of file extensions to index."""
     if extensions is not None:
         return extensions
-    return frozenset(ext for ext, spec in FILE_TYPES.items() if include_docs or spec.index_by_default)
+    # Always index code files
+    types_to_include = {FileTypeType.CODE}
+    if include_docs:
+        types_to_include.add(FileTypeType.DOCUMENT)
+    # Return a default set of extensions
+    return frozenset(ext for ext, spec in FILE_TYPES.items() if spec.type in types_to_include)
 
 
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
     """Yield files under root matching extensions, skipping ignored directories."""
-    ignore = DEFAULT_IGNORED_DIRS if ignore is None else ignore
-    for dirpath, dirnames, filenames in os.walk(str(root)):
-        dirnames[:] = sorted(d for d in dirnames if d not in ignore)
+    # Always skip the defaults.
+    ignore = (ignore or frozenset()) | DEFAULT_IGNORED_DIRS
+    for dirpath, _, filenames in os.walk(root):
+        dirpath_as_path = Path(dirpath)
+        if dirpath_as_path.parts[-1] in ignore:
+            continue
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename
             if file_path.suffix.lower() in extensions:

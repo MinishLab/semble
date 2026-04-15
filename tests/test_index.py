@@ -6,12 +6,8 @@ from typing import Any
 import pytest
 
 from semble import SembleIndex
-
-
-@pytest.fixture
-def index(mock_model: Any) -> SembleIndex:
-    """SembleIndex backed by the deterministic mock encoder."""
-    return SembleIndex(model=mock_model)
+from semble.index.utils import create_index_from_path
+from semble.types import Encoder
 
 
 @pytest.fixture
@@ -20,12 +16,11 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
     return SembleIndex.from_path(tmp_project, model=mock_model)
 
 
-def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
+def test_index_returns_stats(mock_model: Encoder, tmp_project: Path) -> None:
     """Indexing returns stats with file and chunk counts populated."""
-    stats = index.index(tmp_project)
+    _, _, _, stats, _ = create_index_from_path(tmp_project, mock_model)
     assert stats.indexed_files >= 2  # auth.py, utils.py
     assert stats.total_chunks > 0
-    assert index.stats == stats
 
 
 @pytest.mark.parametrize(
@@ -33,19 +28,18 @@ def test_index_returns_stats(index: SembleIndex, tmp_project: Path) -> None:
     [(False, False), (True, True)],
 )
 def test_index_markdown_inclusion(
-    index: SembleIndex, tmp_project: Path, include_docs: bool, md_in_results: bool
+    mock_model: Encoder, tmp_project: Path, include_docs: bool, md_in_results: bool
 ) -> None:
     """Markdown files are excluded by default and included when include_docs=True."""
-    index.index(tmp_project, include_docs=include_docs)
-    has_md = ".md" in {Path(c.file_path).suffix for c in index.chunks}
+    _, _, chunks, _, _ = create_index_from_path(tmp_project, mock_model, include_docs=include_docs)
+    has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 
 
-def test_index_empty_returns_zero_chunks(index: SembleIndex, tmp_path: Path) -> None:
+def test_index_empty_returns_zero_chunks(mock_model: Encoder, tmp_path: Path) -> None:
     """Indexing an empty directory yields zero files and chunks."""
-    stats = index.index(tmp_path)
-    assert stats.total_chunks == 0
-    assert stats.indexed_files == 0
+    with pytest.raises(ValueError):
+        create_index_from_path(tmp_path, mock_model)
 
 
 def test_index_language_counts(indexed_index: SembleIndex) -> None:
@@ -53,13 +47,6 @@ def test_index_language_counts(indexed_index: SembleIndex) -> None:
     stats = indexed_index.stats
     assert "python" in stats.languages
     assert stats.languages["python"] > 0
-
-
-def test_search_returns_empty_before_indexing() -> None:
-    """Search on an empty index returns an empty list."""
-    idx = SembleIndex()
-    results = idx.search("anything")
-    assert results == []
 
 
 @pytest.mark.parametrize(
@@ -104,12 +91,6 @@ def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> 
     """find_related returns an empty list when the file is not in the index."""
     results = indexed_index.find_related("/does/not/exist.py", 1)
     assert results == []
-
-
-def test_find_related_before_indexing_returns_empty() -> None:
-    """find_related on an empty index returns an empty list."""
-    idx = SembleIndex()
-    assert idx.find_related("/any/file.py", 1) == []
 
 
 _GIT_ENV = {
