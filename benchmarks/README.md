@@ -19,3 +19,6 @@ uv run python -m benchmarks.bench_hybrid --cache
 uv run python -m benchmarks.bench_hybrid --repo fastapi --repo axios
 uv run python -m benchmarks.bench_hybrid --language python
 ```
+
+`--cache` measures cold vs warm index time. Warm time still includes the file walk and
+BM25/Vicinity rebuild; only embedding is skipped.

@@ -131,8 +131,8 @@ def load_tasks(
                     repo=repo,
                     language=spec.language,
                     query=item["query"],
-                    relevant=tuple(_parse_target(raw) for raw in item.get("relevant", [])),
-                    secondary=tuple(_parse_target(raw) for raw in item.get("secondary", [])),
+                    relevant=tuple(_parse_target(t) for t in item.get("relevant", [])),
+                    secondary=tuple(_parse_target(t) for t in item.get("secondary", [])),
                     category=category if isinstance(category, str) else infer_category(item["query"]),
                     category_inferred=category is None,
                 )
@@ -160,9 +160,9 @@ def path_matches(file_path: str, relative_path: str) -> bool:
 def span_overlaps(start_line: int, end_line: int, target: Target) -> bool:
     if not target.has_span:
         return True
-    assert target.start_line is not None
-    assert target.end_line is not None
-    return not (end_line < target.start_line or start_line > target.end_line)
+    target_start: int = target.start_line  # type: ignore[assignment]
+    target_end: int = target.end_line  # type: ignore[assignment]
+    return not (end_line < target_start or start_line > target_end)
 
 
 def target_matches_location(file_path: str, start_line: int, end_line: int, target: Target) -> bool:

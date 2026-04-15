@@ -42,9 +42,9 @@ class RepoResult:
     repo: str
     language: str
     chunks: int
-    ndcg5: float
     ndcg10: float
     p50_ms: float
+    ndcg5: float | None = None
     cold_ms: float | None = None
     warm_ms: float | None = None
 
@@ -94,10 +94,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
-        chunk_results = results[:_DIRECT_TOP_K]
-        relevant_ranks = [
-            rank for target in task.all_relevant if (rank := _target_rank(chunk_results, target)) is not None
-        ]
+        relevant_ranks = [rank for target in task.all_relevant if (rank := _target_rank(results, target)) is not None]
         n_relevant = count_indexed_targets(index.chunks, task.all_relevant)
         q_ndcg5 = _ndcg_at_k(relevant_ranks, n_relevant, 5)
         q_ndcg10 = _ndcg_at_k(relevant_ranks, n_relevant, 10)
@@ -109,7 +106,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
             targets_str = ", ".join(
                 t.path if not t.start_line else f"{t.path}:{t.start_line}-{t.end_line}" for t in task.all_relevant
             )
-            top_files = [r.chunk.file_path for r in chunk_results[:5]]
+            top_files = [r.chunk.file_path for r in results[:5]]
             print(
                 f"  [{cat:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}  n_rel={n_relevant}  q={task.query!r}",
                 file=sys.stderr,
@@ -128,9 +125,11 @@ def _print_group_summary(results: list[RepoResult], group_by: str) -> None:
     groups = sorted({getattr(result, group_by) for result in results})
     for value in groups:
         grouped = [result for result in results if getattr(result, group_by) == value]
+        ndcg5_values = [r.ndcg5 for r in grouped if r.ndcg5 is not None]
+        ndcg5_str = f"  ndcg@5={sum(ndcg5_values) / len(ndcg5_values):.3f}" if ndcg5_values else ""
         print(
             "  "
-            + f"{value}: repos={len(grouped)}  ndcg@5={sum(r.ndcg5 for r in grouped) / len(grouped):.3f}"
+            + f"{value}: repos={len(grouped)}{ndcg5_str}"
             + f"  ndcg@10={sum(r.ndcg10 for r in grouped) / len(grouped):.3f}"
             + f"  p50={sum(r.p50_ms for r in grouped) / len(grouped):.2f}ms",
             file=sys.stderr,
@@ -138,8 +137,7 @@ def _print_group_summary(results: list[RepoResult], group_by: str) -> None:
 
 
 def _print_language_table(results: list[RepoResult]) -> None:
-    languages = ["python", "javascript", "java", "go", "php", "ruby"]
-    present = [language for language in languages if any(result.language == language for result in results)]
+    present = sorted({result.language for result in results})
     columns = ["Avg", *[language.title() for language in present]]
 
     avg_ndcg10 = sum(result.ndcg10 for result in results) / len(results)
@@ -211,12 +209,11 @@ def _bench_cache(repo_tasks: dict[str, list[Task]], model: StaticModel) -> list[
         started = time.perf_counter()
         warm = SembleIndex.from_path(spec.benchmark_dir, model=model, cache_dir=_CACHE_DIR, model_name=_MODEL_NAME)
         warm_ms = (time.perf_counter() - started) * 1000
-        ndcg5, ndcg10, p50_ms = _evaluate(warm, tasks)
+        _, ndcg10, p50_ms = _evaluate(warm, tasks)
         result = RepoResult(
             repo=repo,
             language=spec.language,
             chunks=len(cold.chunks),
-            ndcg5=ndcg5,
             ndcg10=ndcg10,
             p50_ms=p50_ms,
             cold_ms=cold_ms,
