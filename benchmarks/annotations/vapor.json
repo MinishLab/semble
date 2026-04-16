@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how Application configures and boots a Vapor server",
+    "relevant": ["Sources/Vapor/Application.swift"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how routes are registered on the RoutesBuilder",
+    "relevant": ["Sources/Vapor/Routing/RoutesBuilder+Method.swift"],
+    "secondary": ["Sources/Vapor/Routing/RoutesBuilder.swift"],
+    "category": "architecture"
+  },
+  {
+    "query": "Request type and HTTP request representation in Vapor",
+    "relevant": ["Sources/Vapor/Request/Request.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Response type and HTTP response construction in Vapor",
+    "relevant": ["Sources/Vapor/Response/Response.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Content protocol for encoding and decoding request and response bodies",
+    "relevant": ["Sources/Vapor/Content/Content.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Middleware protocol and how middleware wraps request handling",
+    "relevant": ["Sources/Vapor/Middleware/Middleware.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Vapor Application stores and retrieves services via Storage",
+    "relevant": ["Sources/Vapor/Utilities/Storage.swift"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "WebSocket upgrade and handler registration in Vapor",
+    "relevant": ["Sources/Vapor/Routing/RoutesBuilder+WebSocket.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Abort error and HTTP error response throwing",
+    "relevant": ["Sources/Vapor/Error/Abort.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Sessions and session driver for server-side session storage",
+    "relevant": ["Sources/Vapor/Sessions/Session.swift"],
+    "secondary": ["Sources/Vapor/Sessions/SessionsMiddleware.swift"],
+    "category": "semantic"
+  },
+  {
+    "query": "Validations and Validatable for request body validation",
+    "relevant": ["Sources/Vapor/Validation/Validations.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how route groups and route collections compose routes",
+    "relevant": ["Sources/Vapor/Routing/RoutesBuilder+Group.swift"],
+    "secondary": ["Sources/Vapor/Routing/RouteCollection.swift"],
+    "category": "semantic"
+  },
+  {
+    "query": "FileMiddleware for serving static files",
+    "relevant": ["Sources/Vapor/Middleware/FileMiddleware.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how serve and boot commands start the Vapor HTTP server",
+    "relevant": ["Sources/Vapor/Commands/ServeCommand.swift"],
+    "secondary": ["Sources/Vapor/HTTP/Server/HTTPServer.swift"],
+    "category": "semantic"
+  },
+  {
+    "query": "Environment configuration for development production and testing",
+    "relevant": ["Sources/Vapor/Environment/Environment.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "CORS middleware for cross-origin resource sharing",
+    "relevant": ["Sources/Vapor/Middleware/CORSMiddleware.swift"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HTTP status codes and media types in Vapor",
+    "relevant": ["Sources/Vapor/HTTP/HTTPStatus.swift"],
+    "secondary": ["Sources/Vapor/HTTP/Headers/HTTPMediaType.swift"],
+    "category": "semantic"
+  },
+  {
+    "query": "Application",
+    "relevant": ["Sources/Vapor/Application.swift"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Request",
+    "relevant": ["Sources/Vapor/Request/Request.swift"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Middleware",
+    "relevant": ["Sources/Vapor/Middleware/Middleware.swift"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

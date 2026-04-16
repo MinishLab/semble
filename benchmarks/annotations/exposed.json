@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how Table defines columns and constraints in Exposed DSL",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Table.kt"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Column definition and column types in Exposed",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Column.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how SQL queries are built with the Exposed query DSL",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/AbstractQuery.kt"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Transaction block and database session management",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Transaction.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Database connection configuration and dialect selection",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/DatabaseApi.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "insert insertAndGetId and batch insert operations",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/statements/InsertStatement.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "update and delete statement builders",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/statements/UpdateStatement.kt"],
+    "secondary": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/statements/DeleteStatement.kt"],
+    "category": "semantic"
+  },
+  {
+    "query": "Op and SqlExpressionBuilder for composing WHERE conditions",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Op.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "aggregate functions sum count avg and groupBy",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Function.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "SchemaUtils for creating and dropping database tables",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/SchemaUtilityApi.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how expressions and SQL operators are composed in Exposed",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Expression.kt"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "vendor-specific SQL generation and database dialect interface",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/DatabaseDialect.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ResultRow and how query results are read by column",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/ResultRow.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "index and unique constraint definition on tables",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Constraints.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ColumnType mapping between Kotlin types and SQL types",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/ColumnType.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "upsert and batch upsert statement for insert-or-update",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/statements/UpsertStatement.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "database exceptions and error handling in Exposed",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Exceptions.kt"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Table",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Table.kt"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Transaction",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Transaction.kt"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ResultRow",
+    "relevant": ["exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/ResultRow.kt"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

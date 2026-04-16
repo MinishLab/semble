@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how fmt::format and fmt::print format strings at runtime",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "core format_arg and basic_format_args argument storage",
+    "relevant": ["include/fmt/core.h"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "formatter specialization for custom type formatting",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "compile-time format string checking with FMT_STRING",
+    "relevant": ["include/fmt/core.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "color and text style formatting for terminal output",
+    "relevant": ["include/fmt/color.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "formatting ranges containers and tuples",
+    "relevant": ["include/fmt/ranges.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "chrono duration and time point formatting",
+    "relevant": ["include/fmt/chrono.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ostream integration for writing to std::ostream",
+    "relevant": ["include/fmt/ostream.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "printf-compatible formatting with fmt::printf and fmt::sprintf",
+    "relevant": ["include/fmt/printf.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "format_to and back_insert_iterator output adapters",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "memory buffer and basic_memory_buffer for efficient allocation",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dynamic format arguments are stored and accessed",
+    "relevant": ["include/fmt/core.h"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "std::filesystem path formatting support",
+    "relevant": ["include/fmt/std.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "format_error exception for invalid format strings",
+    "relevant": ["include/fmt/core.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "width precision fill and alignment format specifiers",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "named arguments in format strings with fmt::arg",
+    "relevant": ["include/fmt/core.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how fmt handles integer floating point and string formatting",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "formatter",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "basic_format_args",
+    "relevant": ["include/fmt/core.h"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "basic_memory_buffer",
+    "relevant": ["include/fmt/format.h"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

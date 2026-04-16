@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how Dapper Query maps SQL results to typed objects",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Execute and ExecuteScalar for running SQL commands",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "async Query and Execute methods for database operations",
+    "relevant": ["Dapper/SqlMapper.Async.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "DynamicParameters for passing dynamic SQL parameters",
+    "relevant": ["Dapper/DynamicParameters.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Dapper maps columns to object properties by name",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "multi-mapping QueryMultiple for reading multiple result sets",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "CommandDefinition for parameterized command configuration",
+    "relevant": ["Dapper/CommandDefinition.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "DbString for specifying varchar vs nvarchar parameters",
+    "relevant": ["Dapper/DbString.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Dapper caches parameter and deserializer IL",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "TypeHandler and custom type mapping",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "split-on multi-mapping for joining related objects",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "table-valued parameter support",
+    "relevant": ["Dapper/TableValuedParameter.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how IDataReader is consumed and results materialized",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "QueryFirst and QuerySingle for single-row queries",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "transaction support in Dapper queries",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "FeatureSupport and database dialect detection",
+    "relevant": ["Dapper/FeatureSupport.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "wrapping IDbConnection extension methods",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "SqlMapper",
+    "relevant": ["Dapper/SqlMapper.cs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "DynamicParameters",
+    "relevant": ["Dapper/DynamicParameters.cs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "CommandDefinition",
+    "relevant": ["Dapper/CommandDefinition.cs"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

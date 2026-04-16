@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how HttpRoutes define pattern-matched HTTP request handlers",
+    "relevant": ["core/shared/src/main/scala/org/http4s/HttpRoutes.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Message Request and Response HTTP message representation",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Message.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "EntityDecoder for parsing request bodies",
+    "relevant": ["core/shared/src/main/scala/org/http4s/EntityDecoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "EntityEncoder for serializing response bodies",
+    "relevant": ["core/shared/src/main/scala/org/http4s/EntityEncoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Headers and individual Header types",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Headers.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Uri parsing and construction",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Uri.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Kleisli and OptionT power the Http and HttpRoutes algebra",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Http.scala"],
+    "secondary": ["core/shared/src/main/scala/org/http4s/HttpRoutes.scala"],
+    "category": "architecture"
+  },
+  {
+    "query": "Status codes and HTTP response status",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Status.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Method HTTP verb enumeration",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Method.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how query parameters are extracted and decoded from URIs",
+    "relevant": ["core/shared/src/main/scala/org/http4s/QueryParam.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "StaticFile for serving static assets",
+    "relevant": ["core/shared/src/main/scala/org/http4s/StaticFile.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Media type and content type handling",
+    "relevant": ["core/shared/src/main/scala/org/http4s/MediaType.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how http4s HttpApp lifts routes to a cats-effect IO application",
+    "relevant": ["core/shared/src/main/scala/org/http4s/HttpApp.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "cookie parsing and Set-Cookie header handling",
+    "relevant": ["core/shared/src/main/scala/org/http4s/headers/Set-Cookie.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "MessageFailure and http4s error types",
+    "relevant": ["core/shared/src/main/scala/org/http4s/MessageFailure.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Entity body representation and streaming",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Entity.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "FormDataDecoder for parsing URL-encoded form bodies",
+    "relevant": ["core/shared/src/main/scala/org/http4s/FormDataDecoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HttpRoutes",
+    "relevant": ["core/shared/src/main/scala/org/http4s/HttpRoutes.scala"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "EntityDecoder",
+    "relevant": ["core/shared/src/main/scala/org/http4s/EntityDecoder.scala"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Uri",
+    "relevant": ["core/shared/src/main/scala/org/http4s/Uri.scala"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

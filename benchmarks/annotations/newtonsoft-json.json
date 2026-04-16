@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how JsonConvert serializes and deserializes objects",
+    "relevant": ["Src/Newtonsoft.Json/JsonConvert.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "JsonSerializer core serialization and deserialization engine",
+    "relevant": ["Src/Newtonsoft.Json/JsonSerializer.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "JsonReader base class and token reading API",
+    "relevant": ["Src/Newtonsoft.Json/JsonReader.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonWriter base class and token writing API",
+    "relevant": ["Src/Newtonsoft.Json/JsonWriter.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonTextReader for reading JSON from text input",
+    "relevant": ["Src/Newtonsoft.Json/JsonTextReader.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonTextWriter for writing JSON to text output",
+    "relevant": ["Src/Newtonsoft.Json/JsonTextWriter.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JToken JObject JArray LINQ to JSON object model",
+    "relevant": ["Src/Newtonsoft.Json/Linq/JToken.cs"],
+    "secondary": ["Src/Newtonsoft.Json/Linq/JObject.cs"],
+    "category": "architecture"
+  },
+  {
+    "query": "JObject for dynamic JSON object manipulation",
+    "relevant": ["Src/Newtonsoft.Json/Linq/JObject.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonConverter abstract class for custom type conversion",
+    "relevant": ["Src/Newtonsoft.Json/JsonConverter.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how JsonSerializerSettings configures serializer behavior",
+    "relevant": ["Src/Newtonsoft.Json/JsonSerializerSettings.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "contract resolver and how JSON property names are determined",
+    "relevant": ["Src/Newtonsoft.Json/Serialization/DefaultContractResolver.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how the internal serializer writer maps .NET objects to JSON tokens",
+    "relevant": ["Src/Newtonsoft.Json/Serialization/JsonSerializerInternalWriter.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how the internal serializer reader maps JSON tokens to .NET objects",
+    "relevant": ["Src/Newtonsoft.Json/Serialization/JsonSerializerInternalReader.cs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "NullValueHandling and reference loop handling settings",
+    "relevant": ["Src/Newtonsoft.Json/JsonSerializerSettings.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonProperty and JsonObject attribute for controlling serialization",
+    "relevant": ["Src/Newtonsoft.Json/JsonPropertyAttribute.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonException and JSON error types",
+    "relevant": ["Src/Newtonsoft.Json/JsonException.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "date handling and ISO 8601 parsing in Newtonsoft.Json",
+    "relevant": ["Src/Newtonsoft.Json/Utilities/DateTimeUtils.cs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonConvert",
+    "relevant": ["Src/Newtonsoft.Json/JsonConvert.cs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JToken",
+    "relevant": ["Src/Newtonsoft.Json/Linq/JToken.cs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JsonConverter",
+    "relevant": ["Src/Newtonsoft.Json/JsonConverter.cs"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

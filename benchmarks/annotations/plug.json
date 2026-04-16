@@ -1,0 +1,122 @@
+[
+  {
+    "query": "Plug.Conn struct and HTTP connection representation",
+    "relevant": ["lib/plug/conn.ex"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how the Plug behaviour defines call/2 for composable middleware",
+    "relevant": ["lib/plug/builder.ex"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Plug.Router for pattern-matched route dispatch",
+    "relevant": ["lib/plug/router.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Plug.Parsers for parsing request body content types",
+    "relevant": ["lib/plug/parsers.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON body parser plug",
+    "relevant": ["lib/plug/parsers/json.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "URL-encoded form body parser",
+    "relevant": ["lib/plug/parsers/urlencoded.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "multipart body parser and file upload handling",
+    "relevant": ["lib/plug/parsers/multipart.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Plug.Session for cookie and server-side session management",
+    "relevant": ["lib/plug/session.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "cookie store for Plug.Session",
+    "relevant": ["lib/plug/session/cookie.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "CSRF protection plug",
+    "relevant": ["lib/plug/csrf_protection.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Plug.Static for serving static files",
+    "relevant": ["lib/plug/static.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Plug.Builder pipelines multiple plugs together",
+    "relevant": ["lib/plug/builder.ex"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "request path and query string helpers on Plug.Conn",
+    "relevant": ["lib/plug/conn.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how halt stops a plug pipeline from continuing",
+    "relevant": ["lib/plug/conn.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "sending responses and setting response status in Plug",
+    "relevant": ["lib/plug/conn.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Plug.SSL for HTTPS enforcement and HSTS headers",
+    "relevant": ["lib/plug/ssl.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request path parameter extraction in Plug.Router",
+    "relevant": ["lib/plug/router/utils.ex"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Conn",
+    "relevant": ["lib/plug/conn.ex"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Router",
+    "relevant": ["lib/plug/router.ex"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Builder",
+    "relevant": ["lib/plug/builder.ex"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

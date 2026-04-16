@@ -1,0 +1,122 @@
+[
+  {
+    "query": "absl::flat_hash_map and flat_hash_set hash table containers",
+    "relevant": ["absl/container/flat_hash_map.h"],
+    "secondary": ["absl/container/flat_hash_set.h"],
+    "category": "semantic"
+  },
+  {
+    "query": "how absl hash tables implement open addressing and SIMD probing",
+    "relevant": ["absl/container/internal/raw_hash_set.h"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "absl::string_view for non-owning string references",
+    "relevant": ["absl/strings/string_view.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::StrCat and StrAppend for efficient string concatenation",
+    "relevant": ["absl/strings/str_cat.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::StrSplit and StrJoin for string splitting and joining",
+    "relevant": ["absl/strings/str_split.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::Status and StatusOr for error propagation",
+    "relevant": ["absl/status/status.h"],
+    "secondary": ["absl/status/statusor.h"],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::Time and absl::Duration for time representation",
+    "relevant": ["absl/time/time.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::optional and absl::variant for vocabulary types",
+    "relevant": ["absl/types/optional.h"],
+    "secondary": ["absl/types/variant.h"],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::Mutex and MutexLock for synchronization",
+    "relevant": ["absl/synchronization/mutex.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl logging macros ABSL_LOG and ABSL_CHECK",
+    "relevant": ["absl/log/log.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::Span for non-owning sequence view",
+    "relevant": ["absl/types/span.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::node_hash_map for pointer-stable hash map",
+    "relevant": ["absl/container/node_hash_map.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::Hash and the Abseil hashing framework",
+    "relevant": ["absl/hash/hash.h"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "absl::Notification for one-time event signaling between threads",
+    "relevant": ["absl/synchronization/notification.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::AnyInvocable for move-only callable wrapper",
+    "relevant": ["absl/functional/any_invocable.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::btree_map and btree_set sorted containers",
+    "relevant": ["absl/container/btree_map.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "absl::StrFormat and string formatting API",
+    "relevant": ["absl/strings/str_format.h"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "flat_hash_map",
+    "relevant": ["absl/container/flat_hash_map.h"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Status",
+    "relevant": ["absl/status/status.h"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Mutex",
+    "relevant": ["absl/synchronization/mutex.h"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

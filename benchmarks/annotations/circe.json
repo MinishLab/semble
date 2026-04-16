@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how Encoder typeclass converts Scala values to JSON",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Encoder.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Decoder typeclass parses JSON into Scala values",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Decoder.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Json ADT representing JSON values null boolean number string array object",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Json.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Codec combining Encoder and Decoder for bidirectional conversion",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Codec.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HCursor and cursor navigation for traversing JSON trees",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/HCursor.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "ACursor abstract cursor for JSON traversal with error accumulation",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/ACursor.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "DecodingFailure and circe error types",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/DecodingFailure.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonObject for key-value JSON object representation",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/JsonObject.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JsonNumber representation for precise numeric values",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/JsonNumber.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how circe derives Encoder and Decoder instances for case classes",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Encoder.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Printer for controlling JSON serialization formatting",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Printer.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "accumulating decoder errors with andAccumulating",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Decoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "emap and flatMap on Decoder for validation and transformation",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Decoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how circe parses a JSON string into a Json value",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Parser.scala"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "KeyEncoder and KeyDecoder for Map key serialization",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/KeyEncoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "circe generic auto and semi-auto derivation configuration",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Decoder.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "down field and array index cursor operations",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/HCursor.scala"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Encoder",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Encoder.scala"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Decoder",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Decoder.scala"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Json",
+    "relevant": ["modules/core/shared/src/main/scala/io/circe/Json.scala"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how vitest discovers and runs test files",
+    "relevant": ["packages/vitest/src/node/core.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "test runner worker pool and execution",
+    "relevant": ["packages/vitest/src/node/pool.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "describe and it test suite block definitions",
+    "relevant": ["packages/vitest/src/public/suite.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "expect assertion API and matchers",
+    "relevant": ["packages/vitest/src/integrations/chai/index.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "vi mock and spy utilities for mocking modules and functions",
+    "relevant": ["packages/vitest/src/integrations/vi.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "snapshot testing serialization and comparison",
+    "relevant": ["packages/vitest/src/integrations/snapshot/chai.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "coverage provider and instrumentation integration",
+    "relevant": ["packages/vitest/src/node/coverage.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "vitest configuration options and defineConfig",
+    "relevant": ["packages/vitest/src/node/types/config.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how beforeAll afterAll beforeEach afterEach hooks are scheduled",
+    "relevant": ["packages/vitest/src/public/suite.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "test reporter interface and built-in reporters",
+    "relevant": ["packages/vitest/src/node/reporters/reported-tasks.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how vitest handles concurrent and parallel test execution",
+    "relevant": ["packages/vitest/src/node/core.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "module mocking and virtual module support",
+    "relevant": ["packages/vitest/src/integrations/mock/timers.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "task state and task result tracking",
+    "relevant": ["packages/vitest/src/utils/tasks.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "fake timers and timer mocking utilities",
+    "relevant": ["packages/vitest/src/integrations/mock/timers.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how test results and state are reported and stored",
+    "relevant": ["packages/vitest/src/node/state.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "project-level configuration and workspace projects",
+    "relevant": ["packages/vitest/src/node/project.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "test watcher for file changes in watch mode",
+    "relevant": ["packages/vitest/src/node/watcher.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Vitest",
+    "relevant": ["packages/vitest/src/node/core.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "VitestProject",
+    "relevant": ["packages/vitest/src/node/project.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "StateManager",
+    "relevant": ["packages/vitest/src/node/state.ts"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]
