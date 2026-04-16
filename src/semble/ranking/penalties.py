@@ -65,11 +65,14 @@ _EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
-_MODERATE_PENALTY = 0.5  # __init__.py re-exports
+_MODERATE_PENALTY = 0.5  # re-export / metadata files
 _MILD_PENALTY = 0.7  # .d.ts declaration stubs (still carry useful type info)
 
+# Filenames that are re-export barrels or package-level metadata.
+_REEXPORT_FILENAMES = frozenset({"__init__.py", "package-info.java"})
+
 # Maximum chunks from the same file before a saturation penalty is applied.
-_FILE_SATURATION_THRESHOLD = 2
+_FILE_SATURATION_THRESHOLD = 1
 
 # Multiplicative penalty per extra chunk from the same file beyond the threshold.
 _FILE_SATURATION_DECAY = 0.5
@@ -143,7 +146,7 @@ def _file_path_penalty(file_path: str) -> float:
     penalty = 1.0
     if _TEST_FILE_RE.search(normalised) is not None or _TEST_DIR_RE.search(normalised) is not None:
         penalty *= _STRONG_PENALTY
-    if Path(file_path).name == "__init__.py":
+    if Path(file_path).name in _REEXPORT_FILENAMES:
         penalty *= _MODERATE_PENALTY
     if _COMPAT_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
