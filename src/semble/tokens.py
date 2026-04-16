@@ -20,15 +20,15 @@ def _split_identifier(token: str) -> list[str]:
     lower = token.lower()
     parts: list[str] = []
 
-    # snake_case splitting
     if "_" in token:
+        # snake_case splitting
         parts = [p for p in lower.split("_") if p]
     else:
         # camelCase / PascalCase splitting
         parts = [m.lower() for m in _CAMEL_RE.findall(token)]
 
     if len(parts) >= 2:
-        return [lower] + parts
+        return [lower, *parts]
     return [lower]
 
 

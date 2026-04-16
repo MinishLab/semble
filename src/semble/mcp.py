@@ -121,10 +121,7 @@ class _IndexCache:
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""
         is_git = _is_git_url(source)
-        if is_git:
-            cache_key = f"{source}@{ref}" if ref else source
-        else:
-            cache_key = str(Path(source).resolve())
+        cache_key = (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
         if cache_key not in self._tasks:
             if is_git:
