@@ -5,11 +5,13 @@ import tempfile
 from collections import defaultdict
 from pathlib import Path
 
+import numpy as np
+import numpy.typing as npt
 from bm25s import BM25
-from vicinity import Vicinity
 
 from semble.index.create import create_index_from_path
-from semble.index.dense import load_model
+from semble.index.dense import SelectableBasicBackend, load_model
+from semble.index.sparse import selector_to_mask
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
@@ -21,7 +23,7 @@ class SembleIndex:
         self,
         model: Encoder,
         bm25_index: BM25,
-        semantic_index: Vicinity,
+        semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
         index_root: Path,
     ) -> None:
@@ -36,8 +38,21 @@ class SembleIndex:
         self.model: Encoder = model
         self.chunks: list[Chunk] = chunks
         self._bm25_index: BM25 = bm25_index
-        self._semantic_index: Vicinity = semantic_index
+        self._semantic_index: SelectableBasicBackend = semantic_index
         self._index_root: Path = index_root
+        self.file_mapping, self.language_mapping = self._populate_mapping()
+
+    def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
+        """Creates two mappings, one from language to chunk, and one from file to chunk."""
+        language_to_id = defaultdict(list)
+        file_to_id = defaultdict(list)
+        for i, chunk in enumerate(self.chunks):
+            language = chunk.language
+            if language:
+                language_to_id[language].append(i)
+            file_to_id[chunk.file_path].append(i)
+
+        return dict(file_to_id), dict(language_to_id)
 
     @property
     def stats(self) -> IndexStats:
@@ -143,8 +158,24 @@ class SembleIndex:
         )
         if target is None:
             return []
-        results = search_semantic(target.content, self.model, self._semantic_index, top_k + 1)
+        if target.language:
+            selector = self._get_selector_vector(select_language=[target.language])
+        else:
+            selector = None
+        results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         return [r for r in results if r.chunk != target][:top_k]
+
+    def _get_selector_vector(
+        self, select_language: list[str] | None = None, select_document: list[str] | None = None
+    ) -> npt.NDArray[np.int_] | None:
+        """Create a vector of integers corresponding to the items that should be retrieved."""
+        selector = []
+        for language in select_language or []:
+            selector.extend(self.language_mapping.get(language, []))
+        for filename in select_document or []:
+            selector.extend(self.file_mapping.get(filename, []))
+
+        return np.asarray(selector) if selector else None
 
     def search(
         self,
@@ -152,6 +183,8 @@ class SembleIndex:
         top_k: int = 10,
         mode: SearchMode | str = SearchMode.HYBRID,
         alpha: float | None = None,
+        select_language: list[str] | None = None,
+        select_document: list[str] | None = None,
     ) -> list[SearchResult]:
         """Search the index and return the top-k most relevant chunks.
 
@@ -161,6 +194,8 @@ class SembleIndex:
         :param alpha: Blend weight for hybrid score combination; 1.0 = full semantic
             weight, 0.0 = full BM25 weight. File-path penalties and diversity reranking
             are applied regardless. ``None`` auto-detects from query type.
+        :param select_language: Optional list of language codes to filter results by.
+        :param select_document: Optional list of document paths to filter results by.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         :raises ValueError: If `mode` is not a recognised search strategy.
         """
@@ -168,11 +203,14 @@ class SembleIndex:
         if not self.chunks:
             return []
 
-        if mode == SearchMode.BM25:
-            return search_bm25(query, bm25_index, self.chunks, top_k)
+        selector = self._get_selector_vector(select_language, select_document)
 
+        if mode == SearchMode.BM25:
+            return search_bm25(query, bm25_index, self.chunks, top_k, selector=selector)
         if mode == SearchMode.SEMANTIC:
-            return search_semantic(query, self.model, semantic_index, top_k)
+            return search_semantic(query, self.model, semantic_index, self.chunks, top_k, selector=selector)
         if mode == SearchMode.HYBRID:
-            return search_hybrid(query, self.model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha)
+            return search_hybrid(
+                query, self.model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha, selector=selector
+            )
         raise ValueError(f"Unknown search mode: {mode!r}")

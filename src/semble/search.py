@@ -1,8 +1,9 @@
 import bm25s
 import numpy as np
 import numpy.typing as npt
-from vicinity import Vicinity
 
+from semble.index.dense import SelectableBasicBackend
+from semble.index.sparse import selector_to_mask
 from semble.ranking import apply_query_boost, rerank_topk, resolve_alpha
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
@@ -21,15 +22,18 @@ def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:
 def search_semantic(
     query: str,
     model: Encoder,
-    semantic_index: Vicinity[Chunk],
+    semantic_index: SelectableBasicBackend,
+    chunks: list[Chunk],
     top_k: int,
+    selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
     query_embedding = model.encode([query])
-    hits = semantic_index.query(query_embedding, k=top_k)[0]
+    indices, scores = semantic_index.query(query_embedding, k=top_k, selector=selector)[0]
     # Vicinity returns cosine distance; convert to similarity so higher = better.
     return [
-        SearchResult(chunk=chunk, score=1.0 - float(distance), source=SearchMode.SEMANTIC) for chunk, distance in hits
+        SearchResult(chunk=chunks[index], score=1.0 - float(distance), source=SearchMode.SEMANTIC)
+        for index, distance in zip(indices, scores)
     ]
 
 
@@ -47,9 +51,11 @@ def search_bm25(
     bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
+    selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
     """Return chunks ranked by BM25 score, excluding zero-score results."""
-    scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query))
+    mask = selector_to_mask(selector)
+    scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query), weight_mask=mask)
     indices = _sort_top_k(scores, top_k)
 
     # Exclude chunks with zero score, no query tokens matched.
@@ -61,11 +67,12 @@ def search_bm25(
 def search_hybrid(
     query: str,
     model: Encoder,
-    semantic_index: Vicinity[Chunk],
+    semantic_index: SelectableBasicBackend,
     bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
     alpha: float | None = None,
+    selector: npt.NDArray[np.int_] | None = None,
 ) -> list[SearchResult]:
     """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
 
@@ -79,6 +86,7 @@ def search_hybrid(
     :param chunks: All indexed chunks (parallel to BM25 index).
     :param top_k: Number of results to return.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
+    :param selector: Optional array of chunk indices to filter results by.
     :return: List of search results sorted by combined score descending.
     """
     alpha_weight = resolve_alpha(query, alpha)
@@ -87,15 +95,15 @@ def search_hybrid(
     # 5x is sufficient; latency difference vs larger multipliers is negligible.
     candidate_count = top_k * 5
 
-    semantic = search_semantic(query, model, semantic_index, candidate_count)
+    semantic = search_semantic(query, model, semantic_index, chunks, candidate_count, selector)
     semantic_scores: dict[Chunk, float] = {result.chunk: result.score for result in semantic}
-    bm25_result_scores = {}
-    for result in search_bm25(query, bm25_index, chunks, candidate_count):
+    bm25_scores = {}
+    for result in search_bm25(query, bm25_index, chunks, candidate_count, selector):
         if result.score:
-            bm25_result_scores[result.chunk] = result.score
+            bm25_scores[result.chunk] = result.score
 
     normalized_semantic = _rrf_scores(semantic_scores)
-    normalized_bm25 = _rrf_scores(bm25_result_scores)
+    normalized_bm25 = _rrf_scores(bm25_scores)
 
     combined_scores: dict[Chunk, float] = {
         chunk: alpha_weight * normalized_semantic.get(chunk, 0.0)

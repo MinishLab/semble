@@ -3,7 +3,19 @@ from __future__ import annotations
 import contextlib
 from pathlib import Path
 
+import numpy as np
+import numpy.typing as npt
+
 from semble.types import Chunk
+
+
+def selector_to_mask(selector: npt.NDArray[np.int_] | None) -> npt.NDArray[np.bool_] | None:
+    """Convert a selector array to a boolean mask."""
+    if selector is None:
+        return None
+    mask = np.zeros(len(selector), dtype=bool)
+    mask[selector] = True
+    return mask
 
 
 def enrich_for_bm25(chunk: Chunk, root: Path | None) -> str:
