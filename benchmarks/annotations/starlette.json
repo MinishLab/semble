@@ -1,90 +1,191 @@
 [
   {
     "query": "how are URL routes registered and matched",
-    "relevant": ["starlette/routing.py"],
-    "secondary": ["starlette/convertors.py"]
+    "relevant": [
+      "starlette/routing.py"
+    ],
+    "secondary": [
+      "starlette/convertors.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how does authentication middleware work",
-    "relevant": ["starlette/middleware/authentication.py"],
-    "secondary": ["starlette/authentication.py"]
+    "relevant": [
+      "starlette/middleware/authentication.py"
+    ],
+    "secondary": [
+      "starlette/authentication.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "websocket connection and message handling",
-    "relevant": ["starlette/websockets.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/websockets.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "how are static files served",
-    "relevant": ["starlette/staticfiles.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/staticfiles.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "parsing form data and file uploads",
-    "relevant": ["starlette/formparsers.py"],
-    "secondary": ["starlette/datastructures.py"]
+    "relevant": [
+      "starlette/formparsers.py"
+    ],
+    "secondary": [
+      "starlette/datastructures.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "how does the test client simulate requests",
-    "relevant": ["starlette/testclient.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/testclient.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "background task scheduling and execution",
-    "relevant": ["starlette/background.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/background.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "application lifespan startup and shutdown events",
-    "relevant": ["starlette/routing.py"],
-    "secondary": ["starlette/applications.py"]
+    "relevant": [
+      "starlette/routing.py"
+    ],
+    "secondary": [
+      "starlette/applications.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "streaming response implementation",
-    "relevant": ["starlette/responses.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "how base middleware wraps request handling",
-    "relevant": ["starlette/middleware/base.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/middleware/base.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how request state persists arbitrary data across middleware",
-    "relevant": ["starlette/requests.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/requests.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how path convertor types work for route parameters",
-    "relevant": ["starlette/convertors.py"],
-    "secondary": ["starlette/routing.py"]
+    "relevant": [
+      "starlette/convertors.py"
+    ],
+    "secondary": [
+      "starlette/routing.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how session data is signed and stored in cookies",
-    "relevant": ["starlette/middleware/sessions.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/middleware/sessions.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how CORS preflight requests are handled",
-    "relevant": ["starlette/middleware/cors.py"],
-    "secondary": []
+    "relevant": [
+      "starlette/middleware/cors.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how errors in ASGI apps are caught and turned into responses",
-    "relevant": ["starlette/middleware/errors.py"],
-    "secondary": ["starlette/middleware/exceptions.py"]
+    "relevant": [
+      "starlette/middleware/errors.py"
+    ],
+    "secondary": [
+      "starlette/middleware/exceptions.py"
+    ],
+    "category": "architecture"
   },
-  {"query": "BaseHTTPMiddleware", "relevant": ["starlette/middleware/base.py"], "secondary": []},
-  {"query": "Request", "relevant": ["starlette/requests.py"], "secondary": []},
-  {"query": "WebSocket", "relevant": ["starlette/websockets.py"], "secondary": []},
-  {"query": "BackgroundTask", "relevant": ["starlette/background.py"], "secondary": []},
-  {"query": "Router", "relevant": ["starlette/routing.py"], "secondary": []},
+  {
+    "query": "BaseHTTPMiddleware",
+    "relevant": [
+      "starlette/middleware/base.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Request",
+    "relevant": [
+      "starlette/requests.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "WebSocket",
+    "relevant": [
+      "starlette/websockets.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "BackgroundTask",
+    "relevant": [
+      "starlette/background.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Router",
+    "relevant": [
+      "starlette/routing.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
   {
     "query": "how the Starlette application delegates routing and lifespan to Router",
-    "relevant": ["starlette/applications.py"],
-    "secondary": ["starlette/routing.py"],
+    "relevant": [
+      "starlette/applications.py"
+    ],
+    "secondary": [
+      "starlette/routing.py"
+    ],
     "category": "architecture",
-    "seed": {"path": "starlette/applications.py", "line": 19},
-    "related": ["starlette/routing.py"]
+    "seed": {
+      "path": "starlette/applications.py",
+      "line": 19
+    },
+    "related": [
+      "starlette/routing.py"
+    ]
   }
 ]

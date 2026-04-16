@@ -1,90 +1,195 @@
 [
   {
     "query": "how the async HTTP client session works",
-    "relevant": ["aiohttp/client.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "connection pooling and TCP connector",
-    "relevant": ["aiohttp/connector.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/connector.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "WebSocket client implementation",
-    "relevant": ["aiohttp/client_ws.py"],
-    "secondary": ["aiohttp/_websocket/reader.py"]
+    "relevant": [
+      "aiohttp/client_ws.py"
+    ],
+    "secondary": [
+      "aiohttp/_websocket/reader.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "request and response object internals",
-    "relevant": ["aiohttp/client_reqrep.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/client_reqrep.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "URL routing and resource dispatching",
-    "relevant": ["aiohttp/web_urldispatcher.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/web_urldispatcher.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "server-side middleware execution",
-    "relevant": ["aiohttp/web_middlewares.py"],
-    "secondary": ["aiohttp/web_app.py"]
+    "relevant": [
+      "aiohttp/web_middlewares.py"
+    ],
+    "secondary": [
+      "aiohttp/web_app.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "multipart and form data handling",
-    "relevant": ["aiohttp/multipart.py"],
-    "secondary": ["aiohttp/formdata.py"]
+    "relevant": [
+      "aiohttp/multipart.py"
+    ],
+    "secondary": [
+      "aiohttp/formdata.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "response streaming and payload",
-    "relevant": ["aiohttp/streams.py"],
-    "secondary": ["aiohttp/payload.py"]
+    "relevant": [
+      "aiohttp/streams.py"
+    ],
+    "secondary": [
+      "aiohttp/payload.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "HTTP exception types and error responses",
-    "relevant": ["aiohttp/web_exceptions.py"],
-    "secondary": ["aiohttp/client_exceptions.py"]
+    "relevant": [
+      "aiohttp/web_exceptions.py"
+    ],
+    "secondary": [
+      "aiohttp/client_exceptions.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "request tracing and observability hooks",
-    "relevant": ["aiohttp/tracing.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/tracing.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "how chunked transfer encoding is parsed",
-    "relevant": ["aiohttp/http_parser.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how DNS resolution is handled asynchronously",
-    "relevant": ["aiohttp/resolver.py"],
-    "secondary": ["aiohttp/connector.py"]
+    "relevant": [
+      "aiohttp/resolver.py"
+    ],
+    "secondary": [
+      "aiohttp/connector.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how backpressure and flow control work in streaming",
-    "relevant": ["aiohttp/streams.py"],
-    "secondary": []
+    "relevant": [
+      "aiohttp/streams.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how connection draining and cleanup happen on close",
-    "relevant": ["aiohttp/connector.py"],
-    "secondary": ["aiohttp/client_proto.py"]
+    "relevant": [
+      "aiohttp/connector.py"
+    ],
+    "secondary": [
+      "aiohttp/client_proto.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how the web application sets up and tears down on startup",
-    "relevant": ["aiohttp/web_app.py"],
-    "secondary": ["aiohttp/web_runner.py"]
+    "relevant": [
+      "aiohttp/web_app.py"
+    ],
+    "secondary": [
+      "aiohttp/web_runner.py"
+    ],
+    "category": "architecture"
   },
-  {"query": "ClientSession", "relevant": ["aiohttp/client.py"], "secondary": []},
-  {"query": "TCPConnector", "relevant": ["aiohttp/connector.py"], "secondary": []},
-  {"query": "UrlDispatcher", "relevant": ["aiohttp/web_urldispatcher.py"], "secondary": []},
-  {"query": "ClientResponse", "relevant": ["aiohttp/client_reqrep.py"], "secondary": []},
-  {"query": "TraceConfig", "relevant": ["aiohttp/tracing.py"], "secondary": []},
+  {
+    "query": "ClientSession",
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "TCPConnector",
+    "relevant": [
+      "aiohttp/connector.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "UrlDispatcher",
+    "relevant": [
+      "aiohttp/web_urldispatcher.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ClientResponse",
+    "relevant": [
+      "aiohttp/client_reqrep.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "TraceConfig",
+    "relevant": [
+      "aiohttp/tracing.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
   {
     "query": "how ClientSession acquires and releases connections from the connector",
-    "relevant": ["aiohttp/client.py"],
-    "secondary": ["aiohttp/connector.py"],
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [
+      "aiohttp/connector.py"
+    ],
     "category": "architecture",
-    "seed": {"path": "aiohttp/client.py", "line": 374},
-    "related": ["aiohttp/connector.py"]
+    "seed": {
+      "path": "aiohttp/client.py",
+      "line": 374
+    },
+    "related": [
+      "aiohttp/connector.py"
+    ]
   }
 ]

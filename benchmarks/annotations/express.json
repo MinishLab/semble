@@ -76,5 +76,135 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "res.send body encoding and ETag generation",
+    "relevant": [
+      {
+        "path": "lib/response.js",
+        "start_line": 125,
+        "end_line": 230
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON response serialization and JSONP callback support",
+    "relevant": [
+      {
+        "path": "lib/response.js",
+        "start_line": 232,
+        "end_line": 320
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how res.redirect builds the Location header and status code",
+    "relevant": [
+      {
+        "path": "lib/response.js",
+        "start_line": 812,
+        "end_line": 873
+      }
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "cookie setting and signing on the response",
+    "relevant": [
+      {
+        "path": "lib/response.js",
+        "start_line": 709,
+        "end_line": 791
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how app.render resolves views and calls the template engine",
+    "relevant": [
+      {
+        "path": "lib/application.js",
+        "start_line": 522,
+        "end_line": 596
+      }
+    ],
+    "secondary": [
+      "lib/view.js"
+    ],
+    "category": "architecture"
+  },
+  {
+    "query": "app.set and settings storage",
+    "relevant": [
+      {
+        "path": "lib/application.js",
+        "start_line": 351,
+        "end_line": 397
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how app.handle dispatches requests through the middleware stack",
+    "relevant": [
+      {
+        "path": "lib/application.js",
+        "start_line": 152,
+        "end_line": 188
+      }
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "content negotiation with req.accepts",
+    "relevant": [
+      {
+        "path": "lib/request.js",
+        "start_line": 127,
+        "end_line": 200
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request hostname and IP address resolution behind proxies",
+    "relevant": [
+      {
+        "path": "lib/request.js",
+        "start_line": 297,
+        "end_line": 400
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "static file serving with res.sendFile",
+    "relevant": [
+      {
+        "path": "lib/response.js",
+        "start_line": 371,
+        "end_line": 431
+      }
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "view",
+    "relevant": [
+      "lib/view.js"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

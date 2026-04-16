@@ -1,108 +1,202 @@
 [
   {
     "query": "how HTTP sessions manage state and connections",
-    "relevant": ["src/requests/sessions.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/sessions.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "authentication mechanisms and credential handling",
-    "relevant": ["src/requests/auth.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/auth.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "transport adapters and connection pooling",
-    "relevant": ["src/requests/adapters.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "cookie storage and persistence",
-    "relevant": ["src/requests/cookies.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/cookies.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "how redirects are followed",
-    "relevant": ["src/requests/sessions.py"],
-    "secondary": ["src/requests/models.py"]
+    "relevant": [
+      "src/requests/sessions.py"
+    ],
+    "secondary": [
+      "src/requests/models.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "error and exception types",
-    "relevant": ["src/requests/exceptions.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/exceptions.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "request and response model internals",
-    "relevant": ["src/requests/models.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/models.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "SSL certificate verification",
-    "relevant": ["src/requests/adapters.py"],
-    "secondary": ["src/requests/certs.py"]
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [
+      "src/requests/certs.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "event hooks system",
-    "relevant": ["src/requests/hooks.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/hooks.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "utility functions for encoding and headers",
-    "relevant": ["src/requests/utils.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "how a PreparedRequest is built from user-supplied arguments",
-    "relevant": ["src/requests/models.py"],
-    "secondary": ["src/requests/sessions.py"]
+    "relevant": [
+      "src/requests/models.py"
+    ],
+    "secondary": [
+      "src/requests/sessions.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how digest authentication implements the challenge-response handshake",
-    "relevant": ["src/requests/auth.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/auth.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how response encoding is detected from headers and content",
-    "relevant": ["src/requests/utils.py"],
-    "secondary": ["src/requests/models.py"]
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [
+      "src/requests/models.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how proxy settings are read from environment variables",
-    "relevant": ["src/requests/utils.py"],
-    "secondary": ["src/requests/sessions.py"]
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [
+      "src/requests/sessions.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how connection keep-alive and pooling limits are configured",
-    "relevant": ["src/requests/adapters.py"],
-    "secondary": []
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "Session",
-    "relevant": [{"path": "src/requests/sessions.py", "start_line": 356, "end_line": 394}],
+    "relevant": [
+      {
+        "path": "src/requests/sessions.py",
+        "start_line": 356,
+        "end_line": 394
+      }
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "HTTPDigestAuth",
-    "relevant": [{"path": "src/requests/auth.py", "start_line": 107, "end_line": 136}],
+    "relevant": [
+      {
+        "path": "src/requests/auth.py",
+        "start_line": 107,
+        "end_line": 136
+      }
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "PreparedRequest",
-    "relevant": [{"path": "src/requests/models.py", "start_line": 315, "end_line": 364}],
+    "relevant": [
+      {
+        "path": "src/requests/models.py",
+        "start_line": 315,
+        "end_line": 364
+      }
+    ],
     "secondary": [],
     "category": "symbol",
-    "seed": {"path": "src/requests/sessions.py", "line": 485},
-    "related": [{"path": "src/requests/models.py", "start_line": 315, "end_line": 353}]
+    "seed": {
+      "path": "src/requests/sessions.py",
+      "line": 485
+    },
+    "related": [
+      {
+        "path": "src/requests/models.py",
+        "start_line": 315,
+        "end_line": 353
+      }
+    ]
   },
   {
     "query": "HTTPAdapter",
-    "relevant": [{"path": "src/requests/adapters.py", "start_line": 144, "end_line": 192}],
+    "relevant": [
+      {
+        "path": "src/requests/adapters.py",
+        "start_line": 144,
+        "end_line": 192
+      }
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Response",
-    "relevant": [{"path": "src/requests/models.py", "start_line": 642, "end_line": 691}],
+    "relevant": [
+      {
+        "path": "src/requests/models.py",
+        "start_line": 642,
+        "end_line": 691
+      }
+    ],
     "secondary": [],
     "category": "symbol"
   }

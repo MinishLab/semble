@@ -1,90 +1,197 @@
 [
   {
     "query": "how are HTTP requests sent",
-    "relevant": ["httpx/_client.py"],
-    "secondary": []
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "authentication and credentials",
-    "relevant": ["httpx/_auth.py"],
-    "secondary": []
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "connection pooling and transport",
-    "relevant": ["httpx/_transports/default.py"],
-    "secondary": ["httpx/_transports/base.py"]
+    "relevant": [
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [
+      "httpx/_transports/base.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "URL parsing and construction",
-    "relevant": ["httpx/_urlparse.py"],
-    "secondary": ["httpx/_urls.py"]
+    "relevant": [
+      "httpx/_urlparse.py"
+    ],
+    "secondary": [
+      "httpx/_urls.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "response decoding and content",
-    "relevant": ["httpx/_decoders.py"],
-    "secondary": ["httpx/_models.py"]
+    "relevant": [
+      "httpx/_decoders.py"
+    ],
+    "secondary": [
+      "httpx/_models.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "timeout configuration",
-    "relevant": ["httpx/_config.py"],
-    "secondary": []
+    "relevant": [
+      "httpx/_config.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "cookie handling",
-    "relevant": ["httpx/_models.py"],
-    "secondary": ["httpx/_client.py"]
+    "relevant": [
+      "httpx/_models.py"
+    ],
+    "secondary": [
+      "httpx/_client.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "multipart file upload",
-    "relevant": ["httpx/_multipart.py"],
-    "secondary": ["httpx/_content.py"]
+    "relevant": [
+      "httpx/_multipart.py"
+    ],
+    "secondary": [
+      "httpx/_content.py"
+    ],
+    "category": "semantic"
   },
   {
     "query": "redirect following",
-    "relevant": ["httpx/_client.py"],
-    "secondary": []
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "error and exception types",
-    "relevant": ["httpx/_exceptions.py"],
-    "secondary": []
+    "relevant": [
+      "httpx/_exceptions.py"
+    ],
+    "secondary": [],
+    "category": "semantic"
   },
   {
     "query": "how does digest authentication handle the challenge-response flow",
-    "relevant": ["httpx/_auth.py"],
-    "secondary": []
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "architecture"
   },
   {
     "query": "how are keep-alive connections managed and reused",
-    "relevant": ["httpx/_transports/default.py"],
-    "secondary": ["httpx/_config.py"]
+    "relevant": [
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [
+      "httpx/_config.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how does streaming response body iteration work",
-    "relevant": ["httpx/_models.py"],
-    "secondary": ["httpx/_decoders.py"]
+    "relevant": [
+      "httpx/_models.py"
+    ],
+    "secondary": [
+      "httpx/_decoders.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how are query parameters encoded into the URL",
-    "relevant": ["httpx/_urls.py"],
-    "secondary": ["httpx/_urlparse.py"]
+    "relevant": [
+      "httpx/_urls.py"
+    ],
+    "secondary": [
+      "httpx/_urlparse.py"
+    ],
+    "category": "architecture"
   },
   {
     "query": "how are retries and transport errors surfaced to the caller",
-    "relevant": ["httpx/_exceptions.py"],
-    "secondary": ["httpx/_transports/default.py"]
+    "relevant": [
+      "httpx/_exceptions.py"
+    ],
+    "secondary": [
+      "httpx/_transports/default.py"
+    ],
+    "category": "architecture"
   },
-  {"query": "DigestAuth", "relevant": ["httpx/_auth.py"], "secondary": []},
-  {"query": "AsyncClient", "relevant": ["httpx/_client.py"], "secondary": []},
-  {"query": "Timeout", "relevant": ["httpx/_config.py"], "secondary": []},
-  {"query": "HTTPStatusError", "relevant": ["httpx/_exceptions.py"], "secondary": []},
-  {"query": "URL", "relevant": ["httpx/_urls.py"], "secondary": []},
+  {
+    "query": "DigestAuth",
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "AsyncClient",
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Timeout",
+    "relevant": [
+      "httpx/_config.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "HTTPStatusError",
+    "relevant": [
+      "httpx/_exceptions.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "URL",
+    "relevant": [
+      "httpx/_urls.py"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
   {
     "query": "how the HTTP transport backend sends requests over the wire",
-    "relevant": ["httpx/_transports/default.py"],
-    "secondary": ["httpx/_transports/base.py"],
+    "relevant": [
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [
+      "httpx/_transports/base.py"
+    ],
     "category": "architecture",
-    "seed": {"path": "httpx/_client.py", "line": 731},
-    "related": ["httpx/_transports/default.py"]
+    "seed": {
+      "path": "httpx/_client.py",
+      "line": 731
+    },
+    "related": [
+      "httpx/_transports/default.py"
+    ]
   }
 ]
