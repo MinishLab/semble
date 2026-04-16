@@ -4,8 +4,9 @@ import bm25s
 import numpy as np
 import numpy.typing as npt
 import pytest
-from vicinity import Metric, Vicinity
+from vicinity.backends.basic import BasicArgs
 
+from semble.index.dense import SelectableBasicBackend
 from semble.search import _sort_top_k, search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
 from semble.types import Chunk, SearchMode
@@ -42,9 +43,9 @@ def bm25(chunks: list[Chunk]) -> bm25s.BM25:
 
 
 @pytest.fixture
-def semantic(chunks: list[Chunk], embeddings: npt.NDArray[np.float32]) -> Vicinity:
+def semantic(embeddings: npt.NDArray[np.float32]) -> SelectableBasicBackend:
     """Pre-built ANNS index over the chunks fixture."""
-    return Vicinity.from_vectors_and_items(embeddings, chunks, metric=Metric.COSINE, store_vectors=True)
+    return SelectableBasicBackend(embeddings, BasicArgs())
 
 
 def test_bm25_search(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
@@ -60,14 +61,16 @@ def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> N
     assert results == []
 
 
-def test_semantic_search(semantic: Vicinity, mock_model: Any) -> None:
+def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any) -> None:
     """Semantic search returns results with scores in [-1, 1]."""
-    results = search_semantic("login", mock_model, semantic, top_k=3)
+    results = search_semantic("login", mock_model, semantic, chunks, top_k=3)
     assert len(results) > 0
     assert all(-1.0 <= r.score <= 1.0 for r in results)
 
 
-def test_hybrid_returns_results(chunks: list[Chunk], semantic: Vicinity, bm25: bm25s.BM25, mock_model: Any) -> None:
+def test_hybrid_returns_results(
+    chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: bm25s.BM25, mock_model: Any
+) -> None:
     """Hybrid search returns results combining semantic and BM25 signals."""
     results = search_hybrid("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
     assert len(results) > 0
@@ -84,7 +87,7 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
     embs = rng.standard_normal((2, 256)).astype(np.float32)
     embs /= np.linalg.norm(embs, axis=1, keepdims=True) + 1e-8
 
-    sem_index = Vicinity.from_vectors_and_items(embs, all_chunks, metric=Metric.COSINE, store_vectors=True)
+    sem_index = SelectableBasicBackend(embs, BasicArgs())
     bm25_index = bm25s.BM25()
     bm25_index.index([tokenize(c.content) for c in all_chunks], show_progress=False)
 
@@ -98,7 +101,7 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
     ("search_fn", "mode", "query", "top_k"),
     [
         (lambda q, m, s, b, c, k: search_bm25(q, b, c, k), SearchMode.BM25, "authenticate", 3),
-        (lambda q, m, s, b, c, k: search_semantic(q, m, s, k), SearchMode.SEMANTIC, "query", 4),
+        (lambda q, m, s, b, c, k: search_semantic(q, m, s, c, k), SearchMode.SEMANTIC, "query", 4),
         (lambda q, m, s, b, c, k: search_hybrid(q, m, s, b, c, k), SearchMode.HYBRID, "login", 4),
     ],
 )
@@ -108,7 +111,7 @@ def test_search_source_labels(
     query: str,
     top_k: int,
     chunks: list[Chunk],
-    semantic: Vicinity,
+    semantic: SelectableBasicBackend,
     bm25: bm25s.BM25,
     mock_model: Any,
 ) -> None:
