@@ -28,5 +28,95 @@
     "relevant": ["src/createStore.ts"],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "action creator binding to a dispatch function",
+    "relevant": ["src/bindActionCreators.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how listeners are subscribed and notified after state changes",
+    "relevant": ["src/createStore.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how combineReducers validates reducer return values in development",
+    "relevant": ["src/combineReducers.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "store type definition and dispatch overloads",
+    "relevant": ["src/types/store.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "action and action creator type definitions",
+    "relevant": ["src/types/actions.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "middleware type signature and API shape",
+    "relevant": ["src/types/middleware.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "reducer type definition",
+    "relevant": ["src/types/reducers.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "runtime type identification utility",
+    "relevant": ["src/utils/kindOf.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "development-only warning helper",
+    "relevant": ["src/utils/warning.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how replaceReducer swaps the root reducer at runtime",
+    "relevant": ["src/createStore.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how applyMiddleware wraps getState and dispatch for the middleware chain",
+    "relevant": ["src/applyMiddleware.ts"],
+    "secondary": ["src/compose.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "combineReducers",
+    "relevant": ["src/combineReducers.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "applyMiddleware",
+    "relevant": ["src/applyMiddleware.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "bindActionCreators",
+    "relevant": ["src/bindActionCreators.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Middleware",
+    "relevant": ["src/types/middleware.ts"],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

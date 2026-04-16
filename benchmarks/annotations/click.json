@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how commands are structured and invoked",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "command group and subcommand dispatch",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "context management and nesting across commands",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "decorator API for defining commands, options, and arguments",
+    "relevant": ["src/click/decorators.py"],
+    "secondary": ["src/click/core.py"],
+    "category": "architecture"
+  },
+  {
+    "query": "parameter type coercion and value validation",
+    "relevant": ["src/click/types.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "exception types for user errors and abort",
+    "relevant": ["src/click/exceptions.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "help text formatting and usage rendering",
+    "relevant": ["src/click/formatting.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "test runner for CLI commands in isolation",
+    "relevant": ["src/click/testing.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "terminal output, prompts, and progress bars",
+    "relevant": ["src/click/termui.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "global context stack and current context access",
+    "relevant": ["src/click/globals.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "option parser and long/short option resolution",
+    "relevant": ["src/click/parser.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "shell tab completion support",
+    "relevant": ["src/click/shell_completion.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pass_context passes the Context as the first argument",
+    "relevant": ["src/click/decorators.py"],
+    "secondary": ["src/click/core.py"],
+    "category": "architecture"
+  },
+  {
+    "query": "how multi-value options and nargs are handled",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how default values are resolved from environment variables",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "file and path parameter types",
+    "relevant": ["src/click/types.py"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Command",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Group",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Context",
+    "relevant": ["src/click/core.py"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "CliRunner",
+    "relevant": ["src/click/testing.py"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

@@ -28,5 +28,95 @@
     "relevant": ["gson/src/main/java/com/google/gson/JsonParser.java"],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "streaming JSON reader and token parsing",
+    "relevant": ["gson/src/main/java/com/google/gson/stream/JsonReader.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "streaming JSON writer and token generation",
+    "relevant": ["gson/src/main/java/com/google/gson/stream/JsonWriter.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "generic type token for parameterized types",
+    "relevant": ["gson/src/main/java/com/google/gson/reflect/TypeToken.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "serialization exclusion strategies for fields and classes",
+    "relevant": ["gson/src/main/java/com/google/gson/ExclusionStrategy.java"],
+    "secondary": ["gson/src/main/java/com/google/gson/GsonBuilder.java"],
+    "category": "semantic"
+  },
+  {
+    "query": "field naming policy and key transformation",
+    "relevant": ["gson/src/main/java/com/google/gson/FieldNamingPolicy.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how custom serializers and deserializers are registered and resolved",
+    "relevant": ["gson/src/main/java/com/google/gson/GsonBuilder.java"],
+    "secondary": ["gson/src/main/java/com/google/gson/Gson.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "how null values are handled during serialization",
+    "relevant": ["gson/src/main/java/com/google/gson/Gson.java"],
+    "secondary": ["gson/src/main/java/com/google/gson/GsonBuilder.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "JSON element hierarchy and tree model",
+    "relevant": ["gson/src/main/java/com/google/gson/JsonElement.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON array operations and element access",
+    "relevant": ["gson/src/main/java/com/google/gson/JsonArray.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON object with named fields",
+    "relevant": ["gson/src/main/java/com/google/gson/JsonObject.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how type adapter factories are registered and selected for a given type",
+    "relevant": ["gson/src/main/java/com/google/gson/Gson.java"],
+    "secondary": ["gson/src/main/java/com/google/gson/GsonBuilder.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "GsonBuilder",
+    "relevant": ["gson/src/main/java/com/google/gson/GsonBuilder.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "TypeToken",
+    "relevant": ["gson/src/main/java/com/google/gson/reflect/TypeToken.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JsonReader",
+    "relevant": ["gson/src/main/java/com/google/gson/stream/JsonReader.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JsonObject",
+    "relevant": ["gson/src/main/java/com/google/gson/JsonObject.java"],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

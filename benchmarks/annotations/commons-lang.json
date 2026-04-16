@@ -39,5 +39,95 @@
       {"path": "src/main/java/org/apache/commons/lang3/builder/HashCodeBuilder.java", "start_line": 105, "end_line": 141},
       {"path": "src/main/java/org/apache/commons/lang3/builder/IDKey.java", "start_line": 27, "end_line": 74}
     ]
+  },
+  {
+    "query": "array utility operations and safe type conversion",
+    "relevant": ["src/main/java/org/apache/commons/lang3/ArrayUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "null-safe object utility methods and identity helpers",
+    "relevant": ["src/main/java/org/apache/commons/lang3/ObjectUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "boolean conversion and parsing helpers",
+    "relevant": ["src/main/java/org/apache/commons/lang3/BooleanUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "number parsing with defaults and range checks",
+    "relevant": ["src/main/java/org/apache/commons/lang3/math/NumberUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "exception cause chain traversal and stack trace utilities",
+    "relevant": ["src/main/java/org/apache/commons/lang3/exception/ExceptionUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "toString builder for human-readable object descriptions",
+    "relevant": ["src/main/java/org/apache/commons/lang3/builder/ToStringBuilder.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "hash code builder for consistent hashCode implementation",
+    "relevant": ["src/main/java/org/apache/commons/lang3/builder/HashCodeBuilder.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "immutable pair container for two related values",
+    "relevant": ["src/main/java/org/apache/commons/lang3/tuple/Pair.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "triple container for three related values",
+    "relevant": ["src/main/java/org/apache/commons/lang3/tuple/Triple.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Java runtime and OS system property helpers",
+    "relevant": ["src/main/java/org/apache/commons/lang3/SystemUtils.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how EqualsBuilder and HashCodeBuilder enforce value equality contracts",
+    "relevant": ["src/main/java/org/apache/commons/lang3/builder/EqualsBuilder.java"],
+    "secondary": ["src/main/java/org/apache/commons/lang3/builder/HashCodeBuilder.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "ArrayUtils",
+    "relevant": ["src/main/java/org/apache/commons/lang3/ArrayUtils.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ExceptionUtils",
+    "relevant": ["src/main/java/org/apache/commons/lang3/exception/ExceptionUtils.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ObjectUtils",
+    "relevant": ["src/main/java/org/apache/commons/lang3/ObjectUtils.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "class utility methods for reflection and package navigation",
+    "relevant": ["src/main/java/org/apache/commons/lang3/ClassUtils.java"],
+    "secondary": [],
+    "category": "semantic"
   }
 ]

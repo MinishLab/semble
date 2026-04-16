@@ -28,5 +28,95 @@
     "relevant": ["src/Illuminate/Queue/QueueManager.php"],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "routing HTTP requests to controllers",
+    "relevant": ["src/Illuminate/Routing/Router.php"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "route parameter binding and model resolution",
+    "relevant": ["src/Illuminate/Routing/Route.php"],
+    "secondary": ["src/Illuminate/Routing/Router.php"],
+    "category": "semantic"
+  },
+  {
+    "query": "HTTP request input and header access",
+    "relevant": ["src/Illuminate/Http/Request.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HTTP response construction and headers",
+    "relevant": ["src/Illuminate/Http/Response.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "service container dependency injection and binding resolution",
+    "relevant": ["src/Illuminate/Container/Container.php"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "database query builder and fluent SQL interface",
+    "relevant": ["src/Illuminate/Database/Query/Builder.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "event dispatching and listener registration",
+    "relevant": ["src/Illuminate/Events/Dispatcher.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "cache store repository and driver abstraction",
+    "relevant": ["src/Illuminate/Cache/Repository.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "validation rules and error message collection",
+    "relevant": ["src/Illuminate/Validation/Validator.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how middleware is applied through the pipeline",
+    "relevant": ["src/Illuminate/Pipeline/Pipeline.php"],
+    "secondary": ["src/Illuminate/Routing/Router.php"],
+    "category": "architecture"
+  },
+  {
+    "query": "how the application bootstraps and registers service providers",
+    "relevant": ["src/Illuminate/Foundation/Application.php"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Router",
+    "relevant": ["src/Illuminate/Routing/Router.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Container",
+    "relevant": ["src/Illuminate/Container/Container.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Request",
+    "relevant": ["src/Illuminate/Http/Request.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how Blade templates are compiled and rendered by the view factory",
+    "relevant": ["src/Illuminate/View/Factory.php"],
+    "secondary": [],
+    "category": "architecture"
   }
 ]

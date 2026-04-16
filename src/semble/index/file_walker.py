@@ -39,6 +39,8 @@ FILE_TYPES: dict[str, FileType] = {
     ".swift": FileType("swift", FileTypeType.CODE),
     ".scala": FileType("scala", FileTypeType.CODE),
     ".sbt": FileType("scala", FileTypeType.CODE),
+    ".ex": FileType("elixir", FileTypeType.CODE),
+    ".exs": FileType("elixir", FileTypeType.CODE),
     ".dart": FileType("dart", FileTypeType.CODE),
     ".lua": FileType("lua", FileTypeType.CODE),
     ".sql": FileType("sql", FileTypeType.CODE),

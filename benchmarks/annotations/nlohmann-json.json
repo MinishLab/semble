@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how JSON values are stored as a discriminated union of types",
+    "relevant": ["include/nlohmann/json.hpp"],
+    "secondary": ["include/nlohmann/detail/value_t.hpp"],
+    "category": "architecture"
+  },
+  {
+    "query": "JSON parser and tokenizer",
+    "relevant": ["include/nlohmann/detail/input/parser.hpp"],
+    "secondary": ["include/nlohmann/detail/input/lexer.hpp"],
+    "category": "architecture"
+  },
+  {
+    "query": "JSON lexer and token scanning",
+    "relevant": ["include/nlohmann/detail/input/lexer.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON serialization to string output",
+    "relevant": ["include/nlohmann/detail/output/serializer.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ADL-based to_json and from_json conversion hooks for custom types",
+    "relevant": ["include/nlohmann/adl_serializer.hpp"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "exception types for parse and type errors",
+    "relevant": ["include/nlohmann/detail/exceptions.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how from_json populates a custom C++ type from JSON",
+    "relevant": ["include/nlohmann/detail/conversions/from_json.hpp"],
+    "secondary": ["include/nlohmann/adl_serializer.hpp"],
+    "category": "architecture"
+  },
+  {
+    "query": "how to_json serializes a custom C++ type to JSON",
+    "relevant": ["include/nlohmann/detail/conversions/to_json.hpp"],
+    "secondary": ["include/nlohmann/adl_serializer.hpp"],
+    "category": "architecture"
+  },
+  {
+    "query": "JSON Pointer (RFC 6901) for navigating nested values",
+    "relevant": ["include/nlohmann/json_pointer.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ordered map for insertion-order-preserving JSON objects",
+    "relevant": ["include/nlohmann/ordered_map.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "type traits and SFINAE utilities for serialization detection",
+    "relevant": ["include/nlohmann/detail/meta/type_traits.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "SAX-style event-driven JSON parsing interface",
+    "relevant": ["include/nlohmann/detail/input/json_sax.hpp"],
+    "secondary": ["include/nlohmann/detail/input/parser.hpp"],
+    "category": "architecture"
+  },
+  {
+    "query": "value type enum for JSON null, boolean, number, string, array, object",
+    "relevant": ["include/nlohmann/detail/value_t.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "binary format support for BSON, CBOR, and MessagePack",
+    "relevant": ["include/nlohmann/detail/output/binary_writer.hpp"],
+    "secondary": ["include/nlohmann/detail/input/binary_reader.hpp"],
+    "category": "semantic"
+  },
+  {
+    "query": "how operator[] and at() access and create nested JSON values",
+    "relevant": ["include/nlohmann/json.hpp"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "JSON merge patch and diff operations",
+    "relevant": ["include/nlohmann/json.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "iterator implementation for JSON arrays and objects",
+    "relevant": ["include/nlohmann/detail/iterators/iter_impl.hpp"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "basic_json",
+    "relevant": ["include/nlohmann/json.hpp"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "json_pointer",
+    "relevant": ["include/nlohmann/json_pointer.hpp"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "adl_serializer",
+    "relevant": ["include/nlohmann/adl_serializer.hpp"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

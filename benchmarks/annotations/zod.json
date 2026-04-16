@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how ZodType base class parses and validates input values",
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "core public API functions for building schemas",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "ZodError structure and issue formatting",
+    "relevant": ["packages/zod/src/v4/core/errors.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ZodCheck and check execution pipeline for string min max and number range validations",
+    "relevant": ["packages/zod/src/v4/core/checks.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON Schema to Zod schema conversion",
+    "relevant": ["packages/zod/src/v4/classic/from-json-schema.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ZodObject shape definition and object schema",
+    "relevant": ["packages/zod/src/v4/classic/schemas.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "union and discriminated union schema types",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": ["packages/zod/src/v4/core/schemas.ts"],
+    "category": "semantic"
+  },
+  {
+    "query": "optional and nullable type wrappers",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "z.transform and z.pipe for chaining Zod output transformations",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how safeParse returns a success/error result without throwing",
+    "relevant": ["packages/zod/src/v4/core/parse.ts"],
+    "secondary": ["packages/zod/src/v4/core/schemas.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "how .refine and .superRefine add custom validation to a schema via the public API",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": ["packages/zod/src/v4/core/checks.ts"],
+    "category": "architecture"
+  },
+  {
+    "query": "classic Zod v4 array and tuple schema types",
+    "relevant": ["packages/zod/src/v4/classic/schemas.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "classic Zod v4 string schema with built-in validations",
+    "relevant": ["packages/zod/src/v4/classic/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/core/checks.ts"],
+    "category": "semantic"
+  },
+  {
+    "query": "v3 compatibility error types and ZodError",
+    "relevant": ["packages/zod/src/v3/errors.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "z.record and z.map schema builders for key-value types",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ZodDefault and ZodCatch schema wrappers that supply fallback values on parse failure",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "enum schema types for literal value sets",
+    "relevant": ["packages/zod/src/v4/core/api.ts"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "ZodType",
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ZodError",
+    "relevant": ["packages/zod/src/v4/core/errors.ts"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ZodObject",
+    "relevant": ["packages/zod/src/v4/classic/schemas.ts"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

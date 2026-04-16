@@ -45,5 +45,83 @@
     "relevant": [{"path": "src/main/java/tools/jackson/databind/node/ObjectNode.java", "start_line": 21, "end_line": 60}],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "reading and deserializing JSON into Java objects with type control",
+    "relevant": ["src/main/java/tools/jackson/databind/ObjectReader.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "writing and serializing Java objects to JSON with configuration",
+    "relevant": ["src/main/java/tools/jackson/databind/ObjectWriter.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "bean deserialization from JSON properties",
+    "relevant": ["src/main/java/tools/jackson/databind/deser/BeanDeserializer.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "bean serialization of Java object fields to JSON",
+    "relevant": ["src/main/java/tools/jackson/databind/ser/BeanSerializer.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "type factory for parameterized and collection types",
+    "relevant": ["src/main/java/tools/jackson/databind/type/TypeFactory.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "deserialization context and error accumulation during parsing",
+    "relevant": ["src/main/java/tools/jackson/databind/DeserializationContext.java"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "mapper builder fluent configuration API",
+    "relevant": ["src/main/java/tools/jackson/databind/cfg/MapperBuilder.java"],
+    "secondary": ["src/main/java/tools/jackson/databind/ObjectMapper.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "deserialization feature flags and configuration options",
+    "relevant": ["src/main/java/tools/jackson/databind/DeserializationFeature.java"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the mapper resolves a deserializer for a given Java type",
+    "relevant": ["src/main/java/tools/jackson/databind/ObjectMapper.java"],
+    "secondary": ["src/main/java/tools/jackson/databind/deser/BeanDeserializerFactory.java"],
+    "category": "architecture"
+  },
+  {
+    "query": "ObjectReader",
+    "relevant": ["src/main/java/tools/jackson/databind/ObjectReader.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ObjectWriter",
+    "relevant": ["src/main/java/tools/jackson/databind/ObjectWriter.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "TypeFactory",
+    "relevant": ["src/main/java/tools/jackson/databind/type/TypeFactory.java"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "JSON array node with indexed element access",
+    "relevant": ["src/main/java/tools/jackson/databind/node/ArrayNode.java"],
+    "secondary": [],
+    "category": "semantic"
   }
 ]

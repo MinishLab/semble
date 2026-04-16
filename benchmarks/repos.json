@@ -198,5 +198,137 @@
     "url": "https://github.com/Alamofire/Alamofire.git",
     "revision": "e938f8c66708e7352fc7e3512647fa54255b267a",
     "benchmark_root": "Source"
+  },
+  {
+    "name": "click",
+    "language": "python",
+    "url": "https://github.com/pallets/click.git",
+    "revision": "04ef3a6f473deb2499721a8d11f92a7d2c0912f2",
+    "benchmark_root": "src/click"
+  },
+  {
+    "name": "serde",
+    "language": "rust",
+    "url": "https://github.com/serde-rs/serde.git",
+    "revision": "fa7da4a93567ed347ad0735c28e439fca688ef26"
+  },
+  {
+    "name": "zod",
+    "language": "typescript",
+    "url": "https://github.com/colinhacks/zod.git",
+    "revision": "c7805073fef5b6b8857307c3d4b3597a70613bc2",
+    "benchmark_root": "packages/zod/src"
+  },
+  {
+    "name": "nlohmann-json",
+    "language": "cpp",
+    "url": "https://github.com/nlohmann/json.git",
+    "revision": "3946872265598aed5a7aea68cad4d9d1f168bd4b",
+    "benchmark_root": "include/nlohmann"
+  },
+  {
+    "name": "phoenix",
+    "language": "elixir",
+    "url": "https://github.com/phoenixframework/phoenix.git",
+    "revision": "c88da921ef8009e0aca8643d5334585cd35d5573",
+    "benchmark_root": "lib"
+  },
+  {
+    "name": "axum",
+    "language": "rust",
+    "url": "https://github.com/tokio-rs/axum.git",
+    "revision": "309d1bd9530eec2217134cb262760af1df42ee3b",
+    "benchmark_root": "axum/src"
+  },
+  {
+    "name": "vitest",
+    "language": "typescript",
+    "url": "https://github.com/vitest-dev/vitest.git",
+    "revision": "596f73986abe2161a9a06f0ca03df68e82690b21",
+    "benchmark_root": "packages/vitest/src"
+  },
+  {
+    "name": "newtonsoft-json",
+    "language": "csharp",
+    "url": "https://github.com/JamesNK/Newtonsoft.Json.git",
+    "revision": "4f73e74372445108d2c1bda37b36e6f5e43402e0",
+    "benchmark_root": "Src/Newtonsoft.Json"
+  },
+  {
+    "name": "dapper",
+    "language": "csharp",
+    "url": "https://github.com/DapperLib/Dapper.git",
+    "revision": "288730e69b05c32cac898d9b55ebea219ea8a2d1",
+    "benchmark_root": "Dapper"
+  },
+  {
+    "name": "kotlinx-coroutines",
+    "language": "kotlin",
+    "url": "https://github.com/Kotlin/kotlinx.coroutines.git",
+    "revision": "643c1aa554139a82f60724a59e79b801f303fdfe",
+    "benchmark_root": "kotlinx-coroutines-core/common/src"
+  },
+  {
+    "name": "exposed",
+    "language": "kotlin",
+    "url": "https://github.com/JetBrains/Exposed.git",
+    "revision": "7c80ed943b529f293b33ee7e0facdfd880cf4aec",
+    "benchmark_root": "exposed-core/src/main/kotlin"
+  },
+  {
+    "name": "circe",
+    "language": "scala",
+    "url": "https://github.com/circe/circe.git",
+    "revision": "cd16ce270257daec47f4a011163a03da5df9a630",
+    "benchmark_root": "modules/core/shared/src/main/scala"
+  },
+  {
+    "name": "http4s",
+    "language": "scala",
+    "url": "https://github.com/http4s/http4s.git",
+    "revision": "9f17a8e727d22692e637b5f01de15a222fb66092",
+    "benchmark_root": "core/src/main/scala"
+  },
+  {
+    "name": "vapor",
+    "language": "swift",
+    "url": "https://github.com/vapor/vapor.git",
+    "revision": "cfd8f434843ac7850e2d97f46c1aa5ddb906cf1c",
+    "benchmark_root": "Sources/Vapor"
+  },
+  {
+    "name": "rxswift",
+    "language": "swift",
+    "url": "https://github.com/ReactiveX/RxSwift.git",
+    "revision": "132aea4f236ccadc51590b38af0357a331d51fa2",
+    "benchmark_root": "Sources/RxSwift"
+  },
+  {
+    "name": "plug",
+    "language": "elixir",
+    "url": "https://github.com/elixir-plug/plug.git",
+    "revision": "47649aa7bb910f481b66cc3e98c14b2c3b761c3c",
+    "benchmark_root": "lib/plug"
+  },
+  {
+    "name": "ecto",
+    "language": "elixir",
+    "url": "https://github.com/elixir-ecto/ecto.git",
+    "revision": "cf3a5b7219a552c24aae24bf5eef7354c1184b8a",
+    "benchmark_root": "lib/ecto"
+  },
+  {
+    "name": "abseil-cpp",
+    "language": "cpp",
+    "url": "https://github.com/abseil/abseil-cpp.git",
+    "revision": "b9536c952c6f6bbcb37a5edb4fa88ee62d27cd7e",
+    "benchmark_root": "absl"
+  },
+  {
+    "name": "fmtlib",
+    "language": "cpp",
+    "url": "https://github.com/fmtlib/fmt.git",
+    "revision": "382609a920d2c43c00f2951233bc0d578a783982",
+    "benchmark_root": "include/fmt"
   }
 ]

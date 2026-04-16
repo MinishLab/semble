@@ -48,5 +48,77 @@
     "category": "architecture",
     "seed": {"path": "src/Monolog/Logger.php", "line": 207},
     "related": ["src/Monolog/Handler/AbstractHandler.php", "src/Monolog/Handler/HandlerInterface.php"]
+  },
+  {
+    "query": "rotating file handler for log rotation by date",
+    "relevant": ["src/Monolog/Handler/RotatingFileHandler.php"],
+    "secondary": ["src/Monolog/Handler/StreamHandler.php"],
+    "category": "semantic"
+  },
+  {
+    "query": "syslog handler for system-level logging",
+    "relevant": ["src/Monolog/Handler/SyslogHandler.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "filter handler for level-based record filtering",
+    "relevant": ["src/Monolog/Handler/FilterHandler.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "group handler to broadcast log records to multiple handlers",
+    "relevant": ["src/Monolog/Handler/GroupHandler.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "PSR-3 log message placeholder processor",
+    "relevant": ["src/Monolog/Processor/PsrLogMessageProcessor.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "introspection processor adding caller class and method to records",
+    "relevant": ["src/Monolog/Processor/IntrospectionProcessor.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "normalizer formatter for converting complex values to arrays",
+    "relevant": ["src/Monolog/Formatter/NormalizerFormatter.php"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "abstract processing handler with formatting lifecycle",
+    "relevant": ["src/Monolog/Handler/AbstractProcessingHandler.php"],
+    "secondary": ["src/Monolog/Handler/AbstractHandler.php"],
+    "category": "architecture"
+  },
+  {
+    "query": "how log records propagate through the handler bubble chain",
+    "relevant": ["src/Monolog/Logger.php"],
+    "secondary": ["src/Monolog/Handler/AbstractHandler.php"],
+    "category": "architecture"
+  },
+  {
+    "query": "how formatters transform log records into output strings",
+    "relevant": ["src/Monolog/Formatter/LineFormatter.php"],
+    "secondary": ["src/Monolog/Formatter/NormalizerFormatter.php"],
+    "category": "architecture"
+  },
+  {
+    "query": "RotatingFileHandler",
+    "relevant": ["src/Monolog/Handler/RotatingFileHandler.php"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "PsrLogMessageProcessor",
+    "relevant": ["src/Monolog/Processor/PsrLogMessageProcessor.php"],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

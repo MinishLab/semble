@@ -36,5 +36,89 @@
     "category": "architecture",
     "seed": {"path": "gin.go", "line": 92},
     "related": ["context.go", "routergroup.go"]
+  },
+  {
+    "query": "logging middleware and access log format",
+    "relevant": ["logger.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "JSON response rendering",
+    "relevant": ["render/json.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HTML template rendering",
+    "relevant": ["render/html.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "query parameter and URL path variable extraction",
+    "relevant": ["context.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "multipart form and file upload handling",
+    "relevant": ["context.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "error types and per-request error collection",
+    "relevant": ["errors.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "form data binding for URL-encoded requests",
+    "relevant": ["binding/form.go"],
+    "secondary": ["binding/default_validator.go"],
+    "category": "semantic"
+  },
+  {
+    "query": "how validators are plugged in for struct binding",
+    "relevant": ["binding/default_validator.go"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how middleware is applied globally and to route groups",
+    "relevant": ["routergroup.go"],
+    "secondary": ["gin.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "utility helpers for path detection and content-type formatting",
+    "relevant": ["utils.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Engine",
+    "relevant": ["gin.go"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Context",
+    "relevant": ["context.go"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "RouterGroup",
+    "relevant": ["routergroup.go"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how Abort and response writing prevent further handler execution",
+    "relevant": ["context.go"],
+    "secondary": [],
+    "category": "architecture"
   }
 ]

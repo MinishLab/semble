@@ -45,5 +45,83 @@
     "relevant": ["railties/lib/rails/paths.rb"],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "railtie extension point for Rails plugins",
+    "relevant": ["railties/lib/rails/railtie.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "generator framework and base generator class",
+    "relevant": ["railties/lib/rails/generators/base.rb"],
+    "secondary": ["railties/lib/rails/generators.rb"],
+    "category": "architecture"
+  },
+  {
+    "query": "application generator and default app scaffolding",
+    "relevant": ["railties/lib/rails/generators/rails/app/app_generator.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Rails command dispatch and subcommand routing",
+    "relevant": ["railties/lib/rails/command.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "initializable module for ordered initialization steps",
+    "relevant": ["railties/lib/rails/initializable.rb"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how railties are sorted by initialization dependency",
+    "relevant": ["railties/lib/rails/railtie.rb"],
+    "secondary": ["railties/lib/rails/initializable.rb"],
+    "category": "architecture"
+  },
+  {
+    "query": "default middleware stack configuration",
+    "relevant": ["railties/lib/rails/application/default_middleware_stack.rb"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "application routes reloader for development mode",
+    "relevant": ["railties/lib/rails/application/routes_reloader.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "server command and rack handler configuration",
+    "relevant": ["railties/lib/rails/commands/server/server_command.rb"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Railtie",
+    "relevant": ["railties/lib/rails/railtie.rb"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how rake tasks are loaded and registered from railties",
+    "relevant": ["railties/lib/rails/railtie.rb"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "engine middleware insertion and plugin loading",
+    "relevant": ["railties/lib/rails/engine.rb"],
+    "secondary": ["railties/lib/rails/application/default_middleware_stack.rb"],
+    "category": "architecture"
+  },
+  {
+    "query": "how generators are discovered and registered",
+    "relevant": ["railties/lib/rails/generators.rb"],
+    "secondary": ["railties/lib/rails/generators/base.rb"],
+    "category": "architecture"
   }
 ]

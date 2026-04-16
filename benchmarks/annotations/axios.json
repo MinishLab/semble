@@ -42,5 +42,83 @@
     "relevant": [{"path": "lib/core/mergeConfig.js", "start_line": 17, "end_line": 106}],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "XHR browser adapter implementation",
+    "relevant": ["lib/adapters/xhr.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request cancellation and abort controller support",
+    "relevant": ["lib/cancel/CancelToken.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "URL building and query parameter serialization",
+    "relevant": ["lib/helpers/buildURL.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HTTP response settling and status code validation",
+    "relevant": ["lib/core/settle.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "axios default configuration and request/response transformers",
+    "relevant": ["lib/defaults/index.js"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how axios instances are created with custom base config",
+    "relevant": ["lib/core/Axios.js"],
+    "secondary": ["lib/axios.js"],
+    "category": "architecture"
+  },
+  {
+    "query": "header management and case-insensitive normalization",
+    "relevant": ["lib/core/AxiosHeaders.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "error types and axios-specific error enrichment",
+    "relevant": ["lib/core/AxiosError.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how request and response data is transformed in the pipeline",
+    "relevant": ["lib/core/dispatchRequest.js"],
+    "secondary": ["lib/defaults/index.js"],
+    "category": "architecture"
+  },
+  {
+    "query": "general utility functions for type checking and extending",
+    "relevant": ["lib/utils.js"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "CancelToken",
+    "relevant": ["lib/cancel/CancelToken.js"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "AxiosError",
+    "relevant": ["lib/core/AxiosError.js"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "AxiosHeaders",
+    "relevant": ["lib/core/AxiosHeaders.js"],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

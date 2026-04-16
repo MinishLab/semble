@@ -28,5 +28,95 @@
     "relevant": ["mux.go"],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "panic recovery middleware",
+    "relevant": ["middleware/recoverer.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "CORS header handling middleware",
+    "relevant": ["middleware/cors.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request timeout enforcement middleware",
+    "relevant": ["middleware/timeout.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "request throttling and concurrency limiting",
+    "relevant": ["middleware/throttle.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "gzip response compression middleware",
+    "relevant": ["middleware/compress.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "real IP extraction from forwarded headers",
+    "relevant": ["middleware/realip.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "URL path stripping and rewriting middleware",
+    "relevant": ["middleware/strip.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HTTP redirect middleware",
+    "relevant": ["middleware/redirect.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "basic HTTP authentication middleware",
+    "relevant": ["middleware/basic_auth.go"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how middleware chains are composed and ordered",
+    "relevant": ["chain.go"],
+    "secondary": ["mux.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "route grouping with sub-routers",
+    "relevant": ["mux.go"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how URL parameters are extracted from path segments at request time",
+    "relevant": ["context.go"],
+    "secondary": ["tree.go"],
+    "category": "architecture"
+  },
+  {
+    "query": "Router",
+    "relevant": ["mux.go"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "RouteContext",
+    "relevant": ["context.go"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how chi resolves named URL parameters and wildcards during routing",
+    "relevant": ["tree.go"],
+    "secondary": ["context.go"],
+    "category": "architecture"
   }
 ]

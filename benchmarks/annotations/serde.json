@@ -1,0 +1,122 @@
+[
+  {
+    "query": "Serialize and Serializer trait definitions",
+    "relevant": ["serde_core/src/ser/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Deserialize and Deserializer trait definitions",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Visitor pattern for deserializer implementations",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "standard library type Serialize implementations",
+    "relevant": ["serde_core/src/ser/impls.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "standard library type Deserialize implementations",
+    "relevant": ["serde_core/src/de/impls.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "value-based deserialization for self-describing formats",
+    "relevant": ["serde_core/src/de/value.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how unknown and ignored fields are skipped during deserialization",
+    "relevant": ["serde_core/src/de/ignored_any.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how derive macros generate Serialize code for structs and enums",
+    "relevant": ["serde_derive/src/ser.rs"],
+    "secondary": ["serde_derive/src/internals/ast.rs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how derive macros generate Deserialize code for structs and enums",
+    "relevant": ["serde_derive/src/de.rs"],
+    "secondary": ["serde_derive/src/internals/ast.rs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how derive macros parse and apply field-level serde attributes",
+    "relevant": ["serde_derive/src/internals/attr.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how serde handles sequences and maps during serialization",
+    "relevant": ["serde_core/src/ser/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "MapAccess and SeqAccess for deserializing collections",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how serde handles lifetime-bound deserialization and borrowed data",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how EnumAccess and VariantAccess work for enum deserialization",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "derive proc macro entry point and registered derives",
+    "relevant": ["serde_derive/src/lib.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "serde AST representation of containers, variants, and fields",
+    "relevant": ["serde_derive/src/internals/ast.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "Serialize",
+    "relevant": ["serde_core/src/ser/mod.rs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Deserialize",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Serializer",
+    "relevant": ["serde_core/src/ser/mod.rs"],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "Visitor",
+    "relevant": ["serde_core/src/de/mod.rs"],
+    "secondary": [],
+    "category": "symbol"
+  }
+]
