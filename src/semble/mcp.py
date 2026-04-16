@@ -11,16 +11,11 @@ from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import Encoder, SearchResult
 
-
-async def serve(path: str | None = None, ref: str | None = None) -> None:
-    """Start an MCP stdio server, optionally pre-indexing a default source."""
-    model = await asyncio.to_thread(load_model)
-    cache = _IndexCache(model=model)
-    if path:
-        await cache.get(path, ref=ref)
-
-    server = create_server(cache, default_source=path)
-    await server.run_stdio_async()
+_REPO_DESCRIPTION = (
+    "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
+    "Required when no default index was configured at startup. "
+    "The index is cached after the first call, so repeat queries are fast."
+)
 
 
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
@@ -104,6 +99,17 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     return server
 
 
+async def serve(path: str | None = None, ref: str | None = None) -> None:
+    """Start an MCP stdio server, optionally pre-indexing a default source."""
+    model = await asyncio.to_thread(load_model)
+    cache = _IndexCache(model=model)
+    if path:
+        await cache.get(path, ref=ref)
+
+    server = create_server(cache, default_source=path)
+    await server.run_stdio_async()
+
+
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process.
 
@@ -149,16 +155,9 @@ class _IndexCache:
                 self._tasks.pop(cache_key, None)
             raise
         except Exception:
-            # Build failed — evict so the next caller can retry.
+            # Build failed: evict so the next caller can retry.
             self._tasks.pop(cache_key, None)
             raise
-
-
-_REPO_DESCRIPTION = (
-    "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
-    "Required when no default index was configured at startup. "
-    "The index is cached after the first call, so repeat queries are fast."
-)
 
 
 def _is_git_url(path: str) -> bool:
