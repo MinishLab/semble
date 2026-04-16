@@ -6,7 +6,7 @@
     "category": "semantic"
   },
   {
-    "query": "how absl hash tables implement open addressing and SIMD probing",
+    "query": "raw_hash_set open addressing SIMD group-based slot probing implementation",
     "relevant": ["absl/container/internal/raw_hash_set.h"],
     "secondary": [],
     "category": "architecture"
@@ -55,7 +55,7 @@
   },
   {
     "query": "absl logging macros ABSL_LOG and ABSL_CHECK",
-    "relevant": ["absl/log/log.h"],
+    "relevant": ["absl/log/absl_log.h"],
     "secondary": [],
     "category": "semantic"
   },

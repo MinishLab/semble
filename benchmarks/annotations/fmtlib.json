@@ -6,8 +6,8 @@
     "category": "architecture"
   },
   {
-    "query": "core format_arg and basic_format_args argument storage",
-    "relevant": ["include/fmt/core.h"],
+    "query": "basic_format_args and format_arg argument storage and type erasure",
+    "relevant": ["include/fmt/base.h"],
     "secondary": [],
     "category": "architecture"
   },
@@ -18,8 +18,8 @@
     "category": "semantic"
   },
   {
-    "query": "compile-time format string checking with FMT_STRING",
-    "relevant": ["include/fmt/core.h"],
+    "query": "compile-time format string checking and FMT_COMPILE macro",
+    "relevant": ["include/fmt/compile.h"],
     "secondary": [],
     "category": "semantic"
   },
@@ -66,8 +66,8 @@
     "category": "semantic"
   },
   {
-    "query": "how dynamic format arguments are stored and accessed",
-    "relevant": ["include/fmt/core.h"],
+    "query": "dynamic_format_arg_store for building argument lists at runtime",
+    "relevant": ["include/fmt/args.h"],
     "secondary": [],
     "category": "architecture"
   },
@@ -78,8 +78,8 @@
     "category": "semantic"
   },
   {
-    "query": "format_error exception for invalid format strings",
-    "relevant": ["include/fmt/core.h"],
+    "query": "format_error and error handling for invalid format strings",
+    "relevant": ["include/fmt/base.h"],
     "secondary": [],
     "category": "semantic"
   },
@@ -90,8 +90,8 @@
     "category": "semantic"
   },
   {
-    "query": "named arguments in format strings with fmt::arg",
-    "relevant": ["include/fmt/core.h"],
+    "query": "fmt::arg named arguments for use in format strings",
+    "relevant": ["include/fmt/args.h"],
     "secondary": [],
     "category": "semantic"
   },
@@ -109,7 +109,7 @@
   },
   {
     "query": "basic_format_args",
-    "relevant": ["include/fmt/core.h"],
+    "relevant": ["include/fmt/base.h"],
     "secondary": [],
     "category": "symbol"
   },

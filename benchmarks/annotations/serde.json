@@ -36,15 +36,15 @@
     "category": "semantic"
   },
   {
-    "query": "how unknown and ignored fields are skipped during deserialization",
+    "query": "IgnoredAny type for silently discarding unknown fields during deserialization",
     "relevant": ["serde_core/src/de/ignored_any.rs"],
     "secondary": [],
     "category": "semantic"
   },
   {
-    "query": "how derive macros generate Serialize code for structs and enums",
+    "query": "how serde_derive generates Serialize impl with serialize_field and serialize_struct",
     "relevant": ["serde_derive/src/ser.rs"],
-    "secondary": ["serde_derive/src/internals/ast.rs"],
+    "secondary": [],
     "category": "architecture"
   },
   {
@@ -90,7 +90,7 @@
     "category": "semantic"
   },
   {
-    "query": "serde AST representation of containers, variants, and fields",
+    "query": "serde_derive Container Variant and Field AST types for Rust struct and enum introspection",
     "relevant": ["serde_derive/src/internals/ast.rs"],
     "secondary": [],
     "category": "semantic"

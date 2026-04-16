@@ -6,16 +6,16 @@
     "category": "architecture"
   },
   {
-    "query": "test runner worker pool and execution",
-    "relevant": ["packages/vitest/src/node/pool.ts"],
+    "query": "test runner worker pool scheduling and execution",
+    "relevant": ["packages/vitest/src/node/pools/pool.ts"],
     "secondary": [],
     "category": "architecture"
   },
   {
-    "query": "describe and it test suite block definitions",
-    "relevant": ["packages/vitest/src/public/suite.ts"],
+    "query": "how vitest statically collects describe it and test block locations for test discovery",
+    "relevant": ["packages/vitest/src/node/ast-collect.ts"],
     "secondary": [],
-    "category": "semantic"
+    "category": "architecture"
   },
   {
     "query": "expect assertion API and matchers",
@@ -48,26 +48,26 @@
     "category": "semantic"
   },
   {
-    "query": "how beforeAll afterAll beforeEach afterEach hooks are scheduled",
-    "relevant": ["packages/vitest/src/public/suite.ts"],
+    "query": "how beforeAll afterAll and lifecycle hooks affect the test execution order",
+    "relevant": ["packages/vitest/src/node/test-run.ts"],
     "secondary": [],
     "category": "architecture"
   },
   {
-    "query": "test reporter interface and built-in reporters",
-    "relevant": ["packages/vitest/src/node/reporters/reported-tasks.ts"],
+    "query": "test reporter interface for listening to test events and results",
+    "relevant": ["packages/vitest/src/public/reporters.ts"],
     "secondary": [],
     "category": "semantic"
   },
   {
-    "query": "how vitest handles concurrent and parallel test execution",
-    "relevant": ["packages/vitest/src/node/core.ts"],
+    "query": "how vitest initializes worker threads for parallel test execution",
+    "relevant": ["packages/vitest/src/runtime/workers/init.ts"],
     "secondary": [],
     "category": "architecture"
   },
   {
-    "query": "module mocking and virtual module support",
-    "relevant": ["packages/vitest/src/integrations/mock/timers.ts"],
+    "query": "module mocker for intercepting and replacing module imports at runtime",
+    "relevant": ["packages/vitest/src/runtime/moduleRunner/moduleMocker.ts"],
     "secondary": [],
     "category": "semantic"
   },
@@ -84,7 +84,7 @@
     "category": "semantic"
   },
   {
-    "query": "how test results and state are reported and stored",
+    "query": "how the StateManager tracks running cancelled and completed test state",
     "relevant": ["packages/vitest/src/node/state.ts"],
     "secondary": [],
     "category": "architecture"

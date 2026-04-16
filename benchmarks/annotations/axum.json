@@ -1,13 +1,13 @@
 [
   {
-    "query": "how axum routes requests to handler functions",
-    "relevant": ["axum/src/routing/mod.rs"],
+    "query": "how axum Handler trait dispatches requests to async handler functions",
+    "relevant": ["axum/src/handler/mod.rs"],
     "secondary": [],
     "category": "architecture"
   },
   {
-    "query": "Router builder for adding routes and middleware",
-    "relevant": ["axum/src/routing/mod.rs"],
+    "query": "Router path_router implementation for storing and matching routes",
+    "relevant": ["axum/src/routing/path_router.rs"],
     "secondary": [],
     "category": "semantic"
   },
@@ -19,7 +19,7 @@
   },
   {
     "query": "Path extractor for capturing URL path parameters",
-    "relevant": ["axum/src/extract/path.rs"],
+    "relevant": ["axum/src/extract/path/mod.rs"],
     "secondary": [],
     "category": "semantic"
   },
@@ -38,12 +38,6 @@
   {
     "query": "how IntoResponse converts handler return values to HTTP responses",
     "relevant": ["axum/src/response/mod.rs"],
-    "secondary": [],
-    "category": "architecture"
-  },
-  {
-    "query": "middleware layers and how Tower services integrate with axum",
-    "relevant": ["axum/src/middleware/mod.rs"],
     "secondary": [],
     "category": "architecture"
   },
@@ -96,8 +90,14 @@
     "category": "semantic"
   },
   {
-    "query": "typed header extraction from HTTP requests",
-    "relevant": ["axum/src/extract/mod.rs"],
+    "query": "how axum maps Tower middleware layers onto the router",
+    "relevant": ["axum/src/middleware/mod.rs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "rejection types and rejection responses for failed extractions",
+    "relevant": ["axum/src/extract/rejection.rs"],
     "secondary": [],
     "category": "semantic"
   },
