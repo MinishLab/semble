@@ -50,20 +50,20 @@ def semantic(embeddings: npt.NDArray[np.float32]) -> SelectableBasicBackend:
 
 def test_bm25_search(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     """BM25 returns results with the most relevant chunk first."""
-    results = search_bm25("authenticate token", bm25, chunks, top_k=4)
+    results = search_bm25("authenticate token", bm25, chunks, top_k=4, selector=None)
     assert len(results) > 0
     assert "authenticate" in results[0].chunk.content
 
 
 def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     """Query with no matching tokens returns an empty list."""
-    results = search_bm25("zzzznonexistentterm", bm25, chunks, top_k=3)
+    results = search_bm25("zzzznonexistentterm", bm25, chunks, top_k=3, selector=None)
     assert results == []
 
 
 def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any) -> None:
     """Semantic search returns results with scores in [-1, 1]."""
-    results = search_semantic("login", mock_model, semantic, chunks, top_k=3)
+    results = search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
     assert len(results) > 0
     assert all(-1.0 <= r.score <= 1.0 for r in results)
 
@@ -100,8 +100,8 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
 @pytest.mark.parametrize(
     ("search_fn", "mode", "query", "top_k"),
     [
-        (lambda q, m, s, b, c, k: search_bm25(q, b, c, k), SearchMode.BM25, "authenticate", 3),
-        (lambda q, m, s, b, c, k: search_semantic(q, m, s, c, k), SearchMode.SEMANTIC, "query", 4),
+        (lambda q, m, s, b, c, k: search_bm25(q, b, c, k, selector=None), SearchMode.BM25, "authenticate", 3),
+        (lambda q, m, s, b, c, k: search_semantic(q, m, s, c, k, selector=None), SearchMode.SEMANTIC, "query", 4),
         (lambda q, m, s, b, c, k: search_hybrid(q, m, s, b, c, k), SearchMode.HYBRID, "login", 4),
     ],
 )

@@ -25,7 +25,7 @@ def search_semantic(
     semantic_index: SelectableBasicBackend,
     chunks: list[Chunk],
     top_k: int,
-    selector: npt.NDArray[np.int_] | None = None,
+    selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
     """Run semantic search for a query."""
     query_embedding = model.encode([query])
@@ -51,7 +51,7 @@ def search_bm25(
     bm25_index: bm25s.BM25,
     chunks: list[Chunk],
     top_k: int,
-    selector: npt.NDArray[np.int_] | None = None,
+    selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
     """Return chunks ranked by BM25 score, excluding zero-score results."""
     mask = selector_to_mask(selector)
