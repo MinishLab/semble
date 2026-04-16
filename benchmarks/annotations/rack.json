@@ -1,121 +1,153 @@
 [
   {
     "query": "HTTP request wrapper and forwarded headers",
-    "relevant": ["lib/rack/request.rb"],
+    "relevant": [
+      "lib/rack/request.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "HTTP response construction",
-    "relevant": ["lib/rack/response.rb"],
+    "relevant": [
+      "lib/rack/response.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "middleware builder DSL",
-    "relevant": ["lib/rack/builder.rb"],
+    "relevant": [
+      "lib/rack/builder.rb"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "URL path mapping across mounted apps",
-    "relevant": ["lib/rack/urlmap.rb"],
+    "relevant": [
+      "lib/rack/urlmap.rb"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Request",
-    "relevant": ["lib/rack/request.rb"],
+    "relevant": [
+      "lib/rack/request.rb"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Rack::Response",
-    "relevant": [{"path": "lib/rack/response.rb", "start_line": 23, "end_line": 62}],
+    "relevant": [
+      {
+        "path": "lib/rack/response.rb",
+        "start_line": 23,
+        "end_line": 62
+      }
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Rack::Builder",
-    "relevant": [{"path": "lib/rack/builder.rb", "start_line": 36, "end_line": 80}],
+    "relevant": [
+      {
+        "path": "lib/rack/builder.rb",
+        "start_line": 36,
+        "end_line": 80
+      }
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "ETag caching and conditional response headers",
-    "relevant": ["lib/rack/etag.rb"],
+    "relevant": [
+      "lib/rack/etag.rb"
+    ],
     "secondary": [],
     "category": "semantic"
-  },
-  {
-    "query": "cookie-based session storage",
-    "relevant": ["lib/rack/session/cookie.rb"],
-    "secondary": ["lib/rack/session/abstract/id.rb"],
-    "category": "semantic"
-  },
-  {
-    "query": "session abstraction and identity management",
-    "relevant": ["lib/rack/session/abstract/id.rb"],
-    "secondary": [],
-    "category": "architecture"
   },
   {
     "query": "static file serving middleware",
-    "relevant": ["lib/rack/static.rb"],
+    "relevant": [
+      "lib/rack/static.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "directory listing middleware",
-    "relevant": ["lib/rack/directory.rb"],
+    "relevant": [
+      "lib/rack/directory.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "MIME type detection from file extensions",
-    "relevant": ["lib/rack/mime.rb"],
+    "relevant": [
+      "lib/rack/mime.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "utility methods for parameter parsing and URL encoding",
-    "relevant": ["lib/rack/utils.rb"],
+    "relevant": [
+      "lib/rack/utils.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "multipart form data parsing",
-    "relevant": ["lib/rack/multipart.rb"],
+    "relevant": [
+      "lib/rack/multipart.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Rack spec conformance validator",
-    "relevant": ["lib/rack/lint.rb"],
+    "relevant": [
+      "lib/rack/lint.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "deferred body proxy for lazy response bodies",
-    "relevant": ["lib/rack/body_proxy.rb"],
+    "relevant": [
+      "lib/rack/body_proxy.rb"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how the Builder DSL assembles the middleware stack with use and run",
-    "relevant": ["lib/rack/builder.rb"],
+    "relevant": [
+      "lib/rack/builder.rb"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Utils",
-    "relevant": ["lib/rack/utils.rb"],
+    "relevant": [
+      "lib/rack/utils.rb"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Lint",
-    "relevant": ["lib/rack/lint.rb"],
+    "relevant": [
+      "lib/rack/lint.rb"
+    ],
     "secondary": [],
     "category": "symbol"
   }

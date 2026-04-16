@@ -1,121 +1,153 @@
 [
   {
     "query": "how Ecto.Schema defines database-backed structs and associations",
-    "relevant": ["lib/ecto/schema.ex"],
+    "relevant": [
+      "lib/ecto/schema.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Ecto.Changeset for validating and transforming data",
-    "relevant": ["lib/ecto/changeset.ex"],
+    "relevant": [
+      "lib/ecto/changeset.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Ecto.Query DSL for composing SQL queries",
-    "relevant": ["lib/ecto/query.ex"],
+    "relevant": [
+      "lib/ecto/query.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Ecto.Repo behaviour for database interactions",
-    "relevant": ["lib/ecto/repo.ex"],
+    "relevant": [
+      "lib/ecto/repo.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "cast and validate_required in changesets",
-    "relevant": ["lib/ecto/changeset.ex"],
+    "relevant": [
+      "lib/ecto/changeset.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "has_many belongs_to and many-to-many association definitions",
-    "relevant": ["lib/ecto/schema.ex"],
-    "secondary": [],
-    "category": "semantic"
-  },
-  {
-    "query": "Ecto.Migration for defining database migrations",
-    "relevant": ["lib/ecto/migration.ex"],
+    "relevant": [
+      "lib/ecto/schema.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "from where select and order_by query expressions",
-    "relevant": ["lib/ecto/query.ex"],
+    "relevant": [
+      "lib/ecto/query.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "preload for loading associations eagerly",
-    "relevant": ["lib/ecto/query.ex"],
+    "relevant": [
+      "lib/ecto/query.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Ecto.Type for custom field type definitions",
-    "relevant": ["lib/ecto/type.ex"],
+    "relevant": [
+      "lib/ecto/type.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "insert update delete and transaction repo callbacks",
-    "relevant": ["lib/ecto/repo.ex"],
+    "relevant": [
+      "lib/ecto/repo.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how Ecto handles embedded schemas",
-    "relevant": ["lib/ecto/schema.ex"],
+    "relevant": [
+      "lib/ecto/schema.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "validate_format validate_length and constraint validators",
-    "relevant": ["lib/ecto/changeset.ex"],
+    "relevant": [
+      "lib/ecto/changeset.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Ecto.Queryable protocol for query composition",
-    "relevant": ["lib/ecto/queryable.ex"],
+    "relevant": [
+      "lib/ecto/queryable.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Multi for composing multiple database operations in a transaction",
-    "relevant": ["lib/ecto/multi.ex"],
+    "relevant": [
+      "lib/ecto/multi.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "optimistic locking with lock_version in changesets",
-    "relevant": ["lib/ecto/changeset.ex"],
+    "relevant": [
+      "lib/ecto/changeset.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "association and embeds_many embeds_one for nested data",
-    "relevant": ["lib/ecto/schema.ex"],
+    "relevant": [
+      "lib/ecto/schema.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Schema",
-    "relevant": ["lib/ecto/schema.ex"],
+    "relevant": [
+      "lib/ecto/schema.ex"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Changeset",
-    "relevant": ["lib/ecto/changeset.ex"],
+    "relevant": [
+      "lib/ecto/changeset.ex"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Query",
-    "relevant": ["lib/ecto/query.ex"],
+    "relevant": [
+      "lib/ecto/query.ex"
+    ],
     "secondary": [],
     "category": "symbol"
   }

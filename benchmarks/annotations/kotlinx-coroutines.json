@@ -1,121 +1,161 @@
 [
   {
     "query": "how launch and async coroutine builders start coroutines",
-    "relevant": ["kotlinx-coroutines-core/common/src/Builders.common.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Builders.common.kt"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Deferred and await for async result computation",
-    "relevant": ["kotlinx-coroutines-core/common/src/Deferred.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Deferred.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Job interface and coroutine lifecycle management",
-    "relevant": ["kotlinx-coroutines-core/common/src/Job.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Job.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "CoroutineScope and structured concurrency",
-    "relevant": ["kotlinx-coroutines-core/common/src/CoroutineScope.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineScope.kt"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "CoroutineContext and coroutine context elements",
-    "relevant": ["kotlinx-coroutines-core/common/src/CoroutineContext.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineContext.common.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Flow interface and cold stream definition",
-    "relevant": ["kotlinx-coroutines-core/common/src/flow/Flow.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Flow.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "flow builder and how cold flows are created",
-    "relevant": ["kotlinx-coroutines-core/common/src/flow/Builders.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Builders.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "flow operators map filter transform and collect",
-    "relevant": ["kotlinx-coroutines-core/common/src/flow/operators/Transform.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Transform.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Channel for sending and receiving values between coroutines",
-    "relevant": ["kotlinx-coroutines-core/common/src/channels/Channel.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/channels/Channel.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how select expression waits on multiple suspending operations",
-    "relevant": ["kotlinx-coroutines-core/common/src/selects/Select.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/selects/Select.kt"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Mutex and Semaphore for coroutine synchronization",
-    "relevant": ["kotlinx-coroutines-core/common/src/sync/Mutex.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/sync/Mutex.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "withContext for switching coroutine dispatcher context",
-    "relevant": ["kotlinx-coroutines-core/common/src/Builders.common.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Builders.common.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "CoroutineDispatcher and dispatching coroutines to threads",
-    "relevant": ["kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "StateFlow and SharedFlow for hot reactive state",
-    "relevant": ["kotlinx-coroutines-core/common/src/flow/StateFlow.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/StateFlow.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "coroutine exception handling and CoroutineExceptionHandler",
-    "relevant": ["kotlinx-coroutines-core/common/src/CoroutineExceptionHandler.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineExceptionHandler.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "SupervisorJob and supervisor scope for isolated failure handling",
-    "relevant": ["kotlinx-coroutines-core/common/src/Supervisor.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Supervisor.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "delay and withTimeout suspending time functions",
-    "relevant": ["kotlinx-coroutines-core/common/src/Delay.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Delay.kt"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Job",
-    "relevant": ["kotlinx-coroutines-core/common/src/Job.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Job.kt"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Flow",
-    "relevant": ["kotlinx-coroutines-core/common/src/flow/Flow.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Flow.kt"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Channel",
-    "relevant": ["kotlinx-coroutines-core/common/src/channels/Channel.kt"],
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/channels/Channel.kt"
+    ],
     "secondary": [],
     "category": "symbol"
   }

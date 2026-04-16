@@ -1,122 +1,80 @@
 [
   {
     "query": "application initialization and default configuration",
-    "relevant": ["lib/application.js"],
-    "secondary": ["lib/express.js"],
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [
+      "lib/express.js"
+    ],
     "category": "architecture"
   },
   {
     "query": "request API helpers and header access",
-    "relevant": ["lib/request.js"],
+    "relevant": [
+      "lib/request.js"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "response sending and content negotiation",
-    "relevant": ["lib/response.js"],
+    "relevant": [
+      "lib/response.js"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "template view lookup and rendering",
-    "relevant": ["lib/view.js"],
-    "secondary": ["lib/application.js"],
+    "relevant": [
+      "lib/view.js"
+    ],
+    "secondary": [
+      "lib/application.js"
+    ],
     "category": "architecture"
   },
   {
     "query": "response",
-    "relevant": ["lib/response.js"],
+    "relevant": [
+      "lib/response.js"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
-    "query": "router middleware registration and request dispatching",
-    "relevant": ["lib/router/index.js"],
-    "secondary": [],
-    "category": "architecture"
-  },
-  {
-    "query": "individual route and its handler chain",
-    "relevant": ["lib/router/route.js"],
-    "secondary": [],
-    "category": "semantic"
-  },
-  {
-    "query": "route layer path matching and URL parameter extraction",
-    "relevant": ["lib/router/layer.js"],
-    "secondary": [],
-    "category": "semantic"
-  },
-  {
-    "query": "query string parsing middleware",
-    "relevant": ["lib/middleware/query.js"],
-    "secondary": [],
-    "category": "semantic"
-  },
-  {
-    "query": "init middleware that attaches app and settings to req",
-    "relevant": ["lib/middleware/init.js"],
-    "secondary": [],
-    "category": "semantic"
-  },
-  {
     "query": "utility functions for content type detection and MIME handling",
-    "relevant": ["lib/utils.js"],
+    "relevant": [
+      "lib/utils.js"
+    ],
     "secondary": [],
     "category": "semantic"
-  },
-  {
-    "query": "how middleware is mounted and chained with use()",
-    "relevant": ["lib/application.js"],
-    "secondary": ["lib/router/index.js"],
-    "category": "architecture"
-  },
-  {
-    "query": "error handling with next(err) and four-argument error middleware",
-    "relevant": ["lib/router/layer.js"],
-    "secondary": ["lib/router/index.js"],
-    "category": "architecture"
-  },
-  {
-    "query": "how route params are decoded and populated on the request",
-    "relevant": ["lib/router/layer.js"],
-    "secondary": ["lib/router/route.js"],
-    "category": "architecture"
   },
   {
     "query": "how sub-applications are mounted with use() and path prefix stripping",
-    "relevant": ["lib/application.js"],
+    "relevant": [
+      "lib/application.js"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "how express creates the app function and attaches prototype methods",
-    "relevant": ["lib/express.js"],
-    "secondary": ["lib/application.js"],
+    "relevant": [
+      "lib/express.js"
+    ],
+    "secondary": [
+      "lib/application.js"
+    ],
     "category": "architecture"
-  },
-  {
-    "query": "Router",
-    "relevant": ["lib/router/index.js"],
-    "secondary": [],
-    "category": "symbol"
-  },
-  {
-    "query": "Route",
-    "relevant": ["lib/router/route.js"],
-    "secondary": [],
-    "category": "symbol"
   },
   {
     "query": "application",
-    "relevant": ["lib/application.js"],
+    "relevant": [
+      "lib/application.js"
+    ],
     "secondary": [],
     "category": "symbol"
-  },
-  {
-    "query": "how the application inherits from the prototype router",
-    "relevant": ["lib/application.js"],
-    "secondary": ["lib/router/index.js"],
-    "category": "architecture"
   }
 ]

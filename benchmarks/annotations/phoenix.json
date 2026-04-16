@@ -1,121 +1,157 @@
 [
   {
     "query": "how Phoenix routes are defined and dispatched to controller actions",
-    "relevant": ["lib/phoenix/router.ex"],
+    "relevant": [
+      "lib/phoenix/router.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "controller actions and request handling helpers",
-    "relevant": ["lib/phoenix/controller.ex"],
+    "relevant": [
+      "lib/phoenix/controller.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "real-time channel messaging, topics, and join/leave",
-    "relevant": ["lib/phoenix/channel.ex"],
+    "relevant": [
+      "lib/phoenix/channel.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "channel server process and message routing",
-    "relevant": ["lib/phoenix/channel/server.ex"],
-    "secondary": ["lib/phoenix/channel.ex"],
+    "relevant": [
+      "lib/phoenix/channel/server.ex"
+    ],
+    "secondary": [
+      "lib/phoenix/channel.ex"
+    ],
     "category": "semantic"
   },
   {
     "query": "endpoint and plug pipeline configuration",
-    "relevant": ["lib/phoenix/endpoint.ex"],
+    "relevant": [
+      "lib/phoenix/endpoint.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "WebSocket and long-poll socket transport",
-    "relevant": ["lib/phoenix/socket.ex"],
+    "relevant": [
+      "lib/phoenix/socket.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "presence tracking, diffs, and broadcast",
-    "relevant": ["lib/phoenix/presence.ex"],
-    "secondary": [],
-    "category": "semantic"
-  },
-  {
-    "query": "template rendering and assigns",
-    "relevant": ["lib/phoenix/template.ex"],
+    "relevant": [
+      "lib/phoenix/presence.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "verified routes for compile-time URL validation",
-    "relevant": ["lib/phoenix/verified_routes.ex"],
+    "relevant": [
+      "lib/phoenix/verified_routes.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how Phoenix logs request and response lifecycle events",
-    "relevant": ["lib/phoenix/logger.ex"],
+    "relevant": [
+      "lib/phoenix/logger.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "how channels handle incoming messages and replies",
-    "relevant": ["lib/phoenix/channel.ex"],
-    "secondary": ["lib/phoenix/channel/server.ex"],
+    "relevant": [
+      "lib/phoenix/channel.ex"
+    ],
+    "secondary": [
+      "lib/phoenix/channel/server.ex"
+    ],
     "category": "architecture"
   },
   {
     "query": "how the router matches path segments to controller/action",
-    "relevant": ["lib/phoenix/router.ex"],
+    "relevant": [
+      "lib/phoenix/router.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "named URL generation from route helpers",
-    "relevant": ["lib/phoenix/router.ex"],
+    "relevant": [
+      "lib/phoenix/router.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "how controllers render views and JSON responses",
-    "relevant": ["lib/phoenix/controller.ex"],
+    "relevant": [
+      "lib/phoenix/controller.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Param protocol for extracting URL-safe IDs",
-    "relevant": ["lib/phoenix/param.ex"],
+    "relevant": [
+      "lib/phoenix/param.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "naming conventions for controllers and view modules",
-    "relevant": ["lib/phoenix/naming.ex"],
+    "relevant": [
+      "lib/phoenix/naming.ex"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how Phoenix Endpoint supervises and starts the HTTP server",
-    "relevant": ["lib/phoenix/endpoint.ex"],
+    "relevant": [
+      "lib/phoenix/endpoint.ex"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Router",
-    "relevant": ["lib/phoenix/router.ex"],
+    "relevant": [
+      "lib/phoenix/router.ex"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Controller",
-    "relevant": ["lib/phoenix/controller.ex"],
+    "relevant": [
+      "lib/phoenix/controller.ex"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "Channel",
-    "relevant": ["lib/phoenix/channel.ex"],
+    "relevant": [
+      "lib/phoenix/channel.ex"
+    ],
     "secondary": [],
     "category": "symbol"
   }
