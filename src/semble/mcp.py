@@ -111,12 +111,7 @@ async def serve(path: str | None = None, ref: str | None = None) -> None:
 
 
 class _IndexCache:
-    """Cache of indexed repos and local paths for the lifetime of the MCP server process.
-
-    Stores one asyncio.Task per canonical source key.  Task creation is synchronous, so
-    concurrent calls for the same cold source both await the same task — no lock needed and
-    no duplicate clone or index build.  A single embedding model is shared across all indexes.
-    """
+    """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
     def __init__(self, model: Encoder) -> None:
         """Initialise an empty cache with a shared embedding model."""
@@ -124,12 +119,7 @@ class _IndexCache:
         self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
-        """Return an index for *source*, building it on first access.
-
-        Cloning and indexing run in a thread so the event loop stays responsive.
-        Concurrent calls for the same source await a single shared task.
-        Failed builds are evicted so the next caller can retry.
-        """
+        """Return an index for the requested source, building and caching it on first access."""
         is_git = _is_git_url(source)
         if is_git:
             cache_key = f"{source}@{ref}" if ref else source
