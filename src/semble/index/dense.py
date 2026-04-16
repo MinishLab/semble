@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import numpy as np
 import numpy.typing as npt
 from huggingface_hub.utils.tqdm import disable_progress_bars
