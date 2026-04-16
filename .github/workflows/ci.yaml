@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   test:
@@ -48,7 +50,7 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run tests under coverage
-        run: uv run pytest
+        run: pytest
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v4
