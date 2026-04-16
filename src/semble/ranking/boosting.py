@@ -22,7 +22,7 @@ _SYMBOL_QUERY_RE = re.compile(
 
 # Alpha values for query-adaptive blending.
 _ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching
-_ALPHA_NL = 0.6  # Natural language queries: lean semantic for meaning matching
+_ALPHA_NL = 0.5  # Natural language queries: balanced semantic + BM25
 
 # Definition keywords used across common languages.
 # Case-sensitive: most language keywords are lowercase by convention, and applying
@@ -71,7 +71,7 @@ _SQL_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _SQL_DEFINITION_K
 _DEFINITION_BOOST_MULTIPLIER = 2.0
 
 # Additive boost multiplier for NL queries when file stems match query words.
-_STEM_BOOST_MULTIPLIER = 0.5
+_STEM_BOOST_MULTIPLIER = 1.0
 
 # Common English stopwords excluded from file-stem matching for NL queries.
 _STOPWORDS = frozenset(
@@ -260,5 +260,5 @@ def _boost_stem_matches(
         n_matches = _fuzzy_keyword_overlap(keywords, path_cache[chunk.file_path])
         if n_matches > 0:
             match_ratio = n_matches / len(keywords)
-            if match_ratio >= 0.20:
+            if match_ratio >= 0.10:
                 boosted[chunk] += boost * match_ratio
