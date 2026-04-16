@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Literal
 
-from mcp import types as mcp_types
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
+from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
@@ -21,17 +20,12 @@ async def serve(path: str | None = None, ref: str | None = None) -> None:
         await cache.get(path, ref=ref)
 
     server = create_server(cache, default_source=path)
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options(),
-        )
+    await server.run_stdio_async()
 
 
-def create_server(cache: _IndexCache, default_source: str | None = None) -> Server:
-    """Build and return a configured MCP Server backed by the given cache."""
-    server: Server = Server(
+def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
+    """Build and return a configured FastMCP server backed by the given cache."""
+    server = FastMCP(
         "semble",
         instructions=(
             "Use this server to search any codebase by source code. "
@@ -43,46 +37,69 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Serv
         ),
     )
 
-    @server.list_tools()  # type: ignore[misc]
-    async def list_tools() -> list[mcp_types.Tool]:
-        return _TOOLS
+    @server.tool()
+    async def search(
+        query: Annotated[str, Field(description="Natural language or code query.")],
+        repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
+        mode: Annotated[
+            Literal["hybrid", "semantic", "bm25"],
+            Field(description="Search mode. 'hybrid' is best for most queries."),
+        ] = "hybrid",
+        top_k: Annotated[int, Field(description="Number of results to return.", ge=1, le=20)] = 5,
+    ) -> str:
+        """Search a codebase with a natural-language or code query.
 
-    @server.call_tool()  # type: ignore[misc]
-    async def call_tool(name: str, arguments: dict[str, Any]) -> list[mcp_types.TextContent]:
-        source = arguments.get("repo") or default_source
+        Pass a git URL or local path as `repo` to clone and index it on demand.
+        The index is cached so subsequent searches on the same repo are instant.
+        Returns the most relevant code chunks with file paths and line numbers.
+        """
+        source = repo or default_source
         if not source:
-            return _text(
+            return (
                 "No repo specified and no default index. "
                 "Pass a git URL (https://github.com/...) or local path as `repo`."
             )
-
         try:
             index = await cache.get(source)
         except Exception as exc:
-            return _text(f"Failed to index {source!r}: {exc}")
+            return f"Failed to index {source!r}: {exc}"
+        results = index.search(query, top_k=top_k, mode=mode)
+        if not results:
+            return "No results found."
+        return _format_results(f"Search results for: {query!r} (mode={mode})", results)
 
-        if name == "search":
-            query: str = arguments["query"]
-            mode: str = arguments.get("mode", "hybrid")
-            top_k: int = int(arguments.get("top_k", 5))
-            results = index.search(query, top_k=top_k, mode=mode)
-            if not results:
-                return _text("No results found.")
-            return _format_results(f"Search results for: {query!r} (mode={mode})", results)
+    @server.tool()
+    async def find_related(
+        file_path: Annotated[
+            str,
+            Field(description="Path to the file as stored in the index (use file_path from a search result)."),
+        ],
+        line: Annotated[int, Field(description="Line number (1-indexed).")],
+        repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
+        top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1, le=10)] = 5,
+    ) -> str:
+        """Find code chunks semantically similar to a specific location in a file.
 
-        if name == "find_related":
-            file_path: str = arguments["file_path"]
-            line: int = int(arguments["line"])
-            top_k = int(arguments.get("top_k", 5))
-            results = index.find_related(file_path, line, top_k=top_k)
-            if not results:
-                return _text(
-                    f"No related chunks found for {file_path}:{line}. "
-                    "Make sure the file is indexed and the line number is within a known chunk."
-                )
-            return _format_results(f"Chunks related to {file_path}:{line}", results)
-
-        raise ValueError(f"Unknown tool: {name!r}")
+        Useful for discovering related logic elsewhere in the codebase.
+        Pass the same `repo` used in the original `search` call.
+        """
+        source = repo or default_source
+        if not source:
+            return (
+                "No repo specified and no default index. "
+                "Pass a git URL (https://github.com/...) or local path as `repo`."
+            )
+        try:
+            index = await cache.get(source)
+        except Exception as exc:
+            return f"Failed to index {source!r}: {exc}"
+        results = index.find_related(file_path, line, top_k=top_k)
+        if not results:
+            return (
+                f"No related chunks found for {file_path}:{line}. "
+                "Make sure the file is indexed and the line number is within a known chunk."
+            )
+        return _format_results(f"Chunks related to {file_path}:{line}", results)
 
     return server
 
@@ -108,26 +125,32 @@ class _IndexCache:
         Failed builds are evicted so the next caller can retry.
         """
         is_git = _is_git_url(source)
-        key = source if is_git else str(Path(source).resolve())
-        if key not in self._tasks:
+        if is_git:
+            cache_key = f"{source}@{ref}" if ref else source
+        else:
+            cache_key = str(Path(source).resolve())
+
+        if cache_key not in self._tasks:
             if is_git:
-                self._tasks[key] = asyncio.create_task(
+                self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(SembleIndex.from_git, source, ref=ref, model=self._model)
                 )
             else:
-                self._tasks[key] = asyncio.create_task(asyncio.to_thread(SembleIndex.from_path, key, model=self._model))
-        task = self._tasks[key]
+                self._tasks[cache_key] = asyncio.create_task(
+                    asyncio.to_thread(SembleIndex.from_path, cache_key, model=self._model)
+                )
+        task = self._tasks[cache_key]
         try:
             return await asyncio.shield(task)
         except asyncio.CancelledError:
             # If this waiter was cancelled but the task is still running, preserve it for
             # other waiters. Only evict if the task itself was cancelled.
             if task.done():
-                self._tasks.pop(key, None)
+                self._tasks.pop(cache_key, None)
             raise
         except Exception:
             # Build failed — evict so the next caller can retry.
-            self._tasks.pop(key, None)
+            self._tasks.pop(cache_key, None)
             raise
 
 
@@ -137,78 +160,13 @@ _REPO_DESCRIPTION = (
     "The index is cached after the first call, so repeat queries are fast."
 )
 
-_TOOLS: list[mcp_types.Tool] = [
-    mcp_types.Tool(
-        name="search",
-        description=(
-            "Search a codebase with a natural-language or code query. "
-            "Pass a git URL or local path as `repo` to clone and index it on demand — "
-            "the index is cached so subsequent searches on the same repo are instant. "
-            "Returns the most relevant code chunks with file paths and line numbers."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "query": {"type": "string", "description": "Natural language or code query."},
-                "repo": {"type": "string", "description": _REPO_DESCRIPTION},
-                "mode": {
-                    "type": "string",
-                    "enum": ["hybrid", "semantic", "bm25"],
-                    "default": "hybrid",
-                    "description": "Search mode. 'hybrid' is best for most queries.",
-                },
-                "top_k": {
-                    "type": "integer",
-                    "default": 5,
-                    "minimum": 1,
-                    "maximum": 20,
-                    "description": "Number of results to return.",
-                },
-            },
-            "required": ["query"],
-        },
-    ),
-    mcp_types.Tool(
-        name="find_related",
-        description=(
-            "Find code chunks semantically similar to a specific location in a file. "
-            "Useful for discovering related logic elsewhere in the codebase. "
-            "Pass the same `repo` used in the original `search` call."
-        ),
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "file_path": {
-                    "type": "string",
-                    "description": "Path to the file as stored in the index (use file_path from a search result).",
-                },
-                "line": {"type": "integer", "description": "Line number (1-indexed)."},
-                "repo": {"type": "string", "description": _REPO_DESCRIPTION},
-                "top_k": {
-                    "type": "integer",
-                    "default": 5,
-                    "minimum": 1,
-                    "maximum": 10,
-                    "description": "Number of similar chunks to return.",
-                },
-            },
-            "required": ["file_path", "line"],
-        },
-    ),
-]
-
 
 def _is_git_url(path: str) -> bool:
     """Return True if path looks like a remote git URL rather than a local path."""
     return path.startswith(("https://", "http://", "git@", "ssh://"))
 
 
-def _text(content: str) -> list[mcp_types.TextContent]:
-    """Wrap a string in a single-element TextContent list."""
-    return [mcp_types.TextContent(type="text", text=content)]
-
-
-def _format_results(header: str, results: list[SearchResult]) -> list[mcp_types.TextContent]:
+def _format_results(header: str, results: list[SearchResult]) -> str:
     """Render SearchResult objects as numbered, fenced code blocks."""
     lines: list[str] = [header, ""]
     for i, r in enumerate(results, 1):
@@ -217,4 +175,4 @@ def _format_results(header: str, results: list[SearchResult]) -> list[mcp_types.
         lines.append(r.chunk.content.strip())
         lines.append("```")
         lines.append("")
-    return _text("\n".join(lines))
+    return "\n".join(lines)
