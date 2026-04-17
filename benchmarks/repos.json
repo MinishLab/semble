@@ -437,13 +437,6 @@
     "benchmark_root": "packages/riverpod/lib/src"
   },
   {
-    "name": "nvim-lspconfig",
-    "language": "lua",
-    "url": "https://github.com/neovim/nvim-lspconfig.git",
-    "revision": "4b7fbaa239c5db6b36f424a4521ca9f1a401be33",
-    "benchmark_root": "lua/lspconfig"
-  },
-  {
     "name": "mini.nvim",
     "language": "lua",
     "url": "https://github.com/echasnovski/mini.nvim.git",

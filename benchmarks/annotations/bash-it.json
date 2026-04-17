@@ -15,7 +15,7 @@
       "lib/helpers.bash"
     ],
     "secondary": [],
-    "category": "api"
+    "category": "architecture"
   },
   {
     "query": "how command duration is measured and displayed in prompt",
@@ -51,7 +51,7 @@
       "lib/log.bash"
     ],
     "secondary": [],
-    "category": "api"
+    "category": "architecture"
   },
   {
     "query": "color definitions and terminal color support",
@@ -97,7 +97,7 @@
       "plugins/available/pyenv.plugin.bash"
     ],
     "secondary": [],
-    "category": "keyword"
+    "category": "symbol"
   },
   {
     "query": "ssh agent plugin for managing ssh keys",
@@ -105,7 +105,7 @@
       "plugins/available/ssh.plugin.bash"
     ],
     "secondary": [],
-    "category": "keyword"
+    "category": "symbol"
   },
   {
     "query": "jump plugin for bookmarking directories",
@@ -121,7 +121,7 @@
       "plugins/available/node.plugin.bash"
     ],
     "secondary": [],
-    "category": "keyword"
+    "category": "symbol"
   },
   {
     "query": "rvm ruby version manager plugin",
@@ -129,7 +129,7 @@
       "plugins/available/rvm.plugin.bash"
     ],
     "secondary": [],
-    "category": "keyword"
+    "category": "symbol"
   },
   {
     "query": "bash-it utility functions for string manipulation",
@@ -145,7 +145,7 @@
       "plugins/available/hub.plugin.bash"
     ],
     "secondary": [],
-    "category": "keyword"
+    "category": "symbol"
   },
   {
     "query": "xterm terminal title setting functions",

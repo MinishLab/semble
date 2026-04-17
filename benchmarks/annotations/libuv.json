@@ -133,7 +133,7 @@
       "src/unix/dl.c"
     ],
     "secondary": [],
-    "category": "api"
+    "category": "architecture"
   },
   {
     "query": "network interface address enumeration",
@@ -171,7 +171,7 @@
       "src/idna.c"
     ],
     "secondary": [],
-    "category": "keyword"
+    "category": "symbol"
   },
   {
     "query": "tty terminal raw mode and window size",
