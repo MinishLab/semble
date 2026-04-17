@@ -140,5 +140,31 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "how Traverse sequences effects over a structure",
+    "relevant": [
+      "core/src/main/scala/cats/Traverse.scala"
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Semigroup and Monoid type classes for combining values",
+    "relevant": [
+      "kernel/src/main/scala/cats/kernel/Monoid.scala"
+    ],
+    "secondary": [
+      "kernel/src/main/scala/cats/kernel/Semigroup.scala"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "Foldable",
+    "relevant": [
+      "core/src/main/scala/cats/Foldable.scala"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

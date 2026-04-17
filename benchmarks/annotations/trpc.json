@@ -150,5 +150,29 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "WebSocket adapter for real-time tRPC subscriptions",
+    "relevant": [
+      "packages/server/src/adapters/ws.ts"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how tRPC procedures are defined and chained with input and output validation",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/procedure.ts"
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how tRPC routers are created and merged",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/router.ts"
+    ],
+    "secondary": [],
+    "category": "architecture"
   }
 ]

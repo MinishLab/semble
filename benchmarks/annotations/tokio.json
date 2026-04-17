@@ -138,5 +138,31 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "async file I/O operations",
+    "relevant": [
+      "tokio/src/fs/file.rs"
+    ],
+    "secondary": [
+      "tokio/src/fs/mod.rs"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "how the tokio runtime builder configures and starts the multi-thread scheduler",
+    "relevant": [
+      "tokio/src/runtime/builder.rs"
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "Runtime",
+    "relevant": [
+      "tokio/src/runtime/runtime.rs"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

@@ -142,5 +142,43 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "how the Ktor server application and plugin pipeline are initialized",
+    "relevant": [
+      "ktor-server/ktor-server-core/common/src/io/ktor/server/application/Application.kt"
+    ],
+    "secondary": [
+      "ktor-server/ktor-server-core/common/src/io/ktor/server/application/ApplicationPlugin.kt"
+    ],
+    "category": "architecture"
+  },
+  {
+    "query": "how client plugins intercept and transform requests and responses",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/api/ClientPluginBuilder.kt"
+    ],
+    "secondary": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/api/ClientPluginInstance.kt"
+    ],
+    "category": "architecture"
+  },
+  {
+    "query": "HTTP client engine abstraction and engine factory",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/engine/HttpClientEngine.kt"
+    ],
+    "secondary": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/engine/HttpClientEngineFactory.kt"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "HttpClientCall",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/call/HttpClientCall.kt"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

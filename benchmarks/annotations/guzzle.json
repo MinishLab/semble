@@ -1,91 +1,171 @@
 [
   {
     "query": "HTTP client request sending and defaults",
-    "relevant": ["src/Client.php"],
-    "secondary": ["src/ClientTrait.php"],
+    "relevant": [
+      "src/Client.php"
+    ],
+    "secondary": [
+      "src/ClientTrait.php"
+    ],
     "category": "semantic"
   },
   {
     "query": "middleware handler stack composition",
-    "relevant": ["src/HandlerStack.php"],
-    "secondary": ["src/Middleware.php"],
+    "relevant": [
+      "src/HandlerStack.php"
+    ],
+    "secondary": [
+      "src/Middleware.php"
+    ],
     "category": "architecture"
   },
   {
     "query": "retry middleware and exponential backoff",
-    "relevant": ["src/RetryMiddleware.php"],
+    "relevant": [
+      "src/RetryMiddleware.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "cookie jar implementation",
-    "relevant": ["src/Cookie/CookieJar.php"],
-    "secondary": ["src/Cookie/SetCookie.php"],
+    "relevant": [
+      "src/Cookie/CookieJar.php"
+    ],
+    "secondary": [
+      "src/Cookie/SetCookie.php"
+    ],
     "category": "semantic"
   },
   {
     "query": "redirect following and location header handling",
-    "relevant": ["src/RedirectMiddleware.php"],
+    "relevant": [
+      "src/RedirectMiddleware.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "curl-based HTTP handler and connection management",
-    "relevant": ["src/Handler/CurlFactory.php"],
-    "secondary": ["src/Handler/CurlHandler.php"],
+    "relevant": [
+      "src/Handler/CurlFactory.php"
+    ],
+    "secondary": [
+      "src/Handler/CurlHandler.php"
+    ],
     "category": "semantic"
   },
   {
     "query": "mock handler for simulating HTTP responses in tests",
-    "relevant": ["src/Handler/MockHandler.php"],
+    "relevant": [
+      "src/Handler/MockHandler.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "concurrent request pool with limited parallelism",
-    "relevant": ["src/Pool.php"],
+    "relevant": [
+      "src/Pool.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "available request options and their configuration",
-    "relevant": ["src/RequestOptions.php"],
+    "relevant": [
+      "src/RequestOptions.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "HTTP message formatting and request logging",
-    "relevant": ["src/MessageFormatter.php"],
+    "relevant": [
+      "src/MessageFormatter.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how request body and content-type are prepared before sending",
-    "relevant": ["src/PrepareBodyMiddleware.php"],
+    "relevant": [
+      "src/PrepareBodyMiddleware.php"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "exception hierarchy for HTTP and transfer errors",
-    "relevant": ["src/Exception/RequestException.php"],
-    "secondary": ["src/Exception/GuzzleException.php"],
+    "relevant": [
+      "src/Exception/RequestException.php"
+    ],
+    "secondary": [
+      "src/Exception/GuzzleException.php"
+    ],
     "category": "semantic"
   },
   {
     "query": "Client",
-    "relevant": ["src/Client.php"],
+    "relevant": [
+      "src/Client.php"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "HandlerStack",
-    "relevant": ["src/HandlerStack.php"],
+    "relevant": [
+      "src/HandlerStack.php"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "RedirectMiddleware",
-    "relevant": ["src/RedirectMiddleware.php"],
+    "relevant": [
+      "src/RedirectMiddleware.php"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "how the handler stack wraps middleware around the HTTP send",
+    "relevant": [
+      "src/HandlerStack.php"
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "retry middleware and backoff logic",
+    "relevant": [
+      "src/RetryMiddleware.php"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how redirect responses are followed and redirect history tracked",
+    "relevant": [
+      "src/RedirectMiddleware.php"
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "transfer statistics and timing information",
+    "relevant": [
+      "src/TransferStats.php"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "HandlerStack",
+    "relevant": [
+      "src/HandlerStack.php"
+    ],
     "secondary": [],
     "category": "symbol"
   }

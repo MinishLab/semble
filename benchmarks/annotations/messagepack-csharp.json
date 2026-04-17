@@ -145,5 +145,29 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "how the MessagePack binary format codes map to types",
+    "relevant": [
+      "src/MessagePack/MessagePackCode.cs"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "security options and depth limits for deserialization",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "MessagePackSecurity",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

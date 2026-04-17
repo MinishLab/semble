@@ -157,5 +157,45 @@
     "related": [
       "lib/sinatra/base.rb"
     ]
+  },
+  {
+    "query": "how route conditions are evaluated before dispatching",
+    "relevant": [
+      {
+        "path": "lib/sinatra/base.rb",
+        "start_line": 1048,
+        "end_line": 1100
+      }
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "show_exceptions middleware for development error pages",
+    "relevant": [
+      "lib/sinatra/show_exceptions.rb"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Sinatra::Base registers class-level route helpers like get post put delete",
+    "relevant": [
+      {
+        "path": "lib/sinatra/base.rb",
+        "start_line": 1330,
+        "end_line": 1400
+      }
+    ],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "IndifferentHash",
+    "relevant": [
+      "lib/sinatra/indifferent_hash.rb"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]

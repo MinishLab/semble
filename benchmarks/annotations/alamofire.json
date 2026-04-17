@@ -142,5 +142,31 @@
     ],
     "secondary": [],
     "category": "symbol"
+  },
+  {
+    "query": "how upload requests stream data to the server",
+    "relevant": [
+      "Source/Core/UploadRequest.swift"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "parameter encoding for URL and JSON request bodies",
+    "relevant": [
+      "Source/Core/ParameterEncoding.swift"
+    ],
+    "secondary": [
+      "Source/Core/ParameterEncoder.swift"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "URLConvertible",
+    "relevant": [
+      "Source/Core/URLConvertible+URLRequestConvertible.swift"
+    ],
+    "secondary": [],
+    "category": "symbol"
   }
 ]
