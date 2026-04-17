@@ -8,7 +8,7 @@ from semble.ranking import apply_query_boost, rerank_topk, resolve_alpha
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
 
-_RRF_K = 30
+_RRF_K = 60
 
 
 def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:

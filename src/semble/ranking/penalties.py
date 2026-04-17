@@ -58,34 +58,15 @@ _TEST_DIR_RE = re.compile(r"(?:^|/)(?:tests?|__tests__|spec|testing)(?:/|$)")
 # Compat/legacy path components.
 _COMPAT_DIR_RE = re.compile(r"(?:^|/)(?:compat|_compat|legacy)(?:/|$)")
 
-# Website / documentation site source (not the library's own source code).
-_WEBSITE_DIR_RE = re.compile(r"(?:^|/)website(?:/|$)")
-
-# Vendored third-party dependencies bundled inside the repo.
-_DEPS_DIR_RE = re.compile(r"(?:^|/)deps?(?:/|$)")
-
 # Examples/docs path components.
-# Also matches example_<word> directories like example_dart/, example_flutter_app/.
-# Note: when an _<suffix> is present we require a trailing / so we only match
-# directory components (not filenames like example_code.py).
-_EXAMPLES_DIR_RE = re.compile(
-    r"(?:^|/)(?:"
-    r"_?examples?/"  # examples/, _examples/, example/
-    r"|_?examples?_[^/]+/"  # example_dart/, example_flutter_app/
-    r"|docs?_src(?:/|$)"  # doc_src/, docs_src
-    r")"
-)
+_EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 
 # TypeScript declaration files (.d.ts stubs).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
-# Standalone example files (e.g. example.lua, examples.py) that are not in
-# an examples/ directory but whose filename signals demo/sample content.
-_EXAMPLE_FILE_RE = re.compile(r"(?:^|/)examples?(?:\.[^/]+)$")
-
 # Amalgamated / vendored single-header distributions (e.g. single_include/).
 # These aggregate many source files into one, causing false positives over the
-# real source files.
+# real source files. Pattern seen in nlohmann-json, SQLite, Dear ImGui, etc.
 _AMALGAM_DIR_RE = re.compile(r"(?:^|/)single_include(?:/|$)")
 
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
@@ -174,13 +155,7 @@ def _file_path_penalty(file_path: str) -> float:
         penalty *= _MODERATE_PENALTY
     if _COMPAT_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
-    if _WEBSITE_DIR_RE.search(normalised):
-        penalty *= _STRONG_PENALTY
-    if _DEPS_DIR_RE.search(normalised):
-        penalty *= _STRONG_PENALTY
     if _EXAMPLES_DIR_RE.search(normalised):
-        penalty *= _STRONG_PENALTY
-    if _EXAMPLE_FILE_RE.search(normalised):
         penalty *= _STRONG_PENALTY
     if _AMALGAM_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
