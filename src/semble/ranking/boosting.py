@@ -194,18 +194,6 @@ def _scan_non_candidates(
             boosted[chunk] = tier
 
 
-def _prefix_or_exact(stem: str, symbols_lower: frozenset[str], min_len: int) -> bool:
-    """Return True if stem exactly matches or is a prefix (≥ min_len chars) of any symbol."""
-    sn = stem.replace("_", "")
-    return any(
-        stem == sl
-        or sn == sl
-        or (len(stem) >= min_len and sl.startswith(stem))
-        or (len(sn) >= min_len and sl.startswith(sn))
-        for sl in symbols_lower
-    )
-
-
 def _boost_symbol_definitions(
     boosted: dict[Chunk, float],
     query: str,
@@ -258,13 +246,21 @@ def _boost_embedded_symbols(
             boosted[chunk] += tier
 
     symbols_lower = frozenset(s.lower() for s in names)
-    _scan_non_candidates(
-        boosted,
-        names,
-        boost_unit,
-        all_chunks,
-        lambda stem: _prefix_or_exact(stem, symbols_lower, _EMBEDDED_STEM_MIN_LEN),
-    )
+    for chunk in all_chunks:
+        if chunk in boosted:
+            continue
+        stem = Path(chunk.file_path).stem.lower()
+        stem_norm = stem.replace("_", "")
+        if not any(
+            stem == sl
+            or stem_norm == sl
+            or (len(stem) >= _EMBEDDED_STEM_MIN_LEN and sl.startswith(stem))
+            or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and sl.startswith(stem_norm))
+            for sl in symbols_lower
+        ):
+            continue
+        if tier := _definition_tier(chunk, names, boost_unit):
+            boosted[chunk] = tier
 
 
 def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None:
@@ -275,18 +271,18 @@ def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None
     file_sum: dict[str, float] = {}
     best_chunk: dict[str, Chunk] = {}
     for chunk, score in boosted.items():
-        fp = chunk.file_path
-        file_sum[fp] = file_sum.get(fp, 0.0) + score
-        if fp not in best_chunk or score > boosted[best_chunk[fp]]:
-            best_chunk[fp] = chunk
+        file_path = chunk.file_path
+        file_sum[file_path] = file_sum.get(file_path, 0.0) + score
+        if file_path not in best_chunk or score > boosted[best_chunk[file_path]]:
+            best_chunk[file_path] = chunk
 
     max_file_sum = max(file_sum.values())
     if max_file_sum == 0.0:
         return
 
     boost_unit = max_score * _FILE_COHERENCE_BOOST_FRAC
-    for fp, chunk in best_chunk.items():
-        boosted[chunk] += boost_unit * file_sum[fp] / max_file_sum
+    for file_path, chunk in best_chunk.items():
+        boosted[chunk] += boost_unit * file_sum[file_path] / max_file_sum
 
 
 def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
