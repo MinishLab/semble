@@ -68,7 +68,7 @@ _DEFINITION_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _DEFINITIO
 _SQL_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _SQL_DEFINITION_KEYWORDS)
 
 # Additive boost multiplier for chunks that define a queried symbol.
-_DEFINITION_BOOST_MULTIPLIER = 2.0
+_DEFINITION_BOOST_MULTIPLIER = 2.5
 
 # Additive boost multiplier for NL queries when file stems match query words.
 _STEM_BOOST_MULTIPLIER = 1.0
@@ -77,7 +77,7 @@ _STEM_BOOST_MULTIPLIER = 1.0
 # normalised sum-score across all candidates.  Files with many high-scoring
 # chunks are promoted so that the single best chunk from a relevant file ranks
 # above scattered chunks from many unrelated files.
-_FILE_COHERENCE_BOOST_FRAC = 0.3
+_FILE_COHERENCE_BOOST_FRAC = 0.2
 
 # Common English stopwords excluded from file-stem matching for NL queries.
 _STOPWORDS = frozenset(
