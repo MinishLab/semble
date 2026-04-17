@@ -111,14 +111,12 @@ def apply_query_boost(
     query: str,
     all_chunks: list[Chunk],
 ) -> dict[Chunk, float]:
-    """Apply file-coherence + query-type boosts to candidate scores."""
+    """Apply query-type boosts to candidate scores."""
     if not combined_scores:
         return combined_scores
 
     max_score = max(combined_scores.values())
     boosted = dict(combined_scores)
-
-    _boost_file_coherence(boosted, max_score)
 
     if _is_symbol_query(query):
         _boost_symbol_definitions(boosted, query, max_score, all_chunks)
@@ -263,17 +261,18 @@ def _boost_embedded_symbols(
             boosted[chunk] = tier
 
 
-def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None:
+def boost_file_coherence(scores: dict[Chunk, float]) -> None:
     """Promote files with multiple high-scoring chunks by boosting their top chunk (in-place)."""
-    if not boosted:
+    if not scores:
         return
 
+    max_score = max(scores.values())
     file_sum: dict[str, float] = {}
     best_chunk: dict[str, Chunk] = {}
-    for chunk, score in boosted.items():
+    for chunk, score in scores.items():
         file_path = chunk.file_path
         file_sum[file_path] = file_sum.get(file_path, 0.0) + score
-        if file_path not in best_chunk or score > boosted[best_chunk[file_path]]:
+        if file_path not in best_chunk or score > scores[best_chunk[file_path]]:
             best_chunk[file_path] = chunk
 
     max_file_sum = max(file_sum.values())
@@ -282,7 +281,7 @@ def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None
 
     boost_unit = max_score * _FILE_COHERENCE_BOOST_FRAC
     for file_path, chunk in best_chunk.items():
-        boosted[chunk] += boost_unit * file_sum[file_path] / max_file_sum
+        scores[chunk] += boost_unit * file_sum[file_path] / max_file_sum
 
 
 def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
