@@ -69,7 +69,7 @@ _DEFINITION_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _DEFINITIO
 _SQL_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _SQL_DEFINITION_KEYWORDS)
 
 # Additive boost multiplier for chunks that define a queried symbol.
-_DEFINITION_BOOST_MULTIPLIER = 2.5
+_DEFINITION_BOOST_MULTIPLIER = 3.0
 
 # Additive boost multiplier for NL queries when file stems match query words.
 _STEM_BOOST_MULTIPLIER = 1.0
