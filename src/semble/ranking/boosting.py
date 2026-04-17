@@ -73,6 +73,12 @@ _DEFINITION_BOOST_MULTIPLIER = 2.0
 # Additive boost multiplier for NL queries when file stems match query words.
 _STEM_BOOST_MULTIPLIER = 1.0
 
+# File-coherence boost: fraction of max_score added proportional to a file's
+# normalised sum-score across all candidates.  Files with many high-scoring
+# chunks are promoted so that the single best chunk from a relevant file ranks
+# above scattered chunks from many unrelated files.
+_FILE_COHERENCE_BOOST_FRAC = 0.3
+
 # Common English stopwords excluded from file-stem matching for NL queries.
 _STOPWORDS = frozenset(
     "a an and are as at be by do does for from has have how if in is it not of on or the to was"
@@ -94,8 +100,8 @@ def apply_query_boost(
 ) -> dict[Chunk, float]:
     """Apply query-type-specific boosts to candidate scores.
 
-    Dispatches to symbol-definition boosting or NL file-stem boosting
-    based on query type.
+    Applies file-coherence boosting to all queries, then dispatches to
+    symbol-definition boosting or NL file-stem boosting based on query type.
 
     :param combined_scores: Existing combined scores for candidate chunks.
     :param query: The raw query string.
@@ -107,6 +113,8 @@ def apply_query_boost(
 
     max_score = max(combined_scores.values())
     boosted = dict(combined_scores)
+
+    _boost_file_coherence(boosted, max_score)
 
     if _is_symbol_query(query):
         _boost_symbol_definitions(boosted, query, max_score, all_chunks)
@@ -213,6 +221,42 @@ def _boost_symbol_definitions(
         tier = _definition_tier(chunk, names, boost_unit)
         if tier:
             boosted[chunk] = tier
+
+
+def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None:
+    """Boost the top chunk per file proportional to that file's total candidate score (in-place).
+
+    Files with multiple high-scoring chunks signal stronger relevance than a single
+    high-scoring chunk in an otherwise-irrelevant file.  Only the highest-scoring chunk
+    per file is boosted — boosting all chunks would conflict with the file-saturation
+    decay in ``rerank_topk`` which limits each file to one top-ranked result.
+
+    The boost is additive and capped at ``max_score * _FILE_COHERENCE_BOOST_FRAC``
+    for the file with the highest aggregate score.
+    """
+    if not boosted:
+        return
+
+    # Sum scores per file across all candidates.
+    file_sum: dict[str, float] = {}
+    for chunk, score in boosted.items():
+        fp = chunk.file_path
+        file_sum[fp] = file_sum.get(fp, 0.0) + score
+
+    max_file_sum = max(file_sum.values())
+    if max_file_sum == 0.0:
+        return
+
+    # Find the highest-scoring chunk per file.
+    best_chunk: dict[str, Chunk] = {}
+    for chunk, score in boosted.items():
+        fp = chunk.file_path
+        if fp not in best_chunk or score > boosted[best_chunk[fp]]:
+            best_chunk[fp] = chunk
+
+    boost_unit = max_score * _FILE_COHERENCE_BOOST_FRAC
+    for fp, chunk in best_chunk.items():
+        boosted[chunk] += boost_unit * file_sum[fp] / max_file_sum
 
 
 def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
