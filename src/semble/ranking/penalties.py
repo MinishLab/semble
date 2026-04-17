@@ -64,9 +64,7 @@ _EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 # TypeScript declaration files (.d.ts stubs).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
-# Amalgamated / vendored single-header distributions (e.g. single_include/).
-# These aggregate many source files into one, causing false positives over the
-# real source files. Pattern seen in nlohmann-json, SQLite, Dear ImGui, etc.
+# Amalgamated single-header distributions (e.g. single_include/).
 _AMALGAM_DIR_RE = re.compile(r"(?:^|/)single_include(?:/|$)")
 
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code

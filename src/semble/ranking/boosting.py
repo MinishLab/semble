@@ -20,12 +20,8 @@ _SYMBOL_QUERY_RE = re.compile(
     r")$"
 )
 
-# Matches CamelCase/camelCase identifiers embedded in a natural language query.
-# Requires at least two "case transitions" so plain English words are excluded:
-#   - PascalCase with two+ uppercase letters: StateManager, ZodType, RouterGroup
-#   - camelCase (starts lowercase, contains uppercase): beforeAll, safeParse, initTRPC
-# Pure acronyms (HTTP, URL, API) are excluded because the second char must be lowercase
-# for PascalCase, and all-caps have no lowercase starter for camelCase.
+# Matches CamelCase/camelCase identifiers embedded in a NL query.
+# Pure acronyms (HTTP, URL) and plain English words are excluded.
 _EMBEDDED_SYMBOL_RE = re.compile(
     r"\b(?:"
     r"[A-Z][a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*"  # PascalCase: StateManager, ZodType
@@ -33,13 +29,10 @@ _EMBEDDED_SYMBOL_RE = re.compile(
     r")\b"
 )
 
-# Minimum file-stem length for the non-candidate prefix scan in embedded-symbol boost.
-# Prevents over-broad matches (e.g. stem "s" matching symbol "StateManager").
+# Minimum stem length for prefix-based non-candidate scan (avoids over-broad matches).
 _EMBEDDED_STEM_MIN_LEN = 4
 
-# Scale factor applied to the definition boost for symbols extracted from NL queries.
-# Half-strength vs pure symbol queries because embedded extraction is opportunistic:
-# the symbol may be incidental rather than the primary subject of the query.
+# Half-strength boost for embedded symbols; the symbol may be incidental to the query.
 _EMBEDDED_SYMBOL_BOOST_SCALE = 0.5
 
 # Alpha values for query-adaptive blending.
@@ -96,10 +89,8 @@ _DEFINITION_BOOST_MULTIPLIER = 3.0
 # Additive boost multiplier for NL queries when file stems match query words.
 _STEM_BOOST_MULTIPLIER = 1.0
 
-# File-coherence boost: fraction of max_score added proportional to a file's
-# normalised sum-score across all candidates.  Files with many high-scoring
-# chunks are promoted so that the single best chunk from a relevant file ranks
-# above scattered chunks from many unrelated files.
+# Fraction of max_score added to the top chunk per file, proportional to the file's
+# aggregate candidate score.
 _FILE_COHERENCE_BOOST_FRAC = 0.2
 
 # Common English stopwords excluded from file-stem matching for NL queries.
@@ -170,12 +161,10 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     Two passes: case-sensitive for general keywords (to avoid false positives
     from e.g. `Module.new` in Ruby or `Class` in docstrings), then
     case-insensitive for SQL DDL keywords where mixed-case is common.
-
-    Also matches namespace-qualified definitions where the last component matches
-    the symbol name (e.g. ``defmodule Phoenix.Router`` matches query ``Router``).
+    Also matches namespace-qualified forms (e.g. ``defmodule Phoenix.Router`` for ``Router``).
     """
     escaped_symbol = re.escape(symbol_name)
-    # Optional namespace prefix: e.g. "Phoenix." in "Phoenix.Router", or "MyApp::" etc.
+    # Optional namespace prefix: e.g. "Phoenix." or "MyApp::".
     ns_prefix = r"(?:[A-Za-z_][A-Za-z0-9_]*(?:\.|::))*"
     suffix = r")\s+" + ns_prefix + escaped_symbol + r"(?:\s|[<({:\[;]|$)"
     if re.compile(_KEYWORD_PREFIX + _DEFINITION_KEYWORD_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
@@ -197,10 +186,7 @@ def _stem_matches(stem: str, name: str) -> bool:
 
 
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/PascalCase-aware).
-
-    Also handles pluralized stems (e.g. 'requests.py' matches 'Request').
-    """
+    """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/plural-aware)."""
     return _stem_matches(Path(chunk.file_path).stem.lower(), symbol_name.lower())
 
 
@@ -252,7 +238,6 @@ def _boost_symbol_definitions(
     # Scan non-candidate chunks whose file stem matches the symbol.
     # In large repos the definition file may not rank in the top-N candidates
     # despite BM25 stem enrichment; scanning by stem ensures it is found.
-    # Also handle pluralized stems: "requests.py" should match symbol "Request".
     symbol_lower = symbol_name.lower()
     for chunk in all_chunks:
         if chunk in boosted:
@@ -273,17 +258,9 @@ def _boost_embedded_symbols(
 ) -> None:
     """Boost chunks that define CamelCase/camelCase symbols embedded in a NL query (in-place).
 
-    For queries like "how the StateManager tracks running state", extracts embedded
-    code identifiers (StateManager) and boosts chunks that define them.
-
-    Uses half the multiplier of pure symbol queries since embedded context is less reliable.
-    Non-candidate scan checks files whose stem is a prefix of the symbol (min 4 chars),
-    allowing e.g. ``state.ts`` (stem "state") to be found for symbol ``StateManager``.
-
-    :param boosted: Candidate scores to boost in-place.
-    :param query: The raw NL query string.
-    :param max_score: Max candidate score before boosting (used to scale boost unit).
-    :param all_chunks: Full chunk list (used for non-candidate definition scanning).
+    Extracts identifiers from the query (e.g. ``StateManager`` in "how the StateManager
+    tracks running state") and applies half-strength definition boosting.  Non-candidate
+    scan uses prefix matching (min 4 chars) so e.g. ``state.ts`` is found for ``StateManager``.
     """
     symbols = _EMBEDDED_SYMBOL_RE.findall(query)
     if not symbols:
@@ -300,8 +277,8 @@ def _boost_embedded_symbols(
             if tier:
                 boosted[chunk] += tier
 
-        # Non-candidate scan: files whose stem is a prefix of the symbol name.
-        # e.g. stem "state" (≥4 chars) is a prefix of "statemanager".
+        # Non-candidate scan: files whose stem is a prefix of the symbol name
+        # (min 4 chars), e.g. stem "state" matches symbol "StateManager".
         symbol_lower = symbol.lower()
         for chunk in all_chunks:
             if chunk in boosted:
@@ -321,15 +298,10 @@ def _boost_embedded_symbols(
 
 
 def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None:
-    """Boost the top chunk per file proportional to that file's total candidate score (in-place).
+    """Boost the top chunk per file proportional to that file's aggregate candidate score (in-place).
 
-    Files with multiple high-scoring chunks signal stronger relevance than a single
-    high-scoring chunk in an otherwise-irrelevant file.  Only the highest-scoring chunk
-    per file is boosted — boosting all chunks would conflict with the file-saturation
-    decay in ``rerank_topk`` which limits each file to one top-ranked result.
-
-    The boost is additive and capped at ``max_score * _FILE_COHERENCE_BOOST_FRAC``
-    for the file with the highest aggregate score.
+    Files with multiple high-scoring chunks are promoted over files with a single lucky chunk.
+    Only the top chunk per file is boosted to avoid conflicting with file-saturation decay.
     """
     if not boosted:
         return

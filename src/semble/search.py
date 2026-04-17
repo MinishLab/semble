@@ -92,8 +92,7 @@ def search_hybrid(
     alpha_weight = resolve_alpha(query, alpha)
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
-    # Use more candidates for NL queries (semantic/architecture) where the target may rank
-    # lower in individual retrievers; symbol queries keep the standard 5x pool.
+    # NL queries use a larger pool (7x) since semantic targets can rank lower in either retriever.
     candidate_count = top_k * (5 if alpha_weight < 0.5 else 7)
 
     semantic = search_semantic(query, model, semantic_index, chunks, candidate_count, selector)
