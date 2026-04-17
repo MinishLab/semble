@@ -58,6 +58,9 @@ _TEST_DIR_RE = re.compile(r"(?:^|/)(?:tests?|__tests__|spec|testing)(?:/|$)")
 # Compat/legacy path components.
 _COMPAT_DIR_RE = re.compile(r"(?:^|/)(?:compat|_compat|legacy)(?:/|$)")
 
+# Website / documentation site source (not the library's own source code).
+_WEBSITE_DIR_RE = re.compile(r"(?:^|/)website(?:/|$)")
+
 # Examples/docs path components.
 # Also matches example_<word> directories like example_dart/, example_flutter_app/.
 # Note: when an _<suffix> is present we require a trailing / so we only match
@@ -167,6 +170,8 @@ def _file_path_penalty(file_path: str) -> float:
     if Path(file_path).name in _REEXPORT_FILENAMES:
         penalty *= _MODERATE_PENALTY
     if _COMPAT_DIR_RE.search(normalised):
+        penalty *= _STRONG_PENALTY
+    if _WEBSITE_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
     if _EXAMPLES_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
