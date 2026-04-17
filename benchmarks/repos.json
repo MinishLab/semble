@@ -346,6 +346,13 @@
     "benchmark_root": "src"
   },
   {
+    "name": "libuv",
+    "language": "c",
+    "url": "https://github.com/libuv/libuv.git",
+    "revision": "40178b916e5937ed43c557aa051bdb3f86f6ca93",
+    "benchmark_root": "src"
+  },
+  {
     "name": "bats-core",
     "language": "bash",
     "url": "https://github.com/bats-core/bats-core.git",
