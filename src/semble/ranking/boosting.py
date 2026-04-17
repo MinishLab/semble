@@ -217,12 +217,20 @@ def _boost_symbol_definitions(
     # Scan non-candidate chunks whose file stem matches the symbol.
     # In large repos the definition file may not rank in the top-N candidates
     # despite BM25 stem enrichment; scanning by stem ensures it is found.
+    # Also handle pluralized stems: "requests.py" should match symbol "Request".
     symbol_lower = symbol_name.lower()
     for chunk in all_chunks:
         if chunk in boosted:
             continue
         stem = Path(chunk.file_path).stem.lower()
-        if stem != symbol_lower and stem.replace("_", "") != symbol_lower:
+        stem_norm = stem.replace("_", "")
+        # Match exact, underscore-normalized, or stem that is symbol + optional trailing 's'/'es'
+        if not (
+            stem == symbol_lower
+            or stem_norm == symbol_lower
+            or stem.rstrip("s") == symbol_lower
+            or stem_norm.rstrip("s") == symbol_lower
+        ):
             continue
         tier = _definition_tier(chunk, names, boost_unit)
         if tier:
