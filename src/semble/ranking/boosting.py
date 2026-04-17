@@ -174,7 +174,7 @@ def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
     if not any(_chunk_defines_symbol(chunk, name) for name in names):
         return 0.0
     stem = Path(chunk.file_path).stem.lower()
-    return boost_unit * (1.5 if any(_stem_matches(stem, n.lower()) for n in names) else 1.0)
+    return boost_unit * (1.5 if any(_stem_matches(stem, name.lower()) for name in names) else 1.0)
 
 
 def _scan_non_candidates(
@@ -252,11 +252,11 @@ def _boost_embedded_symbols(
         stem = Path(chunk.file_path).stem.lower()
         stem_norm = stem.replace("_", "")
         if not any(
-            stem == sl
-            or stem_norm == sl
-            or (len(stem) >= _EMBEDDED_STEM_MIN_LEN and sl.startswith(stem))
-            or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and sl.startswith(stem_norm))
-            for sl in symbols_lower
+            stem == symbol_lower
+            or stem_norm == symbol_lower
+            or (len(stem) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem))
+            or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem_norm))
+            for symbol_lower in symbols_lower
         ):
             continue
         if tier := _definition_tier(chunk, names, boost_unit):
