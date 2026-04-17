@@ -20,6 +20,23 @@ _SYMBOL_QUERY_RE = re.compile(
     r")$"
 )
 
+# Matches CamelCase/camelCase identifiers embedded in a natural language query.
+# Requires at least two "case transitions" so plain English words are excluded:
+#   - PascalCase with two+ uppercase letters: StateManager, ZodType, RouterGroup
+#   - camelCase (starts lowercase, contains uppercase): beforeAll, safeParse, initTRPC
+# Pure acronyms (HTTP, URL, API) are excluded because the second char must be lowercase
+# for PascalCase, and all-caps have no lowercase starter for camelCase.
+_EMBEDDED_SYMBOL_RE = re.compile(
+    r"\b(?:"
+    r"[A-Z][a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*"  # PascalCase: StateManager, ZodType
+    r"|[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]+"  # camelCase: beforeAll, safeParse
+    r")\b"
+)
+
+# Minimum file-stem length for the non-candidate prefix scan in embedded-symbol boost.
+# Prevents over-broad matches (e.g. stem "s" matching symbol "StateManager").
+_EMBEDDED_STEM_MIN_LEN = 4
+
 # Alpha values for query-adaptive blending.
 _ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching
 _ALPHA_NL = 0.5  # Natural language queries: balanced semantic + BM25
@@ -121,6 +138,7 @@ def apply_query_boost(
         _boost_symbol_definitions(boosted, query, max_score, all_chunks)
     else:
         _boost_stem_matches(boosted, query, max_score)
+        _boost_embedded_symbols(boosted, query, max_score, all_chunks)
 
     return boosted
 
@@ -239,6 +257,61 @@ def _boost_symbol_definitions(
         tier = _definition_tier(chunk, names, boost_unit)
         if tier:
             boosted[chunk] = tier
+
+
+def _boost_embedded_symbols(
+    boosted: dict[Chunk, float],
+    query: str,
+    max_score: float,
+    all_chunks: list[Chunk],
+) -> None:
+    """Boost chunks that define CamelCase/camelCase symbols embedded in a NL query (in-place).
+
+    For queries like "how the StateManager tracks running state", extracts embedded
+    code identifiers (StateManager) and boosts chunks that define them.
+
+    Uses half the multiplier of pure symbol queries since embedded context is less reliable.
+    Non-candidate scan checks files whose stem is a prefix of the symbol (min 4 chars),
+    allowing e.g. ``state.ts`` (stem "state") to be found for symbol ``StateManager``.
+
+    :param boosted: Candidate scores to boost in-place.
+    :param query: The raw NL query string.
+    :param max_score: Max candidate score before boosting (used to scale boost unit).
+    :param all_chunks: Full chunk list (used for non-candidate definition scanning).
+    """
+    symbols = _EMBEDDED_SYMBOL_RE.findall(query)
+    if not symbols:
+        return
+
+    boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER * 0.5
+
+    for symbol in symbols:
+        names = {symbol}
+
+        # Boost candidate chunks that define this symbol.
+        for chunk in list(boosted):
+            tier = _definition_tier(chunk, names, boost_unit)
+            if tier:
+                boosted[chunk] += tier
+
+        # Non-candidate scan: files whose stem is a prefix of the symbol name.
+        # e.g. stem "state" (≥4 chars) is a prefix of "statemanager".
+        symbol_lower = symbol.lower()
+        for chunk in all_chunks:
+            if chunk in boosted:
+                continue
+            stem = Path(chunk.file_path).stem.lower()
+            stem_norm = stem.replace("_", "")
+            if not (
+                (len(stem) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem))
+                or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem_norm))
+                or stem == symbol_lower
+                or stem_norm == symbol_lower
+            ):
+                continue
+            tier = _definition_tier(chunk, names, boost_unit)
+            if tier:
+                boosted[chunk] = tier
 
 
 def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None:
