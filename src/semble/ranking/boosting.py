@@ -1,4 +1,5 @@
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 from semble.tokens import _split_identifier
@@ -20,8 +21,7 @@ _SYMBOL_QUERY_RE = re.compile(
     r")$"
 )
 
-# Matches CamelCase/camelCase identifiers embedded in a NL query.
-# Pure acronyms (HTTP, URL) and plain English words are excluded.
+# CamelCase/camelCase identifiers embedded in a NL query; excludes plain words and pure acronyms.
 _EMBEDDED_SYMBOL_RE = re.compile(
     r"\b(?:"
     r"[A-Z][a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*"  # PascalCase: StateManager, ZodType
@@ -89,8 +89,7 @@ _DEFINITION_BOOST_MULTIPLIER = 3.0
 # Additive boost multiplier for NL queries when file stems match query words.
 _STEM_BOOST_MULTIPLIER = 1.0
 
-# Fraction of max_score added to the top chunk per file, proportional to the file's
-# aggregate candidate score.
+# Fraction of max_score added to each file's top chunk, scaled by its aggregate candidate score.
 _FILE_COHERENCE_BOOST_FRAC = 0.2
 
 # Common English stopwords excluded from file-stem matching for NL queries.
@@ -156,11 +155,9 @@ def _extract_symbol_name(query: str) -> str:
 
 
 def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Check whether a chunk contains a definition of *symbol_name*.
+    """Return True if the chunk contains a definition of *symbol_name*.
 
-    Two passes: case-sensitive for general keywords (to avoid false positives
-    from e.g. `Module.new` in Ruby or `Class` in docstrings), then
-    case-insensitive for SQL DDL keywords where mixed-case is common.
+    Case-sensitive for general keywords, case-insensitive for SQL DDL.
     Also matches namespace-qualified forms (e.g. ``defmodule Phoenix.Router`` for ``Router``).
     """
     escaped_symbol = re.escape(symbol_name)
@@ -182,7 +179,6 @@ def _stem_matches(stem: str, name: str) -> bool:
 
 
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/plural-aware)."""
     return _stem_matches(Path(chunk.file_path).stem.lower(), symbol_name.lower())
 
 
@@ -195,8 +191,35 @@ def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
     """
     if not any(_chunk_defines_symbol(chunk, name) for name in names):
         return 0.0
-    has_stem = any(_file_stem_matches_symbol(chunk, name) for name in names)
-    return boost_unit * (1.5 if has_stem else 1.0)
+    return boost_unit * (1.5 if any(_file_stem_matches_symbol(chunk, name) for name in names) else 1.0)
+
+
+def _scan_non_candidates(
+    boosted: dict[Chunk, float],
+    names: set[str],
+    boost_unit: float,
+    all_chunks: list[Chunk],
+    stem_ok: Callable[[str], bool],
+) -> None:
+    """Boost non-candidate chunks whose lowercased file stem satisfies stem_ok (in-place)."""
+    for chunk in all_chunks:
+        if chunk in boosted:
+            continue
+        if not stem_ok(Path(chunk.file_path).stem.lower()):
+            continue
+        if tier := _definition_tier(chunk, names, boost_unit):
+            boosted[chunk] = tier
+
+
+def _prefix_or_exact(stem: str, symbols_lower: frozenset[str], min_len: int) -> bool:
+    """Return True if stem exactly matches or is a prefix (≥ min_len chars) of any symbol."""
+    sn = stem.replace("_", "")
+    return any(
+        _stem_matches(stem, sl)
+        or (len(stem) >= min_len and sl.startswith(stem))
+        or (len(sn) >= min_len and sl.startswith(sn))
+        for sl in symbols_lower
+    )
 
 
 def _boost_symbol_definitions(
@@ -205,17 +228,7 @@ def _boost_symbol_definitions(
     max_score: float,
     all_chunks: list[Chunk],
 ) -> None:
-    """Boost chunks that define the queried symbol (in-place).
-
-    Scans both candidates and non-candidates whose file stem matches the
-    symbol.  Non-candidate scanning is needed for large repos where the
-    definition file may not rank in the top-N candidates despite BM25 stem
-    enrichment.
-
-    Definition tiers (see `_definition_tier`):
-      - 1.5x boost_unit: definition keyword + file-stem match
-      - 1.0x boost_unit: definition keyword only
-    """
+    """Boost chunks that define the queried symbol, scanning candidates and stem-matched non-candidates (in-place)."""
     symbol_name = _extract_symbol_name(query)
     if not symbol_name:
         return
@@ -227,23 +240,16 @@ def _boost_symbol_definitions(
     boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER
 
     for chunk in list(boosted):
-        tier = _definition_tier(chunk, names, boost_unit)
-        if tier:
+        if tier := _definition_tier(chunk, names, boost_unit):
             boosted[chunk] += tier
 
-    # Scan non-candidate chunks whose file stem matches the symbol.
-    # In large repos the definition file may not rank in the top-N candidates
-    # despite BM25 stem enrichment; scanning by stem ensures it is found.
-    symbol_lower = symbol_name.lower()
-    for chunk in all_chunks:
-        if chunk in boosted:
-            continue
-        stem = Path(chunk.file_path).stem.lower()
-        if not _stem_matches(stem, symbol_lower):
-            continue
-        tier = _definition_tier(chunk, names, boost_unit)
-        if tier:
-            boosted[chunk] = tier
+    _scan_non_candidates(
+        boosted,
+        names,
+        boost_unit,
+        all_chunks,
+        lambda stem: _stem_matches(stem, symbol_name.lower()),
+    )
 
 
 def _boost_embedded_symbols(
@@ -252,49 +258,33 @@ def _boost_embedded_symbols(
     max_score: float,
     all_chunks: list[Chunk],
 ) -> None:
-    """Boost chunks that define CamelCase/camelCase symbols embedded in a NL query (in-place).
+    """Boost chunks defining CamelCase/camelCase symbols embedded in NL queries (in-place).
 
-    Extracts identifiers from the query (e.g. ``StateManager`` in "how the StateManager
-    tracks running state") and applies half-strength definition boosting.  Non-candidate
-    scan uses prefix matching (min 4 chars) so e.g. ``state.ts`` is found for ``StateManager``.
+    Half-strength vs pure symbol queries. Non-candidate scan uses stem-prefix match
+    so e.g. ``state.ts`` is found for symbol ``StateManager``.
     """
-    symbols = _EMBEDDED_SYMBOL_RE.findall(query)
-    if not symbols:
+    names = set(_EMBEDDED_SYMBOL_RE.findall(query))
+    if not names:
         return
 
     boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER * _EMBEDDED_SYMBOL_BOOST_SCALE
 
-    for symbol in symbols:
-        for chunk in list(boosted):
-            tier = _definition_tier(chunk, {symbol}, boost_unit)
-            if tier:
-                boosted[chunk] += tier
+    for chunk in list(boosted):
+        if tier := _definition_tier(chunk, names, boost_unit):
+            boosted[chunk] += tier
 
-        # Non-candidate scan: files whose stem is a prefix of the symbol name
-        # (min 4 chars), e.g. stem "state" matches symbol "StateManager".
-        symbol_lower = symbol.lower()
-        for chunk in all_chunks:
-            if chunk in boosted:
-                continue
-            stem = Path(chunk.file_path).stem.lower()
-            stem_norm = stem.replace("_", "")
-            if not (
-                _stem_matches(stem, symbol_lower)
-                or (len(stem) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem))
-                or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem_norm))
-            ):
-                continue
-            tier = _definition_tier(chunk, {symbol}, boost_unit)
-            if tier:
-                boosted[chunk] = tier
+    symbols_lower = frozenset(s.lower() for s in names)
+    _scan_non_candidates(
+        boosted,
+        names,
+        boost_unit,
+        all_chunks,
+        lambda stem: _prefix_or_exact(stem, symbols_lower, _EMBEDDED_STEM_MIN_LEN),
+    )
 
 
 def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None:
-    """Boost the top chunk per file proportional to that file's aggregate candidate score (in-place).
-
-    Files with multiple high-scoring chunks are promoted over files with a single lucky chunk.
-    Only the top chunk per file is boosted to avoid conflicting with file-saturation decay.
-    """
+    """Promote files with multiple high-scoring chunks by boosting their top chunk (in-place)."""
     if not boosted:
         return
 
