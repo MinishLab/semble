@@ -114,9 +114,11 @@
   {
     "query": "circe generic auto and semi-auto derivation configuration",
     "relevant": [
-      "modules/core/shared/src/main/scala/io/circe/Decoder.scala"
+      "modules/generic/shared/src/main/scala-3/io/circe/generic/auto.scala"
     ],
-    "secondary": [],
+    "secondary": [
+      "modules/generic/shared/src/main/scala-3/io/circe/generic/semiauto.scala"
+    ],
     "category": "semantic"
   },
   {
