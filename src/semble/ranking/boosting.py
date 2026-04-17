@@ -31,6 +31,7 @@ _ALPHA_NL = 0.5  # Natural language queries: balanced semantic + BM25
 _DEFINITION_KEYWORDS = (
     "class",
     "module",
+    "defmodule",  # Elixir
     "def",
     "interface",
     "struct",
@@ -146,9 +147,14 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     Two passes: case-sensitive for general keywords (to avoid false positives
     from e.g. `Module.new` in Ruby or `Class` in docstrings), then
     case-insensitive for SQL DDL keywords where mixed-case is common.
+
+    Also matches namespace-qualified definitions where the last component matches
+    the symbol name (e.g. ``defmodule Phoenix.Router`` matches query ``Router``).
     """
     escaped_symbol = re.escape(symbol_name)
-    suffix = r")\s+" + escaped_symbol + r"(?:\s|[<({:\[;]|$)"
+    # Optional namespace prefix: e.g. "Phoenix." in "Phoenix.Router", or "MyApp::" etc.
+    ns_prefix = r"(?:[A-Za-z_][A-Za-z0-9_]*(?:\.|::))*"
+    suffix = r")\s+" + ns_prefix + escaped_symbol + r"(?:\s|[<({:\[;]|$)"
     if re.compile(_KEYWORD_PREFIX + _DEFINITION_KEYWORD_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
         return True
     return (
