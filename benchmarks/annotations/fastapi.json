@@ -79,7 +79,7 @@
     "category": "semantic"
   },
   {
-    "query": "background tasks",
+    "query": "running work after returning an HTTP response without blocking",
     "relevant": [
       "fastapi/background.py"
     ],

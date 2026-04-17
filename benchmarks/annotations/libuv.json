@@ -1,121 +1,183 @@
 [
   {
     "query": "how libuv implements the event loop run and tick",
-    "relevant": ["src/unix/core.c"],
-    "secondary": ["src/win/core.c"],
+    "relevant": [
+      "src/unix/core.c"
+    ],
+    "secondary": [
+      "src/win/core.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "timer implementation and heap-based scheduling",
-    "relevant": ["src/timer.c"],
-    "secondary": ["src/heap-inl.h"],
+    "relevant": [
+      "src/timer.c"
+    ],
+    "secondary": [
+      "src/heap-inl.h"
+    ],
     "category": "semantic"
   },
   {
     "query": "thread pool and work queue for async operations",
-    "relevant": ["src/threadpool.c"],
+    "relevant": [
+      "src/threadpool.c"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "async handle for waking up the event loop from another thread",
-    "relevant": ["src/unix/async.c"],
-    "secondary": ["src/unix/core.c"],
+    "relevant": [
+      "src/unix/async.c"
+    ],
+    "secondary": [
+      "src/unix/core.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "file system operations like read write open stat",
-    "relevant": ["src/unix/fs.c"],
+    "relevant": [
+      "src/unix/fs.c"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "TCP stream connect and accept implementation",
-    "relevant": ["src/unix/tcp.c"],
-    "secondary": ["src/unix/stream.c"],
+    "relevant": [
+      "src/unix/tcp.c"
+    ],
+    "secondary": [
+      "src/unix/stream.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "UDP socket send and receive",
-    "relevant": ["src/unix/udp.c"],
+    "relevant": [
+      "src/unix/udp.c"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
-    "query": "DNS getaddrinfo async resolution",
-    "relevant": ["src/unix/getaddrinfo.c"],
-    "secondary": ["src/threadpool.c"],
+    "query": "resolving hostnames asynchronously using the thread pool",
+    "relevant": [
+      "src/unix/getaddrinfo.c"
+    ],
+    "secondary": [
+      "src/threadpool.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "pipe IPC between processes",
-    "relevant": ["src/unix/pipe.c"],
-    "secondary": ["src/unix/stream.c"],
+    "relevant": [
+      "src/unix/pipe.c"
+    ],
+    "secondary": [
+      "src/unix/stream.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "child process spawning and management",
-    "relevant": ["src/unix/process.c"],
+    "relevant": [
+      "src/unix/process.c"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "signal handling integration with event loop",
-    "relevant": ["src/unix/signal.c"],
+    "relevant": [
+      "src/unix/signal.c"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "file system event watching with inotify or kqueue",
-    "relevant": ["src/unix/fsevents.c"],
-    "secondary": ["src/fs-poll.c"],
+    "relevant": [
+      "src/unix/fsevents.c"
+    ],
+    "secondary": [
+      "src/fs-poll.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "idle and prepare handle callbacks before blocking",
-    "relevant": ["src/unix/core.c"],
+    "relevant": [
+      "src/unix/core.c"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "random number generation using OS entropy",
-    "relevant": ["src/random.c"],
-    "secondary": ["src/unix/random-devurandom.c"],
+    "relevant": [
+      "src/random.c"
+    ],
+    "secondary": [
+      "src/unix/random-devurandom.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "shared library dlopen and dlsym wrapper",
-    "relevant": ["src/unix/dl.c"],
+    "relevant": [
+      "src/unix/dl.c"
+    ],
     "secondary": [],
     "category": "api"
   },
   {
     "query": "network interface address enumeration",
-    "relevant": ["src/unix/bsd-ifaddrs.c"],
-    "secondary": ["src/unix/linux.c"],
+    "relevant": [
+      "src/unix/bsd-ifaddrs.c"
+    ],
+    "secondary": [
+      "src/unix/linux.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "libuv handle reference counting and close",
-    "relevant": ["src/uv-common.c"],
-    "secondary": ["src/unix/core.c"],
+    "relevant": [
+      "src/uv-common.c"
+    ],
+    "secondary": [
+      "src/unix/core.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "thread creation and mutex synchronization primitives",
-    "relevant": ["src/unix/thread.c"],
-    "secondary": ["src/thread-common.c"],
+    "relevant": [
+      "src/unix/thread.c"
+    ],
+    "secondary": [
+      "src/thread-common.c"
+    ],
     "category": "semantic"
   },
   {
     "query": "IDNA internationalized domain name encoding",
-    "relevant": ["src/idna.c"],
+    "relevant": [
+      "src/idna.c"
+    ],
     "secondary": [],
     "category": "keyword"
   },
   {
     "query": "tty terminal raw mode and window size",
-    "relevant": ["src/unix/tty.c"],
+    "relevant": [
+      "src/unix/tty.c"
+    ],
     "secondary": [],
     "category": "semantic"
   }

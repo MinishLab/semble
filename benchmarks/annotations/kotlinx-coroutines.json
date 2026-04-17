@@ -24,7 +24,7 @@
     "category": "semantic"
   },
   {
-    "query": "CoroutineScope and structured concurrency",
+    "query": "how coroutine lifetime is tied to a parent scope",
     "relevant": [
       "kotlinx-coroutines-core/common/src/CoroutineScope.kt"
     ],

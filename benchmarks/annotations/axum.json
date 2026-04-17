@@ -1,121 +1,161 @@
 [
   {
     "query": "how axum Handler trait dispatches requests to async handler functions",
-    "relevant": ["axum/src/handler/mod.rs"],
+    "relevant": [
+      "axum/src/handler/mod.rs"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Router path_router implementation for storing and matching routes",
-    "relevant": ["axum/src/routing/path_router.rs"],
+    "relevant": [
+      "axum/src/routing/path_router.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how extractors implement FromRequest and FromRequestParts",
-    "relevant": ["axum/src/extract/mod.rs"],
+    "relevant": [
+      "axum/src/extract/mod.rs"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Path extractor for capturing URL path parameters",
-    "relevant": ["axum/src/extract/path/mod.rs"],
+    "relevant": [
+      "axum/src/extract/path/mod.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "State extractor for sharing application state across handlers",
-    "relevant": ["axum/src/extract/state.rs"],
+    "relevant": [
+      "axum/src/extract/state.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Json extractor and response for deserializing and serializing JSON bodies",
-    "relevant": ["axum/src/json.rs"],
+    "relevant": [
+      "axum/src/json.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how IntoResponse converts handler return values to HTTP responses",
-    "relevant": ["axum/src/response/mod.rs"],
+    "relevant": [
+      "axum/src/response/mod.rs"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "from_fn middleware for wrapping handlers with async functions",
-    "relevant": ["axum/src/middleware/from_fn.rs"],
+    "relevant": [
+      "axum/src/middleware/from_fn.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "error handling and how errors are converted to responses",
-    "relevant": ["axum/src/error_handling/mod.rs"],
+    "relevant": [
+      "axum/src/error_handling/mod.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how axum nests routers and merges router trees",
-    "relevant": ["axum/src/routing/mod.rs"],
+    "relevant": [
+      "axum/src/routing/mod.rs"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "Form extractor for parsing URL-encoded request bodies",
-    "relevant": ["axum/src/form.rs"],
+    "relevant": [
+      "axum/src/form.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "WebSocket upgrade and handler",
-    "relevant": ["axum/src/extract/ws.rs"],
+    "relevant": [
+      "axum/src/extract/ws.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how MethodRouter dispatches GET POST PUT DELETE by HTTP method",
-    "relevant": ["axum/src/routing/method_routing.rs"],
+    "relevant": [
+      "axum/src/routing/method_routing.rs"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "BoxedIntoRoute and type-erased route storage",
-    "relevant": ["axum/src/routing/route.rs"],
+    "relevant": [
+      "axum/src/routing/route.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
-    "query": "multipart form data extraction",
-    "relevant": ["axum/src/extract/multipart.rs"],
+    "query": "parsing uploaded binary file parts from HTTP requests",
+    "relevant": [
+      "axum/src/extract/multipart.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "how axum maps Tower middleware layers onto the router",
-    "relevant": ["axum/src/middleware/mod.rs"],
+    "relevant": [
+      "axum/src/middleware/mod.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "rejection types and rejection responses for failed extractions",
-    "relevant": ["axum/src/extract/rejection.rs"],
+    "relevant": [
+      "axum/src/extract/rejection.rs"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Router",
-    "relevant": ["axum/src/routing/mod.rs"],
+    "relevant": [
+      "axum/src/routing/mod.rs"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "IntoResponse",
-    "relevant": ["axum/src/response/mod.rs"],
+    "relevant": [
+      "axum/src/response/mod.rs"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "FromRequest",
-    "relevant": ["axum/src/extract/mod.rs"],
+    "relevant": [
+      "axum/src/extract/mod.rs"
+    ],
     "secondary": [],
     "category": "symbol"
   }

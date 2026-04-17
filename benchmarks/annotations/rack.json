@@ -8,7 +8,7 @@
     "category": "semantic"
   },
   {
-    "query": "HTTP response construction",
+    "query": "building and sending an HTTP reply with headers and body",
     "relevant": [
       "lib/rack/response.rb"
     ],
@@ -80,7 +80,7 @@
     "category": "semantic"
   },
   {
-    "query": "directory listing middleware",
+    "query": "serving a file index page for a folder on disk",
     "relevant": [
       "lib/rack/directory.rb"
     ],
@@ -104,7 +104,7 @@
     "category": "semantic"
   },
   {
-    "query": "multipart form data parsing",
+    "query": "splitting multipart/form-data bodies into individual fields",
     "relevant": [
       "lib/rack/multipart.rb"
     ],

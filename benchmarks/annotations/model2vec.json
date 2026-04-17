@@ -38,7 +38,7 @@
     "category": "semantic"
   },
   {
-    "query": "quantization of model weights",
+    "query": "reducing embedding precision to smaller integer representations",
     "relevant": [
       "model2vec/quantization.py"
     ],
