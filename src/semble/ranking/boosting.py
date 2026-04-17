@@ -176,11 +176,7 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
 
 
 def _stem_matches(stem: str, name: str) -> bool:
-    """Return True if *stem* matches *name* allowing snake_case and plural variants.
-
-    Checks exact match, underscore-normalised match, and both with a trailing
-    ``s`` stripped (e.g. ``requests`` matches ``Request``).
-    """
+    """Return True if *stem* matches *name* (exact, snake_case-normalised, or plural)."""
     stem_norm = stem.replace("_", "")
     return stem == name or stem_norm == name or stem.rstrip("s") == name or stem_norm.rstrip("s") == name
 
@@ -269,11 +265,8 @@ def _boost_embedded_symbols(
     boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER * _EMBEDDED_SYMBOL_BOOST_SCALE
 
     for symbol in symbols:
-        names = {symbol}
-
-        # Boost candidate chunks that define this symbol.
         for chunk in list(boosted):
-            tier = _definition_tier(chunk, names, boost_unit)
+            tier = _definition_tier(chunk, {symbol}, boost_unit)
             if tier:
                 boosted[chunk] += tier
 
@@ -286,13 +279,12 @@ def _boost_embedded_symbols(
             stem = Path(chunk.file_path).stem.lower()
             stem_norm = stem.replace("_", "")
             if not (
-                (len(stem) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem))
+                _stem_matches(stem, symbol_lower)
+                or (len(stem) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem))
                 or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem_norm))
-                or stem == symbol_lower
-                or stem_norm == symbol_lower
             ):
                 continue
-            tier = _definition_tier(chunk, names, boost_unit)
+            tier = _definition_tier(chunk, {symbol}, boost_unit)
             if tier:
                 boosted[chunk] = tier
 
