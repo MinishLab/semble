@@ -34,11 +34,7 @@
   {
     "query": "how route handlers are compiled and URL patterns matched",
     "relevant": [
-      {
-        "path": "lib/sinatra/base.rb",
-        "start_line": 1795,
-        "end_line": 1817
-      }
+      "lib/sinatra/base.rb"
     ],
     "secondary": [],
     "category": "semantic"
@@ -78,11 +74,7 @@
   {
     "query": "how the Rack middleware stack is assembled before requests are handled",
     "relevant": [
-      {
-        "path": "lib/sinatra/base.rb",
-        "start_line": 1670,
-        "end_line": 1676
-      }
+      "lib/sinatra/base.rb"
     ],
     "secondary": [],
     "category": "architecture"
@@ -181,11 +173,7 @@
   {
     "query": "how Sinatra::Base registers class-level route helpers like get post put delete",
     "relevant": [
-      {
-        "path": "lib/sinatra/base.rb",
-        "start_line": 1330,
-        "end_line": 1400
-      }
+      "lib/sinatra/base.rb"
     ],
     "secondary": [],
     "category": "architecture"

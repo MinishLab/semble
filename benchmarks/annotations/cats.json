@@ -150,13 +150,12 @@
     "category": "architecture"
   },
   {
-    "query": "Semigroup and Monoid type classes for combining values",
+    "query": "MonoidK and SemigroupK type classes for combining higher-kinded values",
     "relevant": [
-      "kernel/src/main/scala/cats/kernel/Monoid.scala"
+      "core/src/main/scala/cats/MonoidK.scala",
+      "core/src/main/scala/cats/SemigroupK.scala"
     ],
-    "secondary": [
-      "kernel/src/main/scala/cats/kernel/Semigroup.scala"
-    ],
+    "secondary": [],
     "category": "semantic"
   },
   {

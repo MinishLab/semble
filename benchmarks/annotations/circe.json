@@ -112,13 +112,11 @@
     "category": "semantic"
   },
   {
-    "query": "circe generic auto and semi-auto derivation configuration",
+    "query": "DecodingFailure and ParsingFailure error types for handling circe errors",
     "relevant": [
-      "modules/generic/shared/src/main/scala-3/io/circe/generic/auto.scala"
+      "modules/core/shared/src/main/scala/io/circe/Error.scala"
     ],
-    "secondary": [
-      "modules/generic/shared/src/main/scala-3/io/circe/generic/semiauto.scala"
-    ],
+    "secondary": [],
     "category": "semantic"
   },
   {

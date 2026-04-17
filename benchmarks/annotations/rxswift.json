@@ -116,7 +116,8 @@
   {
     "query": "zip operator for pairing emissions from multiple observables",
     "relevant": [
-      "Sources/RxSwift/Zip.swift"
+      "Sources/RxSwift/Zip.swift",
+      "Sources/RxSwift/Zip+arity.swift"
     ],
     "secondary": [],
     "category": "semantic"
