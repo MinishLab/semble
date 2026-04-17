@@ -64,6 +64,10 @@ _EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 # TypeScript declaration files (.d.ts stubs).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
+# Standalone example files (e.g. example.lua, examples.py) that are not in
+# an examples/ directory but whose filename signals demo/sample content.
+_EXAMPLE_FILE_RE = re.compile(r"(?:^|/)examples?(?:\.[^/]+)$")
+
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
 _MODERATE_PENALTY = 0.5  # re-export / metadata files
 _MILD_PENALTY = 0.7  # .d.ts declaration stubs (still carry useful type info)
@@ -151,6 +155,8 @@ def _file_path_penalty(file_path: str) -> float:
     if _COMPAT_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
     if _EXAMPLES_DIR_RE.search(normalised):
+        penalty *= _STRONG_PENALTY
+    if _EXAMPLE_FILE_RE.search(normalised):
         penalty *= _STRONG_PENALTY
     if _TYPE_DEFS_RE.search(normalised):
         penalty *= _MILD_PENALTY
