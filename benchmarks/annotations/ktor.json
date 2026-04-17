@@ -144,12 +144,12 @@
     "category": "symbol"
   },
   {
-    "query": "how the Ktor server application and plugin pipeline are initialized",
+    "query": "how the HttpClient plugin installation and configuration pipeline works",
     "relevant": [
-      "ktor-server/ktor-server-core/common/src/io/ktor/server/application/Application.kt"
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/api/ClientPluginBuilder.kt"
     ],
     "secondary": [
-      "ktor-server/ktor-server-core/common/src/io/ktor/server/application/ApplicationPlugin.kt"
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/HttpClient.kt"
     ],
     "category": "architecture"
   },
