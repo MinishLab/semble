@@ -1,122 +1,172 @@
 [
   {
     "query": "core command execution and command tree",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "shell completion request handling",
-    "relevant": ["completions.go"],
+    "relevant": [
+      "completions.go"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "bash completion generation",
-    "relevant": ["bash_completions.go"],
-    "secondary": ["completions.go"],
+    "relevant": [
+      "bash_completions.go"
+    ],
+    "secondary": [
+      "completions.go"
+    ],
     "category": "semantic"
   },
   {
     "query": "positional argument validators",
-    "relevant": ["args.go"],
+    "relevant": [
+      "args.go"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Command",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "help text generation and usage template formatting",
-    "relevant": ["help.go"],
-    "secondary": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
     "category": "semantic"
   },
   {
     "query": "zsh shell completion generation",
-    "relevant": ["zsh_completions.go"],
-    "secondary": ["completions.go"],
+    "relevant": [
+      "zsh_completions.go"
+    ],
+    "secondary": [
+      "completions.go"
+    ],
     "category": "semantic"
   },
   {
     "query": "fish shell completion generation",
-    "relevant": ["fish_completions.go"],
-    "secondary": ["completions.go"],
+    "relevant": [
+      "fish_completions.go"
+    ],
+    "secondary": [
+      "completions.go"
+    ],
     "category": "semantic"
   },
   {
     "query": "PowerShell completion generation",
-    "relevant": ["powershell_completions.go"],
-    "secondary": ["completions.go"],
+    "relevant": [
+      "powershell_completions.go"
+    ],
+    "secondary": [
+      "completions.go"
+    ],
     "category": "semantic"
   },
   {
     "query": "how persistent flags are inherited by child commands",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "how command suggestions work for mistyped input",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "how the root command traverses the tree to find the active subcommand",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "how command aliases are resolved during lookup",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "command hooks: PersistentPreRun, PreRun, PostRun lifecycle",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "error printing and exit code management",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "Args",
-    "relevant": ["args.go"],
+    "relevant": [
+      "args.go"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "CompletionOptions",
-    "relevant": ["completions.go"],
+    "relevant": [
+      "completions.go"
+    ],
     "secondary": [],
     "category": "symbol"
   },
   {
     "query": "how cobra integrates pflags for typed flag values",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "architecture"
   },
   {
     "query": "required flags validation before command execution",
-    "relevant": ["command.go"],
+    "relevant": [
+      "command.go"
+    ],
     "secondary": [],
     "category": "semantic"
   },
   {
     "query": "documentation generation for man pages and markdown",
-    "relevant": ["doc/md_docs.go"],
-    "secondary": ["doc/man_docs.go"],
+    "relevant": [
+      "doc/md_docs.go"
+    ],
+    "secondary": [
+      "doc/man_docs.go"
+    ],
     "category": "semantic"
   }
 ]
