@@ -37,6 +37,11 @@ _EMBEDDED_SYMBOL_RE = re.compile(
 # Prevents over-broad matches (e.g. stem "s" matching symbol "StateManager").
 _EMBEDDED_STEM_MIN_LEN = 4
 
+# Scale factor applied to the definition boost for symbols extracted from NL queries.
+# Half-strength vs pure symbol queries because embedded extraction is opportunistic:
+# the symbol may be incidental rather than the primary subject of the query.
+_EMBEDDED_SYMBOL_BOOST_SCALE = 0.5
+
 # Alpha values for query-adaptive blending.
 _ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching
 _ALPHA_NL = 0.5  # Natural language queries: balanced semantic + BM25
@@ -181,14 +186,22 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     )
 
 
+def _stem_matches(stem: str, name: str) -> bool:
+    """Return True if *stem* matches *name* allowing snake_case and plural variants.
+
+    Checks exact match, underscore-normalised match, and both with a trailing
+    ``s`` stripped (e.g. ``requests`` matches ``Request``).
+    """
+    stem_norm = stem.replace("_", "")
+    return stem == name or stem_norm == name or stem.rstrip("s") == name or stem_norm.rstrip("s") == name
+
+
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
     """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/PascalCase-aware).
 
     Also handles pluralized stems (e.g. 'requests.py' matches 'Request').
     """
-    stem = Path(chunk.file_path).stem.lower()
-    sym = symbol_name.lower()
-    return stem == sym or stem.replace("_", "") == sym or stem.rstrip("s") == sym
+    return _stem_matches(Path(chunk.file_path).stem.lower(), symbol_name.lower())
 
 
 def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
@@ -245,14 +258,7 @@ def _boost_symbol_definitions(
         if chunk in boosted:
             continue
         stem = Path(chunk.file_path).stem.lower()
-        stem_norm = stem.replace("_", "")
-        # Match exact, underscore-normalized, or stem that is symbol + optional trailing 's'/'es'
-        if not (
-            stem == symbol_lower
-            or stem_norm == symbol_lower
-            or stem.rstrip("s") == symbol_lower
-            or stem_norm.rstrip("s") == symbol_lower
-        ):
+        if not _stem_matches(stem, symbol_lower):
             continue
         tier = _definition_tier(chunk, names, boost_unit)
         if tier:
@@ -283,7 +289,7 @@ def _boost_embedded_symbols(
     if not symbols:
         return
 
-    boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER * 0.5
+    boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER * _EMBEDDED_SYMBOL_BOOST_SCALE
 
     for symbol in symbols:
         names = {symbol}
@@ -328,22 +334,17 @@ def _boost_file_coherence(boosted: dict[Chunk, float], max_score: float) -> None
     if not boosted:
         return
 
-    # Sum scores per file across all candidates.
     file_sum: dict[str, float] = {}
+    best_chunk: dict[str, Chunk] = {}
     for chunk, score in boosted.items():
         fp = chunk.file_path
         file_sum[fp] = file_sum.get(fp, 0.0) + score
+        if fp not in best_chunk or score > boosted[best_chunk[fp]]:
+            best_chunk[fp] = chunk
 
     max_file_sum = max(file_sum.values())
     if max_file_sum == 0.0:
         return
-
-    # Find the highest-scoring chunk per file.
-    best_chunk: dict[str, Chunk] = {}
-    for chunk, score in boosted.items():
-        fp = chunk.file_path
-        if fp not in best_chunk or score > boosted[best_chunk[fp]]:
-            best_chunk[fp] = chunk
 
     boost_unit = max_score * _FILE_COHERENCE_BOOST_FRAC
     for fp, chunk in best_chunk.items():

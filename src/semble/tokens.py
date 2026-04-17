@@ -13,7 +13,6 @@ def _split_identifier(token: str) -> list[str]:
     """Split a single identifier into sub-tokens via camelCase/snake_case.
 
     Returns the original token (lowered) plus any sub-tokens.
-
     E.g. "HandlerStack" -> ["handlerstack", "handler", "stack"]
          "my_func" -> ["my_func", "my", "func"]
          "simple" -> ["simple"]
