@@ -92,8 +92,9 @@ def search_hybrid(
     alpha_weight = resolve_alpha(query, alpha)
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
-    # 5x is sufficient; latency difference vs larger multipliers is negligible.
-    candidate_count = top_k * 5
+    # Use more candidates for NL queries (semantic/architecture) where the target may rank
+    # lower in individual retrievers; symbol queries keep the standard 5x pool.
+    candidate_count = top_k * (5 if alpha_weight < 0.5 else 7)
 
     semantic = search_semantic(query, model, semantic_index, chunks, candidate_count, selector)
     semantic_scores: dict[Chunk, float] = {result.chunk: result.score for result in semantic}

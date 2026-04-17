@@ -164,9 +164,13 @@ def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
 
 
 def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/PascalCase-aware)."""
+    """Return True if the chunk's file stem matches the symbol name (case-insensitive, snake_case/PascalCase-aware).
+
+    Also handles pluralized stems (e.g. 'requests.py' matches 'Request').
+    """
     stem = Path(chunk.file_path).stem.lower()
-    return stem == symbol_name.lower() or stem.replace("_", "") == symbol_name.lower()
+    sym = symbol_name.lower()
+    return stem == sym or stem.replace("_", "") == sym or stem.rstrip("s") == sym
 
 
 def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
