@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how nvm installs a specific Node.js version",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how nvm downloads a Node.js tarball from the remote",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm resolves an alias or version string to a concrete version",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm switches the active Node.js version in the current shell",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm finds the nearest .nvmrc file by walking up the directory tree",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm_find_project_dir locates the project root directory",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm lists installed and available Node.js versions",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm detects whether a version is already installed",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm manages the PATH to point to the active Node.js bin",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how nvm_download wraps curl or wget for fetching remote resources",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm handles the default alias to set the default Node.js version",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm detects and uses system Node.js as a fallback",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm installs the latest npm for a given Node.js version",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm processes and validates the contents of an .nvmrc file",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm_has checks whether a command exists on the system",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm uninstalls a Node.js version and cleans up its directory",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm checks curl supports libz compression",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm_get_latest fetches the latest available Node.js version",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm sanitizes the auth header in download requests",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how nvm detects color support and conditionally uses ANSI codes",
+    "relevant": ["nvm.sh"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

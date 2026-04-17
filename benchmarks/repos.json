@@ -386,5 +386,75 @@
     "url": "https://github.com/ziglang/zig.git",
     "revision": "738d2be9d6b6ef3ff3559130c05159ef53336224",
     "benchmark_root": "lib/std"
+  },
+  {
+    "name": "nvm",
+    "language": "bash",
+    "url": "https://github.com/nvm-sh/nvm.git",
+    "revision": "d200a215594bdda07e130117c9d392fff29cba84",
+    "benchmark_root": null
+  },
+  {
+    "name": "bash-it",
+    "language": "bash",
+    "url": "https://github.com/Bash-it/bash-it.git",
+    "revision": "d281c8265f3c48b8276624d46284a3599d359a75",
+    "benchmark_root": null
+  },
+  {
+    "name": "pandoc",
+    "language": "haskell",
+    "url": "https://github.com/jgm/pandoc.git",
+    "revision": "d9838eba11ae18216f52e233dbbca735f0f97ccb",
+    "benchmark_root": "src/Text/Pandoc"
+  },
+  {
+    "name": "xmonad",
+    "language": "haskell",
+    "url": "https://github.com/xmonad/xmonad.git",
+    "revision": "59107a6c6f30d82d74449795a5c9149503f176ac",
+    "benchmark_root": "src/XMonad"
+  },
+  {
+    "name": "dio",
+    "language": "dart",
+    "url": "https://github.com/cfug/dio.git",
+    "revision": "85aa6f1216203b1ca707289e82e35bcff5070b54",
+    "benchmark_root": "dio/lib/src"
+  },
+  {
+    "name": "riverpod",
+    "language": "dart",
+    "url": "https://github.com/rrousselGit/riverpod.git",
+    "revision": "cac77b1ec1c4b4c0ca7c6e9b1436f80250b4edc0",
+    "benchmark_root": "packages/riverpod/lib/src"
+  },
+  {
+    "name": "nvim-lspconfig",
+    "language": "lua",
+    "url": "https://github.com/neovim/nvim-lspconfig.git",
+    "revision": "4b7fbaa239c5db6b36f424a4521ca9f1a401be33",
+    "benchmark_root": "lua/lspconfig"
+  },
+  {
+    "name": "mini.nvim",
+    "language": "lua",
+    "url": "https://github.com/echasnovski/mini.nvim.git",
+    "revision": "29447d7b0e1fc9bc9d0384953e63be3fae816736",
+    "benchmark_root": "lua/mini"
+  },
+  {
+    "name": "zls",
+    "language": "zig",
+    "url": "https://github.com/zigtools/zls.git",
+    "revision": "295cedd8ddd040c77e6666ddab6ef6da8c0beffa",
+    "benchmark_root": "src"
+  },
+  {
+    "name": "zig-clap",
+    "language": "zig",
+    "url": "https://github.com/Hejsil/zig-clap.git",
+    "revision": "fc1e5cc3f6d9d3001112385ee6256d694e959d2f",
+    "benchmark_root": null
   }
 ]

@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how pandoc reads and parses Markdown into an AST",
+    "relevant": ["Readers/Markdown.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc writes an AST to HTML output",
+    "relevant": ["Writers/HTML.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc converts a document to LaTeX",
+    "relevant": ["Writers/LaTeX.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the PandocMonad typeclass abstracts IO for readers and writers",
+    "relevant": ["Class.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc handles YAML metadata blocks in documents",
+    "relevant": ["Readers/Markdown.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc applies document transforms like header shifting",
+    "relevant": ["Transforms.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc reads a DocBook XML document",
+    "relevant": ["Readers/DocBook.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc handles citations and bibliography processing",
+    "relevant": ["Citeproc.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc options control output format and extensions",
+    "relevant": ["Options.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc parses table structures in documents",
+    "relevant": ["Parsing/GridTable.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc fetches and embeds media into self-contained output",
+    "relevant": ["SelfContained.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc writes CommonMark Markdown output",
+    "relevant": ["Writers/CommonMark.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc reads RST reStructuredText documents",
+    "relevant": ["Readers/RST.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc handles Lua filter scripting",
+    "relevant": ["Scripting.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc's app module orchestrates reading, filtering, and writing",
+    "relevant": ["App.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc handles TeX math in documents",
+    "relevant": ["TeX.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc parses generic parsing utilities for readers",
+    "relevant": ["Parsing/General.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc generates PDF output via LaTeX or other backends",
+    "relevant": ["PDF.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pandoc templates are processed and rendered",
+    "relevant": ["Templates.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how pandoc error types represent conversion failures",
+    "relevant": ["Error.hs"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

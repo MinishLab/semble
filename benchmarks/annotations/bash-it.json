@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how bash-it loads and enables plugins",
+    "relevant": ["lib/helpers.bash"],
+    "secondary": ["bash_it.sh"],
+    "category": "semantic"
+  },
+  {
+    "query": "function to enable a bash-it component like plugin or alias",
+    "relevant": ["lib/helpers.bash"],
+    "secondary": [],
+    "category": "api"
+  },
+  {
+    "query": "how command duration is measured and displayed in prompt",
+    "relevant": ["lib/command_duration.bash"],
+    "secondary": ["lib/preexec.bash"],
+    "category": "semantic"
+  },
+  {
+    "query": "battery level detection for shell prompt",
+    "relevant": ["lib/battery.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "bash-it search functionality for finding plugins and aliases",
+    "relevant": ["lib/search.bash"],
+    "secondary": ["lib/helpers.bash"],
+    "category": "semantic"
+  },
+  {
+    "query": "logging utilities for bash-it debug output",
+    "relevant": ["lib/log.bash"],
+    "secondary": [],
+    "category": "api"
+  },
+  {
+    "query": "color definitions and terminal color support",
+    "relevant": ["lib/colors.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "bash history configuration and deduplication",
+    "relevant": ["lib/history.bash"],
+    "secondary": ["plugins/available/history-eternal.plugin.bash"],
+    "category": "semantic"
+  },
+  {
+    "query": "completion loading and management",
+    "relevant": ["lib/completion.bash"],
+    "secondary": ["plugins/available/alias-completion.plugin.bash"],
+    "category": "semantic"
+  },
+  {
+    "query": "preexec and precmd hook implementation",
+    "relevant": ["lib/preexec.bash"],
+    "secondary": ["lib/command_duration.bash"],
+    "category": "semantic"
+  },
+  {
+    "query": "pyenv integration plugin for bash",
+    "relevant": ["plugins/available/pyenv.plugin.bash"],
+    "secondary": [],
+    "category": "keyword"
+  },
+  {
+    "query": "ssh agent plugin for managing ssh keys",
+    "relevant": ["plugins/available/ssh.plugin.bash"],
+    "secondary": [],
+    "category": "keyword"
+  },
+  {
+    "query": "jump plugin for bookmarking directories",
+    "relevant": ["plugins/available/jump.plugin.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "node version manager nvm integration",
+    "relevant": ["plugins/available/node.plugin.bash"],
+    "secondary": [],
+    "category": "keyword"
+  },
+  {
+    "query": "rvm ruby version manager plugin",
+    "relevant": ["plugins/available/rvm.plugin.bash"],
+    "secondary": [],
+    "category": "keyword"
+  },
+  {
+    "query": "bash-it utility functions for string manipulation",
+    "relevant": ["lib/utilities.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "hub github cli aliases and helpers",
+    "relevant": ["plugins/available/hub.plugin.bash"],
+    "secondary": [],
+    "category": "keyword"
+  },
+  {
+    "query": "xterm terminal title setting functions",
+    "relevant": ["plugins/available/xterm.plugin.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "bash-it main entry point and initialization",
+    "relevant": ["bash_it.sh"],
+    "secondary": ["lib/helpers.bash"],
+    "category": "semantic"
+  },
+  {
+    "query": "projects plugin for switching between project directories",
+    "relevant": ["plugins/available/projects.plugin.bash"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how mini.completion provides LSP-based autocompletion",
+    "relevant": ["lua/mini/completion.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how mini.files implements a file explorer in a floating buffer",
+    "relevant": ["lua/mini/files.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how mini.pick implements a fuzzy finder picker",
+    "relevant": ["lua/mini/pick.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how mini.diff shows inline git diff signs in buffers",
+    "relevant": ["lua/mini/diff.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.comment toggles line and block comments",
+    "relevant": ["lua/mini/comment.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.ai extends text objects for selecting around and inside",
+    "relevant": ["lua/mini/ai.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.statusline builds a configurable Neovim status line",
+    "relevant": ["lua/mini/statusline.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.animate smoothly animates cursor movement and scrolling",
+    "relevant": ["lua/mini/animate.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.deps manages Neovim plugin installation and updates",
+    "relevant": ["lua/mini/deps.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how mini.git provides git integration for files and hunks",
+    "relevant": ["lua/mini/git.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.indentscope highlights the indent scope of the cursor block",
+    "relevant": ["lua/mini/indentscope.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.fuzzy scores and ranks fuzzy matches",
+    "relevant": ["lua/mini/fuzzy.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.hipatterns highlights configurable text patterns in buffers",
+    "relevant": ["lua/mini/hipatterns.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.jump implements single-character jump navigation",
+    "relevant": ["lua/mini/jump.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.align aligns text using configurable separators",
+    "relevant": ["lua/mini/align.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.bufremove safely removes buffers without closing windows",
+    "relevant": ["lua/mini/bufremove.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.colors manages and creates Neovim color schemes",
+    "relevant": ["lua/mini/colors.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.clue shows pending keybinding hints as a popup",
+    "relevant": ["lua/mini/clue.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.base16 builds a full color scheme from a 16-color palette",
+    "relevant": ["lua/mini/base16.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how mini.misc provides utility functions shared across mini modules",
+    "relevant": ["lua/mini/misc.lua"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

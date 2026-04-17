@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how xmonad's X monad wraps IO with display and window state",
+    "relevant": ["Core.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad manages and tiles windows using StackSet",
+    "relevant": ["StackSet.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad handles window focus and workspace switching",
+    "relevant": ["Operations.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad applies layout algorithms to arrange windows on screen",
+    "relevant": ["Layout.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad's ManageHook routes new windows to workspaces",
+    "relevant": ["ManageHook.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad reads and applies user configuration at startup",
+    "relevant": ["Config.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad handles X11 events in its event loop",
+    "relevant": ["Main.hs"],
+    "secondary": ["Operations.hs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad kills a window and cleans up its state",
+    "relevant": ["Operations.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad uses withDisplay to get the X11 Display handle",
+    "relevant": ["Core.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad's StackSet tracks the focused window in a workspace",
+    "relevant": ["StackSet.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad redraws and refreshes windows after a layout change",
+    "relevant": ["Operations.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad manages multiple screens with multiple workspaces",
+    "relevant": ["StackSet.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad moves a window to a different workspace",
+    "relevant": ["Operations.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how userCode wraps user actions to catch exceptions",
+    "relevant": ["Core.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad sets window border and title properties",
+    "relevant": ["Operations.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad handles floating windows separately from tiled ones",
+    "relevant": ["Operations.hs"],
+    "secondary": ["StackSet.hs"],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad's runX executes an X action with its config and state",
+    "relevant": ["Core.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how xmonad initializes the display and root window at startup",
+    "relevant": ["Main.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Layout typeclass allows pluggable tiling algorithms",
+    "relevant": ["Layout.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how xmonad's windows function atomically applies StackSet transformations",
+    "relevant": ["Operations.hs"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

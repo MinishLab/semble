@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how zls analyzes Zig source code to resolve types and declarations",
+    "relevant": ["analysis.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zls DocumentStore loads and caches Zig source files",
+    "relevant": ["DocumentStore.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zls provides goto definition for symbols",
+    "relevant": ["features/goto.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls generates completion items from declarations and types",
+    "relevant": ["features/completions.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zls provides hover information for symbols under the cursor",
+    "relevant": ["features/hover.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls finds all references to a symbol across the project",
+    "relevant": ["features/references.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls handles LSP initialize and shutdown requests",
+    "relevant": ["Server.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zls generates diagnostic errors and warnings",
+    "relevant": ["features/diagnostics.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls provides inlay hints for parameter names and types",
+    "relevant": ["features/inlay_hints.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls traverses the Zig AST to resolve symbol scopes",
+    "relevant": ["ast.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zls provides code actions for quick fixes",
+    "relevant": ["features/code_actions.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls computes semantic tokens for syntax highlighting",
+    "relevant": ["features/semantic_tokens.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls provides document symbols for the outline view",
+    "relevant": ["features/document_symbol.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls provides signature help when calling functions",
+    "relevant": ["features/signature_help.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls computes document scope for variable visibility",
+    "relevant": ["DocumentScope.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zls configuration is loaded and validated",
+    "relevant": ["configuration.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls provides workspace symbol search",
+    "relevant": ["features/workspace_symbols.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls gets doc comments for a token or node",
+    "relevant": ["analysis.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls translates C headers for Zig interop",
+    "relevant": ["translate_c.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zls uses trigram indexing for fast symbol lookup",
+    "relevant": ["TrigramStore.zig"],
+    "secondary": [],
+    "category": "architecture"
+  }
+]

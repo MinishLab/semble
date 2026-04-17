@@ -82,7 +82,7 @@ def _evaluate(index: SembleIndex, tasks: list[Task], *, verbose: bool = False) -
             started = time.perf_counter()
             results = index.search(task.query, top_k=_DIRECT_TOP_K)
             query_latencies.append((time.perf_counter() - started) * 1000)
-        latencies.append(np.median(query_latencies))
+        latencies.append(float(np.median(query_latencies)))
 
         relevant_ranks = [rank for target in task.all_relevant if (rank := _target_rank(results, target)) is not None]
         n_relevant = sum(
@@ -118,12 +118,19 @@ def _print_summary(results: list[RepoResult]) -> None:
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
     columns = ["Avg", *[lang.title() for lang in languages]]
 
-    avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
-    avg_p50 = sum(r.p50_ms for r in results) / len(results)
-    avg_p90 = sum(r.p90_ms for r in results) / len(results)
-    avg_p95 = sum(r.p95_ms for r in results) / len(results)
-    avg_p99 = sum(r.p99_ms for r in results) / len(results)
-    avg_index = sum(r.index_ms for r in results) / len(results)
+    # Headline: mean of per-language means (one vote per language, not per repo).
+    lang_ndcg10 = [sum(r.ndcg10 for r in g) / len(g) for g in by_language.values()]
+    lang_p50 = [sum(r.p50_ms for r in g) / len(g) for g in by_language.values()]
+    lang_p90 = [sum(r.p90_ms for r in g) / len(g) for g in by_language.values()]
+    lang_p95 = [sum(r.p95_ms for r in g) / len(g) for g in by_language.values()]
+    lang_p99 = [sum(r.p99_ms for r in g) / len(g) for g in by_language.values()]
+    lang_index = [sum(r.index_ms for r in g) / len(g) for g in by_language.values()]
+    avg_ndcg10 = sum(lang_ndcg10) / len(lang_ndcg10)
+    avg_p50 = sum(lang_p50) / len(lang_p50)
+    avg_p90 = sum(lang_p90) / len(lang_p90)
+    avg_p95 = sum(lang_p95) / len(lang_p95)
+    avg_p99 = sum(lang_p99) / len(lang_p99)
+    avg_index = sum(lang_index) / len(lang_index)
 
     print(file=sys.stderr)
     print("By language", file=sys.stderr)
@@ -221,28 +228,41 @@ def _save_results(results: list[RepoResult]) -> None:
     languages = sorted({r.language for r in results})
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
 
+    # Headline: mean of per-language means (one vote per language, not per repo).
+    lang_means = {
+        lang: {
+            "ndcg10": sum(r.ndcg10 for r in grouped) / len(grouped),
+            "p50_ms": sum(r.p50_ms for r in grouped) / len(grouped),
+            "p90_ms": sum(r.p90_ms for r in grouped) / len(grouped),
+            "p95_ms": sum(r.p95_ms for r in grouped) / len(grouped),
+            "p99_ms": sum(r.p99_ms for r in grouped) / len(grouped),
+            "index_ms": sum(r.index_ms for r in grouped) / len(grouped),
+        }
+        for lang, grouped in by_language.items()
+    }
+    n_langs = len(lang_means)
     output = {
         "sha": sha,
         "model": _DEFAULT_MODEL_NAME,
         "summary": {
-            "ndcg10": round(sum(r.ndcg10 for r in results) / len(results), 4),
-            "p50_ms": round(sum(r.p50_ms for r in results) / len(results), 3),
-            "p90_ms": round(sum(r.p90_ms for r in results) / len(results), 3),
-            "p95_ms": round(sum(r.p95_ms for r in results) / len(results), 3),
-            "p99_ms": round(sum(r.p99_ms for r in results) / len(results), 3),
-            "index_ms": round(sum(r.index_ms for r in results) / len(results), 1),
+            "ndcg10": round(sum(v["ndcg10"] for v in lang_means.values()) / n_langs, 4),
+            "p50_ms": round(sum(v["p50_ms"] for v in lang_means.values()) / n_langs, 3),
+            "p90_ms": round(sum(v["p90_ms"] for v in lang_means.values()) / n_langs, 3),
+            "p95_ms": round(sum(v["p95_ms"] for v in lang_means.values()) / n_langs, 3),
+            "p99_ms": round(sum(v["p99_ms"] for v in lang_means.values()) / n_langs, 3),
+            "index_ms": round(sum(v["index_ms"] for v in lang_means.values()) / n_langs, 1),
         },
         "by_language": {
             lang: {
-                "repos": len(grouped),
-                "ndcg10": round(sum(r.ndcg10 for r in grouped) / len(grouped), 4),
-                "p50_ms": round(sum(r.p50_ms for r in grouped) / len(grouped), 3),
-                "p90_ms": round(sum(r.p90_ms for r in grouped) / len(grouped), 3),
-                "p95_ms": round(sum(r.p95_ms for r in grouped) / len(grouped), 3),
-                "p99_ms": round(sum(r.p99_ms for r in grouped) / len(grouped), 3),
-                "index_ms": round(sum(r.index_ms for r in grouped) / len(grouped), 1),
+                "repos": len(by_language[lang]),
+                "ndcg10": round(v["ndcg10"], 4),
+                "p50_ms": round(v["p50_ms"], 3),
+                "p90_ms": round(v["p90_ms"], 3),
+                "p95_ms": round(v["p95_ms"], 3),
+                "p99_ms": round(v["p99_ms"], 3),
+                "index_ms": round(v["index_ms"], 1),
             }
-            for lang, grouped in by_language.items()
+            for lang, v in lang_means.items()
         },
         "repos": [asdict(r) for r in results],
     }

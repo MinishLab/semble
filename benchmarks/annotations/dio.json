@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how dio sends an HTTP request through its interceptor chain",
+    "relevant": ["dio_mixin.dart"],
+    "secondary": ["interceptor.dart"],
+    "category": "architecture"
+  },
+  {
+    "query": "how dio interceptors modify requests and responses",
+    "relevant": ["interceptor.dart"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how dio's CancelToken aborts an in-flight request",
+    "relevant": ["cancel_token.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio handles multipart form data uploads",
+    "relevant": ["form_data.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio manages request and response options like timeouts and headers",
+    "relevant": ["options.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio transforms response body bytes using a Transformer",
+    "relevant": ["transformer.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how DioException represents and categorizes HTTP errors",
+    "relevant": ["dio_exception.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio manages response headers from HTTP replies",
+    "relevant": ["headers.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio's IOAdapter sends requests using dart:io HttpClient",
+    "relevant": ["adapters/io_adapter.dart"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how dio tracks download progress with a stream",
+    "relevant": ["progress_stream/io_progress_stream.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio's LogInterceptor logs request and response details",
+    "relevant": ["interceptors/log.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio handles redirect records across HTTP redirects",
+    "relevant": ["redirect_record.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio encodes query parameters into the URL",
+    "relevant": ["parameter.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio's Response object holds status code and parsed data",
+    "relevant": ["response.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio's ImplyContentTypeInterceptor sets Content-Type automatically",
+    "relevant": ["interceptors/imply_content_type.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio handles streaming responses incrementally",
+    "relevant": ["response/response_stream_handler.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio utility functions help with request processing",
+    "relevant": ["utils.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the Dio class exposes get, post, put, delete convenience methods",
+    "relevant": ["dio.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how dio's browser adapter handles requests in web environments",
+    "relevant": ["adapters/browser_adapter.dart"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how empty response bodies are transformed to null by the transformer",
+    "relevant": ["transformers/util/transform_empty_to_null.dart"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

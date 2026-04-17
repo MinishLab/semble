@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how zig-clap parses command-line arguments into a typed result",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Param defines a named CLI parameter with short and long flags",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how parseParams parses a string of parameter definitions at comptime",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap Result type holds parsed argument values",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap streaming parser processes arguments one token at a time",
+    "relevant": ["clap/streaming.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how zig-clap iterates over OS process arguments",
+    "relevant": ["clap/args.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap built-in parsers convert strings to typed values",
+    "relevant": ["clap/parsers.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap prints help text for all defined parameters",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap prints usage summary for a command",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Diagnostic captures and reports argument parsing errors",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Values enum controls whether a flag expects zero or one argument",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how parseParamsComptime creates a parameter array at compile time",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how ParseOptions customize the parsing behavior for edge cases",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Names resolves the longest name for display and matching",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap handles positional arguments without a flag prefix",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how parseEx provides a lower-level parsing API with custom iterators",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how ResultEx extends Result with extra context for advanced use",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how zig-clap detects and handles unrecognized flags as errors",
+    "relevant": ["clap/streaming.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how helpToFile writes formatted help output to a file handle",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Help struct stores help text associated with a parameter",
+    "relevant": ["clap.zig"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]
