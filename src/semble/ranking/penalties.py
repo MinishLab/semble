@@ -59,7 +59,16 @@ _TEST_DIR_RE = re.compile(r"(?:^|/)(?:tests?|__tests__|spec|testing)(?:/|$)")
 _COMPAT_DIR_RE = re.compile(r"(?:^|/)(?:compat|_compat|legacy)(?:/|$)")
 
 # Examples/docs path components.
-_EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
+# Also matches example_<word> directories like example_dart/, example_flutter_app/.
+# Note: when an _<suffix> is present we require a trailing / so we only match
+# directory components (not filenames like example_code.py).
+_EXAMPLES_DIR_RE = re.compile(
+    r"(?:^|/)(?:"
+    r"_?examples?/"  # examples/, _examples/, example/
+    r"|_?examples?_[^/]+/"  # example_dart/, example_flutter_app/
+    r"|docs?_src(?:/|$)"  # doc_src/, docs_src
+    r")"
+)
 
 # TypeScript declaration files (.d.ts stubs).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
