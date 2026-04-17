@@ -1,0 +1,122 @@
+[
+  {
+    "query": "parsing a JSON object field with the (.:) operator",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how withObject expects a JSON object and runs a parser on it",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how typeMismatch produces an error message for wrong JSON types",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how parseEither runs a parser and returns Either String",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how parseMaybe runs a parser and returns Nothing on failure",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how withText parses a JSON string value",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how withArray parses a JSON array value",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Template Haskell derives FromJSON and ToJSON instances",
+    "relevant": ["src/Data/Aeson/TH.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how genericToJSON uses GHC generics to encode a value",
+    "relevant": ["src/Data/Aeson/Types/ToJSON.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how camelCase field names are converted to snake_case for JSON keys",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how modifyFailure customizes error messages in a parser",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how optional fields use (.:?) with a default value via (.!=)",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how JSON encoding produces Encoding without materializing a Value",
+    "relevant": ["src/Data/Aeson/Encoding.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Key type is used as object field identifier",
+    "relevant": ["src/Data/Aeson/KeyMap.hs"],
+    "secondary": ["src/Data/Aeson/Key.hs"],
+    "category": "semantic"
+  },
+  {
+    "query": "how withScientific parses a JSON number as Scientific",
+    "relevant": ["src/Data/Aeson/Types/FromJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the Parser monad accumulates and reports JSON path errors",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how toJSONKeyText creates a ToJSONKey instance from a text function",
+    "relevant": ["src/Data/Aeson/Types/ToJSON.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how emptyObject and emptyArray constants are defined",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how sum types are encoded with tag and contents fields",
+    "relevant": ["src/Data/Aeson/Types/ToJSON.hs"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how formatError formats a JSONPath and message into a string",
+    "relevant": ["src/Data/Aeson/Types/Internal.hs"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

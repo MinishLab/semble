@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how a GET request is sent and a Response returned",
+    "relevant": ["pkgs/http/lib/src/client.dart"],
+    "secondary": ["pkgs/http/lib/src/base_client.dart"],
+    "category": "semantic"
+  },
+  {
+    "query": "how BaseClient implements convenience methods on top of send",
+    "relevant": ["pkgs/http/lib/src/base_client.dart"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how a multipart form POST request is constructed with files and fields",
+    "relevant": ["pkgs/http/lib/src/multipart_request.dart"],
+    "secondary": ["pkgs/http/lib/src/multipart_file.dart"],
+    "category": "semantic"
+  },
+  {
+    "query": "how a Response is decoded from bytes and headers",
+    "relevant": ["pkgs/http/lib/src/response.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how IOClient wraps dart:io HttpClient to send requests",
+    "relevant": ["pkgs/http/lib/src/io_client.dart"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how MockClient provides a test double for the HTTP client",
+    "relevant": ["pkgs/http/lib/src/mock_client.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how a streamed response delivers body bytes as a stream",
+    "relevant": ["pkgs/http/lib/src/streamed_response.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how a streamed POST request sends body data incrementally",
+    "relevant": ["pkgs/http/lib/src/streamed_request.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how ClientException reports HTTP errors with the URI",
+    "relevant": ["pkgs/http/lib/src/exception.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how a multipart boundary string is generated",
+    "relevant": ["pkgs/http/lib/src/multipart_request.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the abortable request supports cancellation via a trigger",
+    "relevant": ["pkgs/http/lib/src/abortable.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how BaseRequest validates the HTTP method and URL",
+    "relevant": ["pkgs/http/lib/src/base_request.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how response body is decoded using the charset from Content-Type",
+    "relevant": ["pkgs/http/lib/src/response.dart"],
+    "secondary": ["pkgs/http/lib/src/utils.dart"],
+    "category": "semantic"
+  },
+  {
+    "query": "how a multipart file part header is formatted",
+    "relevant": ["pkgs/http/lib/src/multipart_request.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the client lifecycle close method releases resources",
+    "relevant": ["pkgs/http/lib/src/client.dart"],
+    "secondary": ["pkgs/http/lib/src/io_client.dart"],
+    "category": "semantic"
+  },
+  {
+    "query": "how a Response is constructed from a StreamedResponse",
+    "relevant": ["pkgs/http/lib/src/response.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how POST sends a body with content type and encoding",
+    "relevant": ["pkgs/http/lib/src/base_client.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how ByteStream converts a list of bytes into a stream",
+    "relevant": ["pkgs/http/lib/src/byte_stream.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how request headers are managed and validated",
+    "relevant": ["pkgs/http/lib/src/base_request.dart"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how a multipart file is created from a file path on disk",
+    "relevant": ["pkgs/http/lib/src/multipart_file_io.dart"],
+    "secondary": ["pkgs/http/lib/src/multipart_file.dart"],
+    "category": "semantic"
+  }
+]

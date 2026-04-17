@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how lazy.nvim loads a plugin on demand when its trigger fires",
+    "relevant": ["lua/lazy/core/loader.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how plugin specs are parsed and normalized from user config",
+    "relevant": ["lua/lazy/core/plugin.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how lazy caches the module loader to speed up startup",
+    "relevant": ["lua/lazy/core/cache.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how plugin installations and updates are managed with tasks",
+    "relevant": ["lua/lazy/manage/init.lua"],
+    "secondary": ["lua/lazy/manage/runner.lua"],
+    "category": "architecture"
+  },
+  {
+    "query": "how lazy.nvim checks for plugin updates from git",
+    "relevant": ["lua/lazy/manage/checker.lua"],
+    "secondary": ["lua/lazy/manage/git.lua"],
+    "category": "semantic"
+  },
+  {
+    "query": "parsing and comparing semver version strings for plugin version constraints",
+    "relevant": ["lua/lazy/manage/semver.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how lazy.nvim renders the plugin UI view",
+    "relevant": ["lua/lazy/view/render.lua"],
+    "secondary": ["lua/lazy/view/init.lua"],
+    "category": "architecture"
+  },
+  {
+    "query": "how the lockfile pins plugin commits for reproducible installs",
+    "relevant": ["lua/lazy/manage/lock.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "spawning and aborting async subprocess commands with uv",
+    "relevant": ["lua/lazy/manage/process.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how event handlers trigger lazy loading on Neovim events",
+    "relevant": ["lua/lazy/core/handler/event.lua"],
+    "secondary": ["lua/lazy/core/handler/init.lua"],
+    "category": "architecture"
+  },
+  {
+    "query": "how lazy.nvim config is validated and merged with defaults",
+    "relevant": ["lua/lazy/core/config.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how M.load activates a plugin and sources its files",
+    "relevant": ["lua/lazy/core/loader.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how plugin fragments handle multiple specs for the same plugin",
+    "relevant": ["lua/lazy/core/fragments.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "reloading changed plugin files by detecting lua module changes",
+    "relevant": ["lua/lazy/manage/reloader.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "reading and writing lazy plugin state to disk between sessions",
+    "relevant": ["lua/lazy/state.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the floating window for the lazy UI is created",
+    "relevant": ["lua/lazy/view/float.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how text sections are rendered in the lazy view",
+    "relevant": ["lua/lazy/view/sections.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how git diff output is shown for plugin updates",
+    "relevant": ["lua/lazy/view/diff.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the startup sequence initializes lazy and loads start plugins",
+    "relevant": ["lua/lazy/core/loader.lua"],
+    "secondary": ["lua/lazy/init.lua"],
+    "category": "architecture"
+  },
+  {
+    "query": "how lazy util functions provide error handling and module loading",
+    "relevant": ["lua/lazy/core/util.lua"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

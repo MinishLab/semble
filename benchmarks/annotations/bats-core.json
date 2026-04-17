@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how the run command captures output and exit status of a command under test",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats loads external helper libraries with load",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats_pipe chains commands and captures their exit codes",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how skip aborts a test without marking it as a failure",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats_separate_lines splits command output into an array",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how parallel test execution is gated with a semaphore",
+    "relevant": ["lib/bats-core/semaphore.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how a test file is preprocessed before execution",
+    "relevant": ["lib/bats-core/preprocessing.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how stack traces are captured on test failure",
+    "relevant": ["lib/bats-core/tracing.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how test function metadata is registered",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how bats formats test result output",
+    "relevant": ["lib/bats-core/formatter.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats validates the test count across parallel workers",
+    "relevant": ["lib/bats-core/validator.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how bats finds a library in the BATS_LIB_PATH",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats_errexit_subshell runs a command in a subshell with errexit",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how setup and teardown hooks are called around each test",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how warnings are emitted for deprecated bats features",
+    "relevant": ["lib/bats-core/warnings.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the preprocessed test source is evaluated",
+    "relevant": ["lib/bats-core/preprocessing.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how flock and shlock provide mutual exclusion on file locks",
+    "relevant": ["lib/bats-core/semaphore.bash"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how the failed command line is printed in a stack trace",
+    "relevant": ["lib/bats-core/tracing.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats_load_library loads a library by slug name",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how bats should retry a flaky test",
+    "relevant": ["lib/bats-core/test_functions.bash"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

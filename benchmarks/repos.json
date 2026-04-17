@@ -330,5 +330,61 @@
     "url": "https://github.com/fmtlib/fmt.git",
     "revision": "382609a920d2c43c00f2951233bc0d578a783982",
     "benchmark_root": "include/fmt"
+  },
+  {
+    "name": "curl",
+    "language": "c",
+    "url": "https://github.com/curl/curl.git",
+    "revision": "021a87cf81638af5317e142610ea0dd9f9fb4890",
+    "benchmark_root": "lib"
+  },
+  {
+    "name": "redis",
+    "language": "c",
+    "url": "https://github.com/redis/redis.git",
+    "revision": "47575618616b6419562356b0cfbd4b17bb443bdd",
+    "benchmark_root": "src"
+  },
+  {
+    "name": "bats-core",
+    "language": "bash",
+    "url": "https://github.com/bats-core/bats-core.git",
+    "revision": "d9faff0d7bc32e7adebc6552446f978118d3ab3b",
+    "benchmark_root": "lib"
+  },
+  {
+    "name": "aeson",
+    "language": "haskell",
+    "url": "https://github.com/haskell/aeson.git",
+    "revision": "cd59793ca2405353ecee65f25b18ad7610104914",
+    "benchmark_root": "src/Data/Aeson"
+  },
+  {
+    "name": "http-dart",
+    "language": "dart",
+    "url": "https://github.com/dart-lang/http.git",
+    "revision": "fa2d2c21cf6f8d9e72bb962d2cd5f613a7102a71",
+    "benchmark_root": "pkgs/http/lib"
+  },
+  {
+    "name": "telescope.nvim",
+    "language": "lua",
+    "url": "https://github.com/nvim-telescope/telescope.nvim.git",
+    "revision": "471eebb1037899fd942cc0f52c012f8773505da1",
+    "benchmark_root": "lua/telescope"
+  },
+  {
+    "name": "lazy.nvim",
+    "language": "lua",
+    "url": "https://github.com/folke/lazy.nvim.git",
+    "revision": "306a05526ada86a7b30af95c5cc81ffba93fef97",
+    "benchmark_root": "lua/lazy"
+  },
+  {
+    "name": "zig",
+    "language": "zig",
+    "url": "https://github.com/ziglang/zig.git",
+    "revision": "738d2be9d6b6ef3ff3559130c05159ef53336224",
+    "benchmark_root": "lib/std"
   }
 ]

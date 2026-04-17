@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how Redis implements the SET command with options like NX, EX, PX",
+    "relevant": ["src/t_string.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how active key expiration cycle works",
+    "relevant": ["src/expire.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how RDB persistence serializes the database to disk",
+    "relevant": ["src/rdb.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how append-only file logging records write commands",
+    "relevant": ["src/aof.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how pub/sub message delivery works to subscribers",
+    "relevant": ["src/pubsub.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how master-replica replication syncs data to replicas",
+    "relevant": ["src/replication.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "reading and parsing client commands from the network",
+    "relevant": ["src/networking.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how sorted sets score-based range queries work",
+    "relevant": ["src/t_zset.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Redis hash objects store and retrieve fields",
+    "relevant": ["src/t_hash.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how SETRANGE modifies a substring within a string value",
+    "relevant": ["src/t_string.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the event loop handles file events and time events",
+    "relevant": ["src/ae.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "expiring keys set with EXPIRE or TTL commands",
+    "relevant": ["src/expire.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how slave keys with expiry are tracked in replication",
+    "relevant": ["src/expire.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "server startup initialization and configuration loading",
+    "relevant": ["src/server.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how RDB saves LZF-compressed string objects",
+    "relevant": ["src/rdb.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Redis cluster handles slot assignment and routing",
+    "relevant": ["src/cluster.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how list push and pop operations are implemented",
+    "relevant": ["src/t_list.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how set intersection and union operations work",
+    "relevant": ["src/t_set.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the database keyspace stores and looks up keys",
+    "relevant": ["src/db.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how server logging formats and writes log messages",
+    "relevant": ["src/server.c"],
+    "secondary": [],
+    "category": "semantic"
+  }
+]

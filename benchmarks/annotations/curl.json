@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how curl resolves and connects to a remote host",
+    "relevant": ["lib/connect.c"],
+    "secondary": ["lib/url.c"],
+    "category": "architecture"
+  },
+  {
+    "query": "how a new easy handle is initialized with default settings",
+    "relevant": ["lib/url.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "parsing the URL and filling the connection struct",
+    "relevant": ["lib/url.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how curl checks whether an existing connection can be reused",
+    "relevant": ["lib/url.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how HTTP authentication headers are selected and output",
+    "relevant": ["lib/http.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how curl decides whether to retry a failed request",
+    "relevant": ["lib/transfer.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "pre-transfer setup: resolving credentials, ranges, and timers",
+    "relevant": ["lib/transfer.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how the multi interface drives socket event loop transfers",
+    "relevant": ["lib/multi.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "cookie parsing and storage",
+    "relevant": ["lib/cookie.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how progress reporting works during a transfer",
+    "relevant": ["lib/progress.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "MIME multipart body construction for form uploads",
+    "relevant": ["lib/mime.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the easy interface wraps the multi interface for synchronous use",
+    "relevant": ["lib/easy.c"],
+    "secondary": ["lib/multi.c"],
+    "category": "architecture"
+  },
+  {
+    "query": "how curl checks if HTTP If-Modified-Since condition is met",
+    "relevant": ["lib/transfer.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "connection filter chain setup for proxies and TLS",
+    "relevant": ["lib/connect.c"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how SSL is configured on a connection",
+    "relevant": ["lib/url.c"],
+    "secondary": ["lib/connect.c"],
+    "category": "architecture"
+  },
+  {
+    "query": "how data is sent and received during a transfer",
+    "relevant": ["lib/transfer.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how curl keepalive and connection upkeep works",
+    "relevant": ["lib/url.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how an existing connection is detected as dead before reuse",
+    "relevant": ["lib/url.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "freeing all resources when closing an easy handle",
+    "relevant": ["lib/url.c"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how HTTP proxy tunnel CONNECT method is initiated",
+    "relevant": ["lib/http.c"],
+    "secondary": [],
+    "category": "architecture"
+  }
+]

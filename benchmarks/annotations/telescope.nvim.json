@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how Picker:find opens a floating window and starts fuzzy finding",
+    "relevant": ["lua/telescope/pickers.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Sorter:score ranks a prompt against a candidate entry",
+    "relevant": ["lua/telescope/sorters.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how finders feed entries into a picker results buffer",
+    "relevant": ["lua/telescope/finders.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how telescope actions map keys to picker operations",
+    "relevant": ["lua/telescope/actions/init.lua"],
+    "secondary": ["lua/telescope/mappings.lua"],
+    "category": "architecture"
+  },
+  {
+    "query": "how previewers render a selected entry in the preview window",
+    "relevant": ["lua/telescope/previewers/buffer_previewer.lua"],
+    "secondary": ["lua/telescope/previewers/previewer.lua"],
+    "category": "architecture"
+  },
+  {
+    "query": "how make_entry creates display strings and ordinals for results",
+    "relevant": ["lua/telescope/make_entry.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how picker layout strategies position the floating windows",
+    "relevant": ["lua/telescope/pickers/layout_strategies.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how telescope config sets defaults for all pickers",
+    "relevant": ["lua/telescope/config.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how builtin file_files picker searches and presents files",
+    "relevant": ["lua/telescope/builtin/__files.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "TelescopeGlobalState storing picker status keyed by prompt bufnr",
+    "relevant": ["lua/telescope/state.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how git status changes are listed in a picker",
+    "relevant": ["lua/telescope/builtin/__git.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how LSP references and definitions are shown in telescope",
+    "relevant": ["lua/telescope/builtin/__lsp.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Picker:get_selection returns the currently highlighted entry",
+    "relevant": ["lua/telescope/pickers.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how themes modify the layout for dropdown or cursor pickers",
+    "relevant": ["lua/telescope/themes.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how entry_manager stores and retrieves picker results",
+    "relevant": ["lua/telescope/entry_manager.lua"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how utils provides path and string helper functions",
+    "relevant": ["lua/telescope/utils.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how diagnostic entries are displayed with severity in telescope",
+    "relevant": ["lua/telescope/builtin/__diagnostics.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how operators apply actions to multiple selected entries",
+    "relevant": ["lua/telescope/operators.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how Picker:move_selection changes the highlighted row",
+    "relevant": ["lua/telescope/pickers.lua"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how async_job runs an external command and streams results",
+    "relevant": ["lua/telescope/async_job.lua"],
+    "secondary": [],
+    "category": "architecture"
+  }
+]

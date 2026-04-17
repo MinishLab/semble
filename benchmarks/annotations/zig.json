@@ -1,0 +1,122 @@
+[
+  {
+    "query": "how AutoHashMap provides a hash map with auto-derived hash and equality",
+    "relevant": ["lib/std/hash_map.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how ArrayList manages a growable array with an allocator",
+    "relevant": ["lib/std/array_list.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.mem.eql compares two slices for equality",
+    "relevant": ["lib/std/mem.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.fmt.bufPrint formats a string into a fixed buffer",
+    "relevant": ["lib/std/fmt.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.json parses JSON from a slice into a typed struct",
+    "relevant": ["lib/std/json/static.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the JSON scanner tokenizes a JSON byte stream",
+    "relevant": ["lib/std/json/Scanner.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how Thread.spawn creates and starts a new OS thread",
+    "relevant": ["lib/std/Thread.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.testing.expect and expectEqual assert conditions in tests",
+    "relevant": ["lib/std/testing.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.mem.sort and sortUnstable sort a slice in place",
+    "relevant": ["lib/std/mem.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.fs.cwd opens the current working directory",
+    "relevant": ["lib/std/fs.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.process.args returns command-line argument iterator",
+    "relevant": ["lib/std/process.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how comptime hash functions are auto-derived for arbitrary types",
+    "relevant": ["lib/std/hash_map.zig"],
+    "secondary": [],
+    "category": "architecture"
+  },
+  {
+    "query": "how std.fmt.parseInt parses a string to an integer",
+    "relevant": ["lib/std/fmt.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.mem.copyForwards and copyBackwards copy overlapping slices",
+    "relevant": ["lib/std/mem.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how debug.print outputs to stderr for debugging",
+    "relevant": ["lib/std/debug.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the JSON Stringify module serializes a value to JSON",
+    "relevant": ["lib/std/json/Stringify.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.mem.span converts a null-terminated pointer to a slice",
+    "relevant": ["lib/std/mem.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.testing.checkAllAllocationFailures tests allocator failure paths",
+    "relevant": ["lib/std/testing.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how std.mem.zeroes initializes a type to all zero bytes",
+    "relevant": ["lib/std/mem.zig"],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how the JSON scanner feeds input incrementally and emits tokens",
+    "relevant": ["lib/std/json/Scanner.zig"],
+    "secondary": [],
+    "category": "architecture"
+  }
+]
