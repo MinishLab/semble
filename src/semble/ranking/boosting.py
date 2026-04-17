@@ -111,16 +111,7 @@ def apply_query_boost(
     query: str,
     all_chunks: list[Chunk],
 ) -> dict[Chunk, float]:
-    """Apply query-type-specific boosts to candidate scores.
-
-    Applies file-coherence boosting to all queries, then dispatches to
-    symbol-definition boosting or NL file-stem boosting based on query type.
-
-    :param combined_scores: Existing combined scores for candidate chunks.
-    :param query: The raw query string.
-    :param all_chunks: The full chunk list (used for non-candidate definition scanning).
-    :return: Updated scores dict with boosts applied.
-    """
+    """Apply file-coherence + query-type boosts to candidate scores."""
     if not combined_scores:
         return combined_scores
 
@@ -178,20 +169,12 @@ def _stem_matches(stem: str, name: str) -> bool:
     return stem == name or stem_norm == name or stem.rstrip("s") == name or stem_norm.rstrip("s") == name
 
 
-def _file_stem_matches_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    return _stem_matches(Path(chunk.file_path).stem.lower(), symbol_name.lower())
-
-
 def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
-    """Return the boost amount for a chunk that defines one of *names*.
-
-    Tier 1.5 x boost_unit if the file stem also matches (strong signal).
-    Tier 1.0 x boost_unit for definition keyword match alone.
-    Returns 0.0 if the chunk does not define any of *names*.
-    """
+    """Return the boost amount for a chunk that defines one of *names* (0.0 if none match)."""
     if not any(_chunk_defines_symbol(chunk, name) for name in names):
         return 0.0
-    return boost_unit * (1.5 if any(_file_stem_matches_symbol(chunk, name) for name in names) else 1.0)
+    stem = Path(chunk.file_path).stem.lower()
+    return boost_unit * (1.5 if any(_stem_matches(stem, n.lower()) for n in names) else 1.0)
 
 
 def _scan_non_candidates(
@@ -215,7 +198,8 @@ def _prefix_or_exact(stem: str, symbols_lower: frozenset[str], min_len: int) -> 
     """Return True if stem exactly matches or is a prefix (≥ min_len chars) of any symbol."""
     sn = stem.replace("_", "")
     return any(
-        _stem_matches(stem, sl)
+        stem == sl
+        or sn == sl
         or (len(stem) >= min_len and sl.startswith(stem))
         or (len(sn) >= min_len and sl.startswith(sn))
         for sl in symbols_lower
