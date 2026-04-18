@@ -92,7 +92,6 @@ def search_hybrid(
     alpha_weight = resolve_alpha(query, alpha)
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
-    # NL queries use a larger pool (7x) since semantic targets can rank lower in either retriever.
     candidate_count = top_k * 5
 
     semantic = search_semantic(query, model, semantic_index, chunks, candidate_count, selector)
@@ -111,8 +110,10 @@ def search_hybrid(
         for chunk in set(normalized_semantic) | set(normalized_bm25)
     }
 
+    # Boost files with multiple relevant chunks.
     boost_multi_chunk_files(combined_scores)
+    # Boost queries with specific identifiers in them.
     combined_scores = apply_query_boost(combined_scores, query, chunks)
-
+    # Rerank the top-k results by applying path-based penalties.
     ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
     return [SearchResult(chunk=chunk, score=score, source=SearchMode.HYBRID) for chunk, score in ranked]
