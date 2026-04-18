@@ -6,44 +6,36 @@ from pathlib import Path
 from semble.tokens import _split_identifier
 from semble.types import Chunk
 
-# Matches queries that look like symbol lookups. A query is treated as a symbol if it:
-#   - is namespace-qualified (e.g. Sinatra::Base, self->field, a.b)
-#   - starts with an underscore (e.g. _private, __init__)
-#   - contains an uppercase letter or underscore (e.g. HTTPAdapter, field_validator, getUser)
-#   - starts with an uppercase letter (e.g. URL, Base)
-# Purely lowercase single words (e.g. "session", "response") are NOT matched —
-# those are natural language queries that should use semantic search.
+# Symbol-lookup queries: namespace-qualified, leading-underscore, or containing
+# uppercase/underscore. Plain lowercase words (e.g. "session") are NL, not symbols.
 _SYMBOL_QUERY_RE = re.compile(
     r"^(?:"
     r"[A-Za-z_][A-Za-z0-9_]*(?:(?:::|\\|->|\.)[A-Za-z_][A-Za-z0-9_]*)+"  # namespace-qualified
-    r"|_[A-Za-z0-9_]*"  # leading underscore (_private, __init__)
-    r"|[A-Za-z][A-Za-z0-9]*[A-Z_][A-Za-z0-9_]*"  # contains uppercase or underscore after pos 0
-    r"|[A-Z][A-Za-z0-9]*"  # starts with uppercase (URL, Base, HTTPAdapter)
+    r"|_[A-Za-z0-9_]*"  # leading underscore
+    r"|[A-Za-z][A-Za-z0-9]*[A-Z_][A-Za-z0-9_]*"  # contains uppercase or underscore
+    r"|[A-Z][A-Za-z0-9]*"  # starts with uppercase
     r")$"
 )
 
 # CamelCase/camelCase identifiers embedded in a NL query; excludes plain words and pure acronyms.
 _EMBEDDED_SYMBOL_RE = re.compile(
     r"\b(?:"
-    r"[A-Z][a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*"  # PascalCase: StateManager, ZodType
-    r"|[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]+"  # camelCase: beforeAll, safeParse
+    r"[A-Z][a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*"  # PascalCase
+    r"|[a-z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]+"  # camelCase
     r")\b"
 )
 
 # Minimum stem length for prefix-based non-candidate scan (avoids over-broad matches).
 _EMBEDDED_STEM_MIN_LEN = 4
 
-# Half-strength boost for embedded symbols; the symbol may be incidental to the query.
+# Half-strength: the symbol may be incidental to the NL query.
 _EMBEDDED_SYMBOL_BOOST_SCALE = 0.5
 
-# Alpha values for query-adaptive blending.
-_ALPHA_SYMBOL = 0.3  # Symbol queries: lean BM25 for exact keyword matching
-_ALPHA_NL = 0.5  # Natural language queries: balanced semantic + BM25
+_ALPHA_SYMBOL = 0.3  # lean BM25 for exact keyword matching
+_ALPHA_NL = 0.5  # balanced semantic + BM25
 
-# Definition keywords used across common languages.
-# Case-sensitive: most language keywords are lowercase by convention, and applying
-# IGNORECASE globally causes false positive boosts (e.g. "Module" in Python docs,
-# "Class" method calls in Ruby).
+# Case-sensitive: IGNORECASE produces false positives like "Module" in Python docs
+# or "Class" method calls in Ruby.
 _DEFINITION_KEYWORDS = (
     "class",
     "module",
@@ -65,11 +57,10 @@ _DEFINITION_KEYWORDS = (
     "namespace",
     "protocol",  # Swift
     "record",  # C# 9+, Java 16+
-    "typedef",  # C/C++/Dart: `typedef struct Foo Foo`
+    "typedef",  # C/C++/Dart
 )
 
-# SQL DDL keywords matched case-insensitively (SQL is commonly written in either
-# all-caps or all-lowercase; mixing with IGNORECASE avoids duplicating entries).
+# SQL DDL is conventionally all-caps or all-lowercase; match both via IGNORECASE.
 _SQL_DEFINITION_KEYWORDS = (
     "CREATE TABLE",
     "CREATE VIEW",
@@ -77,9 +68,6 @@ _SQL_DEFINITION_KEYWORDS = (
     "CREATE FUNCTION",
 )
 
-# Precompiled alternation bodies — the fixed part of each pattern.
-# Only symbol_name changes per call; re.escape(symbol_name) is substituted
-# into the suffix at call time.
 _KEYWORD_PREFIX = r"(?:^|(?<=\s))(?:"
 _DEFINITION_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _DEFINITION_KEYWORDS)
 _SQL_KEYWORD_BODY = "|".join(re.escape(keyword) for keyword in _SQL_DEFINITION_KEYWORDS)
