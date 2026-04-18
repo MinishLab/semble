@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "semble"
 description = "Instant local code search for agents."
@@ -31,6 +35,11 @@ dependencies = [
 [project.optional-dependencies]
 mcp = [
     "mcp>=1.0",
+]
+benchmark = [
+    "sentence-transformers>=3.0",
+    "numpy>=1.24.0",
+    "einops>=0.8.2",
 ]
 dev = [
     "pytest>=8.0",

@@ -1,13 +1,10 @@
 import argparse
 import json
 import math
-import subprocess
 import sys
 import time
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from pathlib import Path
-from typing import cast
 
 import numpy as np
 from model2vec import StaticModel
@@ -19,6 +16,7 @@ from benchmarks.data import (
     apply_task_filters,
     available_repo_specs,
     load_tasks,
+    save_results,
     target_matches_location,
 )
 from semble import SembleIndex
@@ -235,12 +233,7 @@ def _bench_quality(
 
 
 def _save_results(results: list[RepoResult]) -> None:
-    """Write results to benchmarks/results/<sha>.json."""
-    try:
-        sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-    except subprocess.CalledProcessError:
-        sha = "unknown"
-
+    """Write results to benchmarks/results/semble-hybrid-<sha12>.json."""
     languages = sorted({r.language for r in results})
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
 
@@ -268,7 +261,7 @@ def _save_results(results: list[RepoResult]) -> None:
         cat_means[cat] = round(sum(vals) / len(vals), 4) if vals else 0.0
 
     output = {
-        "sha": sha,
+        "tool": "semble-hybrid",
         "model": _DEFAULT_MODEL_NAME,
         "summary": {
             "ndcg10": round(sum(v["ndcg10"] for v in lang_means.values()) / n_langs, 4),
@@ -294,10 +287,7 @@ def _save_results(results: list[RepoResult]) -> None:
         "repos": [asdict(r) for r in results],
     }
 
-    results_dir = Path(__file__).parent / "results"
-    results_dir.mkdir(exist_ok=True)
-    out_path = results_dir / f"{sha[:12]}.json"
-    out_path.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
+    out_path = save_results("semble-hybrid", output)
     print(f"\nResults saved to {out_path}", file=sys.stderr)
 
 

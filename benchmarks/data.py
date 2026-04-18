@@ -1,4 +1,5 @@
 import json
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -139,12 +140,57 @@ def apply_task_filters(
     return [task for task in filtered if not languages or task.language in languages]
 
 
+def path_matches(file_path: str, target_path: str) -> bool:
+    """Return True if file_path ends with target_path (file-level match, no line span)."""
+    norm_file = file_path.replace("\\", "/")
+    norm_target = target_path.replace("\\", "/")
+    return norm_file == norm_target or norm_file.endswith(f"/{norm_target}")
+
+
 def target_matches_location(file_path: str, start_line: int, end_line: int, target: Target) -> bool:
     """Return True if the chunk at file_path:start_line-end_line covers the target."""
-    norm_file = file_path.replace("\\", "/")
-    norm_target = target.path.replace("\\", "/")
-    if not (norm_file == norm_target or norm_file.endswith(f"/{norm_target}")):
+    if not path_matches(file_path, target.path):
         return False
     if not target.has_span:
         return True
     return not (end_line < target.start_line or start_line > target.end_line)  # type: ignore[operator]
+
+
+def grouped_tasks(tasks: list[Task]) -> dict[str, list[Task]]:
+    """Group tasks by repo name, preserving annotation order within each group."""
+    groups: dict[str, list[Task]] = {}
+    for task in tasks:
+        groups.setdefault(task.repo, []).append(task)
+    return groups
+
+
+def current_sha() -> str:
+    """Return the current git HEAD SHA, or 'unknown' if unavailable."""
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except subprocess.CalledProcessError:
+        return "unknown"
+
+
+def results_path(method: str) -> Path:
+    """Return the path where results for this method and the current HEAD SHA will be saved.
+
+    :param method: Short tool/method label (e.g. 'ripgrep', 'colgrep').
+    :return: Path of the form benchmarks/results/<method>-<sha12>.json.
+    """
+    sha = current_sha()
+    results_dir = BENCHMARKS_DIR / "results"
+    results_dir.mkdir(exist_ok=True)
+    return results_dir / f"{method}-{sha[:12]}.json"
+
+
+def save_results(method: str, payload: object) -> Path:
+    """Write payload to benchmarks/results/<method>-<sha12>.json and return the path.
+
+    :param method: Short tool/method label used as the filename prefix (e.g. 'ripgrep').
+    :param payload: JSON-serialisable object to write.
+    :return: Path to the written file.
+    """
+    out_path = results_path(method)
+    out_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return out_path
