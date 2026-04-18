@@ -93,7 +93,7 @@ def search_hybrid(
 
     # Over-fetch candidates so the merged pool is large enough after union and re-ranking.
     # NL queries use a larger pool (7x) since semantic targets can rank lower in either retriever.
-    candidate_count = top_k * (5 if alpha_weight < 0.5 else 7)
+    candidate_count = top_k * 5
 
     semantic = search_semantic(query, model, semantic_index, chunks, candidate_count, selector)
     semantic_scores: dict[Chunk, float] = {result.chunk: result.score for result in semantic}
