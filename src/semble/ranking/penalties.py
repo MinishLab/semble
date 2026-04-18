@@ -64,9 +64,6 @@ _EXAMPLES_DIR_RE = re.compile(r"(?:^|/)(?:_?examples?|docs?_src)(?:/|$)")
 # TypeScript declaration files (.d.ts stubs).
 _TYPE_DEFS_RE = re.compile(r"\.d\.ts$")
 
-# Amalgamated single-header distributions (e.g. single_include/).
-_AMALGAM_DIR_RE = re.compile(r"(?:^|/)single_include(?:/|$)")
-
 _STRONG_PENALTY = 0.3  # test files, compat shims, example/doc code
 _MODERATE_PENALTY = 0.5  # re-export / metadata files
 _MILD_PENALTY = 0.7  # .d.ts declaration stubs (still carry useful type info)
@@ -154,8 +151,6 @@ def _file_path_penalty(file_path: str) -> float:
     if _COMPAT_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
     if _EXAMPLES_DIR_RE.search(normalised):
-        penalty *= _STRONG_PENALTY
-    if _AMALGAM_DIR_RE.search(normalised):
         penalty *= _STRONG_PENALTY
     if _TYPE_DEFS_RE.search(normalised):
         penalty *= _MILD_PENALTY
