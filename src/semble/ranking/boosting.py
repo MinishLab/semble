@@ -1,3 +1,4 @@
+import functools
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -127,6 +128,29 @@ def apply_query_boost(
     return boosted
 
 
+def boost_file_coherence(scores: dict[Chunk, float]) -> None:
+    """Promote files with multiple high-scoring chunks by boosting their top chunk (in-place)."""
+    if not scores:
+        return
+
+    max_score = max(scores.values())
+    if max_score == 0.0:
+        return
+
+    file_sum: dict[str, float] = {}
+    best_chunk: dict[str, Chunk] = {}
+    for chunk, score in scores.items():
+        file_path = chunk.file_path
+        file_sum[file_path] = file_sum.get(file_path, 0.0) + score
+        if file_path not in best_chunk or score > scores[best_chunk[file_path]]:
+            best_chunk[file_path] = chunk
+
+    max_file_sum = max(file_sum.values())
+    boost_unit = max_score * _FILE_COHERENCE_BOOST_FRAC
+    for file_path, chunk in best_chunk.items():
+        scores[chunk] += boost_unit * file_sum[file_path] / max_file_sum
+
+
 def _is_symbol_query(query: str) -> bool:
     """Return True if the query looks like a bare symbol or namespace-qualified identifier."""
     return _SYMBOL_QUERY_RE.match(query.strip()) is not None
@@ -143,22 +167,25 @@ def _extract_symbol_name(query: str) -> str:
     return query.strip()
 
 
+@functools.lru_cache(maxsize=256)
+def _definition_pattern(symbol_name: str) -> tuple[re.Pattern[str], re.Pattern[str]]:
+    escaped = re.escape(symbol_name)
+    ns_prefix = r"(?:[A-Za-z_][A-Za-z0-9_]*(?:\.|::))*"
+    suffix = r")\s+" + ns_prefix + escaped + r"(?:\s|[<({:\[;]|$)"
+    return (
+        re.compile(_KEYWORD_PREFIX + _DEFINITION_KEYWORD_BODY + suffix, re.MULTILINE),
+        re.compile(_KEYWORD_PREFIX + _SQL_KEYWORD_BODY + suffix, re.MULTILINE | re.IGNORECASE),
+    )
+
+
 def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
     """Return True if the chunk contains a definition of *symbol_name*.
 
     Case-sensitive for general keywords, case-insensitive for SQL DDL.
     Also matches namespace-qualified forms (e.g. ``defmodule Phoenix.Router`` for ``Router``).
     """
-    escaped_symbol = re.escape(symbol_name)
-    # Optional namespace prefix: e.g. "Phoenix." or "MyApp::".
-    ns_prefix = r"(?:[A-Za-z_][A-Za-z0-9_]*(?:\.|::))*"
-    suffix = r")\s+" + ns_prefix + escaped_symbol + r"(?:\s|[<({:\[;]|$)"
-    if re.compile(_KEYWORD_PREFIX + _DEFINITION_KEYWORD_BODY + suffix, re.MULTILINE).search(chunk.content) is not None:
-        return True
-    return (
-        re.compile(_KEYWORD_PREFIX + _SQL_KEYWORD_BODY + suffix, re.MULTILINE | re.IGNORECASE).search(chunk.content)
-        is not None
-    )
+    general, sql = _definition_pattern(symbol_name)
+    return general.search(chunk.content) is not None or sql.search(chunk.content) is not None
 
 
 def _stem_matches(stem: str, name: str) -> bool:
@@ -259,29 +286,6 @@ def _boost_embedded_symbols(
             continue
         if tier := _definition_tier(chunk, names, boost_unit):
             boosted[chunk] = tier
-
-
-def boost_file_coherence(scores: dict[Chunk, float]) -> None:
-    """Promote files with multiple high-scoring chunks by boosting their top chunk (in-place)."""
-    if not scores:
-        return
-
-    max_score = max(scores.values())
-    file_sum: dict[str, float] = {}
-    best_chunk: dict[str, Chunk] = {}
-    for chunk, score in scores.items():
-        file_path = chunk.file_path
-        file_sum[file_path] = file_sum.get(file_path, 0.0) + score
-        if file_path not in best_chunk or score > scores[best_chunk[file_path]]:
-            best_chunk[file_path] = chunk
-
-    max_file_sum = max(file_sum.values())
-    if max_file_sum == 0.0:
-        return
-
-    boost_unit = max_score * _FILE_COHERENCE_BOOST_FRAC
-    for file_path, chunk in best_chunk.items():
-        scores[chunk] += boost_unit * file_sum[file_path] / max_file_sum
 
 
 def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
