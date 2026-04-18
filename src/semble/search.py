@@ -4,7 +4,7 @@ import numpy.typing as npt
 
 from semble.index.dense import SelectableBasicBackend
 from semble.index.sparse import selector_to_mask
-from semble.ranking import apply_query_boost, boost_file_coherence, rerank_topk, resolve_alpha
+from semble.ranking import apply_query_boost, boost_multi_chunk_files, rerank_topk, resolve_alpha
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
 
@@ -111,7 +111,7 @@ def search_hybrid(
         for chunk in set(normalized_semantic) | set(normalized_bm25)
     }
 
-    boost_file_coherence(combined_scores)
+    boost_multi_chunk_files(combined_scores)
     combined_scores = apply_query_boost(combined_scores, query, chunks)
 
     ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)

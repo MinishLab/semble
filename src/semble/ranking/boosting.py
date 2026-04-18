@@ -116,7 +116,7 @@ def apply_query_boost(
     return boosted
 
 
-def boost_file_coherence(scores: dict[Chunk, float]) -> None:
+def boost_multi_chunk_files(scores: dict[Chunk, float]) -> None:
     """Promote files with multiple high-scoring chunks by boosting their top chunk (in-place)."""
     if not scores:
         return
@@ -276,7 +276,7 @@ def _boost_embedded_symbols(
             boosted[chunk] = tier
 
 
-def _fuzzy_keyword_overlap(keywords: set[str], parts: set[str]) -> int:
+def _count_keyword_matches(keywords: set[str], parts: set[str]) -> int:
     """Count query keywords that match path parts, allowing prefix overlap (min 3 chars)."""
     exact = keywords & parts
     if len(exact) == len(keywords):
@@ -318,7 +318,7 @@ def _boost_stem_matches(
             if path.parent.name and path.parent.name not in (".", "/", ".."):
                 parts.update(_split_identifier(path.parent.name))
             path_cache[chunk.file_path] = parts
-        n_matches = _fuzzy_keyword_overlap(keywords, path_cache[chunk.file_path])
+        n_matches = _count_keyword_matches(keywords, path_cache[chunk.file_path])
         if n_matches > 0:
             match_ratio = n_matches / len(keywords)
             if match_ratio >= 0.10:
