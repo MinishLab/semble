@@ -123,7 +123,7 @@ def _make_plot(out_path: Path) -> None:
         ax.text(x_label, y, m["name"], fontsize=8.5, color=m["color"], ha="left", va="center", zorder=4)
 
     ax.set_xscale("function", functions=(_cbrt_forward, _cbrt_inverse))
-    ax.set_xlabel("Time to first result — index + query", fontsize=10, color="#444444")
+    ax.set_xlabel("Time to first result (index + query)", fontsize=10, color="#444444")
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
     ax.set_xlim(5, 200_000)
     ax.set_ylim(0.05, 0.95)
