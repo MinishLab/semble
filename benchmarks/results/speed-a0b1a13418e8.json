@@ -4,7 +4,6 @@
     "libuv",
     "nlohmann-json",
     "messagepack-csharp",
-    "riverpod",
     "phoenix",
     "gin",
     "aeson",
@@ -23,12 +22,12 @@
   ],
   "summary": {
     "semble": {
-      "avg_index_ms": 256.0,
-      "avg_p50_ms": 1.46
+      "avg_index_ms": 262.6,
+      "avg_p50_ms": 1.49
     },
     "coderankembed": {
-      "avg_index_ms": 55802.4,
-      "avg_p50_ms": 16.33
+      "avg_index_ms": 57269.4,
+      "avg_p50_ms": 16.27
     },
     "colgrep": {
       "avg_index_ms": 5750.6,
@@ -36,7 +35,7 @@
     },
     "ripgrep": {
       "avg_index_ms": null,
-      "avg_p50_ms": 12.09
+      "avg_p50_ms": 12.08
     }
   },
   "results": [
@@ -151,27 +150,6 @@
       "tool": "ripgrep",
       "index_ms": null,
       "p50_ms": 13.73
-    },
-    {
-      "repo": "riverpod",
-      "language": "dart",
-      "tool": "semble",
-      "index_ms": 131.1,
-      "p50_ms": 0.78
-    },
-    {
-      "repo": "riverpod",
-      "language": "dart",
-      "tool": "coderankembed",
-      "index_ms": 27928.8,
-      "p50_ms": 17.43
-    },
-    {
-      "repo": "riverpod",
-      "language": "dart",
-      "tool": "ripgrep",
-      "index_ms": null,
-      "p50_ms": 12.13
     },
     {
       "repo": "phoenix",

@@ -25,7 +25,6 @@ _REPOS: list[str] = [
     "libuv",  # c
     "nlohmann-json",  # cpp
     "messagepack-csharp",  # csharp
-    "riverpod",  # dart
     "phoenix",  # elixir
     "gin",  # go
     "aeson",  # haskell
