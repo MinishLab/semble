@@ -64,10 +64,16 @@ _METHODS: list[_Method] = [
 ]
 
 # Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
-_CBRT_LABEL_DELTA = 2.0
+# The warm plot spans ~1–500 ms so needs a much smaller delta than the cold plot (~100 ms–100 s).
+_CBRT_LABEL_DELTA_COLD = 2.0
+_CBRT_LABEL_DELTA_WARM = 0.4
 
-# Names of methods that form the baseline speed-quality frontier (drawn as a connecting line).
-_FRONTIER_NAMES = {"ripgrep", "ColGREP", "CodeRankEmbed\nHybrid"}
+# Frontier methods per mode. Cold: baseline prior-art curve, semble floats above it.
+# Warm: semble is the fastest point on the frontier alongside CodeRankEmbed Hybrid.
+_FRONTIER_NAMES: dict[str, set[str]] = {
+    "cold": {"ripgrep", "ColGREP", "CodeRankEmbed\nHybrid"},
+    "warm": {"semble", "CodeRankEmbed\nHybrid"},
+}
 
 
 def _marker_size(params_m: float) -> float:
@@ -92,7 +98,15 @@ def _format_ms(v: float, _: object) -> str:
     return f"{v:.0f} ms"
 
 
-def _make_plot(out_path: Path) -> None:
+def _make_plot(out_path: Path, *, warm: bool = False) -> None:
+    """Generate a speed-vs-quality scatter plot.
+
+    :param out_path: Destination PNG path.
+    :param warm: If True, use per-query latency (index pre-built). If False, use index + query latency.
+    """
+    mode = "warm" if warm else "cold"
+    cbrt_label_delta = _CBRT_LABEL_DELTA_WARM if warm else _CBRT_LABEL_DELTA_COLD
+
     fig, ax = plt.subplots(figsize=(8, 5))
 
     fig.patch.set_facecolor("white")
@@ -108,9 +122,13 @@ def _make_plot(out_path: Path) -> None:
     ax.spines["left"].set_color("#cccccc")
     ax.spines["bottom"].set_color("#cccccc")
 
-    # Baseline frontier: connect ripgrep → ColGREP → CodeRankEmbed Hybrid in speed order.
+    # Frontier line connecting the Pareto-efficient methods in speed order.
     frontier = sorted(
-        [(m["index_ms"] + m["query_p50_ms"], m["ndcg10"]) for m in _METHODS if m["name"] in _FRONTIER_NAMES]
+        [
+            (m["query_p50_ms"] if warm else m["index_ms"] + m["query_p50_ms"], m["ndcg10"])
+            for m in _METHODS
+            if m["name"] in _FRONTIER_NAMES[mode]
+        ]
     )
     ax.plot(
         [p[0] for p in frontier],
@@ -122,7 +140,7 @@ def _make_plot(out_path: Path) -> None:
     )
 
     for m in _METHODS:
-        x = m["index_ms"] + m["query_p50_ms"]
+        x = m["query_p50_ms"] if warm else m["index_ms"] + m["query_p50_ms"]
         y = m["ndcg10"]
         ax.scatter(
             x,
@@ -135,16 +153,22 @@ def _make_plot(out_path: Path) -> None:
             edgecolors="white",
         )
 
-        x_label = (x ** (1 / 3) + _CBRT_LABEL_DELTA) ** 3
+        x_label = (x ** (1 / 3) + cbrt_label_delta) ** 3
         ax.text(x_label, y, m["name"], fontsize=8.5, color=m["color"], ha="left", va="center", zorder=4)
 
     ax.set_xscale("function", functions=(_cbrt_forward, _cbrt_inverse))
-    ax.set_xlabel("Time to first result (index + query)", fontsize=10, color="#444444")
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
-    ax.set_xlim(5, 200_000)
     ax.set_ylim(0.05, 0.95)
 
-    ax.set_xticks([100, 1_000, 10_000, 100_000])
+    if warm:
+        ax.set_xlabel("Query latency (warm)", fontsize=10, color="#444444")
+        ax.set_xlim(0.5, 500)
+        ax.set_xticks([1, 10, 100])
+    else:
+        ax.set_xlabel("Time to first result (index + query)", fontsize=10, color="#444444")
+        ax.set_xlim(5, 200_000)
+        ax.set_xticks([100, 1_000, 10_000, 100_000])
+
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(_format_ms))
     ax.tick_params(labelsize=9, colors="#555555")
 
@@ -183,9 +207,9 @@ def _make_plot(out_path: Path) -> None:
 
 
 def main() -> None:
-    """Generate the speed-vs-quality scatter plot."""
-    out = _RESULTS_DIR / "speed_vs_ndcg.png"
-    _make_plot(out)
+    """Generate cold and warm speed-vs-quality scatter plots."""
+    _make_plot(_RESULTS_DIR / "speed_vs_ndcg.png")
+    _make_plot(_RESULTS_DIR / "speed_vs_ndcg_warm.png", warm=True)
 
 
 if __name__ == "__main__":
