@@ -30,7 +30,7 @@ _METHODS: list[_Method] = [
         "params_m": 0,
     },
     {
-        "name": "colgrep",
+        "name": "ColGREP",
         "ndcg10": 0.577,
         "index_ms": 5750.6,
         "query_p50_ms": 123.83,
@@ -38,7 +38,7 @@ _METHODS: list[_Method] = [
         "params_m": 16,
     },
     {
-        "name": "coderankembed\nsemantic",
+        "name": "CodeRankEmbed",
         "ndcg10": 0.762,
         "index_ms": 57269.4,
         "query_p50_ms": 16.27,
@@ -46,7 +46,7 @@ _METHODS: list[_Method] = [
         "params_m": 137,
     },
     {
-        "name": "coderankembed\nhybrid",
+        "name": "CodeRankEmbed\nHybrid",
         "ndcg10": 0.860,
         "index_ms": 57269.4,
         "query_p50_ms": 16.27,
