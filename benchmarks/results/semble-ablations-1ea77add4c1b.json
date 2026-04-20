@@ -3,11 +3,11 @@
   "model": "minishlab/potion-code-16M",
   "by_mode": {
     "bm25": {
-      "avg_ndcg10": 0.673,
+      "avg_ndcg10": 0.6755,
       "avg_p50_ms": 0.0
     },
     "semantic": {
-      "avg_ndcg10": 0.6468,
+      "avg_ndcg10": 0.65,
       "avg_p50_ms": 0.1
     }
   },

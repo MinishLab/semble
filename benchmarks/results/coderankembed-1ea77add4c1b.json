@@ -3,11 +3,11 @@
   "model": "nomic-ai/CodeRankEmbed",
   "by_mode": {
     "semantic": {
-      "avg_ndcg10": 0.7653,
-      "avg_p50_ms": 13.3
+      "avg_ndcg10": 0.7625,
+      "avg_p50_ms": 13.4
     },
     "hybrid": {
-      "avg_ndcg10": 0.86,
+      "avg_ndcg10": 0.8604,
       "avg_p50_ms": 17.0
     }
   },

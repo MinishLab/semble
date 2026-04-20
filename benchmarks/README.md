@@ -1,17 +1,46 @@
 # Benchmarks
 
-Reproducible local benchmarks for `semble`.
+Reproducible local benchmarks for `semble` across 63 repositories in 19 languages (Dart excluded — colgrep does not support it).
 
-Pinned repositories live in `repos.json` and are checked out into `~/.cache/semble-bench`.
+## Results
+
+### Main results
+
+Quality is measured as mean NDCG@10 over all benchmark tasks. Speed numbers are averages across 19 repositories (one per language) with all tools forced to CPU for a fair comparison.
+
+| Method | NDCG@10 | Index time | Query p50 |
+|---|---|---|---|
+| ripgrep | 0.123 | — | 12 ms |
+| colgrep | 0.577 | 5.8 s | 124 ms |
+| coderankembed semantic | 0.762 | 57 s | 16 ms |
+| **semble** | **0.852** | **263 ms** | **1.5 ms** |
+| coderankembed hybrid | 0.860 | 57 s | 16 ms |
+
+### Ablations
+
+Isolates the contribution of the retrieval source vs. the ranking stack.
+`raw` = no ranking pipeline (plain BM25 or plain ANN); `+ ranking` = same retrieval fed through semble's hybrid ranker.
+
+| Retrieval | Raw NDCG@10 | + semble ranking |
+|---|---|---|
+| BM25 | 0.675 | 0.834 |
+| Semantic (potion-code-16M) | 0.650 | 0.821 |
+| BM25 + Semantic (full hybrid) | — | **0.852** |
+
+The ranking stack adds roughly +0.16–0.17 NDCG@10 regardless of the retrieval source.
 
 ## Setup
+
+Pinned repositories live in `repos.json` and are checked out into `~/.cache/semble-bench`.
 
 ```bash
 uv run python -m benchmarks.sync_repos
 uv run python -m benchmarks.sync_repos --check
 ```
 
-## Main benchmark
+## Running benchmarks
+
+### Main benchmark
 
 The primary benchmark — run this when iterating on semble.
 
@@ -23,6 +52,16 @@ uv run python -m benchmarks.run_benchmark --language python
 
 Full runs (no `--repo`/`--language` filters) automatically save results to
 `benchmarks/results/semble-hybrid-<sha12>.json`.
+
+### Speed benchmark
+
+Measures cold-start index time and query latency across 19 repositories (one per language). All tools are forced to CPU.
+
+```bash
+uv run python -m benchmarks.speed_benchmark
+```
+
+Results are saved to `benchmarks/results/speed-<sha12>.json`.
 
 ## Baselines
 

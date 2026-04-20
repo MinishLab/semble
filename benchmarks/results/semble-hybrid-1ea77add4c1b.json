@@ -2,16 +2,16 @@
   "tool": "semble-hybrid",
   "model": "minishlab/potion-code-16M",
   "summary": {
-    "ndcg10": 0.85,
-    "p50_ms": 1.321,
+    "ndcg10": 0.852,
+    "p50_ms": 1.357,
     "p90_ms": 4.994,
     "p95_ms": 5.623,
     "p99_ms": 6.45,
-    "index_ms": 438.6,
+    "index_ms": 458.2,
     "by_category": {
-      "architecture": 0.8067,
-      "semantic": 0.843,
-      "symbol": 0.9579
+      "architecture": 0.7987,
+      "semantic": 0.8454,
+      "symbol": 0.9469
     }
   },
   "by_language": {
