@@ -7,6 +7,8 @@ import matplotlib.ticker as ticker
 
 _RESULTS_DIR = Path(__file__).parent / "results"
 
+_SEMBLE_X = 262.6 + 1.49  # total time in ms (index + query p50)
+
 
 class _Method(TypedDict):
     """Plot data for a single benchmark method."""
@@ -60,6 +62,12 @@ _METHODS: list[_Method] = [
         "color": "#1a5fa8",
         "params_m": 16,
     },
+]
+
+# Speedup annotations: (total_ms of competitor, display label)
+_SPEEDUP_ANNOTATIONS: list[tuple[float, str]] = [
+    (5750.6 + 123.83, "22×"),  # semble vs colgrep
+    (57269.4 + 16.27, "217×"),  # semble vs coderankembed
 ]
 
 # (x_factor, y, ha, va)
@@ -130,7 +138,20 @@ def _make_plot(out_path: Path) -> None:
     ax.set_xlabel("Time to first result — index + query", fontsize=10, color="#444444")
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
     ax.set_xlim(5, 200_000)
-    ax.set_ylim(0.05, 0.95)
+    ax.set_ylim(0.0, 0.95)
+
+    # Speedup annotations: horizontal double-headed arrows between semble and each tool
+    annot_y = 0.065
+    for x_right, label in _SPEEDUP_ANNOTATIONS:
+        ax.annotate(
+            "",
+            xy=(x_right, annot_y),
+            xytext=(_SEMBLE_X, annot_y),
+            arrowprops=dict(arrowstyle="<->", color="#bbbbbb", lw=0.9),
+            zorder=2,
+        )
+        mid_x = (_SEMBLE_X * x_right) ** 0.5  # geometric mean on log scale
+        ax.text(mid_x, annot_y + 0.022, label, ha="center", va="bottom", fontsize=8, color="#999999")
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(_format_ms))
     ax.tick_params(labelsize=9, colors="#555555")
@@ -160,6 +181,7 @@ def _make_plot(out_path: Path) -> None:
         framealpha=0.95,
         edgecolor="#dddddd",
         labelspacing=1.2,
+        borderpad=1.5,
     )
     legend.get_title().set_color("#444444")
 
