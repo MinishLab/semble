@@ -1,6 +1,6 @@
 # Benchmarks
 
-Quality and speed benchmarks for `semble` across 63 repositories in 19 languages.
+Quality and speed benchmarks for `semble` across 62 repositories in 19 languages.
 
 ## Dataset
 
@@ -22,16 +22,16 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 | Method | NDCG@10 | Index time | Query p50 |
 |---|---|---|---|
 | ripgrep | 0.123 | — | 12 ms |
-| ColGREP | 0.577 | 5.8 s | 124 ms |
+| ColGREP | 0.692 | 5.8 s | 124 ms |
 | CodeRankEmbed | 0.762 | 57 s | 16 ms |
 | **semble** | **0.852** | **263 ms** | **1.5 ms** |
 | CodeRankEmbed Hybrid | 0.860 | 57 s | 16 ms |
 
 semble reaches 0.852 NDCG@10, close to CodeRankEmbed Hybrid (0.860, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
 
-| ![Speed vs quality](results/speed_vs_ndcg.png) |
-|:--:|
-| *Time to first result (index + query) vs NDCG@10. Marker size scales with model parameter count.* |
+| ![Speed vs quality (cold)](results/speed_vs_ndcg.png) | ![Speed vs quality (warm)](results/speed_vs_ndcg_warm.png) |
+|:--:|:--:|
+| *Time to first result (index + query) vs NDCG@10* | *Query latency (warm index) vs NDCG@10* |
 
 ### By query category
 
@@ -92,7 +92,7 @@ Requires the `benchmark` extra (`uv sync --extra benchmark`).
 uv run python -m benchmarks.plot
 ```
 
-Saves to `benchmarks/results/speed_vs_ndcg.png`.
+Saves `speed_vs_ndcg.png` (cold) and `speed_vs_ndcg_warm.png` (warm) to `benchmarks/results/`.
 
 ### semble
 
@@ -134,8 +134,8 @@ uv run python -m benchmarks.baselines.ripgrep --no-fixed-strings
 Requires the `colgrep` binary on `$PATH`.
 
 ```bash
-uv run python -m benchmarks.baselines.colgrep --init   # build indexes once
 uv run python -m benchmarks.baselines.colgrep
+uv run python -m benchmarks.baselines.colgrep --repo fastapi --repo axios
 ```
 
 ### CodeRankEmbed

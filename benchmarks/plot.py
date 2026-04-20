@@ -31,7 +31,7 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "ColGREP",
-        "ndcg10": 0.577,
+        "ndcg10": 0.6919,
         "index_ms": 5750.6,
         "query_p50_ms": 123.83,
         "color": "#e8a838",

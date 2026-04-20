@@ -36,7 +36,7 @@ class RepoResult:
 
 def _run_colgrep(query: str, benchmark_dir: Path, top_k: int) -> list[str]:
     """Return list of absolute file paths from colgrep JSON output."""
-    cmd = [_COLGREP, "--json", "--code-only", "-k", str(top_k), query, str(benchmark_dir)]
+    cmd = [_COLGREP, "--force-cpu", "--json", "-k", str(top_k), query, str(benchmark_dir)]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired:
@@ -87,15 +87,46 @@ def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = Fa
     return ndcg10_sum / len(tasks), latencies[len(latencies) // 2]
 
 
-def _init_index(benchmark_dir: Path) -> float:
-    """Build (or rebuild) the colgrep index; return elapsed ms."""
-    cmd = [_COLGREP, "init", "-y", str(benchmark_dir)]
+def _init_index(path: Path) -> tuple[bool, float]:
+    """Build (or rebuild) the colgrep index at path; return (non_empty, elapsed_ms).
+
+    :param path: Directory to index.
+    :return: Tuple of (non_empty, index_ms) where non_empty is False if colgrep reported 0 files.
+    """
+    subprocess.run([_COLGREP, "clear", str(path)], capture_output=True, timeout=30)
+    cmd = [_COLGREP, "init", "--force-cpu", "-y", str(path)]
     t0 = time.perf_counter()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     index_ms = (time.perf_counter() - t0) * 1000
     if proc.returncode != 0:
-        print(f"  WARNING: colgrep init failed for {benchmark_dir}: {proc.stderr.strip()}", file=sys.stderr)
-    return index_ms
+        print(f"  WARNING: colgrep init failed for {path}: {proc.stderr.strip()}", file=sys.stderr)
+    output = proc.stdout + proc.stderr
+    non_empty = proc.returncode == 0 and "(0 files)" not in output
+    return non_empty, index_ms
+
+
+def _resolve_path(spec: RepoSpec) -> tuple[Path, float]:
+    """Return the path ColGREP should index and elapsed index build time.
+
+    Tries benchmark_dir first; if that yields 0 files falls back to checkout_dir,
+    which is the project root ColGREP needs to discover the .git boundary.
+
+    :param spec: Repo spec providing benchmark_dir and checkout_dir.
+    :return: Tuple of (effective_path, index_ms).
+    """
+    path = spec.benchmark_dir
+    ok, index_ms = _init_index(path)
+    if ok:
+        return path, index_ms
+    # Jump straight to the project root — intermediate subdirectories can produce
+    # misleading results (e.g. example-app files outranking core library files).
+    root = spec.checkout_dir
+    ok, index_ms = _init_index(root)
+    if ok:
+        print(f"  NOTE: {spec.name} — using checkout root {root} (benchmark_dir gave 0 files)", file=sys.stderr)
+        return root, index_ms
+    print(f"  WARN: {spec.name} — all candidate paths gave 0 files", file=sys.stderr)
+    return path, index_ms
 
 
 def _build_summary(results: list[RepoResult]) -> dict[str, object]:
@@ -174,8 +205,8 @@ def _run_repos(
         spec = repo_specs[repo]
         if verbose:
             print(f"\n--- {repo} ---", file=sys.stderr)
-        index_ms = _init_index(spec.benchmark_dir)
-        ndcg10, p50_ms = _evaluate_repo(repo_task_list, spec.benchmark_dir, verbose=verbose)
+        path, index_ms = _resolve_path(spec)
+        ndcg10, p50_ms = _evaluate_repo(repo_task_list, path, verbose=verbose)
         result = RepoResult(repo=repo, language=spec.language, ndcg10=ndcg10, p50_ms=p50_ms, index_ms=index_ms)
         results.append(result)
         print(f"{repo:<22} {spec.language:<12} {index_ms:>8.0f}ms {ndcg10:>8.3f} {p50_ms:>7.1f}ms", file=sys.stderr)

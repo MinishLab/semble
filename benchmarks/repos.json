@@ -297,13 +297,6 @@
     "benchmark_root": "Sources/Vapor"
   },
   {
-    "name": "rxswift",
-    "language": "swift",
-    "url": "https://github.com/ReactiveX/RxSwift.git",
-    "revision": "132aea4f236ccadc51590b38af0357a331d51fa2",
-    "benchmark_root": "Sources/RxSwift"
-  },
-  {
     "name": "plug",
     "language": "elixir",
     "url": "https://github.com/elixir-plug/plug.git",
