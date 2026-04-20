@@ -1,20 +1,9 @@
-"""Benchmark ColGREP against semble on the benchmark suite.
-
-ColGREP returns AST-level code units (functions/classes); semble returns
-fixed-size chunks.  Matching is file-path-only (no line-span check) to be
-fair across the two granularities.
-
-Usage:
-    uv run python -m benchmarks.baselines.colgrep
-    uv run python -m benchmarks.baselines.colgrep --repo requests --verbose
-    uv run python -m benchmarks.baselines.colgrep --init   # rebuild colgrep indexes
-"""
+"""ColGREP AST-aware search baseline."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
 import subprocess
 import sys
 import time
@@ -28,10 +17,10 @@ from benchmarks.data import (
     available_repo_specs,
     grouped_tasks,
     load_tasks,
-    path_matches,
     results_path,
     save_results,
 )
+from benchmarks.metrics import file_rank, ndcg_at_k
 
 _COLGREP = "colgrep"
 _TOP_K = 10
@@ -46,33 +35,6 @@ class RepoResult:
     language: str
     ndcg10: float
     p50_ms: float
-
-
-# ---------------------------------------------------------------------------
-# NDCG helpers
-# ---------------------------------------------------------------------------
-
-
-def _dcg(relevances: list[int]) -> float:
-    """Compute Discounted Cumulative Gain for a ranked relevance list."""
-    return sum(rel / math.log2(i + 2) for i, rel in enumerate(relevances))
-
-
-def _ndcg_at_k(relevant_ranks: list[int], n_relevant: int, k: int) -> float:
-    """Compute NDCG@k given 1-based ranks of relevant results and total relevant count."""
-    if n_relevant == 0:
-        return 0.0
-    relevances = [0] * k
-    for rank in relevant_ranks:
-        if 1 <= rank <= k:
-            relevances[rank - 1] = 1
-    ideal = _dcg([1] * min(k, n_relevant))
-    return _dcg(relevances) / ideal if ideal > 0 else 0.0
-
-
-# ---------------------------------------------------------------------------
-# ColGREP helpers
-# ---------------------------------------------------------------------------
 
 
 def _run_colgrep(query: str, benchmark_dir: Path, top_k: int) -> list[str]:
@@ -91,14 +53,6 @@ def _run_colgrep(query: str, benchmark_dir: Path, top_k: int) -> list[str]:
     return [item["unit"]["file"] for item in data if "unit" in item and "file" in item["unit"]]
 
 
-def _file_rank(file_paths: list[str], target_path: str) -> int | None:
-    """Return 1-based rank of the first file_path matching target_path, or None."""
-    for i, fp in enumerate(file_paths, 1):
-        if path_matches(fp, target_path):
-            return i
-    return None
-
-
 def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = False) -> tuple[float, float]:
     """Return (mean ndcg@10, p50 latency ms) for a list of tasks."""
     ndcg10_sum = 0.0
@@ -113,7 +67,6 @@ def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = Fa
             query_latencies.append((time.perf_counter() - t0) * 1000)
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
-        # Deduplicate while preserving rank order
         seen: set[str] = set()
         deduped: list[str] = []
         for fp in file_paths:
@@ -121,35 +74,20 @@ def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = Fa
                 seen.add(fp)
                 deduped.append(fp)
 
-        relevant_ranks: list[int] = []
-        for target in task.all_relevant:
-            rank = _file_rank(deduped, target.path)
-            if rank is not None:
-                relevant_ranks.append(rank)
-
-        # Use annotation count as ideal (same convention as run_benchmark.py).
-        n_relevant = len(task.all_relevant)
-        q_ndcg10 = _ndcg_at_k(relevant_ranks, n_relevant, _TOP_K)
+        relevant_ranks = [r for t in task.all_relevant if (r := file_rank(deduped, t.path)) is not None]
+        q_ndcg10 = ndcg_at_k(relevant_ranks, len(task.all_relevant), _TOP_K)
         ndcg10_sum += q_ndcg10
 
         if verbose:
-            targets_str = ", ".join(t.path for t in task.all_relevant)
-            top_files = [Path(fp).name for fp in deduped[:5]]
             print(
-                f"  ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}  n_rel={n_relevant}  q={task.query!r}",
+                f"  ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}  n_rel={len(task.all_relevant)}  q={task.query!r}",
                 file=sys.stderr,
             )
-            print(f"    targets: {targets_str}", file=sys.stderr)
-            print(f"    top-5:   {top_files}", file=sys.stderr)
+            print(f"    targets: {', '.join(t.path for t in task.all_relevant)}", file=sys.stderr)
+            print(f"    top-5:   {[Path(fp).name for fp in deduped[:5]]}", file=sys.stderr)
 
     latencies.sort()
-    p50 = latencies[len(latencies) // 2]
-    return ndcg10_sum / len(tasks), p50
-
-
-# ---------------------------------------------------------------------------
-# Index management
-# ---------------------------------------------------------------------------
+    return ndcg10_sum / len(tasks), latencies[len(latencies) // 2]
 
 
 def _init_index(benchmark_dir: Path) -> None:
@@ -158,11 +96,6 @@ def _init_index(benchmark_dir: Path) -> None:
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     if proc.returncode != 0:
         print(f"  WARNING: colgrep init failed for {benchmark_dir}: {proc.stderr.strip()}", file=sys.stderr)
-
-
-# ---------------------------------------------------------------------------
-# Argument parsing
-# ---------------------------------------------------------------------------
 
 
 def _build_summary(results: list[RepoResult]) -> dict[str, object]:
@@ -188,20 +121,12 @@ def _load_completed(out_path: Path) -> dict[str, RepoResult]:
         data = json.loads(out_path.read_text(encoding="utf-8"))
         return {
             entry["repo"]: RepoResult(
-                repo=entry["repo"],
-                language=entry["language"],
-                ndcg10=entry["ndcg10"],
-                p50_ms=entry["p50_ms"],
+                repo=entry["repo"], language=entry["language"], ndcg10=entry["ndcg10"], p50_ms=entry["p50_ms"]
             )
             for entry in data.get("repos", [])
         }
     except (json.JSONDecodeError, KeyError, TypeError):
         return {}
-
-
-# ---------------------------------------------------------------------------
-# Argument parsing
-# ---------------------------------------------------------------------------
 
 
 def _parse_args() -> argparse.Namespace:
@@ -213,15 +138,10 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
-
 def _init_indexes(repo_tasks: dict[str, list[Task]], repo_specs: dict[str, RepoSpec]) -> None:
     """Build colgrep indexes for all repos."""
     print("Building colgrep indexes...", file=sys.stderr)
-    for repo, _repo_task_list in sorted(repo_tasks.items()):
+    for repo in sorted(repo_tasks):
         spec = repo_specs[repo]
         print(f"  {repo} -> {spec.benchmark_dir}", file=sys.stderr)
         _init_index(spec.benchmark_dir)
@@ -232,17 +152,16 @@ def _init_indexes(repo_tasks: dict[str, list[Task]], repo_specs: dict[str, RepoS
 def _run_repos(
     repo_tasks: dict[str, list[Task]],
     repo_specs: dict[str, RepoSpec],
-    completed: dict[str, "RepoResult"],
-    out_path: "Path | None",
+    completed: dict[str, RepoResult],
+    out_path: Path | None,
     *,
     verbose: bool,
-) -> list["RepoResult"]:
+) -> list[RepoResult]:
     """Evaluate each repo and save incrementally; return all results."""
     results: list[RepoResult] = list(completed.values())
 
     print(f"{'Repo':<22} {'Language':<12} {'NDCG@10':>8} {'p50':>8}", file=sys.stderr)
     print(f"{'-' * 22} {'-' * 12} {'-' * 8} {'-' * 8}", file=sys.stderr)
-
     for r in sorted(results, key=lambda r: r.repo):
         print(f"{r.repo:<22} {r.language:<12} {r.ndcg10:>8.3f} {r.p50_ms:>7.1f}ms (cached)", file=sys.stderr)
 
@@ -263,7 +182,7 @@ def _run_repos(
 
 
 def main() -> None:
-    """Run the ColGREP comparison benchmark."""
+    """Run the ColGREP baseline benchmark."""
     args = _parse_args()
     is_full_run = not args.repo and not args.language
 
@@ -292,10 +211,7 @@ def main() -> None:
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
     avg_p50 = sum(r.p50_ms for r in results) / len(results)
     print(f"{'-' * 22} {'-' * 12} {'-' * 8} {'-' * 8}", file=sys.stderr)
-    print(
-        f"{'Average (' + str(len(results)) + ')':<22} {'':<12} {avg_ndcg10:>8.3f} {avg_p50:>7.1f}ms",
-        file=sys.stderr,
-    )
+    print(f"{'Average (' + str(len(results)) + ')':<22} {'':<12} {avg_ndcg10:>8.3f} {avg_p50:>7.1f}ms", file=sys.stderr)
 
     summary = _build_summary(results)
     print(json.dumps(summary, indent=2))

@@ -1,6 +1,9 @@
+"""Benchmark semble hybrid search across the pinned benchmark repos."""
+
+from __future__ import annotations
+
 import argparse
 import json
-import math
 import sys
 import time
 from collections import defaultdict
@@ -11,33 +14,24 @@ from model2vec import StaticModel
 
 from benchmarks.data import (
     RepoSpec,
-    Target,
     Task,
     apply_task_filters,
     available_repo_specs,
     load_tasks,
     save_results,
-    target_matches_location,
 )
+from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
-from semble.types import SearchResult
 
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
 
 
-def _target_rank(results: list[SearchResult], target: Target) -> int | None:
-    """Return the 1-based rank of the first result covering target, or None."""
-    for index, result in enumerate(results, 1):
-        chunk = result.chunk
-        if target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target):
-            return index
-    return None
-
-
 @dataclass(frozen=True)
 class RepoResult:
+    """Per-repo benchmark result."""
+
     repo: str
     language: str
     chunks: int
@@ -51,23 +45,6 @@ class RepoResult:
     by_category: dict[str, float] = field(default_factory=dict)
 
 
-def _dcg(relevances: list[int]) -> float:
-    """Compute Discounted Cumulative Gain for a ranked relevance list."""
-    return sum(rel / math.log2(i + 2) for i, rel in enumerate(relevances))
-
-
-def _ndcg_at_k(relevant_ranks: list[int], n_relevant: int, k: int) -> float:
-    """Compute NDCG@k given the ranks of relevant results and the total relevant count."""
-    if n_relevant == 0:
-        return 0.0
-    relevances = [0] * k
-    for rank in relevant_ranks:
-        if 1 <= rank <= k:
-            relevances[rank - 1] = 1
-    ideal = _dcg([1] * min(k, n_relevant))
-    return _dcg(relevances) / ideal if ideal > 0 else 0.0
-
-
 def _evaluate(
     index: SembleIndex, tasks: list[Task], *, verbose: bool = False
 ) -> tuple[float, float, list[float], dict[str, float]]:
@@ -79,7 +56,6 @@ def _evaluate(
 
     for task in tasks:
         query_latencies: list[float] = []
-        # Bind results
         results = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
@@ -87,12 +63,10 @@ def _evaluate(
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
 
-        relevant_ranks = [rank for target in task.all_relevant if (rank := _target_rank(results, target)) is not None]
-        # Use annotation count as ideal, not index coverage. If the indexer drops a
-        # target file, ideal DCG should not shrink and make NDCG look artificially good.
+        relevant_ranks = [rank for t in task.all_relevant if (rank := target_rank(results, t)) is not None]
         n_relevant = len(task.all_relevant)
-        q_ndcg5 = _ndcg_at_k(relevant_ranks, n_relevant, 5)
-        q_ndcg10 = _ndcg_at_k(relevant_ranks, n_relevant, 10)
+        q_ndcg5 = ndcg_at_k(relevant_ranks, n_relevant, 5)
+        q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, 10)
         ndcg5_sum += q_ndcg5
         ndcg10_sum += q_ndcg10
         cat_ndcg10[task.category or "unknown"].append(q_ndcg10)
@@ -121,7 +95,6 @@ def _print_summary(results: list[RepoResult]) -> None:
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
     columns = ["Avg", *[lang.title() for lang in languages]]
 
-    # Headline: mean of per-language means (one vote per language, not per repo).
     lang_ndcg10 = [sum(r.ndcg10 for r in g) / len(g) for g in by_language.values()]
     lang_p50 = [sum(r.p50_ms for r in g) / len(g) for g in by_language.values()]
     lang_p90 = [sum(r.p90_ms for r in g) / len(g) for g in by_language.values()]
@@ -178,7 +151,6 @@ def _print_summary(results: list[RepoResult]) -> None:
     print(f"  {'q-p99':<28}  " + "  ".join(p99_row), file=sys.stderr)
     print(f"  {'index':<28}  " + "  ".join(index_row), file=sys.stderr)
 
-    # Per-category NDCG@10 summary (flat mean across all repos).
     all_categories = sorted({cat for r in results for cat in r.by_category})
     if all_categories:
         print(file=sys.stderr)
@@ -237,7 +209,6 @@ def _save_results(results: list[RepoResult]) -> None:
     languages = sorted({r.language for r in results})
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
 
-    # Headline: mean of per-language means (one vote per language, not per repo).
     lang_means = {
         lang: {
             "ndcg10": sum(r.ndcg10 for r in grouped) / len(grouped),
@@ -251,7 +222,6 @@ def _save_results(results: list[RepoResult]) -> None:
     }
     n_langs = len(lang_means)
 
-    # Aggregate per-category NDCG@10 across all repos (flat mean over all tasks).
     all_categories: set[str] = set()
     for r in results:
         all_categories.update(r.by_category)
@@ -292,7 +262,7 @@ def _save_results(results: list[RepoResult]) -> None:
 
 
 def main() -> None:
-    """Parse arguments and run the selected benchmark mode."""
+    """Parse arguments and run the semble hybrid benchmark."""
     parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")

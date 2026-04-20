@@ -1,27 +1,9 @@
-"""Benchmark semble ablations: BM25-only and semantic-only modes, with and without semble ranking.
-
-Four modes form a complete ablation ladder:
-
-    bm25             — raw BM25, no embeddings, no semble ranking
-    semantic         — raw dense search, no BM25, no semble ranking
-    semble-bm25      — BM25 retrieval + full semble ranking stack (alpha=0)
-    semble-semantic  — semantic retrieval + full semble ranking stack (alpha=1)
-
-Together with semble-hybrid (run_benchmark.py) this isolates the contribution
-of each retrieval source and the ranking layer independently.
-
-Usage:
-    uv run python -m benchmarks.baselines.ablations
-    uv run python -m benchmarks.baselines.ablations --repo fastapi --verbose
-    uv run python -m benchmarks.baselines.ablations --mode bm25
-    uv run python -m benchmarks.baselines.ablations --mode semble-semantic
-"""
+"""semble ablations: raw BM25/semantic vs. BM25/semantic with full semble ranking."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 import time
 from collections import defaultdict
@@ -32,15 +14,14 @@ from model2vec import StaticModel
 
 from benchmarks.data import (
     RepoSpec,
-    Target,
     Task,
     apply_task_filters,
     available_repo_specs,
     grouped_tasks,
     load_tasks,
     save_results,
-    target_matches_location,
 )
+from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
 from semble.types import SearchResult
@@ -51,7 +32,7 @@ _LATENCY_RUNS = 5
 _MODES = ["bm25", "semantic", "semble-bm25", "semble-semantic"]
 
 # Maps mode name -> (search_mode, alpha) for index.search()
-# alpha=None  → use raw mode (no ranking pipeline)
+# alpha=None  → raw mode, no ranking pipeline
 # alpha=0.0   → hybrid pipeline, BM25-only input
 # alpha=1.0   → hybrid pipeline, semantic-only input
 _MODE_PARAMS: dict[str, tuple[str, float | None]] = {
@@ -60,11 +41,6 @@ _MODE_PARAMS: dict[str, tuple[str, float | None]] = {
     "semble-bm25": ("hybrid", 0.0),
     "semble-semantic": ("hybrid", 1.0),
 }
-
-
-# ---------------------------------------------------------------------------
-# Result dataclass
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -81,42 +57,6 @@ class RepoResult:
     p90_ms: float
     index_ms: float
     by_category: dict[str, float] = field(default_factory=dict)
-
-
-# ---------------------------------------------------------------------------
-# NDCG helpers
-# ---------------------------------------------------------------------------
-
-
-def _dcg(relevances: list[int]) -> float:
-    """Compute Discounted Cumulative Gain for a ranked relevance list."""
-    return sum(rel / math.log2(i + 2) for i, rel in enumerate(relevances))
-
-
-def _ndcg_at_k(relevant_ranks: list[int], n_relevant: int, k: int) -> float:
-    """Compute NDCG@k given 1-based ranks of relevant results and total relevant count."""
-    if n_relevant == 0:
-        return 0.0
-    relevances = [0] * k
-    for rank in relevant_ranks:
-        if 1 <= rank <= k:
-            relevances[rank - 1] = 1
-    ideal = _dcg([1] * min(k, n_relevant))
-    return _dcg(relevances) / ideal if ideal > 0 else 0.0
-
-
-# ---------------------------------------------------------------------------
-# Evaluation (mirrors run_benchmark.py _evaluate)
-# ---------------------------------------------------------------------------
-
-
-def _target_rank(results: list[SearchResult], target: Target) -> int | None:
-    """Return 1-based rank of the first result covering target, or None."""
-    for index, result in enumerate(results, 1):
-        chunk = result.chunk
-        if target_matches_location(chunk.file_path, chunk.start_line, chunk.end_line, target):
-            return index
-    return None
 
 
 def _evaluate(
@@ -142,10 +82,10 @@ def _evaluate(
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
 
-        relevant_ranks = [rank for target in task.all_relevant if (rank := _target_rank(results, target)) is not None]
+        relevant_ranks = [rank for t in task.all_relevant if (rank := target_rank(results, t)) is not None]
         n_relevant = len(task.all_relevant)
-        q_ndcg5 = _ndcg_at_k(relevant_ranks, n_relevant, 5)
-        q_ndcg10 = _ndcg_at_k(relevant_ranks, n_relevant, _TOP_K)
+        q_ndcg5 = ndcg_at_k(relevant_ranks, n_relevant, 5)
+        q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, _TOP_K)
         ndcg5_sum += q_ndcg5
         ndcg10_sum += q_ndcg10
         cat_ndcg10[task.category or "unknown"].append(q_ndcg10)
@@ -168,11 +108,6 @@ def _evaluate(
     return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
 
 
-# ---------------------------------------------------------------------------
-# Benchmark runner
-# ---------------------------------------------------------------------------
-
-
 def _bench(
     repo_tasks: dict[str, list[Task]],
     specs: dict[str, RepoSpec],
@@ -185,12 +120,14 @@ def _bench(
     results: list[RepoResult] = []
 
     header = (
-        f"{'Repo':<12} {'Language':<12} {'Mode':<10} {'Chunks':>6}"
+        f"{'Repo':<12} {'Language':<12} {'Mode':<16} {'Chunks':>6}"
         f" {'Index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8} {'p90':>8}"
     )
-    sep = f"{'-' * 12} {'-' * 12} {'-' * 10} {'-' * 6} {'-' * 10} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}"
     print(header, file=sys.stderr)
-    print(sep, file=sys.stderr)
+    print(
+        f"{'-' * 12} {'-' * 12} {'-' * 16} {'-' * 6} {'-' * 10} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}",
+        file=sys.stderr,
+    )
 
     for repo, tasks in sorted(repo_tasks.items()):
         spec = specs[repo]
@@ -219,38 +156,23 @@ def _bench(
             )
             results.append(result)
             print(
-                f"{repo:<12} {spec.language:<12} {mode:<10} {len(index.chunks):>6}"
-                f" {index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f}"
-                f" {p50:>7.2f}ms {p90:>7.2f}ms",
+                f"{repo:<12} {spec.language:<12} {mode:<16} {len(index.chunks):>6}"
+                f" {index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50:>7.2f}ms {p90:>7.2f}ms",
                 file=sys.stderr,
             )
 
     return results
 
 
-# ---------------------------------------------------------------------------
-# Argument parsing
-# ---------------------------------------------------------------------------
-
-
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Benchmark semble BM25-only and semantic-only modes (ablations).")
+    parser = argparse.ArgumentParser(description="semble ablation benchmarks.")
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
     parser.add_argument(
-        "--mode",
-        action="append",
-        default=[],
-        choices=_MODES,
-        help="Mode(s) to evaluate (default: both).",
+        "--mode", action="append", default=[], choices=_MODES, help="Mode(s) to evaluate (default: all)."
     )
     parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
     return parser.parse_args()
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 
 def main() -> None:
@@ -271,13 +193,11 @@ def main() -> None:
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
     print(file=sys.stderr)
 
-    repo_tasks = grouped_tasks(tasks)
-    results = _bench(repo_tasks, repo_specs, model, modes, verbose=args.verbose)
+    results = _bench(grouped_tasks(tasks), repo_specs, model, modes, verbose=args.verbose)
 
     if not results:
         return
 
-    # Summary per mode
     print(file=sys.stderr)
     for mode in modes:
         mode_results = [r for r in results if r.mode == mode]
@@ -286,7 +206,7 @@ def main() -> None:
         avg_ndcg10 = sum(r.ndcg10 for r in mode_results) / len(mode_results)
         avg_p50 = sum(r.p50_ms for r in mode_results) / len(mode_results)
         print(
-            f"  {mode:<10}  avg ndcg@10={avg_ndcg10:.3f}  avg p50={avg_p50:.1f}ms  ({len(mode_results)} repos)",
+            f"  {mode:<16}  avg ndcg@10={avg_ndcg10:.3f}  avg p50={avg_p50:.1f}ms  ({len(mode_results)} repos)",
             file=sys.stderr,
         )
 
