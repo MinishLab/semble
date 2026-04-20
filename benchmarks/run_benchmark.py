@@ -1,7 +1,3 @@
-"""Benchmark semble hybrid search across the pinned benchmark repos."""
-
-from __future__ import annotations
-
 import argparse
 import json
 import sys

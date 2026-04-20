@@ -1,10 +1,3 @@
-"""CodeRankEmbed (nomic-ai/CodeRankEmbed) semantic and hybrid baseline.
-
-Requires the benchmark extra: uv sync --extra benchmark
-"""
-
-from __future__ import annotations
-
 import argparse
 import json
 import sys

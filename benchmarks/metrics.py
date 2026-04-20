@@ -1,7 +1,3 @@
-"""Shared evaluation helpers for semble benchmarks."""
-
-from __future__ import annotations
-
 import math
 
 from benchmarks.data import Target, path_matches, target_matches_location

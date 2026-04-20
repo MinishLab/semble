@@ -1,7 +1,3 @@
-"""semble ablations: raw BM25/semantic vs. BM25/semantic with full semble ranking."""
-
-from __future__ import annotations
-
 import argparse
 import json
 import sys
