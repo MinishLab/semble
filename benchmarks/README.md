@@ -43,6 +43,35 @@ semble reaches 0.854 NDCG@10, close to CodeRankEmbed Hybrid (0.862, a 137M-param
 
 semble leads on symbol queries (0.958 vs 0.941) where BM25 excels at exact name matching. Architecture queries are the hardest for all methods; CodeRankEmbed Hybrid holds a small edge there (0.811 vs 0.802).
 
+### By language
+
+NDCG@10 per language (3 repos each, except Python which has 9), sorted by CodeRankEmbed Hybrid:
+
+| Language | semble | CRE Hybrid | CRE | ColGREP | ripgrep |
+|---|---|---|---|---|---|
+| scala | 0.909 | 0.922 | 0.845 | 0.765 | 0.180 |
+| cpp | 0.915 | 0.913 | 0.846 | 0.626 | 0.126 |
+| ruby | 0.909 | 0.909 | 0.769 | 0.708 | 0.230 |
+| elixir | 0.894 | 0.905 | 0.869 | 0.808 | 0.134 |
+| javascript | 0.917 | 0.903 | 0.920 | 0.823 | 0.176 |
+| zig | 0.913 | 0.901 | 0.807 | 0.474 | 0.000 |
+| csharp | 0.885 | 0.889 | 0.743 | 0.614 | 0.117 |
+| go | 0.895 | 0.884 | 0.676 | 0.785 | 0.133 |
+| python | 0.867 | 0.880 | 0.794 | 0.777 | 0.202 |
+| php | 0.858 | 0.874 | 0.758 | 0.663 | 0.123 |
+| swift | 0.860 | 0.873 | 0.721 | 0.710 | 0.160 |
+| bash | 0.825 | 0.852 | 0.892 | 0.706 | 0.000 |
+| lua | 0.823 | 0.847 | 0.803 | 0.798 | 0.000 |
+| java | 0.849 | 0.841 | 0.706 | 0.641 | 0.198 |
+| kotlin | 0.821 | 0.830 | 0.670 | 0.637 | 0.166 |
+| rust | 0.856 | 0.827 | 0.627 | 0.662 | 0.162 |
+| c | 0.741 | 0.806 | 0.706 | 0.659 | 0.000 |
+| haskell | 0.765 | 0.771 | 0.776 | 0.683 | 0.000 |
+| typescript | 0.706 | 0.708 | 0.545 | 0.430 | 0.128 |
+| **overall** | **0.854** | **0.862** | **0.765** | **0.692** | **0.126** |
+
+semble and CRE Hybrid are within 0.03 of each other across every language. ColGREP shows the most variance: scores near the overall average (0.692) for well-covered languages like Python (0.777), Go (0.785), and Elixir (0.808), but drops significantly for Zig (0.474), TypeScript (0.430), and header-heavy C++ (abseil-cpp pulls cpp down to 0.626). The Zig gap is the largest of any tool–language pair and is consistent across all three Zig repos (zig=0.389, zig-clap=0.494, zls=0.540), pointing to limited training coverage for this relatively new language. The TypeScript gap is driven by monorepo repos (zod, vitest) where many semantically distinct queries share the same ground-truth file (`api.ts`, `core.ts`) — a distribution ColGREP's retrieval does not handle well. ripgrep scores zero on Zig, Lua, C, Bash, and Haskell because none of the queries in those repos contain keyword substrings that appear in the relevant files.
+
 ## Ablations
 
 `raw` returns retrieval scores directly; `+ ranking` feeds them through semble's hybrid ranker.
