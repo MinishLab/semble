@@ -62,13 +62,13 @@ _METHODS: list[_Method] = [
     },
 ]
 
-# (xytext_x_factor, xytext_y, ha, va, use_arrow)
-_LABEL_CONFIG: dict[str, tuple[float, float, str, str, bool]] = {
-    "ripgrep\n(no index)": (1.45, 0.123, "left", "center", False),
-    "colgrep": (1.45, 0.577, "left", "center", False),
-    "coderankembed\nsemantic": (0.10, 0.710, "left", "center", True),
-    "coderankembed\nhybrid": (0.10, 0.885, "left", "center", True),
-    "semble": (1.45, 0.852, "left", "center", False),
+# (x_factor, y, ha, va)
+_LABEL_CONFIG: dict[str, tuple[float, float, str, str]] = {
+    "ripgrep\n(no index)": (1.3, 0.123, "left", "center"),
+    "colgrep": (1.3, 0.577, "left", "center"),
+    "coderankembed\nsemantic": (0.73, 0.762, "right", "center"),
+    "coderankembed\nhybrid": (0.73, 0.860, "right", "center"),
+    "semble": (1.3, 0.852, "left", "center"),
 }
 
 
@@ -114,19 +114,16 @@ def _make_plot(out_path: Path) -> None:
             edgecolors="white",
         )
 
-        xf, yt, ha, va, use_arrow = _LABEL_CONFIG.get(m["name"], (1.45, y, "left", "center", False))
-        xt = x * xf
-        arrow_props = dict(arrowstyle="-", color="#bbbbbb", lw=0.9, shrinkA=0, shrinkB=4) if use_arrow else None
-        ax.annotate(
+        xf, yt, ha, va = _LABEL_CONFIG.get(m["name"], (1.3, y, "left", "center"))
+        ax.text(
+            x * xf,
+            yt,
             m["name"],
-            xy=(x, y),
-            xytext=(xt, yt),
             fontsize=8.5,
             color=m["color"],
             ha=ha,
             va=va,
             zorder=4,
-            arrowprops=arrow_props,
         )
 
     ax.set_xscale("log")
