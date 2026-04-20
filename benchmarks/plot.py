@@ -25,7 +25,7 @@ _METHODS: list[_Method] = [
         "ndcg10": 0.123,
         "index_ms": 0.0,
         "query_p50_ms": 12.08,
-        "color": "#b0b0b0",
+        "color": "#606060",
         "params_m": 0,
     },
     {
@@ -34,7 +34,7 @@ _METHODS: list[_Method] = [
         "index_ms": 5750.6,
         "query_p50_ms": 123.83,
         "color": "#e8a838",
-        "params_m": 0,
+        "params_m": 16,
     },
     {
         "name": "coderankembed\nsemantic",
@@ -159,6 +159,7 @@ def _make_plot(out_path: Path) -> None:
         frameon=True,
         framealpha=0.95,
         edgecolor="#dddddd",
+        labelspacing=1.2,
     )
     legend.get_title().set_color("#444444")
 
