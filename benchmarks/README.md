@@ -29,6 +29,10 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 
 semble reaches 0.852 NDCG@10, close to coderankembed hybrid (0.860, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
 
+| ![Speed vs quality](results/speed_vs_ndcg.png) |
+|:--:|
+| *Time to first result (index + query) vs NDCG@10. Marker size scales with model parameter count.* |
+
 ### By query category
 
 | Method | Architecture | Semantic | Symbol |
@@ -79,6 +83,16 @@ uv run python -m benchmarks.sync_repos --check  # verify only
 - semble model: `minishlab/potion-code-16M`
 - coderankembed model: `nomic-ai/CodeRankEmbed` (137M params)
 - Speed benchmark: 19 repos (one per language), cold-start index, 5 query runs per repo
+
+### Plot
+
+Requires the `benchmark` extra (`uv sync --extra benchmark`).
+
+```bash
+uv run python -m benchmarks.plot
+```
+
+Saves to `benchmarks/results/speed_vs_ndcg.png`.
 
 ### semble
 

@@ -40,6 +40,7 @@ benchmark = [
     "sentence-transformers>=3.0",
     "numpy>=1.24.0",
     "einops>=0.8.2",
+    "matplotlib>=3.7",
 ]
 dev = [
     "pytest>=8.0",
