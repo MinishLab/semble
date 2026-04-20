@@ -160,7 +160,7 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float]:
     subprocess.run([_COLGREP, "clear", str(spec.benchmark_dir)], capture_output=True, timeout=30)
     t0 = time.perf_counter()
     proc = subprocess.run(
-        [_COLGREP, "--force-cpu", "init", "-y", str(spec.benchmark_dir)], capture_output=True, text=True, timeout=300
+        [_COLGREP, "init", "--force-cpu", "-y", str(spec.benchmark_dir)], capture_output=True, text=True, timeout=300
     )
     index_ms = (time.perf_counter() - t0) * 1000
     if proc.returncode != 0:
