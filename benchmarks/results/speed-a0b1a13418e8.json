@@ -31,8 +31,8 @@
       "avg_p50_ms": 16.33
     },
     "colgrep": {
-      "avg_index_ms": 5463.8,
-      "avg_p50_ms": 118.22
+      "avg_index_ms": 5750.6,
+      "avg_p50_ms": 123.83
     },
     "ripgrep": {
       "avg_index_ms": null,
@@ -165,13 +165,6 @@
       "tool": "coderankembed",
       "index_ms": 27928.8,
       "p50_ms": 17.43
-    },
-    {
-      "repo": "riverpod",
-      "language": "dart",
-      "tool": "colgrep",
-      "index_ms": 14.2,
-      "p50_ms": 11.78
     },
     {
       "repo": "riverpod",

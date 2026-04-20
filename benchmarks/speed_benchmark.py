@@ -156,7 +156,7 @@ def _bench_coderankembed(spec: RepoSpec, tasks: list[Task], model: "_CREWrapper"
     return index_ms, float(np.median(latencies))
 
 
-def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float]:
+def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float] | None:
     subprocess.run([_COLGREP, "clear", str(spec.benchmark_dir)], capture_output=True, timeout=30)
     t0 = time.perf_counter()
     proc = subprocess.run(
@@ -165,6 +165,9 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float]:
     index_ms = (time.perf_counter() - t0) * 1000
     if proc.returncode != 0:
         print(f"  WARNING: colgrep init failed: {proc.stderr.strip()}", file=sys.stderr)
+    if "(0 files)" in proc.stdout or "(0 files)" in proc.stderr:
+        print(f"  SKIP: colgrep indexed 0 files (unsupported language?)", file=sys.stderr)
+        return None
     latencies: list[float] = []
     for task in tasks:
         qlats: list[float] = []
@@ -243,9 +246,15 @@ def main() -> None:
             )
             print(f"{'':22} {spec.language:<14} {'coderankembed':<16} {idx_ms:>8.0f}ms {p50:>7.2f}ms", file=sys.stderr)
 
-        idx_ms, p50 = _bench_colgrep(spec, tasks)
-        all_results.append(ToolResult(repo=repo, language=spec.language, tool="colgrep", index_ms=idx_ms, p50_ms=p50))
-        print(f"{'':22} {spec.language:<14} {'colgrep':<16} {idx_ms:>8.0f}ms {p50:>7.2f}ms", file=sys.stderr)
+        colgrep_result = _bench_colgrep(spec, tasks)
+        if colgrep_result is not None:
+            idx_ms, p50 = colgrep_result
+            all_results.append(
+                ToolResult(repo=repo, language=spec.language, tool="colgrep", index_ms=idx_ms, p50_ms=p50)
+            )
+            print(f"{'':22} {spec.language:<14} {'colgrep':<16} {idx_ms:>8.0f}ms {p50:>7.2f}ms", file=sys.stderr)
+        else:
+            print(f"{'':22} {spec.language:<14} {'colgrep':<16} {'N/A (unsupported)':>18}", file=sys.stderr)
 
         _, p50 = _bench_ripgrep(spec, tasks)
         all_results.append(ToolResult(repo=repo, language=spec.language, tool="ripgrep", index_ms=None, p50_ms=p50))
