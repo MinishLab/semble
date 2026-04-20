@@ -23,7 +23,7 @@ class _Method(TypedDict):
 _METHODS: list[_Method] = [
     {
         "name": "ripgrep",
-        "ndcg10": 0.123,
+        "ndcg10": 0.126,
         "index_ms": 0.0,
         "query_p50_ms": 12.08,
         "color": "#606060",
@@ -31,7 +31,7 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "ColGREP",
-        "ndcg10": 0.6919,
+        "ndcg10": 0.6917,
         "index_ms": 5750.6,
         "query_p50_ms": 123.83,
         "color": "#e8a838",
@@ -39,7 +39,7 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "CodeRankEmbed",
-        "ndcg10": 0.762,
+        "ndcg10": 0.7648,
         "index_ms": 57269.4,
         "query_p50_ms": 16.27,
         "color": "#d9634f",
@@ -47,7 +47,7 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "CodeRankEmbed\nHybrid",
-        "ndcg10": 0.860,
+        "ndcg10": 0.8617,
         "index_ms": 57269.4,
         "query_p50_ms": 16.27,
         "color": "#922b21",
@@ -55,7 +55,7 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "semble",
-        "ndcg10": 0.852,
+        "ndcg10": 0.8544,
         "index_ms": 262.6,
         "query_p50_ms": 1.49,
         "color": "#1a5fa8",

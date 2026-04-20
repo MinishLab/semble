@@ -1,0 +1,118 @@
+[
+  {
+    "query": "how makeConstraints activates AutoLayout constraints on a view using the snp closure",
+    "relevant": [
+      "Sources/ConstraintViewDSL.swift"
+    ],
+    "secondary": [
+      "Sources/ConstraintMaker.swift"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "how remakeConstraints removes all existing constraints before applying new ones",
+    "relevant": [
+      "Sources/ConstraintMaker.swift"
+    ],
+    "secondary": [
+      "Sources/Constraint.swift"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "how equalTo lessThanOrEqualTo greaterThanOrEqualTo establish the constraint relation",
+    "relevant": [
+      "Sources/ConstraintMakerRelatable.swift"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how offset and inset modifiers adjust the constant value of a constraint",
+    "relevant": [
+      "Sources/ConstraintMakerEditable.swift"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how a constraint's constant or priority is updated after the constraint is already active",
+    "relevant": [
+      "Sources/Constraint.swift"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how content hugging and compression resistance priorities are exposed through snp",
+    "relevant": [
+      "Sources/ConstraintViewDSL.swift"
+    ],
+    "secondary": [],
+    "category": "semantic"
+  },
+  {
+    "query": "how debug descriptions identify the source file and line number where a constraint was created",
+    "relevant": [
+      "Sources/Debugging.swift"
+    ],
+    "secondary": [
+      "Sources/LayoutConstraint.swift"
+    ],
+    "category": "semantic"
+  },
+  {
+    "query": "how the snp property bridges UIView and NSView into the SnapKit DSL",
+    "relevant": [
+      "Sources/ConstraintView+Extensions.swift"
+    ],
+    "secondary": [
+      "Sources/ConstraintViewDSL.swift"
+    ],
+    "category": "architecture"
+  },
+  {
+    "query": "how DSL protocols define layout anchor properties like left, top, edges, and center for views and guides",
+    "relevant": [
+      "Sources/ConstraintDSL.swift"
+    ],
+    "secondary": [
+      "Sources/LayoutConstraintItem.swift"
+    ],
+    "category": "architecture"
+  },
+  {
+    "query": "how ConstraintMaker accumulates descriptions and batch-activates them when the closure returns",
+    "relevant": [
+      "Sources/ConstraintMaker.swift"
+    ],
+    "secondary": [
+      "Sources/ConstraintDescription.swift"
+    ],
+    "category": "architecture"
+  },
+  {
+    "query": "ConstraintMaker",
+    "relevant": [
+      "Sources/ConstraintMaker.swift"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ConstraintPriority",
+    "relevant": [
+      "Sources/ConstraintPriority.swift"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  },
+  {
+    "query": "ConstraintConfig",
+    "relevant": [
+      "Sources/ConstraintConfig.swift"
+    ],
+    "secondary": [],
+    "category": "symbol"
+  }
+]

@@ -1,6 +1,6 @@
 # Benchmarks
 
-Quality and speed benchmarks for `semble` across 62 repositories in 19 languages.
+Quality and speed benchmarks for `semble` across 63 repositories in 19 languages.
 
 ## Dataset
 
@@ -21,13 +21,13 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 
 | Method | NDCG@10 | Index time | Query p50 |
 |---|---|---|---|
-| ripgrep | 0.123 | — | 12 ms |
+| ripgrep | 0.126 | — | 12 ms |
 | ColGREP | 0.692 | 5.8 s | 124 ms |
-| CodeRankEmbed | 0.762 | 57 s | 16 ms |
-| **semble** | **0.852** | **263 ms** | **1.5 ms** |
-| CodeRankEmbed Hybrid | 0.860 | 57 s | 16 ms |
+| CodeRankEmbed | 0.765 | 57 s | 16 ms |
+| **semble** | **0.854** | **263 ms** | **1.5 ms** |
+| CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
 
-semble reaches 0.852 NDCG@10, close to CodeRankEmbed Hybrid (0.860, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
+semble reaches 0.854 NDCG@10, close to CodeRankEmbed Hybrid (0.862, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
 
 | ![Speed vs quality (cold)](results/speed_vs_ndcg.png) | ![Speed vs quality (warm)](results/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
@@ -51,7 +51,7 @@ semble leads on symbol queries (0.958 vs 0.941) where BM25 excels at exact name 
 |---|---|---|
 | BM25 | 0.675 | 0.834 |
 | potion-code-16M | 0.650 | 0.821 |
-| BM25 + potion-code-16M | — | **0.852** |
+| BM25 + potion-code-16M | — | **0.854** |
 
 The ranking stack adds roughly +0.16 NDCG@10 for both retrieval methods. Combining them adds another ~0.02 on top.
 

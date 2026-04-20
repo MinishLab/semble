@@ -103,7 +103,7 @@ def _run_ripgrep(query: str, benchmark_dir: Path) -> list[str]:
 
 def _run_colgrep(query: str, benchmark_dir: Path) -> list[str]:
     """Run ColGREP and return top-k file paths from the JSON output."""
-    cmd = [_COLGREP, "--force-cpu", "--json", "--code-only", "-k", str(_TOP_K), query, str(benchmark_dir)]
+    cmd = [_COLGREP, "--force-cpu", "--json", "-k", str(_TOP_K), query, str(benchmark_dir)]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     except subprocess.TimeoutExpired:

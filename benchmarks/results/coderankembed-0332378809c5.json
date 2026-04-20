@@ -1,0 +1,2006 @@
+{
+  "tool": "coderankembed",
+  "model": "nomic-ai/CodeRankEmbed",
+  "by_mode": {
+    "semantic": {
+      "avg_ndcg10": 0.7648,
+      "avg_p50_ms": 13.3
+    },
+    "hybrid": {
+      "avg_ndcg10": 0.8617,
+      "avg_p50_ms": 16.9
+    }
+  },
+  "repos": [
+    {
+      "repo": "abseil-cpp",
+      "language": "cpp",
+      "mode": "hybrid",
+      "chunks": 3083,
+      "ndcg5": 0.9131588892085816,
+      "ndcg10": 0.9131588892085816,
+      "p50_ms": 12.022499504382722,
+      "p90_ms": 23.90685810823925,
+      "index_ms": 109331.39066700824,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9467714315017852,
+        "symbol": 0.6872021038816168
+      }
+    },
+    {
+      "repo": "abseil-cpp",
+      "language": "cpp",
+      "mode": "semantic",
+      "chunks": 3083,
+      "ndcg5": 0.9529397805814576,
+      "ndcg10": 0.9529397805814576,
+      "p50_ms": 9.608125008526258,
+      "p90_ms": 14.258079198771158,
+      "index_ms": 109331.39066700824,
+      "by_category": {
+        "architecture": 0.8154648767857288,
+        "semantic": 0.9618577238705129,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "aeson",
+      "language": "haskell",
+      "mode": "hybrid",
+      "chunks": 393,
+      "ndcg5": 0.7332776047547834,
+      "ndcg10": 0.7441979765956916,
+      "p50_ms": 13.008041511056945,
+      "p90_ms": 21.639929499360733,
+      "index_ms": 11976.666208996903,
+      "by_category": {
+        "architecture": 0.5559284135897828,
+        "semantic": 0.8069544975976611
+      }
+    },
+    {
+      "repo": "aeson",
+      "language": "haskell",
+      "mode": "semantic",
+      "chunks": 393,
+      "ndcg5": 0.8868598856384647,
+      "ndcg10": 0.9128317572625722,
+      "p50_ms": 9.814083008677699,
+      "p90_ms": 11.172495785285719,
+      "index_ms": 11976.666208996903,
+      "by_category": {
+        "architecture": 0.9,
+        "semantic": 0.9171090096834295
+      }
+    },
+    {
+      "repo": "aiohttp",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 756,
+      "ndcg5": 0.8165396881765626,
+      "ndcg10": 0.8507312201133074,
+      "p50_ms": 12.081416993169114,
+      "p90_ms": 15.394542017020285,
+      "index_ms": 18570.672125002602,
+      "by_category": {
+        "architecture": 0.8790204702277513,
+        "semantic": 0.7458013700872441,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "aiohttp",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 756,
+      "ndcg5": 0.7959888835825458,
+      "ndcg10": 0.8151785566110092,
+      "p50_ms": 7.4834580009337515,
+      "p90_ms": 9.080041985725984,
+      "index_ms": 18570.672125002602,
+      "by_category": {
+        "architecture": 0.8794158266817644,
+        "semantic": 0.6625376557843159,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "alamofire",
+      "language": "swift",
+      "mode": "hybrid",
+      "chunks": 649,
+      "ndcg5": 0.9735185665933915,
+      "ndcg10": 0.9735185665933915,
+      "p50_ms": 10.354041514801793,
+      "p90_ms": 18.338771513663232,
+      "index_ms": 16426.71883298317,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9518519392607121,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "alamofire",
+      "language": "swift",
+      "mode": "semantic",
+      "chunks": 649,
+      "ndcg5": 0.7976482134001379,
+      "ndcg10": 0.8339421983978488,
+      "p50_ms": 7.573541486635804,
+      "p90_ms": 9.32646701403428,
+      "index_ms": 16426.71883298317,
+      "by_category": {
+        "architecture": 0.7917753129118826,
+        "semantic": 0.7548652753837569,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "axios",
+      "language": "javascript",
+      "mode": "hybrid",
+      "chunks": 166,
+      "ndcg5": 0.854421213988066,
+      "ndcg10": 0.865341585828974,
+      "p50_ms": 12.447646018699743,
+      "p90_ms": 14.403374984976837,
+      "index_ms": 4225.562167004682,
+      "by_category": {
+        "architecture": 0.6512362347719677,
+        "semantic": 0.8945167269688494,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "axios",
+      "language": "javascript",
+      "mode": "semantic",
+      "chunks": 166,
+      "ndcg5": 0.856912280135526,
+      "ndcg10": 0.8671314000149504,
+      "p50_ms": 8.347770519321784,
+      "p90_ms": 10.901341904536823,
+      "index_ms": 4225.562167004682,
+      "by_category": {
+        "architecture": 0.7423396493455101,
+        "semantic": 0.847881083730162,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "axum",
+      "language": "rust",
+      "mode": "hybrid",
+      "chunks": 509,
+      "ndcg5": 0.7639821033974458,
+      "ndcg10": 0.7797553472367322,
+      "p50_ms": 11.09881249431055,
+      "p90_ms": 15.298212785273792,
+      "index_ms": 15415.15904100379,
+      "by_category": {
+        "architecture": 0.6666494875183455,
+        "semantic": 0.8551549589285763,
+        "symbol": 0.6666666666666666
+      }
+    },
+    {
+      "repo": "axum",
+      "language": "rust",
+      "mode": "semantic",
+      "chunks": 509,
+      "ndcg5": 0.7039694436225425,
+      "ndcg10": 0.719742687461829,
+      "p50_ms": 7.538083489635028,
+      "p90_ms": 8.350341915502215,
+      "index_ms": 15415.15904100379,
+      "by_category": {
+        "architecture": 0.5892789260714373,
+        "semantic": 0.8348152134004999,
+        "symbol": 0.47689218602446437
+      }
+    },
+    {
+      "repo": "bash-it",
+      "language": "bash",
+      "mode": "hybrid",
+      "chunks": 723,
+      "ndcg5": 0.6832558006256908,
+      "ndcg10": 0.7312810788921144,
+      "p50_ms": 13.488353491993621,
+      "p90_ms": 18.150754092494026,
+      "index_ms": 20373.079708981095,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.6972319435536488,
+        "symbol": 0.7123212623289701
+      }
+    },
+    {
+      "repo": "bash-it",
+      "language": "bash",
+      "mode": "semantic",
+      "chunks": 723,
+      "ndcg5": 0.6795831796771399,
+      "ndcg10": 0.7206065510844462,
+      "p50_ms": 12.02933349122759,
+      "p90_ms": 15.512649386073463,
+      "index_ms": 20373.079708981095,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.6523208671118066,
+        "symbol": 0.7863919498470877
+      }
+    },
+    {
+      "repo": "bats-core",
+      "language": "bash",
+      "mode": "hybrid",
+      "chunks": 48,
+      "ndcg5": 0.8446394630357187,
+      "ndcg10": 0.8446394630357187,
+      "p50_ms": 7.910771499155089,
+      "p90_ms": 9.892600003513508,
+      "index_ms": 1550.175834010588,
+      "by_category": {
+        "architecture": 0.6802656438775594,
+        "semantic": 0.9331484425824198
+      }
+    },
+    {
+      "repo": "bats-core",
+      "language": "bash",
+      "mode": "semantic",
+      "chunks": 48,
+      "ndcg5": 0.975,
+      "ndcg10": 0.975,
+      "p50_ms": 7.144917006371543,
+      "p90_ms": 7.8647625079611325,
+      "index_ms": 1550.175834010588,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9615384615384616
+      }
+    },
+    {
+      "repo": "cats",
+      "language": "scala",
+      "mode": "hybrid",
+      "chunks": 1254,
+      "ndcg5": 0.9113147192765458,
+      "ndcg10": 0.9113147192765458,
+      "p50_ms": 16.417708509834483,
+      "p90_ms": 22.210254502715543,
+      "index_ms": 39578.97299999604,
+      "by_category": {
+        "architecture": 0.8065735963827292,
+        "semantic": 0.9,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "cats",
+      "language": "scala",
+      "mode": "semantic",
+      "chunks": 1254,
+      "ndcg5": 0.7617219727220211,
+      "ndcg10": 0.7911756290829952,
+      "p50_ms": 15.898312005447224,
+      "p90_ms": 26.82229580532294,
+      "index_ms": 39578.97299999604,
+      "by_category": {
+        "architecture": 0.7197026898277064,
+        "semantic": 0.8444701822349081,
+        "symbol": 0.75
+      }
+    },
+    {
+      "repo": "chi",
+      "language": "go",
+      "mode": "hybrid",
+      "chunks": 262,
+      "ndcg5": 0.8231102500352291,
+      "ndcg10": 0.8344648276790338,
+      "p50_ms": 17.41620850225445,
+      "p90_ms": 20.284671083209105,
+      "index_ms": 8592.78729200014,
+      "by_category": {
+        "architecture": 0.6482395241085253,
+        "semantic": 0.9444444444444444,
+        "symbol": 0.8769765845238192
+      }
+    },
+    {
+      "repo": "chi",
+      "language": "go",
+      "mode": "semantic",
+      "chunks": 262,
+      "ndcg5": 0.6111111111111112,
+      "ndcg10": 0.6722984704768944,
+      "p50_ms": 11.810812007752247,
+      "p90_ms": 13.749200204620138,
+      "index_ms": 8592.78729200014,
+      "by_category": {
+        "architecture": 0.3930520790402558,
+        "semantic": 0.8603399993713959,
+        "symbol": 0.6666666666666666
+      }
+    },
+    {
+      "repo": "circe",
+      "language": "scala",
+      "mode": "hybrid",
+      "chunks": 192,
+      "ndcg5": 0.8979792795602554,
+      "ndcg10": 0.8979792795602554,
+      "p50_ms": 16.322041978128254,
+      "p90_ms": 29.224325006362047,
+      "index_ms": 6709.504375001416,
+      "by_category": {
+        "architecture": 0.8,
+        "semantic": 0.9146914828768046,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "circe",
+      "language": "scala",
+      "mode": "semantic",
+      "chunks": 192,
+      "ndcg5": 0.7963647238721819,
+      "ndcg10": 0.8151124705620779,
+      "p50_ms": 17.966249986784533,
+      "p90_ms": 20.7927166193258,
+      "index_ms": 6709.504375001416,
+      "by_category": {
+        "architecture": 0.6,
+        "semantic": 0.8624669946072255,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "click",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 315,
+      "ndcg5": 0.9815464876785729,
+      "ndcg10": 0.9815464876785729,
+      "p50_ms": 17.11508301377762,
+      "p90_ms": 20.556441397638995,
+      "index_ms": 9981.379333010409,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9630929753571458,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "click",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 315,
+      "ndcg5": 0.8843758374885468,
+      "ndcg10": 0.8952962093294549,
+      "p50_ms": 10.280832997523248,
+      "p90_ms": 12.793729489203542,
+      "index_ms": 9981.379333010409,
+      "by_category": {
+        "architecture": 0.897034195383878,
+        "semantic": 0.8523719014285831,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "cobra",
+      "language": "go",
+      "mode": "hybrid",
+      "chunks": 394,
+      "ndcg5": 0.9775325271359823,
+      "ndcg10": 0.9775325271359823,
+      "p50_ms": 13.697374510229565,
+      "p90_ms": 19.43666219885927,
+      "index_ms": 13279.906167008448,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9591500493381495,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "cobra",
+      "language": "go",
+      "mode": "semantic",
+      "chunks": 394,
+      "ndcg5": 0.6679960639400363,
+      "ndcg10": 0.7267533745842816,
+      "p50_ms": 14.483021019259468,
+      "p90_ms": 27.232333013671454,
+      "index_ms": 13279.906167008448,
+      "by_category": {
+        "architecture": 0.5560991862126633,
+        "semantic": 0.7453156704008775,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "commons-lang",
+      "language": "java",
+      "mode": "hybrid",
+      "chunks": 3152,
+      "ndcg5": 0.8812350692133254,
+      "ndcg10": 0.8971080850863412,
+      "p50_ms": 25.598499982152134,
+      "p90_ms": 42.921291023958474,
+      "index_ms": 114417.30450000614,
+      "by_category": {
+        "architecture": 0.8710490642551528,
+        "semantic": 0.8732944710034075,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "commons-lang",
+      "language": "java",
+      "mode": "semantic",
+      "chunks": 3152,
+      "ndcg5": 0.863660295573871,
+      "ndcg10": 0.873392790697132,
+      "p50_ms": 16.74254098907113,
+      "p90_ms": 20.127166993916035,
+      "index_ms": 114417.30450000614,
+      "by_category": {
+        "architecture": 0.8102255943731342,
+        "semantic": 0.8771172905677797,
+        "symbol": 0.9077324383928644
+      }
+    },
+    {
+      "repo": "curl",
+      "language": "c",
+      "mode": "hybrid",
+      "chunks": 4444,
+      "ndcg5": 0.731160631164485,
+      "ndcg10": 0.7581997753588646,
+      "p50_ms": 14.161167011479847,
+      "p90_ms": 18.75496669963468,
+      "index_ms": 200684.02558300295,
+      "by_category": {
+        "architecture": 0.7495757787138243,
+        "semantic": 0.7652557726138975
+      }
+    },
+    {
+      "repo": "curl",
+      "language": "c",
+      "mode": "semantic",
+      "chunks": 4444,
+      "ndcg5": 0.569298123441679,
+      "ndcg10": 0.6275169348148553,
+      "p50_ms": 19.32793749438133,
+      "p90_ms": 40.48324518953451,
+      "index_ms": 200684.02558300295,
+      "by_category": {
+        "architecture": 0.5685341250289379,
+        "semantic": 0.6757755973669697
+      }
+    },
+    {
+      "repo": "dapper",
+      "language": "csharp",
+      "mode": "hybrid",
+      "chunks": 411,
+      "ndcg5": 0.8,
+      "ndcg10": 0.8480368445105819,
+      "p50_ms": 21.485166493221186,
+      "p90_ms": 38.47070478950628,
+      "index_ms": 17126.910958002554,
+      "by_category": {
+        "architecture": 0.5363180033564775,
+        "semantic": 0.9088819135989022,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "dapper",
+      "language": "csharp",
+      "mode": "semantic",
+      "chunks": 411,
+      "ndcg5": 0.6815464876785728,
+      "ndcg10": 0.7288615881330676,
+      "p50_ms": 19.434187503065914,
+      "p90_ms": 45.69647052267102,
+      "index_ms": 17126.910958002554,
+      "by_category": {
+        "architecture": 0.16430929569300085,
+        "semantic": 0.8399995830684112,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "ecto",
+      "language": "elixir",
+      "mode": "hybrid",
+      "chunks": 755,
+      "ndcg5": 0.9094548456815218,
+      "ndcg10": 0.9094548456815218,
+      "p50_ms": 15.686041995650157,
+      "p90_ms": 22.86957500036806,
+      "index_ms": 33056.39887502184,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.8960547934136506,
+        "symbol": 0.8769765845238192
+      }
+    },
+    {
+      "repo": "ecto",
+      "language": "elixir",
+      "mode": "semantic",
+      "chunks": 755,
+      "ndcg5": 0.9417257505639144,
+      "ndcg10": 0.9417257505639144,
+      "p50_ms": 14.062165981158614,
+      "p90_ms": 31.61887478781863,
+      "index_ms": 33056.39887502184,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9432199620879166,
+        "symbol": 0.8769765845238192
+      }
+    },
+    {
+      "repo": "exposed",
+      "language": "kotlin",
+      "mode": "hybrid",
+      "chunks": 744,
+      "ndcg5": 0.6915779223005224,
+      "ndcg10": 0.708244588967189,
+      "p50_ms": 23.7043750094017,
+      "p90_ms": 37.09339191264011,
+      "index_ms": 32554.49341700296,
+      "by_category": {
+        "architecture": 0.611111111111111,
+        "semantic": 0.6665398890007461,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "exposed",
+      "language": "kotlin",
+      "mode": "semantic",
+      "chunks": 744,
+      "ndcg5": 0.5280776934979012,
+      "ndcg10": 0.571082347012098,
+      "p50_ms": 16.79745850560721,
+      "p90_ms": 21.034891295130365,
+      "index_ms": 32554.49341700296,
+      "by_category": {
+        "architecture": 0.5436432511904858,
+        "semantic": 0.5288474556739974,
+        "symbol": 0.7956176024115139
+      }
+    },
+    {
+      "repo": "express",
+      "language": "javascript",
+      "mode": "hybrid",
+      "chunks": 52,
+      "ndcg5": 0.9135032847341471,
+      "ndcg10": 0.9301699514008138,
+      "p50_ms": 17.190250000567175,
+      "p90_ms": 22.02072950312869,
+      "index_ms": 2559.0094579965807,
+      "by_category": {
+        "architecture": 0.8719141468594679,
+        "semantic": 0.95,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "express",
+      "language": "javascript",
+      "mode": "semantic",
+      "chunks": 52,
+      "ndcg5": 0.9447084328186802,
+      "ndcg10": 0.9556288046595884,
+      "p50_ms": 12.457583521609195,
+      "p90_ms": 16.018116075429134,
+      "index_ms": 2559.0094579965807,
+      "by_category": {
+        "architecture": 0.9545570764454824,
+        "semantic": 0.9430676558073394,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "fastapi",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 597,
+      "ndcg5": 0.8308912785692819,
+      "ndcg10": 0.8513295183281304,
+      "p50_ms": 23.951896000653505,
+      "p90_ms": 32.91862438491083,
+      "index_ms": 23927.145250025205,
+      "by_category": {
+        "architecture": 0.7178959806411263,
+        "semantic": 0.8751648127593403,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "fastapi",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 597,
+      "ndcg5": 0.677119149033797,
+      "ndcg10": 0.7361345656359225,
+      "p50_ms": 15.794146005646326,
+      "p90_ms": 22.014179188408892,
+      "index_ms": 23927.145250025205,
+      "by_category": {
+        "architecture": 0.6597661351371891,
+        "semantic": 0.7333847765377505,
+        "symbol": 0.8474500308912244
+      }
+    },
+    {
+      "repo": "flask",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 291,
+      "ndcg5": 0.8888125509917615,
+      "ndcg10": 0.908945400249221,
+      "p50_ms": 11.971416999585927,
+      "p90_ms": 16.59337501041591,
+      "index_ms": 13363.597166986438,
+      "by_category": {
+        "architecture": 0.8708032503080305,
+        "semantic": 0.9083846048252208,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "flask",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 291,
+      "ndcg5": 0.7019280699160761,
+      "ndcg10": 0.7590737005056666,
+      "p50_ms": 16.146124980878085,
+      "p90_ms": 21.17337498930283,
+      "index_ms": 13363.597166986438,
+      "by_category": {
+        "architecture": 0.7530036184386708,
+        "semantic": 0.7426838528680274,
+        "symbol": 0.8333333333333334
+      }
+    },
+    {
+      "repo": "fmtlib",
+      "language": "cpp",
+      "mode": "hybrid",
+      "chunks": 476,
+      "ndcg5": 0.8946394630357186,
+      "ndcg10": 0.8946394630357186,
+      "p50_ms": 28.63016650371719,
+      "p90_ms": 43.69890419766307,
+      "index_ms": 21888.26362497639,
+      "by_category": {
+        "architecture": 0.7539531690476383,
+        "semantic": 0.9285714285714286,
+        "symbol": 0.8769765845238192
+      }
+    },
+    {
+      "repo": "fmtlib",
+      "language": "cpp",
+      "mode": "semantic",
+      "chunks": 476,
+      "ndcg5": 0.6496141434859123,
+      "ndcg10": 0.6969292439404069,
+      "p50_ms": 20.11791650147643,
+      "p90_ms": 32.43322499329224,
+      "index_ms": 21888.26362497639,
+      "by_category": {
+        "architecture": 0.5436432511904858,
+        "semantic": 0.7054984690830918,
+        "symbol": 0.8102255193577976
+      }
+    },
+    {
+      "repo": "gin",
+      "language": "go",
+      "mode": "hybrid",
+      "chunks": 576,
+      "ndcg5": 0.8277557742583437,
+      "ndcg10": 0.8386761460992519,
+      "p50_ms": 22.355166991474107,
+      "p90_ms": 36.58217530173716,
+      "index_ms": 26109.220666985493,
+      "by_category": {
+        "architecture": 0.9665037688454653,
+        "semantic": 0.7249545735374767,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "gin",
+      "language": "go",
+      "mode": "semantic",
+      "chunks": 576,
+      "ndcg5": 0.6151642099893793,
+      "ndcg10": 0.6303875698639051,
+      "p50_ms": 14.82579149887897,
+      "p90_ms": 22.97526640177239,
+      "index_ms": 26109.220666985493,
+      "by_category": {
+        "architecture": 0.6786977126110173,
+        "semantic": 0.5032331928738181,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "gson",
+      "language": "java",
+      "mode": "hybrid",
+      "chunks": 1460,
+      "ndcg5": 0.8868598856384649,
+      "ndcg10": 0.9070090423183516,
+      "p50_ms": 16.83564600534737,
+      "p90_ms": 33.16599612007849,
+      "index_ms": 53585.85762500297,
+      "by_category": {
+        "architecture": 0.6600452115917571,
+        "semantic": 0.95,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "gson",
+      "language": "java",
+      "mode": "semantic",
+      "chunks": 1460,
+      "ndcg5": 0.6383897980311374,
+      "ndcg10": 0.6650834137113321,
+      "p50_ms": 17.06187499803491,
+      "p90_ms": 26.408592212828808,
+      "index_ms": 53585.85762500297,
+      "by_category": {
+        "architecture": 0.36562109578877,
+        "semantic": 0.6577324383928643,
+        "symbol": 0.8769765845238192
+      }
+    },
+    {
+      "repo": "guzzle",
+      "language": "php",
+      "mode": "hybrid",
+      "chunks": 206,
+      "ndcg5": 0.9578459250958741,
+      "ndcg10": 0.9578459250958741,
+      "p50_ms": 9.515229510725476,
+      "p90_ms": 13.518383709015326,
+      "index_ms": 7140.517666994128,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9351475770705757,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "guzzle",
+      "language": "php",
+      "mode": "semantic",
+      "chunks": 206,
+      "ndcg5": 0.8410358118701293,
+      "ndcg10": 0.8502645967091077,
+      "p50_ms": 11.88414599164389,
+      "p90_ms": 14.975558305741288,
+      "index_ms": 7140.517666994128,
+      "by_category": {
+        "architecture": 0.827091553035404,
+        "semantic": 0.9249244057750725,
+        "symbol": 0.625
+      }
+    },
+    {
+      "repo": "http4s",
+      "language": "scala",
+      "mode": "hybrid",
+      "chunks": 952,
+      "ndcg5": 0.9569537411240482,
+      "ndcg10": 0.9569537411240482,
+      "p50_ms": 18.921583498013206,
+      "p90_ms": 25.445983689860448,
+      "index_ms": 32513.78266699612,
+      "by_category": {
+        "architecture": 0.9590717717793499,
+        "semantic": 0.9472756790816368,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "http4s",
+      "language": "scala",
+      "mode": "semantic",
+      "chunks": 952,
+      "ndcg5": 0.9140925341689294,
+      "ndcg10": 0.9285457754848239,
+      "p50_ms": 17.275353995501064,
+      "p90_ms": 20.209808298386637,
+      "index_ms": 32513.78266699612,
+      "by_category": {
+        "architecture": 0.883640309935711,
+        "semantic": 0.9228567557063817,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "httpx",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 248,
+      "ndcg5": 0.8842111001678878,
+      "ndcg10": 0.893000419062153,
+      "p50_ms": 10.477583011379465,
+      "p90_ms": 16.862958000274375,
+      "index_ms": 6244.743332994403,
+      "by_category": {
+        "architecture": 0.8282461270778609,
+        "semantic": 0.8839206567511317,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "httpx",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 248,
+      "ndcg5": 0.7778504227820212,
+      "ndcg10": 0.8156340192014484,
+      "p50_ms": 7.646874990314245,
+      "p90_ms": 9.882708982331678,
+      "index_ms": 6244.743332994403,
+      "by_category": {
+        "architecture": 0.7256726194748763,
+        "semantic": 0.8241862570372025,
+        "symbol": 0.9261859507142916
+      }
+    },
+    {
+      "repo": "jackson-databind",
+      "language": "java",
+      "mode": "hybrid",
+      "chunks": 4570,
+      "ndcg5": 0.6990825078023568,
+      "ndcg10": 0.7185304125207596,
+      "p50_ms": 12.796291004633531,
+      "p90_ms": 26.52782109216787,
+      "index_ms": 123708.32537498791,
+      "by_category": {
+        "architecture": 0.5738891936830953,
+        "semantic": 0.6112402535555238,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "jackson-databind",
+      "language": "java",
+      "mode": "semantic",
+      "chunks": 4570,
+      "ndcg5": 0.5512130256615464,
+      "ndcg10": 0.5788000641691212,
+      "p50_ms": 10.144999992917292,
+      "p90_ms": 12.807000306202099,
+      "index_ms": 123708.32537498791,
+      "by_category": {
+        "architecture": 0.35560703113648284,
+        "semantic": 0.5040118467285661,
+        "symbol": 0.8769765845238192
+      }
+    },
+    {
+      "repo": "kotlinx-coroutines",
+      "language": "kotlin",
+      "mode": "hybrid",
+      "chunks": 884,
+      "ndcg5": 0.8946394630357186,
+      "ndcg10": 0.9124498223911198,
+      "p50_ms": 14.072603997192346,
+      "p90_ms": 18.441316107055172,
+      "index_ms": 22250.331625022227,
+      "by_category": {
+        "architecture": 0.8769765845238192,
+        "semantic": 0.9012904781607812,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "kotlinx-coroutines",
+      "language": "kotlin",
+      "mode": "semantic",
+      "chunks": 884,
+      "ndcg5": 0.7070497592047851,
+      "ndcg10": 0.7237164258714518,
+      "p50_ms": 9.054479014594108,
+      "p90_ms": 10.847371513955297,
+      "index_ms": 22250.331625022227,
+      "by_category": {
+        "architecture": 0.6289509357448472,
+        "semantic": 0.7254856537229356,
+        "symbol": 0.8102255193577976
+      }
+    },
+    {
+      "repo": "ktor",
+      "language": "kotlin",
+      "mode": "hybrid",
+      "chunks": 425,
+      "ndcg5": 0.8590707413638261,
+      "ndcg10": 0.8692898612432506,
+      "p50_ms": 21.702666490455158,
+      "p90_ms": 29.61302500625607,
+      "index_ms": 15095.411916990997,
+      "by_category": {
+        "architecture": 0.7777453020724613,
+        "semantic": 0.8487971586225403,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "ktor",
+      "language": "kotlin",
+      "mode": "semantic",
+      "chunks": 425,
+      "ndcg5": 0.6857883277616732,
+      "ndcg10": 0.7158978877013853,
+      "p50_ms": 17.655145507887937,
+      "p90_ms": 24.01534589007497,
+      "index_ms": 15095.411916990997,
+      "by_category": {
+        "architecture": 0.47393279862199206,
+        "semantic": 0.8484031217184157,
+        "symbol": 0.8436010519408085
+      }
+    },
+    {
+      "repo": "laravel-framework",
+      "language": "php",
+      "mode": "hybrid",
+      "chunks": 6197,
+      "ndcg5": 0.7775067850629804,
+      "ndcg10": 0.7867355699019589,
+      "p50_ms": 19.957103999331594,
+      "p90_ms": 42.78211698983796,
+      "index_ms": 192994.49233399355,
+      "by_category": {
+        "architecture": 0.7843227078230478,
+        "semantic": 0.7903914099673759,
+        "symbol": 0.7827324383928644
+      }
+    },
+    {
+      "repo": "laravel-framework",
+      "language": "php",
+      "mode": "semantic",
+      "chunks": 6197,
+      "ndcg5": 0.5483120839842696,
+      "ndcg10": 0.6078675588030644,
+      "p50_ms": 18.687250005314127,
+      "p90_ms": 26.873136896756478,
+      "index_ms": 192994.49233399355,
+      "by_category": {
+        "architecture": 0.38994886645930976,
+        "semantic": 0.6712062559568419,
+        "symbol": 0.8467132018086354
+      }
+    },
+    {
+      "repo": "lazy.nvim",
+      "language": "lua",
+      "mode": "hybrid",
+      "chunks": 300,
+      "ndcg5": 0.7788948224731933,
+      "ndcg10": 0.7898151943141014,
+      "p50_ms": 11.325812505674548,
+      "p90_ms": 12.688675013487227,
+      "index_ms": 11250.504083000124,
+      "by_category": {
+        "architecture": 0.8205955982497284,
+        "semantic": 0.7646312274576793
+      }
+    },
+    {
+      "repo": "lazy.nvim",
+      "language": "lua",
+      "mode": "semantic",
+      "chunks": 300,
+      "ndcg5": 0.7125665838422731,
+      "ndcg10": 0.7314666888621151,
+      "p50_ms": 10.346061986638233,
+      "p90_ms": 14.014966986724177,
+      "index_ms": 11250.504083000124,
+      "by_category": {
+        "architecture": 0.7687794612466657,
+        "semantic": 0.7009380569111188
+      }
+    },
+    {
+      "repo": "libuv",
+      "language": "c",
+      "mode": "hybrid",
+      "chunks": 1345,
+      "ndcg5": 0.69946793046926,
+      "ndcg10": 0.7196170871491467,
+      "p50_ms": 20.54731249518227,
+      "p90_ms": 28.79188329679892,
+      "index_ms": 53084.25425001769,
+      "by_category": {
+        "architecture": 0.6309297535714575,
+        "semantic": 0.7294712353244454,
+        "symbol": 0.6309297535714575
+      }
+    },
+    {
+      "repo": "libuv",
+      "language": "c",
+      "mode": "semantic",
+      "chunks": 1345,
+      "ndcg5": 0.5733452715220627,
+      "ndcg10": 0.6261969813449457,
+      "p50_ms": 16.433041513664648,
+      "p90_ms": 24.11447920021601,
+      "index_ms": 53084.25425001769,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.5846633126054953,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "messagepack-csharp",
+      "language": "csharp",
+      "mode": "hybrid",
+      "chunks": 1125,
+      "ndcg5": 0.9051704644810972,
+      "ndcg10": 0.9223904515686098,
+      "p50_ms": 25.959917009458877,
+      "p90_ms": 31.05197081458755,
+      "index_ms": 36800.592375017004,
+      "by_category": {
+        "architecture": 0.6574570144614703,
+        "semantic": 0.9797756637251456,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "messagepack-csharp",
+      "language": "csharp",
+      "mode": "semantic",
+      "chunks": 1125,
+      "ndcg5": 0.6593789328632104,
+      "ndcg10": 0.6944717607410272,
+      "p50_ms": 21.061895502498373,
+      "p90_ms": 42.145904694916695,
+      "index_ms": 36800.592375017004,
+      "by_category": {
+        "architecture": 0.2703994282316338,
+        "semantic": 0.854418978627008,
+        "symbol": 0.7311523848929911
+      }
+    },
+    {
+      "repo": "mini.nvim",
+      "language": "lua",
+      "mode": "hybrid",
+      "chunks": 2156,
+      "ndcg5": 0.9815464876785729,
+      "ndcg10": 0.9815464876785729,
+      "p50_ms": 16.92685400485061,
+      "p90_ms": 21.121508107171394,
+      "index_ms": 88052.59124998702,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9769331095982161
+      }
+    },
+    {
+      "repo": "mini.nvim",
+      "language": "lua",
+      "mode": "semantic",
+      "chunks": 2156,
+      "ndcg5": 0.9565464876785729,
+      "ndcg10": 0.9565464876785729,
+      "p50_ms": 15.594666489050724,
+      "p90_ms": 29.60851311509034,
+      "index_ms": 88052.59124998702,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9456831095982161
+      }
+    },
+    {
+      "repo": "model2vec",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 107,
+      "ndcg5": 0.6994928171793582,
+      "ndcg10": 0.7297558293819935,
+      "p50_ms": 14.303999516414478,
+      "p90_ms": 21.549366312683567,
+      "index_ms": 4022.378249996109,
+      "by_category": {
+        "architecture": 0.7680845391539336,
+        "semantic": 0.6831672006327792,
+        "symbol": 0.7956176024115139
+      }
+    },
+    {
+      "repo": "model2vec",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 107,
+      "ndcg5": 0.5968005463483601,
+      "ndcg10": 0.6623947354441219,
+      "p50_ms": 11.795562502811663,
+      "p90_ms": 12.895354398642667,
+      "index_ms": 4022.378249996109,
+      "by_category": {
+        "architecture": 0.7894713621822309,
+        "semantic": 0.5721595173606822,
+        "symbol": 0.6666666666666666
+      }
+    },
+    {
+      "repo": "monolog",
+      "language": "php",
+      "mode": "hybrid",
+      "chunks": 417,
+      "ndcg5": 0.8775325271359822,
+      "ndcg10": 0.8775325271359822,
+      "p50_ms": 16.992020508041605,
+      "p90_ms": 23.22642140497919,
+      "index_ms": 14643.297791975783,
+      "by_category": {
+        "architecture": 0.6613147192765458,
+        "semantic": 0.9244076946336917,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "monolog",
+      "language": "php",
+      "mode": "semantic",
+      "chunks": 417,
+      "ndcg5": 0.7880458363527564,
+      "ndcg10": 0.8158079057118007,
+      "p50_ms": 16.0472290153848,
+      "p90_ms": 20.86400831467473,
+      "index_ms": 14643.297791975783,
+      "by_category": {
+        "architecture": 0.6004105240801354,
+        "semantic": 0.8683175740263879,
+        "symbol": 0.9261859507142916
+      }
+    },
+    {
+      "repo": "newtonsoft-json",
+      "language": "csharp",
+      "mode": "hybrid",
+      "chunks": 2152,
+      "ndcg5": 0.8775325271359822,
+      "ndcg10": 0.8953428864913834,
+      "p50_ms": 37.437916500493884,
+      "p90_ms": 56.515408289851635,
+      "index_ms": 75065.58587501058,
+      "by_category": {
+        "architecture": 0.9251084237866075,
+        "semantic": 0.850564289737093,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "newtonsoft-json",
+      "language": "csharp",
+      "mode": "semantic",
+      "chunks": 2152,
+      "ndcg5": 0.7793107832165822,
+      "ndcg10": 0.8045814028792055,
+      "p50_ms": 15.81550000992138,
+      "p90_ms": 20.285587207763466,
+      "index_ms": 75065.58587501058,
+      "by_category": {
+        "architecture": 0.6506242091142647,
+        "semantic": 0.8352620729907748,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "nlohmann-json",
+      "language": "cpp",
+      "mode": "hybrid",
+      "chunks": 791,
+      "ndcg5": 0.9107857056773317,
+      "ndcg10": 0.9302336103957345,
+      "p50_ms": 16.992833494441584,
+      "p90_ms": 23.897362506249923,
+      "index_ms": 33286.12375000375,
+      "by_category": {
+        "architecture": 0.8533917791918905,
+        "semantic": 0.9630929753571458,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "nlohmann-json",
+      "language": "cpp",
+      "mode": "semantic",
+      "chunks": 791,
+      "ndcg5": 0.868268460400594,
+      "ndcg10": 0.888158900460882,
+      "p50_ms": 11.188562493771315,
+      "p90_ms": 16.97364998981357,
+      "index_ms": 33286.12375000375,
+      "by_category": {
+        "architecture": 0.8296988712082075,
+        "semantic": 0.8955285910760186,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "nvm",
+      "language": "bash",
+      "mode": "hybrid",
+      "chunks": 153,
+      "ndcg5": 0.9815464876785729,
+      "ndcg10": 0.9815464876785729,
+      "p50_ms": 13.958604511572048,
+      "p90_ms": 20.479133285698488,
+      "index_ms": 6665.303624991793,
+      "by_category": {
+        "architecture": 0.8154648767857288,
+        "semantic": 1.0
+      }
+    },
+    {
+      "repo": "nvm",
+      "language": "bash",
+      "mode": "semantic",
+      "chunks": 153,
+      "ndcg5": 0.9815464876785729,
+      "ndcg10": 0.9815464876785729,
+      "p50_ms": 13.679854513611645,
+      "p90_ms": 15.953112518764103,
+      "index_ms": 6665.303624991793,
+      "by_category": {
+        "architecture": 0.8154648767857288,
+        "semantic": 1.0
+      }
+    },
+    {
+      "repo": "pandoc",
+      "language": "haskell",
+      "mode": "hybrid",
+      "chunks": 3090,
+      "ndcg5": 0.7142789260714373,
+      "ndcg10": 0.7476122594047706,
+      "p50_ms": 16.85862500744406,
+      "p90_ms": 30.598241888219494,
+      "index_ms": 132794.1862079897,
+      "by_category": {
+        "architecture": 0.7618991050595311,
+        "semantic": 0.7380876956349303
+      }
+    },
+    {
+      "repo": "pandoc",
+      "language": "haskell",
+      "mode": "semantic",
+      "chunks": 3090,
+      "ndcg5": 0.6496141434859123,
+      "ndcg10": 0.666280810152579,
+      "p50_ms": 11.294770985841751,
+      "p90_ms": 12.415446090744814,
+      "index_ms": 132794.1862079897,
+      "by_category": {
+        "architecture": 0.649335806185015,
+        "semantic": 0.6775774794642881
+      }
+    },
+    {
+      "repo": "phoenix",
+      "language": "elixir",
+      "mode": "hybrid",
+      "chunks": 546,
+      "ndcg5": 0.878913834584058,
+      "ndcg10": 0.878913834584058,
+      "p50_ms": 15.614000003552064,
+      "p90_ms": 30.697416403563693,
+      "index_ms": 20177.41987502086,
+      "by_category": {
+        "architecture": 0.8624288341269906,
+        "semantic": 0.8482147642791695,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "phoenix",
+      "language": "elixir",
+      "mode": "semantic",
+      "chunks": 546,
+      "ndcg5": 0.70401434396054,
+      "ndcg10": 0.764132524698721,
+      "p50_ms": 15.549000003375113,
+      "p90_ms": 18.584925011964515,
+      "index_ms": 20177.41987502086,
+      "by_category": {
+        "architecture": 0.6781858687508259,
+        "semantic": 0.7735493072168947,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "plug",
+      "language": "elixir",
+      "mode": "hybrid",
+      "chunks": 249,
+      "ndcg5": 0.9261859507142916,
+      "ndcg10": 0.9261859507142916,
+      "p50_ms": 9.758395492099226,
+      "p90_ms": 12.72539940837305,
+      "index_ms": 8202.775500016287,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.8945513581632737,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "plug",
+      "language": "elixir",
+      "mode": "semantic",
+      "chunks": 249,
+      "ndcg5": 0.9008891280402999,
+      "ndcg10": 0.9008891280402999,
+      "p50_ms": 7.560291996924207,
+      "p90_ms": 8.551016595447436,
+      "index_ms": 8202.775500016287,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.902209268112247,
+        "symbol": 0.7956176024115139
+      }
+    },
+    {
+      "repo": "pydantic",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 1518,
+      "ndcg5": 0.750360114441086,
+      "ndcg10": 0.7595888992800643,
+      "p50_ms": 13.45670799491927,
+      "p90_ms": 17.807750275824223,
+      "index_ms": 44452.70191700547,
+      "by_category": {
+        "architecture": 0.5614169254940531,
+        "semantic": 0.8288662191964322,
+        "symbol": 0.9261859507142916
+      }
+    },
+    {
+      "repo": "pydantic",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 1518,
+      "ndcg5": 0.675,
+      "ndcg10": 0.6944479047184028,
+      "p50_ms": 9.41881250764709,
+      "p90_ms": 11.242533300537616,
+      "index_ms": 44452.70191700547,
+      "by_category": {
+        "architecture": 0.4711032699350038,
+        "semantic": 0.8239044006028785,
+        "symbol": 0.8
+      }
+    },
+    {
+      "repo": "rack",
+      "language": "ruby",
+      "mode": "hybrid",
+      "chunks": 249,
+      "ndcg5": 0.9034366392857175,
+      "ndcg10": 0.9034366392857175,
+      "p50_ms": 17.217646018252708,
+      "p90_ms": 34.03800008818508,
+      "index_ms": 7485.367625020444,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.8261859507142916,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "rack",
+      "language": "ruby",
+      "mode": "semantic",
+      "chunks": 249,
+      "ndcg5": 0.8888888888888888,
+      "ndcg10": 0.9247373340792172,
+      "p50_ms": 10.578062501735985,
+      "p90_ms": 12.475920698489062,
+      "index_ms": 7485.367625020444,
+      "by_category": {
+        "architecture": 1.0,
+        "semantic": 0.9289064826317889,
+        "symbol": 0.8712414374216044
+      }
+    },
+    {
+      "repo": "rails",
+      "language": "ruby",
+      "mode": "hybrid",
+      "chunks": 465,
+      "ndcg5": 0.8405539372753047,
+      "ndcg10": 0.8709222138346158,
+      "p50_ms": 9.646729013184085,
+      "p90_ms": 13.959058304317303,
+      "index_ms": 10773.234209016664,
+      "by_category": {
+        "architecture": 0.8184156792857769,
+        "semantic": 0.9472756790816368,
+        "symbol": 0.8554433523872161
+      }
+    },
+    {
+      "repo": "rails",
+      "language": "ruby",
+      "mode": "semantic",
+      "chunks": 465,
+      "ndcg5": 0.5351274527026864,
+      "ndcg10": 0.5536607372227522,
+      "p50_ms": 9.7577709966572,
+      "p90_ms": 11.086791302659549,
+      "index_ms": 10773.234209016664,
+      "by_category": {
+        "architecture": 0.4369132844843715,
+        "semantic": 0.6703622950309012,
+        "symbol": 0.6121147797198481
+      }
+    },
+    {
+      "repo": "redis",
+      "language": "c",
+      "mode": "hybrid",
+      "chunks": 6289,
+      "ndcg5": 0.925,
+      "ndcg10": 0.9407732438392864,
+      "p50_ms": 12.071187506080605,
+      "p90_ms": 19.70669529400766,
+      "index_ms": 212397.98375000828,
+      "by_category": {
+        "architecture": 0.8815464876785729,
+        "semantic": 1.0
+      }
+    },
+    {
+      "repo": "redis",
+      "language": "c",
+      "mode": "semantic",
+      "chunks": 6289,
+      "ndcg5": 0.8130929753571458,
+      "ndcg10": 0.8644869379072343,
+      "p50_ms": 13.506583010894246,
+      "p90_ms": 14.436699997168034,
+      "index_ms": 212397.98375000828,
+      "by_category": {
+        "architecture": 0.8618066694250937,
+        "semantic": 0.8671672063893752
+      }
+    },
+    {
+      "repo": "redux",
+      "language": "javascript",
+      "mode": "hybrid",
+      "chunks": 53,
+      "ndcg5": 0.8863147192765458,
+      "ndcg10": 0.9143441985113713,
+      "p50_ms": 14.318646499305032,
+      "p90_ms": 18.677854497218505,
+      "index_ms": 1619.9570419848897,
+      "by_category": {
+        "architecture": 0.9051127971865672,
+        "semantic": 0.872911909678669,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "redux",
+      "language": "javascript",
+      "mode": "semantic",
+      "chunks": 53,
+      "ndcg5": 0.9376111007623212,
+      "ndcg10": 0.9376111007623212,
+      "p50_ms": 14.181562510202639,
+      "p90_ms": 15.896612207870932,
+      "index_ms": 1619.9570419848897,
+      "by_category": {
+        "architecture": 0.8535487102791608,
+        "semantic": 1.0,
+        "symbol": 0.9261859507142916
+      }
+    },
+    {
+      "repo": "requests",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 169,
+      "ndcg5": 0.9919720789148186,
+      "ndcg10": 0.9919720789148186,
+      "p50_ms": 18.476125012966804,
+      "p90_ms": 23.500541696557775,
+      "index_ms": 5076.154292008141,
+      "by_category": {
+        "architecture": 0.9770630826137678,
+        "semantic": 1.0,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "requests",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 169,
+      "ndcg5": 0.8954570258581953,
+      "ndcg10": 0.8954570258581953,
+      "p50_ms": 14.071437501115724,
+      "p90_ms": 16.0220124933403,
+      "index_ms": 5076.154292008141,
+      "by_category": {
+        "architecture": 0.9610800315532577,
+        "semantic": 0.8813313178399557,
+        "symbol": 0.8261859507142916
+      }
+    },
+    {
+      "repo": "serde",
+      "language": "rust",
+      "mode": "hybrid",
+      "chunks": 1164,
+      "ndcg5": 0.7246141434859121,
+      "ndcg10": 0.7403873873251986,
+      "p50_ms": 22.296729497611523,
+      "p90_ms": 30.47858328500298,
+      "index_ms": 38253.27354102046,
+      "by_category": {
+        "architecture": 0.7561606311644851,
+        "semantic": 0.6243569058098536,
+        "symbol": 0.875
+      }
+    },
+    {
+      "repo": "serde",
+      "language": "rust",
+      "mode": "semantic",
+      "chunks": 1164,
+      "ndcg5": 0.44395678384763926,
+      "ndcg10": 0.4597300276869257,
+      "p50_ms": 17.897375000757165,
+      "p90_ms": 24.682778597343717,
+      "index_ms": 38253.27354102046,
+      "by_category": {
+        "architecture": 0.4632994242093663,
+        "semantic": 0.4166666666666667,
+        "symbol": 0.5154015779112127
+      }
+    },
+    {
+      "repo": "sinatra",
+      "language": "ruby",
+      "mode": "hybrid",
+      "chunks": 68,
+      "ndcg5": 0.9530803155822426,
+      "ndcg10": 0.9530803155822426,
+      "p50_ms": 12.755478994222358,
+      "p90_ms": 27.390425020712446,
+      "index_ms": 2147.014499991201,
+      "by_category": {
+        "architecture": 0.9261859507142916,
+        "semantic": 0.9367418397859326,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "sinatra",
+      "language": "ruby",
+      "mode": "semantic",
+      "chunks": 68,
+      "ndcg5": 0.8121593303967977,
+      "ndcg10": 0.8279325742360841,
+      "p50_ms": 8.698562494828366,
+      "p90_ms": 10.212095800670804,
+      "index_ms": 2147.014499991201,
+      "by_category": {
+        "architecture": 0.8363160592582204,
+        "semantic": 0.847881083730162,
+        "symbol": 0.7910235724765203
+      }
+    },
+    {
+      "repo": "snapkit",
+      "language": "swift",
+      "mode": "hybrid",
+      "chunks": 107,
+      "ndcg5": 0.763,
+      "ndcg10": 0.7903,
+      "p50_ms": 10.29,
+      "p90_ms": 13.02,
+      "index_ms": 2780.0,
+      "by_category": {
+        "architecture": 0.742,
+        "semantic": 0.721,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "snapkit",
+      "language": "swift",
+      "mode": "semantic",
+      "chunks": 107,
+      "ndcg5": 0.6,
+      "ndcg10": 0.6167,
+      "p50_ms": 6.36,
+      "p90_ms": 6.86,
+      "index_ms": 2780.0,
+      "by_category": {
+        "architecture": 0.281,
+        "semantic": 0.596,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "starlette",
+      "language": "python",
+      "mode": "hybrid",
+      "chunks": 213,
+      "ndcg5": 0.9455821018620179,
+      "ndcg10": 0.9540220678993534,
+      "p50_ms": 14.41729097859934,
+      "p90_ms": 27.879791014129296,
+      "index_ms": 6863.459709013114,
+      "by_category": {
+        "architecture": 0.9122239478078565,
+        "semantic": 1.0,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "starlette",
+      "language": "python",
+      "mode": "semantic",
+      "chunks": 213,
+      "ndcg5": 0.8640510664091103,
+      "ndcg10": 0.8737835615323716,
+      "p50_ms": 13.861332990927622,
+      "p90_ms": 16.745833010645583,
+      "index_ms": 6863.459709013114,
+      "by_category": {
+        "architecture": 0.856338253558926,
+        "semantic": 0.8597608498920313,
+        "symbol": 0.9261859507142916
+      }
+    },
+    {
+      "repo": "telescope.nvim",
+      "language": "lua",
+      "mode": "hybrid",
+      "chunks": 540,
+      "ndcg5": 0.7406442773401742,
+      "ndcg10": 0.7707472769065724,
+      "p50_ms": 11.730604484910145,
+      "p90_ms": 16.344912193017088,
+      "index_ms": 19508.980375016108,
+      "by_category": {
+        "architecture": 0.8085028528726061,
+        "semantic": 0.7504173513864003
+      }
+    },
+    {
+      "repo": "telescope.nvim",
+      "language": "lua",
+      "mode": "semantic",
+      "chunks": 540,
+      "ndcg5": 0.7201846293976376,
+      "ndcg10": 0.7201846293976376,
+      "p50_ms": 11.954250003327616,
+      "p90_ms": 15.32203747483436,
+      "index_ms": 19508.980375016108,
+      "by_category": {
+        "architecture": 0.6792828962250422,
+        "semantic": 0.7422086395674967
+      }
+    },
+    {
+      "repo": "tokio",
+      "language": "rust",
+      "mode": "hybrid",
+      "chunks": 2730,
+      "ndcg5": 0.930657359638273,
+      "ndcg10": 0.9620159712380296,
+      "p50_ms": 19.658500008517876,
+      "p90_ms": 29.11841610330159,
+      "index_ms": 99300.63287500525,
+      "by_category": {
+        "architecture": 0.8733865707934325,
+        "semantic": 1.0,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "tokio",
+      "language": "rust",
+      "mode": "semantic",
+      "chunks": 2730,
+      "ndcg5": 0.6911732909393884,
+      "ndcg10": 0.7013924108188127,
+      "p50_ms": 12.15831250010524,
+      "p90_ms": 17.129141101031564,
+      "index_ms": 99300.63287500525,
+      "by_category": {
+        "architecture": 0.7311421345390903,
+        "semantic": 0.6185574179906752,
+        "symbol": 0.782089344202718
+      }
+    },
+    {
+      "repo": "trpc",
+      "language": "typescript",
+      "mode": "hybrid",
+      "chunks": 362,
+      "ndcg5": 0.880128346039059,
+      "ndcg10": 0.880128346039059,
+      "p50_ms": 17.702374505461194,
+      "p90_ms": 22.482367197517306,
+      "index_ms": 12064.213790989015,
+      "by_category": {
+        "architecture": 0.7626626356799113,
+        "semantic": 0.9287522621916982,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "trpc",
+      "language": "typescript",
+      "mode": "semantic",
+      "chunks": 362,
+      "ndcg5": 0.7195705199022366,
+      "ndcg10": 0.7542438687613651,
+      "p50_ms": 18.399687483906746,
+      "p90_ms": 29.071683320216835,
+      "index_ms": 12064.213790989015,
+      "by_category": {
+        "architecture": 0.630389764113832,
+        "semantic": 0.8180420550758453,
+        "symbol": 0.8630929753571458
+      }
+    },
+    {
+      "repo": "vapor",
+      "language": "swift",
+      "mode": "hybrid",
+      "chunks": 780,
+      "ndcg5": 0.8438162488468544,
+      "ndcg10": 0.8547366206877625,
+      "p50_ms": 18.594687004224397,
+      "p90_ms": 23.36979592218995,
+      "index_ms": 24387.70300001488,
+      "by_category": {
+        "architecture": 0.8102255193577976,
+        "semantic": 0.8331468468344184,
+        "symbol": 1.0
+      }
+    },
+    {
+      "repo": "vapor",
+      "language": "swift",
+      "mode": "semantic",
+      "chunks": 780,
+      "ndcg5": 0.6749554830799519,
+      "ndcg10": 0.7115125898069065,
+      "p50_ms": 13.998520997120067,
+      "p90_ms": 19.706537795718766,
+      "index_ms": 24387.70300001488,
+      "by_category": {
+        "architecture": 0.541367653896888,
+        "semantic": 0.7839442200625718,
+        "symbol": 0.5436432511904858
+      }
+    },
+    {
+      "repo": "vitest",
+      "language": "typescript",
+      "mode": "hybrid",
+      "chunks": 1079,
+      "ndcg5": 0.7261859507142916,
+      "ndcg10": 0.7261859507142916,
+      "p50_ms": 17.11500000965316,
+      "p90_ms": 27.9798006056808,
+      "index_ms": 41750.24550000671,
+      "by_category": {
+        "architecture": 0.8551549589285763,
+        "semantic": 0.6266172055194884,
+        "symbol": 0.8333333333333334
+      }
+    },
+    {
+      "repo": "vitest",
+      "language": "typescript",
+      "mode": "semantic",
+      "chunks": 1079,
+      "ndcg5": 0.4701427345619308,
+      "ndcg10": 0.5374816197225988,
+      "p50_ms": 14.64104100887198,
+      "p90_ms": 24.234249681467194,
+      "index_ms": 41750.24550000671,
+      "by_category": {
+        "architecture": 0.5081238753873883,
+        "semantic": 0.5194320183134695,
+        "symbol": 0.6623789802264932
+      }
+    },
+    {
+      "repo": "xmonad",
+      "language": "haskell",
+      "mode": "hybrid",
+      "chunks": 123,
+      "ndcg5": 0.8219624782805326,
+      "ndcg10": 0.8219624782805326,
+      "p50_ms": 16.961208486463875,
+      "p90_ms": 42.32034201559146,
+      "index_ms": 5325.283334008418,
+      "by_category": {
+        "architecture": 0.7644729683528606,
+        "semantic": 0.8602888182323137
+      }
+    },
+    {
+      "repo": "xmonad",
+      "language": "haskell",
+      "mode": "semantic",
+      "chunks": 123,
+      "ndcg5": 0.7214866888992801,
+      "ndcg10": 0.7483724754453711,
+      "p50_ms": 8.171000503352843,
+      "p90_ms": 9.249266612459905,
+      "index_ms": 5325.283334008418,
+      "by_category": {
+        "architecture": 0.7873505311825195,
+        "semantic": 0.7223871049539389
+      }
+    },
+    {
+      "repo": "zig",
+      "language": "zig",
+      "mode": "hybrid",
+      "chunks": 13059,
+      "ndcg5": 0.8880929753571458,
+      "ndcg10": 0.9031444751403448,
+      "p50_ms": 32.584916494670324,
+      "p90_ms": 68.49164997984192,
+      "index_ms": 505548.3838749933,
+      "by_category": {
+        "architecture": 0.8333333333333334,
+        "semantic": 0.9154640884004057
+      }
+    },
+    {
+      "repo": "zig",
+      "language": "zig",
+      "mode": "semantic",
+      "chunks": 13059,
+      "ndcg5": 0.789601483711009,
+      "ndcg10": 0.789601483711009,
+      "p50_ms": 12.765416511683725,
+      "p90_ms": 21.740912497625693,
+      "index_ms": 505548.3838749933,
+      "by_category": {
+        "architecture": 0.8333333333333334,
+        "semantic": 0.78188409848354
+      }
+    },
+    {
+      "repo": "zig-clap",
+      "language": "zig",
+      "mode": "hybrid",
+      "chunks": 99,
+      "ndcg5": 0.9096268032608155,
+      "ndcg10": 0.9096268032608155,
+      "p50_ms": 20.132750505581498,
+      "p90_ms": 26.38520830078051,
+      "index_ms": 2987.7513330138754,
+      "by_category": {
+        "architecture": 0.8154648767857288,
+        "semantic": 0.9200892395358251
+      }
+    },
+    {
+      "repo": "zig-clap",
+      "language": "zig",
+      "mode": "semantic",
+      "chunks": 99,
+      "ndcg5": 0.8380929753571458,
+      "ndcg10": 0.8380929753571458,
+      "p50_ms": 13.61191702017095,
+      "p90_ms": 17.635724693536766,
+      "index_ms": 2987.7513330138754,
+      "by_category": {
+        "architecture": 0.75,
+        "semantic": 0.847881083730162
+      }
+    },
+    {
+      "repo": "zls",
+      "language": "zig",
+      "mode": "hybrid",
+      "chunks": 1300,
+      "ndcg5": 0.8908764682653967,
+      "ndcg10": 0.8908764682653967,
+      "p50_ms": 18.008938001003116,
+      "p90_ms": 31.557086898828857,
+      "index_ms": 53676.82062499807,
+      "by_category": {
+        "architecture": 0.7695504010335059,
+        "semantic": 0.9562058890825688
+      }
+    },
+    {
+      "repo": "zls",
+      "language": "zig",
+      "mode": "semantic",
+      "chunks": 1300,
+      "ndcg5": 0.7761859507142915,
+      "ndcg10": 0.7928526173809581,
+      "p50_ms": 16.042479503084905,
+      "p90_ms": 28.348995512351394,
+      "index_ms": 53676.82062499807,
+      "by_category": {
+        "architecture": 0.7516942153061308,
+        "semantic": 0.8150148338827883
+      }
+    },
+    {
+      "repo": "zod",
+      "language": "typescript",
+      "mode": "hybrid",
+      "chunks": 1777,
+      "ndcg5": 0.46589524311244296,
+      "ndcg10": 0.5185599305257573,
+      "p50_ms": 29.154062503948808,
+      "p90_ms": 44.442020790302195,
+      "index_ms": 72932.56362498505,
+      "by_category": {
+        "architecture": 0.3971060699403298,
+        "semantic": 0.521751871596448,
+        "symbol": 0.6666666666666666
+      }
+    },
+    {
+      "repo": "zod",
+      "language": "typescript",
+      "mode": "semantic",
+      "chunks": 1777,
+      "ndcg5": 0.29653382790366967,
+      "ndcg10": 0.34239613958806475,
+      "p50_ms": 15.877812504186295,
+      "p90_ms": 29.18715410341975,
+      "index_ms": 72932.56362498505,
+      "by_category": {
+        "architecture": 0.0,
+        "semantic": 0.3397881718221463,
+        "symbol": 0.8102255193577976
+      }
+    }
+  ]
+}

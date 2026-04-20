@@ -297,6 +297,13 @@
     "benchmark_root": "Sources/Vapor"
   },
   {
+    "name": "snapkit",
+    "language": "swift",
+    "url": "https://github.com/SnapKit/SnapKit.git",
+    "revision": "19f59a63f0faac287f4e59986959859d81ec851c",
+    "benchmark_root": "Sources"
+  },
+  {
     "name": "plug",
     "language": "elixir",
     "url": "https://github.com/elixir-plug/plug.git",
