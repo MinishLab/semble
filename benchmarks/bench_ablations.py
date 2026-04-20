@@ -1,20 +1,20 @@
-"""Benchmark semble ablations: BM25-only and semantic-only modes.
+"""Benchmark semble ablations: BM25-only and semantic-only modes, with and without semble ranking.
 
-These are internal ablations of semble itself, using the same default model
-(potion-code-16M) as run_benchmark.py, but running in isolated search modes.
-Together with run_benchmark.py (hybrid) they form a complete ablation ladder:
+Four modes form a complete ablation ladder:
 
-    BM25-only    — keyword search, no embeddings
-    semantic     — dense search, no BM25
-    hybrid       — RRF fusion (run_benchmark.py)
+    bm25             — raw BM25, no embeddings, no semble ranking
+    semantic         — raw dense search, no BM25, no semble ranking
+    semble-bm25      — BM25 retrieval + full semble ranking stack (alpha=0)
+    semble-semantic  — semantic retrieval + full semble ranking stack (alpha=1)
 
-Running all three isolates the contribution of each component.
+Together with semble-hybrid (run_benchmark.py) this isolates the contribution
+of each retrieval source and the ranking layer independently.
 
 Usage:
     uv run python -m benchmarks.bench_ablations
     uv run python -m benchmarks.bench_ablations --repo fastapi --verbose
     uv run python -m benchmarks.bench_ablations --mode bm25
-    uv run python -m benchmarks.bench_ablations --mode semantic
+    uv run python -m benchmarks.bench_ablations --mode semble-semantic
 """
 
 from __future__ import annotations
@@ -48,7 +48,18 @@ from semble.types import SearchResult
 _TOP_K = 10
 _LATENCY_RUNS = 5
 
-_MODES = ["bm25", "semantic"]
+_MODES = ["bm25", "semantic", "semble-bm25", "semble-semantic"]
+
+# Maps mode name -> (search_mode, alpha) for index.search()
+# alpha=None  → use raw mode (no ranking pipeline)
+# alpha=0.0   → hybrid pipeline, BM25-only input
+# alpha=1.0   → hybrid pipeline, semantic-only input
+_MODE_PARAMS: dict[str, tuple[str, float | None]] = {
+    "bm25": ("bm25", None),
+    "semantic": ("semantic", None),
+    "semble-bm25": ("hybrid", 0.0),
+    "semble-semantic": ("hybrid", 1.0),
+}
 
 
 # ---------------------------------------------------------------------------
@@ -112,6 +123,7 @@ def _evaluate(
     index: SembleIndex,
     tasks: list[Task],
     mode: str,
+    alpha: float | None,
     *,
     verbose: bool = False,
 ) -> tuple[float, float, list[float], dict[str, float]]:
@@ -126,7 +138,7 @@ def _evaluate(
         results: list[SearchResult] = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
-            results = index.search(task.query, top_k=_TOP_K, mode=mode)
+            results = index.search(task.query, top_k=_TOP_K, mode=mode, alpha=alpha)
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
 
@@ -190,7 +202,8 @@ def _bench(
         index_ms = (time.perf_counter() - started) * 1000
 
         for mode in modes:
-            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, mode, verbose=verbose)
+            search_mode, alpha = _MODE_PARAMS[mode]
+            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, search_mode, alpha, verbose=verbose)
             p50, p90 = np.percentile(latencies, [50, 90]).tolist()
             result = RepoResult(
                 repo=repo,
