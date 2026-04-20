@@ -1,10 +1,9 @@
-import json
+import sys
 from pathlib import Path
 from typing import TypedDict
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-import numpy as np
 
 _RESULTS_DIR = Path(__file__).parent / "results"
 
@@ -17,7 +16,6 @@ class _Method(TypedDict):
     index_ms: float
     query_p50_ms: float
     color: str
-    marker: str
     params_m: float
 
 
@@ -27,8 +25,7 @@ _METHODS: list[_Method] = [
         "ndcg10": 0.123,
         "index_ms": 0.0,
         "query_p50_ms": 12.08,
-        "color": "#888888",
-        "marker": "s",
+        "color": "#b0b0b0",
         "params_m": 0,
     },
     {
@@ -36,8 +33,7 @@ _METHODS: list[_Method] = [
         "ndcg10": 0.577,
         "index_ms": 5750.6,
         "query_p50_ms": 123.83,
-        "color": "#e07b39",
-        "marker": "D",
+        "color": "#e8a838",
         "params_m": 0,
     },
     {
@@ -45,8 +41,7 @@ _METHODS: list[_Method] = [
         "ndcg10": 0.762,
         "index_ms": 57269.4,
         "query_p50_ms": 16.27,
-        "color": "#c0392b",
-        "marker": "^",
+        "color": "#d9634f",
         "params_m": 137,
     },
     {
@@ -55,7 +50,6 @@ _METHODS: list[_Method] = [
         "index_ms": 57269.4,
         "query_p50_ms": 16.27,
         "color": "#922b21",
-        "marker": "v",
         "params_m": 137,
     },
     {
@@ -63,34 +57,48 @@ _METHODS: list[_Method] = [
         "ndcg10": 0.852,
         "index_ms": 262.6,
         "query_p50_ms": 1.49,
-        "color": "#2471a3",
-        "marker": "o",
+        "color": "#1a5fa8",
         "params_m": 16,
     },
 ]
 
-# Label offsets (x_factor, y_offset) to avoid overlaps
-_OFFSETS: dict[str, tuple[float, float]] = {
-    "ripgrep\n(no index)": (1.3, -0.03),
-    "colgrep": (1.3, 0.008),
-    "coderankembed\nsemantic": (0.3, -0.048),
-    "coderankembed\nhybrid": (0.3, 0.018),
-    "semble": (1.3, 0.008),
+# (xytext_x_factor, xytext_y, ha, va, use_arrow)
+_LABEL_CONFIG: dict[str, tuple[float, float, str, str, bool]] = {
+    "ripgrep\n(no index)": (1.45, 0.123, "left", "center", False),
+    "colgrep": (1.45, 0.577, "left", "center", False),
+    "coderankembed\nsemantic": (0.10, 0.710, "left", "center", True),
+    "coderankembed\nhybrid": (0.10, 0.885, "left", "center", True),
+    "semble": (1.45, 0.852, "left", "center", False),
 }
 
 
-def _make_plot(out_path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(7, 4.5))
+def _marker_size(params_m: float) -> float:
+    """Return scatter marker area scaling linearly with parameter count."""
+    return max(80.0, 28.0 * params_m**0.5)
 
-    ax.set_facecolor("#fafafa")
+
+def _format_ms(v: float, _: object) -> str:
+    """Format milliseconds as a human-readable time string."""
+    if v >= 1_000:
+        return f"{v / 1_000:.0f} s"
+    return f"{v:.0f} ms"
+
+
+def _make_plot(out_path: Path) -> None:
+    fig, ax = plt.subplots(figsize=(8, 5))
+
     fig.patch.set_facecolor("white")
-    ax.grid(True, which="both", color="#e0e0e0", linewidth=0.6, zorder=0)
+    ax.set_facecolor("white")
+
+    ax.grid(axis="y", color="#e8e8e8", linewidth=0.7, zorder=0)
+    ax.grid(axis="x", color="#f0f0f0", linewidth=0.5, zorder=0)
     ax.set_axisbelow(True)
 
-    # Marker size scales with sqrt(params) so the area scales linearly with params.
-    # Floor at 60 so zero-param tools are still visible.
-    def _marker_size(params_m: float) -> float:
-        return max(60.0, 18.0 * params_m**0.5)
+    # Remove top and right spines
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_color("#cccccc")
+    ax.spines["bottom"].set_color("#cccccc")
 
     for m in _METHODS:
         x = m["index_ms"] + m["query_p50_ms"]
@@ -100,51 +108,66 @@ def _make_plot(out_path: Path) -> None:
             y,
             s=_marker_size(m["params_m"]),
             color=m["color"],
-            marker=m["marker"],
+            marker="o",
             zorder=3,
-            linewidths=0.8,
+            linewidths=1.2,
             edgecolors="white",
         )
-        xf, yo = _OFFSETS.get(m["name"], (1.3, 0.0))
+
+        xf, yt, ha, va, use_arrow = _LABEL_CONFIG.get(m["name"], (1.45, y, "left", "center", False))
+        xt = x * xf
+        arrow_props = dict(arrowstyle="-", color="#bbbbbb", lw=0.9, shrinkA=0, shrinkB=4) if use_arrow else None
         ax.annotate(
             m["name"],
             xy=(x, y),
-            xytext=(x * xf, y + yo),
+            xytext=(xt, yt),
             fontsize=8.5,
             color=m["color"],
-            va="center",
+            ha=ha,
+            va=va,
             zorder=4,
+            arrowprops=arrow_props,
         )
 
     ax.set_xscale("log")
-    ax.set_xlabel("Time to first result (index + query, ms)", fontsize=10)
-    ax.set_ylabel("NDCG@10", fontsize=10)
+    ax.set_xlabel("Time to first result — index + query", fontsize=10, color="#444444")
+    ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
     ax.set_xlim(5, 200_000)
     ax.set_ylim(0.05, 0.95)
 
-    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:,.0f} ms"))
-    ax.tick_params(labelsize=8.5)
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(_format_ms))
+    ax.tick_params(labelsize=9, colors="#555555")
 
-    # Legend for marker sizes
-    legend_params = [(0, "no model"), (16, "16M params"), (137, "137M params")]
+    # Model-size legend
+    legend_entries = [(0, "no model"), (16, "16 M params"), (137, "137 M params")]
     handles = [
         plt.scatter(
             [],
             [],
             s=_marker_size(p),
-            color="#999999",
+            color="#aaaaaa",
             marker="o",
             label=label,
             edgecolors="white",
-            linewidths=0.8,
+            linewidths=1.2,
         )
-        for p, label in legend_params
+        for p, label in legend_entries
     ]
-    ax.legend(handles=handles, title="Model size", fontsize=8, title_fontsize=8.5, loc="lower right", framealpha=0.9)
+    legend = ax.legend(
+        handles=handles,
+        title="Model size",
+        fontsize=8.5,
+        title_fontsize=9,
+        loc="lower right",
+        frameon=True,
+        framealpha=0.95,
+        edgecolor="#dddddd",
+    )
+    legend.get_title().set_color("#444444")
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
-    print(f"Saved to {out_path}", file=__import__("sys").stderr)
+    print(f"Saved to {out_path}", file=sys.stderr)
 
 
 def main() -> None:
