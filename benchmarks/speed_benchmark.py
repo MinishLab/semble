@@ -112,7 +112,7 @@ def _run_ripgrep(query: str, benchmark_dir: Path) -> list[str]:
 
 
 def _run_colgrep(query: str, benchmark_dir: Path) -> list[str]:
-    cmd = [_COLGREP, "--json", "--code-only", "-k", str(_TOP_K), query, str(benchmark_dir)]
+    cmd = [_COLGREP, "--force-cpu", "--json", "--code-only", "-k", str(_TOP_K), query, str(benchmark_dir)]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     except subprocess.TimeoutExpired:
@@ -160,7 +160,7 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float]:
     subprocess.run([_COLGREP, "clear", str(spec.benchmark_dir)], capture_output=True, timeout=30)
     t0 = time.perf_counter()
     proc = subprocess.run(
-        [_COLGREP, "init", "-y", str(spec.benchmark_dir)], capture_output=True, text=True, timeout=300
+        [_COLGREP, "--force-cpu", "init", "-y", str(spec.benchmark_dir)], capture_output=True, text=True, timeout=300
     )
     index_ms = (time.perf_counter() - t0) * 1000
     if proc.returncode != 0:
@@ -215,7 +215,7 @@ def main() -> None:
     if _HAS_ST:
         print(f"Loading {_CRE_MODEL}...", file=sys.stderr)
         t0 = time.perf_counter()
-        cre_model = _CREWrapper(SentenceTransformer(_CRE_MODEL, trust_remote_code=True))
+        cre_model = _CREWrapper(SentenceTransformer(_CRE_MODEL, trust_remote_code=True, device="cpu"))
         print(f"  loaded in {(time.perf_counter() - t0) * 1000:.0f}ms", file=sys.stderr)
     else:
         print("sentence-transformers not found; skipping CodeRankEmbed.", file=sys.stderr)
