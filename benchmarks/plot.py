@@ -22,7 +22,7 @@ class _Method(TypedDict):
 
 _METHODS: list[_Method] = [
     {
-        "name": "ripgrep\n(no index)",
+        "name": "ripgrep",
         "ndcg10": 0.123,
         "index_ms": 0.0,
         "query_p50_ms": 12.08,
@@ -63,14 +63,8 @@ _METHODS: list[_Method] = [
     },
 ]
 
-# (x_factor, y, ha, va)
-_LABEL_CONFIG: dict[str, tuple[float, float, str, str]] = {
-    "ripgrep\n(no index)": (1.3, 0.123, "left", "center"),
-    "colgrep": (1.3, 0.577, "left", "center"),
-    "coderankembed\nsemantic": (0.73, 0.762, "right", "center"),
-    "coderankembed\nhybrid": (0.73, 0.860, "right", "center"),
-    "semble": (1.3, 0.852, "left", "center"),
-}
+# Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
+_CBRT_LABEL_DELTA = 2.0
 
 
 def _marker_size(params_m: float) -> float:
@@ -125,17 +119,8 @@ def _make_plot(out_path: Path) -> None:
             edgecolors="white",
         )
 
-        xf, yt, ha, va = _LABEL_CONFIG.get(m["name"], (1.3, y, "left", "center"))
-        ax.text(
-            x * xf,
-            yt,
-            m["name"],
-            fontsize=8.5,
-            color=m["color"],
-            ha=ha,
-            va=va,
-            zorder=4,
-        )
+        x_label = (x ** (1 / 3) + _CBRT_LABEL_DELTA) ** 3
+        ax.text(x_label, y, m["name"], fontsize=8.5, color=m["color"], ha="left", va="center", zorder=4)
 
     ax.set_xscale("function", functions=(_cbrt_forward, _cbrt_inverse))
     ax.set_xlabel("Time to first result — index + query", fontsize=10, color="#444444")
