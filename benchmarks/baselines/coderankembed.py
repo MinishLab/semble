@@ -11,12 +11,12 @@ Two modes are benchmarked:
 
 Requires the benchmark extra:
     uv sync --extra benchmark
-    uv run python -m benchmarks.bench_coderankembed
+    uv run python -m benchmarks.baselines.coderankembed
 
 Usage:
-    uv run python -m benchmarks.bench_coderankembed
-    uv run python -m benchmarks.bench_coderankembed --repo fastapi --verbose
-    uv run python -m benchmarks.bench_coderankembed --mode semantic
+    uv run python -m benchmarks.baselines.coderankembed
+    uv run python -m benchmarks.baselines.coderankembed --repo fastapi --verbose
+    uv run python -m benchmarks.baselines.coderankembed --mode semantic
 """
 
 from __future__ import annotations

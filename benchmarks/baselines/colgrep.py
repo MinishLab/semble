@@ -5,9 +5,9 @@ fixed-size chunks.  Matching is file-path-only (no line-span check) to be
 fair across the two granularities.
 
 Usage:
-    uv run python -m benchmarks.bench_colgrep
-    uv run python -m benchmarks.bench_colgrep --repo requests --verbose
-    uv run python -m benchmarks.bench_colgrep --init   # rebuild colgrep indexes
+    uv run python -m benchmarks.baselines.colgrep
+    uv run python -m benchmarks.baselines.colgrep --repo requests --verbose
+    uv run python -m benchmarks.baselines.colgrep --init   # rebuild colgrep indexes
 """
 
 from __future__ import annotations

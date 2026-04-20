@@ -11,10 +11,10 @@ Together with semble-hybrid (run_benchmark.py) this isolates the contribution
 of each retrieval source and the ranking layer independently.
 
 Usage:
-    uv run python -m benchmarks.bench_ablations
-    uv run python -m benchmarks.bench_ablations --repo fastapi --verbose
-    uv run python -m benchmarks.bench_ablations --mode bm25
-    uv run python -m benchmarks.bench_ablations --mode semble-semantic
+    uv run python -m benchmarks.baselines.ablations
+    uv run python -m benchmarks.baselines.ablations --repo fastapi --verbose
+    uv run python -m benchmarks.baselines.ablations --mode bm25
+    uv run python -m benchmarks.baselines.ablations --mode semble-semantic
 """
 
 from __future__ import annotations

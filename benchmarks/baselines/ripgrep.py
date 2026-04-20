@@ -8,10 +8,10 @@ query string first), which approximates TF-style relevance. Ties are broken
 by file path order.  Matching is file-path-only (no line-span check).
 
 Usage:
-    uv run python -m benchmarks.bench_ripgrep
-    uv run python -m benchmarks.bench_ripgrep --repo requests --verbose
-    uv run python -m benchmarks.bench_ripgrep --fixed-strings   # literal match (default)
-    uv run python -m benchmarks.bench_ripgrep --no-fixed-strings  # regex mode
+    uv run python -m benchmarks.baselines.ripgrep
+    uv run python -m benchmarks.baselines.ripgrep --repo requests --verbose
+    uv run python -m benchmarks.baselines.ripgrep --fixed-strings   # literal match (default)
+    uv run python -m benchmarks.baselines.ripgrep --no-fixed-strings  # regex mode
 """
 
 from __future__ import annotations

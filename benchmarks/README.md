@@ -11,9 +11,9 @@ uv run python -m benchmarks.sync_repos
 uv run python -m benchmarks.sync_repos --check
 ```
 
-## Run
+## Main benchmark
 
-### semble (hybrid — main result)
+The primary benchmark — run this when iterating on semble.
 
 ```bash
 uv run python -m benchmarks.run_benchmark
@@ -22,32 +22,30 @@ uv run python -m benchmarks.run_benchmark --language python
 ```
 
 Full runs (no `--repo`/`--language` filters) automatically save results to
-`benchmarks/results/<sha>.json`.
+`benchmarks/results/semble-hybrid-<sha12>.json`.
 
-### Ablations (BM25-only and semantic-only)
+## Baselines
 
-Isolates the contribution of each semble component using the same default model.
+One-shot benchmarks in `benchmarks/baselines/`. Results are already saved in
+`benchmarks/results/` — only re-run if you need to reproduce them.
+
+### Ablations
+
+Isolates the contribution of each semble component (retrieval source vs. ranking stack).
 
 ```bash
-uv run python -m benchmarks.bench_ablations
-uv run python -m benchmarks.bench_ablations --mode bm25
-uv run python -m benchmarks.bench_ablations --mode semantic
+uv run python -m benchmarks.baselines.ablations
+uv run python -m benchmarks.baselines.ablations --mode bm25
+uv run python -m benchmarks.baselines.ablations --mode semble-semantic
 ```
-
-## Comparisons
-
-These scripts benchmark external tools against semble using the same task set
-and NDCG@10 metric.  All print a machine-readable JSON summary to stdout.
 
 ### ripgrep (keyword baseline)
 
 Requires `rg` on `$PATH` (`brew install ripgrep` / `apt install ripgrep`).
-Files are ranked by match-count descending.
 
 ```bash
-uv run python -m benchmarks.bench_ripgrep
-uv run python -m benchmarks.bench_ripgrep --repo requests --verbose
-uv run python -m benchmarks.bench_ripgrep --no-fixed-strings   # regex mode
+uv run python -m benchmarks.baselines.ripgrep
+uv run python -m benchmarks.baselines.ripgrep --no-fixed-strings   # regex mode
 ```
 
 ### ColGREP (AST-aware search)
@@ -55,19 +53,17 @@ uv run python -m benchmarks.bench_ripgrep --no-fixed-strings   # regex mode
 Requires the `colgrep` binary on `$PATH`.
 
 ```bash
-uv run python -m benchmarks.bench_colgrep --init   # build indexes once
-uv run python -m benchmarks.bench_colgrep
-uv run python -m benchmarks.bench_colgrep --repo requests --verbose
+uv run python -m benchmarks.baselines.colgrep --init   # build indexes once
+uv run python -m benchmarks.baselines.colgrep
 ```
 
 ### CodeRankEmbed (transformer model)
 
-Runs `nomic-ai/CodeRankEmbed` (137M params) in semantic-only and hybrid modes.
+Runs `nomic-ai/CodeRankEmbed` (137M params) in semantic and hybrid modes.
 Requires the `benchmark` extra:
 
 ```bash
 uv sync --extra benchmark
-uv run python -m benchmarks.bench_coderankembed
-uv run python -m benchmarks.bench_coderankembed --mode semantic
-uv run python -m benchmarks.bench_coderankembed --repo fastapi --verbose
+uv run python -m benchmarks.baselines.coderankembed
+uv run python -m benchmarks.baselines.coderankembed --mode semantic
 ```
