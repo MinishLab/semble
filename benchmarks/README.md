@@ -1,10 +1,23 @@
 # Benchmarks
 
-Quality and speed benchmarks for `semble` across 63 repositories in 19 languages, with 1,258 annotated queries. Dart is excluded — colgrep does not support it.
+Quality and speed benchmarks for `semble` across 63 repositories in 19 languages.
+
+## Dataset
+
+3 repositories per language (9 for Python), covering:
+bash, C, C++, C#, Elixir, Go, Haskell, Java, JavaScript, Kotlin, Lua, PHP, Python, Ruby, Rust, Scala, Swift, TypeScript, Zig.
+
+1,258 annotated queries in three categories:
+
+| Category | Queries | Description |
+|---|---|---|
+| semantic | 711 | Find code that implements a specific behavior or concept |
+| architecture | 343 | Understand design decisions, module boundaries, or structural patterns |
+| symbol | 204 | Look up a named entity (function, class, type, variable) |
 
 ## Results
 
-Quality is NDCG@10 averaged across all queries. Index time and query p50 are from the speed benchmark (one repo per language, cold start).
+Quality is NDCG@10 averaged across all queries. Index time and query p50 are from the speed benchmark (one repo per language, cold start, CPU-only).
 
 | Method | NDCG@10 | Index time | Query p50 |
 |---|---|---|---|
@@ -14,11 +27,9 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 | **semble** | **0.852** | **263 ms** | **1.5 ms** |
 | coderankembed hybrid | 0.860 | 57 s | 16 ms |
 
-semble reaches 0.852 NDCG@10, close to coderankembed hybrid (0.860, a 137M-param transformer), while indexing 218x faster (263 ms vs 57 s) and querying 11x faster (1.5 ms vs 16 ms).
+semble reaches 0.852 NDCG@10, close to coderankembed hybrid (0.860, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
 
 ### By query category
-
-Queries fall into three categories: symbol (named entity lookup), semantic (behavior/concepts), and architecture (design and structure).
 
 | Method | Architecture | Semantic | Symbol |
 |---|---|---|---|
@@ -26,19 +37,19 @@ Queries fall into three categories: symbol (named entity lookup), semantic (beha
 | **semble** | 0.802 | 0.846 | **0.958** |
 | coderankembed semantic | 0.690 | 0.777 | 0.845 |
 
-semble leads on symbol queries (0.958 vs 0.941) where BM25 is strong. Architecture queries are the hardest category for all methods; coderankembed hybrid holds a small lead there (0.811 vs 0.802).
+semble leads on symbol queries (0.958 vs 0.941) where BM25 excels at exact name matching. Architecture queries are the hardest for all methods; coderankembed hybrid holds a small edge there (0.811 vs 0.802).
 
 ## Ablations
 
 `raw` returns retrieval scores directly; `+ ranking` feeds them through semble's hybrid ranker.
 
-| Retrieval | Raw NDCG@10 | + semble ranking | delta |
-|---|---|---|---|
-| BM25 | 0.675 | 0.834 | +0.159 |
-| Semantic (potion-code-16M) | 0.650 | 0.821 | +0.171 |
-| BM25 + Semantic (full hybrid) | — | **0.852** | — |
+| Retrieval | NDCG@10 (raw) | NDCG@10 (+ ranking) |
+|---|---|---|
+| BM25 | 0.675 | 0.834 |
+| potion-code-16M | 0.650 | 0.821 |
+| BM25 + potion-code-16M | — | **0.852** |
 
-The ranking stack adds roughly +0.16 NDCG@10 for both retrieval methods. Combining BM25 and semantic retrieval adds another ~0.02 on top of that.
+The ranking stack adds roughly +0.16 NDCG@10 for both retrieval methods. Combining them adds another ~0.02 on top.
 
 <details>
 <summary>By query category</summary>
@@ -46,9 +57,9 @@ The ranking stack adds roughly +0.16 NDCG@10 for both retrieval methods. Combini
 | Mode | Architecture | Semantic | Symbol |
 |---|---|---|---|
 | BM25 raw | 0.628 | 0.676 | 0.719 |
-| Semantic raw | 0.626 | 0.666 | 0.629 |
+| potion-code-16M raw | 0.626 | 0.666 | 0.629 |
 | semble BM25 (+ ranking) | 0.770 | 0.819 | 0.957 |
-| semble semantic (+ ranking) | 0.757 | 0.808 | 0.943 |
+| semble potion-code-16M (+ ranking) | 0.757 | 0.808 | 0.943 |
 | **semble hybrid** | **0.802** | **0.846** | **0.958** |
 
 </details>
@@ -64,8 +75,7 @@ uv run python -m benchmarks.sync_repos          # clone / update
 uv run python -m benchmarks.sync_repos --check  # verify only
 ```
 
-Benchmark configuration:
-- All tools run CPU-only (no GPU)
+- All tools run CPU-only
 - semble model: `minishlab/potion-code-16M`
 - coderankembed model: `nomic-ai/CodeRankEmbed` (137M params)
 - Speed benchmark: 19 repos (one per language), cold-start index, 5 query runs per repo
