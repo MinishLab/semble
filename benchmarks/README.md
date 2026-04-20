@@ -22,12 +22,12 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 | Method | NDCG@10 | Index time | Query p50 |
 |---|---|---|---|
 | ripgrep | 0.123 | — | 12 ms |
-| colgrep | 0.577 | 5.8 s | 124 ms |
-| coderankembed semantic | 0.762 | 57 s | 16 ms |
+| ColGREP | 0.577 | 5.8 s | 124 ms |
+| CodeRankEmbed | 0.762 | 57 s | 16 ms |
 | **semble** | **0.852** | **263 ms** | **1.5 ms** |
-| coderankembed hybrid | 0.860 | 57 s | 16 ms |
+| CodeRankEmbed Hybrid | 0.860 | 57 s | 16 ms |
 
-semble reaches 0.852 NDCG@10, close to coderankembed hybrid (0.860, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
+semble reaches 0.852 NDCG@10, close to CodeRankEmbed Hybrid (0.860, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
 
 | ![Speed vs quality](results/speed_vs_ndcg.png) |
 |:--:|
@@ -37,11 +37,11 @@ semble reaches 0.852 NDCG@10, close to coderankembed hybrid (0.860, a 137M-param
 
 | Method | Architecture | Semantic | Symbol |
 |---|---|---|---|
-| coderankembed hybrid | 0.811 | 0.863 | 0.941 |
+| CodeRankEmbed Hybrid | 0.811 | 0.863 | 0.941 |
 | **semble** | 0.802 | 0.846 | **0.958** |
-| coderankembed semantic | 0.690 | 0.777 | 0.845 |
+| CodeRankEmbed | 0.690 | 0.777 | 0.845 |
 
-semble leads on symbol queries (0.958 vs 0.941) where BM25 excels at exact name matching. Architecture queries are the hardest for all methods; coderankembed hybrid holds a small edge there (0.811 vs 0.802).
+semble leads on symbol queries (0.958 vs 0.941) where BM25 excels at exact name matching. Architecture queries are the hardest for all methods; CodeRankEmbed Hybrid holds a small edge there (0.811 vs 0.802).
 
 ## Ablations
 
