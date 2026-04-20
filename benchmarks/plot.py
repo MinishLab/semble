@@ -66,6 +66,9 @@ _METHODS: list[_Method] = [
 # Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
 _CBRT_LABEL_DELTA = 2.0
 
+# Names of methods that form the baseline speed-quality frontier (drawn as a connecting line).
+_FRONTIER_NAMES = {"ripgrep", "ColGREP", "CodeRankEmbed\nHybrid"}
+
 
 def _marker_size(params_m: float) -> float:
     """Return scatter marker area scaling linearly with parameter count."""
@@ -104,6 +107,19 @@ def _make_plot(out_path: Path) -> None:
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_color("#cccccc")
     ax.spines["bottom"].set_color("#cccccc")
+
+    # Baseline frontier: connect ripgrep → ColGREP → CodeRankEmbed Hybrid in speed order.
+    frontier = sorted(
+        [(m["index_ms"] + m["query_p50_ms"], m["ndcg10"]) for m in _METHODS if m["name"] in _FRONTIER_NAMES]
+    )
+    ax.plot(
+        [p[0] for p in frontier],
+        [p[1] for p in frontier],
+        color="#cccccc",
+        linewidth=1.0,
+        linestyle="--",
+        zorder=1,
+    )
 
     for m in _METHODS:
         x = m["index_ms"] + m["query_p50_ms"]
