@@ -1,0 +1,282 @@
+import json
+import subprocess
+import sys
+import time
+from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+from model2vec import StaticModel
+
+from benchmarks.data import RepoSpec, Task, available_repo_specs, load_tasks, save_results
+from semble import SembleIndex
+from semble.index.dense import _DEFAULT_MODEL_NAME
+
+try:
+    from sentence_transformers import SentenceTransformer
+
+    _HAS_ST = True
+except ImportError:
+    _HAS_ST = False
+
+# One representative repo per language (medium size, healthy NDCG on the main benchmark).
+_REPOS: list[str] = [
+    "nvm",  # bash
+    "libuv",  # c
+    "nlohmann-json",  # cpp
+    "messagepack-csharp",  # csharp
+    "riverpod",  # dart
+    "phoenix",  # elixir
+    "gin",  # go
+    "aeson",  # haskell
+    "gson",  # java
+    "axios",  # javascript
+    "ktor",  # kotlin
+    "telescope.nvim",  # lua
+    "monolog",  # php
+    "flask",  # python
+    "rack",  # ruby
+    "axum",  # rust
+    "http4s",  # scala
+    "alamofire",  # swift
+    "trpc",  # typescript
+    "zls",  # zig
+]
+
+_TOP_K = 10
+_LATENCY_RUNS = 5  # in-process tools (semble, coderankembed)
+_CG_LATENCY_RUNS = 1  # colgrep: subprocess per query ~3 s; single run sufficient
+_RG_LATENCY_RUNS = 3  # ripgrep: subprocess per query ~10 ms
+_CRE_MODEL = "nomic-ai/CodeRankEmbed"
+_COLGREP = "colgrep"
+_RG = "rg"
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    """Speed result for one tool on one repo."""
+
+    repo: str
+    language: str
+    tool: str
+    index_ms: float | None  # None = no index (ripgrep)
+    p50_ms: float
+
+
+class _CREWrapper:
+    """Wrap SentenceTransformer with asymmetric query/document prompts."""
+
+    def __init__(self, model: "SentenceTransformer", max_seq_length: int = 512) -> None:
+        """Initialise wrapper and cap sequence length to avoid OOM on CPU."""
+        self._model = model
+        self._model.max_seq_length = max_seq_length
+
+    def encode(self, texts: list[str]) -> np.ndarray:
+        """Encode with query prompt for single items, document prompt for batches."""
+        if len(texts) == 1:
+            return self._model.encode(texts, prompt_name="query", batch_size=1)  # type: ignore[return-value]
+        return self._model.encode(texts, batch_size=1)  # type: ignore[return-value]
+
+
+def _run_ripgrep(query: str, benchmark_dir: Path) -> list[str]:
+    cmd = [
+        _RG,
+        "--count",
+        "--no-heading",
+        "--ignore-case",
+        "--hidden",
+        "--glob",
+        "!.git",
+        "--fixed-strings",
+        query,
+        str(benchmark_dir),
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        return []
+    if proc.returncode not in (0, 1):
+        return []
+    entries: list[tuple[str, int]] = []
+    for line in proc.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        *path_parts, count_str = line.split(":")
+        try:
+            entries.append((":".join(path_parts), int(count_str)))
+        except ValueError:
+            continue
+    entries.sort(key=lambda x: -x[1])
+    return [path for path, _ in entries[:_TOP_K]]
+
+
+def _run_colgrep(query: str, benchmark_dir: Path) -> list[str]:
+    cmd = [_COLGREP, "--json", "--code-only", "-k", str(_TOP_K), query, str(benchmark_dir)]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        return []
+    if proc.returncode != 0:
+        return []
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    return [item["unit"]["file"] for item in data if "unit" in item and "file" in item["unit"]]
+
+
+def _bench_semble(spec: RepoSpec, tasks: list[Task], model: object) -> tuple[float, float]:
+    t0 = time.perf_counter()
+    index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+    index_ms = (time.perf_counter() - t0) * 1000
+    latencies: list[float] = []
+    for task in tasks:
+        qlats: list[float] = []
+        for _ in range(_LATENCY_RUNS):
+            t0 = time.perf_counter()
+            index.search(task.query, top_k=_TOP_K, mode="hybrid")
+            qlats.append((time.perf_counter() - t0) * 1000)
+        latencies.append(float(np.median(qlats)))
+    return index_ms, float(np.median(latencies))
+
+
+def _bench_coderankembed(spec: RepoSpec, tasks: list[Task], model: "_CREWrapper") -> tuple[float, float]:
+    t0 = time.perf_counter()
+    index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+    index_ms = (time.perf_counter() - t0) * 1000
+    latencies: list[float] = []
+    for task in tasks:
+        qlats: list[float] = []
+        for _ in range(_LATENCY_RUNS):
+            t0 = time.perf_counter()
+            index.search(task.query, top_k=_TOP_K, mode="semantic")
+            qlats.append((time.perf_counter() - t0) * 1000)
+        latencies.append(float(np.median(qlats)))
+    return index_ms, float(np.median(latencies))
+
+
+def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float]:
+    subprocess.run([_COLGREP, "clear", str(spec.benchmark_dir)], capture_output=True, timeout=30)
+    t0 = time.perf_counter()
+    proc = subprocess.run(
+        [_COLGREP, "init", "-y", str(spec.benchmark_dir)], capture_output=True, text=True, timeout=300
+    )
+    index_ms = (time.perf_counter() - t0) * 1000
+    if proc.returncode != 0:
+        print(f"  WARNING: colgrep init failed: {proc.stderr.strip()}", file=sys.stderr)
+    latencies: list[float] = []
+    for task in tasks:
+        qlats: list[float] = []
+        for _ in range(_CG_LATENCY_RUNS):
+            t0 = time.perf_counter()
+            _run_colgrep(task.query, spec.benchmark_dir)
+            qlats.append((time.perf_counter() - t0) * 1000)
+        latencies.append(sorted(qlats)[_CG_LATENCY_RUNS // 2])
+    return index_ms, float(np.median(latencies))
+
+
+def _bench_ripgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float]:
+    latencies: list[float] = []
+    for task in tasks:
+        qlats: list[float] = []
+        for _ in range(_RG_LATENCY_RUNS):
+            t0 = time.perf_counter()
+            _run_ripgrep(task.query, spec.benchmark_dir)
+            qlats.append((time.perf_counter() - t0) * 1000)
+        latencies.append(float(np.median(qlats)))
+    return 0.0, float(np.median(latencies))
+
+
+def _build_summary(results: list[ToolResult], tools: list[str]) -> dict[str, object]:
+    by_tool: dict[str, list[ToolResult]] = {t: [r for r in results if r.tool == t] for t in tools}
+    summary: dict[str, object] = {}
+    for tool, tool_results in by_tool.items():
+        idx_vals = [r.index_ms for r in tool_results if r.index_ms is not None]
+        summary[tool] = {
+            "avg_index_ms": round(sum(idx_vals) / len(idx_vals), 1) if idx_vals else None,
+            "avg_p50_ms": round(sum(r.p50_ms for r in tool_results) / len(tool_results), 2),
+        }
+    return summary
+
+
+def main() -> None:
+    """Run cold-start index + query latency benchmark over a curated 1-per-language subset."""
+    specs = available_repo_specs()
+    all_tasks = load_tasks(repo_specs=specs)
+    repo_tasks: dict[str, list[Task]] = {repo: [t for t in all_tasks if t.repo == repo] for repo in _REPOS}
+
+    print("Loading semble model...", file=sys.stderr)
+    t0 = time.perf_counter()
+    semble_model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
+    print(f"  loaded in {(time.perf_counter() - t0) * 1000:.0f}ms", file=sys.stderr)
+
+    cre_model = None
+    if _HAS_ST:
+        print(f"Loading {_CRE_MODEL}...", file=sys.stderr)
+        t0 = time.perf_counter()
+        cre_model = _CREWrapper(SentenceTransformer(_CRE_MODEL, trust_remote_code=True))
+        print(f"  loaded in {(time.perf_counter() - t0) * 1000:.0f}ms", file=sys.stderr)
+    else:
+        print("sentence-transformers not found; skipping CodeRankEmbed.", file=sys.stderr)
+    print(file=sys.stderr)
+
+    tools = ["semble", "coderankembed", "colgrep", "ripgrep"] if cre_model else ["semble", "colgrep", "ripgrep"]
+
+    print(f"{'Repo':<22} {'Language':<14} {'Tool':<16} {'Index':>10} {'p50':>8}", file=sys.stderr)
+    print(f"{'-' * 22} {'-' * 14} {'-' * 16} {'-' * 10} {'-' * 8}", file=sys.stderr)
+
+    all_results: list[ToolResult] = []
+
+    for repo in _REPOS:
+        spec = specs[repo]
+        tasks = repo_tasks[repo]
+
+        idx_ms, p50 = _bench_semble(spec, tasks, semble_model)
+        all_results.append(ToolResult(repo=repo, language=spec.language, tool="semble", index_ms=idx_ms, p50_ms=p50))
+        print(f"{repo:<22} {spec.language:<14} {'semble':<16} {idx_ms:>8.0f}ms {p50:>7.2f}ms", file=sys.stderr)
+
+        if cre_model is not None:
+            idx_ms, p50 = _bench_coderankembed(spec, tasks, cre_model)
+            all_results.append(
+                ToolResult(repo=repo, language=spec.language, tool="coderankembed", index_ms=idx_ms, p50_ms=p50)
+            )
+            print(f"{'':22} {spec.language:<14} {'coderankembed':<16} {idx_ms:>8.0f}ms {p50:>7.2f}ms", file=sys.stderr)
+
+        idx_ms, p50 = _bench_colgrep(spec, tasks)
+        all_results.append(ToolResult(repo=repo, language=spec.language, tool="colgrep", index_ms=idx_ms, p50_ms=p50))
+        print(f"{'':22} {spec.language:<14} {'colgrep':<16} {idx_ms:>8.0f}ms {p50:>7.2f}ms", file=sys.stderr)
+
+        _, p50 = _bench_ripgrep(spec, tasks)
+        all_results.append(ToolResult(repo=repo, language=spec.language, tool="ripgrep", index_ms=None, p50_ms=p50))
+        print(f"{'':22} {spec.language:<14} {'ripgrep':<16} {'N/A':>10} {p50:>7.2f}ms", file=sys.stderr)
+
+    summary = _build_summary(all_results, tools)
+
+    print(file=sys.stderr)
+    print("Summary (averages across 20 repos):", file=sys.stderr)
+    for tool, stats in summary.items():
+        assert isinstance(stats, dict)
+        idx_str = f"{stats['avg_index_ms']:.0f}ms" if stats["avg_index_ms"] is not None else "N/A"
+        print(f"  {tool:<16}  avg index={idx_str:<10}  avg p50={stats['avg_p50_ms']:.2f}ms", file=sys.stderr)
+
+    payload = {
+        "repos": _REPOS,
+        "summary": summary,
+        "results": [
+            {
+                "repo": r.repo,
+                "language": r.language,
+                "tool": r.tool,
+                "index_ms": round(r.index_ms, 1) if r.index_ms is not None else None,
+                "p50_ms": round(r.p50_ms, 2),
+            }
+            for r in all_results
+        ],
+    }
+    out_path = save_results("speed", payload)
+    print(f"\nResults saved to {out_path}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
