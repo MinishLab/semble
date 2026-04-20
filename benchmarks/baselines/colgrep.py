@@ -31,6 +31,7 @@ class RepoResult:
     language: str
     ndcg10: float
     p50_ms: float
+    index_ms: float
 
 
 def _run_colgrep(query: str, benchmark_dir: Path, top_k: int) -> list[str]:
@@ -86,26 +87,37 @@ def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = Fa
     return ndcg10_sum / len(tasks), latencies[len(latencies) // 2]
 
 
-def _init_index(benchmark_dir: Path) -> None:
-    """Build (or rebuild) the colgrep index for a directory."""
+def _init_index(benchmark_dir: Path) -> float:
+    """Build (or rebuild) the colgrep index; return elapsed ms."""
     cmd = [_COLGREP, "init", "-y", str(benchmark_dir)]
+    t0 = time.perf_counter()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    index_ms = (time.perf_counter() - t0) * 1000
     if proc.returncode != 0:
         print(f"  WARNING: colgrep init failed for {benchmark_dir}: {proc.stderr.strip()}", file=sys.stderr)
+    return index_ms
 
 
 def _build_summary(results: list[RepoResult]) -> dict[str, object]:
     """Build the JSON summary dict from the current (possibly partial) results list."""
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
     avg_p50 = sum(r.p50_ms for r in results) / len(results)
+    avg_index = sum(r.index_ms for r in results) / len(results)
     return {
         "tool": "colgrep",
         "repos": [
-            {"repo": r.repo, "language": r.language, "ndcg10": round(r.ndcg10, 4), "p50_ms": round(r.p50_ms, 1)}
+            {
+                "repo": r.repo,
+                "language": r.language,
+                "ndcg10": round(r.ndcg10, 4),
+                "p50_ms": round(r.p50_ms, 1),
+                "index_ms": round(r.index_ms, 0),
+            }
             for r in results
         ],
         "avg_ndcg10": round(avg_ndcg10, 4),
         "avg_p50_ms": round(avg_p50, 1),
+        "avg_index_ms": round(avg_index, 0),
     }
 
 
@@ -117,7 +129,11 @@ def _load_completed(out_path: Path) -> dict[str, RepoResult]:
         data = json.loads(out_path.read_text(encoding="utf-8"))
         return {
             entry["repo"]: RepoResult(
-                repo=entry["repo"], language=entry["language"], ndcg10=entry["ndcg10"], p50_ms=entry["p50_ms"]
+                repo=entry["repo"],
+                language=entry["language"],
+                ndcg10=entry["ndcg10"],
+                p50_ms=entry["p50_ms"],
+                index_ms=entry.get("index_ms", 0.0),
             )
             for entry in data.get("repos", [])
         }
@@ -127,22 +143,10 @@ def _load_completed(out_path: Path) -> dict[str, RepoResult]:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Benchmark ColGREP on the semble benchmark suite.")
-    parser.add_argument("--init", action="store_true", help="(Re)build colgrep indexes before benchmarking.")
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
     parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
     return parser.parse_args()
-
-
-def _init_indexes(repo_tasks: dict[str, list[Task]], repo_specs: dict[str, RepoSpec]) -> None:
-    """Build colgrep indexes for all repos."""
-    print("Building colgrep indexes...", file=sys.stderr)
-    for repo in sorted(repo_tasks):
-        spec = repo_specs[repo]
-        print(f"  {repo} -> {spec.benchmark_dir}", file=sys.stderr)
-        _init_index(spec.benchmark_dir)
-    print("Done.", file=sys.stderr)
-    print(file=sys.stderr)
 
 
 def _run_repos(
@@ -156,10 +160,13 @@ def _run_repos(
     """Evaluate each repo and save incrementally; return all results."""
     results: list[RepoResult] = list(completed.values())
 
-    print(f"{'Repo':<22} {'Language':<12} {'NDCG@10':>8} {'p50':>8}", file=sys.stderr)
-    print(f"{'-' * 22} {'-' * 12} {'-' * 8} {'-' * 8}", file=sys.stderr)
+    print(f"{'Repo':<22} {'Language':<12} {'Index':>9} {'NDCG@10':>8} {'p50':>8}", file=sys.stderr)
+    print(f"{'-' * 22} {'-' * 12} {'-' * 9} {'-' * 8} {'-' * 8}", file=sys.stderr)
     for r in sorted(results, key=lambda r: r.repo):
-        print(f"{r.repo:<22} {r.language:<12} {r.ndcg10:>8.3f} {r.p50_ms:>7.1f}ms (cached)", file=sys.stderr)
+        print(
+            f"{r.repo:<22} {r.language:<12} {r.index_ms:>8.0f}ms {r.ndcg10:>8.3f} {r.p50_ms:>7.1f}ms (cached)",
+            file=sys.stderr,
+        )
 
     for repo, repo_task_list in sorted(repo_tasks.items()):
         if repo in completed:
@@ -167,10 +174,11 @@ def _run_repos(
         spec = repo_specs[repo]
         if verbose:
             print(f"\n--- {repo} ---", file=sys.stderr)
+        index_ms = _init_index(spec.benchmark_dir)
         ndcg10, p50_ms = _evaluate_repo(repo_task_list, spec.benchmark_dir, verbose=verbose)
-        result = RepoResult(repo=repo, language=spec.language, ndcg10=ndcg10, p50_ms=p50_ms)
+        result = RepoResult(repo=repo, language=spec.language, ndcg10=ndcg10, p50_ms=p50_ms, index_ms=index_ms)
         results.append(result)
-        print(f"{repo:<22} {spec.language:<12} {ndcg10:>8.3f} {p50_ms:>7.1f}ms", file=sys.stderr)
+        print(f"{repo:<22} {spec.language:<12} {index_ms:>8.0f}ms {ndcg10:>8.3f} {p50_ms:>7.1f}ms", file=sys.stderr)
         if out_path:
             save_results("colgrep", _build_summary(results))
 
@@ -191,9 +199,6 @@ def main() -> None:
 
     repo_tasks = grouped_tasks(tasks)
 
-    if args.init:
-        _init_indexes(repo_tasks, repo_specs)
-
     out_path = results_path("colgrep") if is_full_run else None
     completed = _load_completed(out_path) if out_path else {}
     if completed:
@@ -206,8 +211,12 @@ def main() -> None:
 
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
     avg_p50 = sum(r.p50_ms for r in results) / len(results)
-    print(f"{'-' * 22} {'-' * 12} {'-' * 8} {'-' * 8}", file=sys.stderr)
-    print(f"{'Average (' + str(len(results)) + ')':<22} {'':<12} {avg_ndcg10:>8.3f} {avg_p50:>7.1f}ms", file=sys.stderr)
+    avg_index = sum(r.index_ms for r in results) / len(results)
+    print(f"{'-' * 22} {'-' * 12} {'-' * 9} {'-' * 8} {'-' * 8}", file=sys.stderr)
+    avg_row = (
+        f"{'Average (' + str(len(results)) + ')':<22} {'':<12} {avg_index:>8.0f}ms {avg_ndcg10:>8.3f} {avg_p50:>7.1f}ms"
+    )
+    print(avg_row, file=sys.stderr)
 
     summary = _build_summary(results)
     print(json.dumps(summary, indent=2))
