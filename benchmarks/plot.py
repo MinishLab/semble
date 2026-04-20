@@ -4,10 +4,9 @@ from typing import TypedDict
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import numpy as np
 
 _RESULTS_DIR = Path(__file__).parent / "results"
-
-_SEMBLE_X = 262.6 + 1.49  # total time in ms (index + query p50)
 
 
 class _Method(TypedDict):
@@ -64,12 +63,6 @@ _METHODS: list[_Method] = [
     },
 ]
 
-# Speedup annotations: (total_ms of competitor, display label)
-_SPEEDUP_ANNOTATIONS: list[tuple[float, str]] = [
-    (5750.6 + 123.83, "22×"),  # semble vs colgrep
-    (57269.4 + 16.27, "217×"),  # semble vs coderankembed
-]
-
 # (x_factor, y, ha, va)
 _LABEL_CONFIG: dict[str, tuple[float, float, str, str]] = {
     "ripgrep\n(no index)": (1.3, 0.123, "left", "center"),
@@ -83,6 +76,16 @@ _LABEL_CONFIG: dict[str, tuple[float, float, str, str]] = {
 def _marker_size(params_m: float) -> float:
     """Return scatter marker area scaling linearly with parameter count."""
     return max(80.0, 28.0 * params_m**0.5)
+
+
+def _cbrt_forward(x: object) -> object:
+    """Cube-root forward transform for x-axis scale."""
+    return np.cbrt(x)  # type: ignore[call-overload]
+
+
+def _cbrt_inverse(x: object) -> object:
+    """Cube-root inverse transform for x-axis scale."""
+    return np.power(x, 3)  # type: ignore[call-overload]
 
 
 def _format_ms(v: float, _: object) -> str:
@@ -134,25 +137,13 @@ def _make_plot(out_path: Path) -> None:
             zorder=4,
         )
 
-    ax.set_xscale("log")
+    ax.set_xscale("function", functions=(_cbrt_forward, _cbrt_inverse))
     ax.set_xlabel("Time to first result — index + query", fontsize=10, color="#444444")
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
     ax.set_xlim(5, 200_000)
-    ax.set_ylim(0.0, 0.95)
+    ax.set_ylim(0.05, 0.95)
 
-    # Speedup annotations: horizontal double-headed arrows between semble and each tool
-    annot_y = 0.065
-    for x_right, label in _SPEEDUP_ANNOTATIONS:
-        ax.annotate(
-            "",
-            xy=(x_right, annot_y),
-            xytext=(_SEMBLE_X, annot_y),
-            arrowprops=dict(arrowstyle="<->", color="#bbbbbb", lw=0.9),
-            zorder=2,
-        )
-        mid_x = (_SEMBLE_X * x_right) ** 0.5  # geometric mean on log scale
-        ax.text(mid_x, annot_y + 0.022, label, ha="center", va="bottom", fontsize=8, color="#999999")
-
+    ax.set_xticks([100, 1_000, 10_000, 100_000])
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(_format_ms))
     ax.tick_params(labelsize=9, colors="#555555")
 
