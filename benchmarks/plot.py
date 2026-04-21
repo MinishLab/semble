@@ -70,10 +70,10 @@ _CBRT_LABEL_DELTA_WARM = 0.4
 
 # Frontier methods per mode.
 # Cold: incumbent prior-art curve (ripgrep → ColGREP → CRE Hybrid); semble floats above it.
-# Warm: semble is the fastest warm-query point; CRE Hybrid is the highest-quality point.
+# Warm: incumbent prior-art curve (ripgrep → CRE Hybrid); semble floats above/left of it.
 _FRONTIER_NAMES: dict[str, set[str]] = {
     "cold": {"ripgrep", "ColGREP", "CodeRankEmbed\nHybrid"},
-    "warm": {"semble", "CodeRankEmbed\nHybrid"},
+    "warm": {"ripgrep", "CodeRankEmbed\nHybrid"},
 }
 
 
