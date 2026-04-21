@@ -30,6 +30,14 @@ _METHODS: list[_Method] = [
         "params_m": 0,
     },
     {
+        "name": "BM25",
+        "ndcg10": 0.673,
+        "index_ms": 262.6,  # same semble index infrastructure; BM25 component adds negligible overhead
+        "query_p50_ms": 0.019,
+        "color": "#3a9e7e",
+        "params_m": 0,
+    },
+    {
         "name": "ColGREP",
         "ndcg10": 0.6925,
         "index_ms": 5750.6,
@@ -64,16 +72,16 @@ _METHODS: list[_Method] = [
 ]
 
 # Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
-# The warm plot spans ~1–500 ms so needs a much smaller delta than the cold plot (~100 ms–100 s).
+# The warm plot spans ~0.01–500 ms so needs a much smaller delta than the cold plot (~100 ms–100 s).
 _CBRT_LABEL_DELTA_COLD = 2.0
-_CBRT_LABEL_DELTA_WARM = 0.4
+_CBRT_LABEL_DELTA_WARM = 0.2
 
 # Frontier methods per mode.
-# Cold: incumbent prior-art curve (ripgrep → ColGREP → CRE Hybrid); semble floats above it.
-# Warm: incumbent prior-art curve (ripgrep → CRE Hybrid); semble floats above/left of it.
+# Cold: incumbent prior-art curve (ripgrep → BM25 → ColGREP → CRE Hybrid); semble floats above it.
+# Warm: BM25 dominates ripgrep (faster and higher NDCG), so incumbent curve is BM25 → CRE Hybrid.
 _FRONTIER_NAMES: dict[str, set[str]] = {
-    "cold": {"ripgrep", "ColGREP", "CodeRankEmbed\nHybrid"},
-    "warm": {"ripgrep", "CodeRankEmbed\nHybrid"},
+    "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed\nHybrid"},
+    "warm": {"BM25", "CodeRankEmbed\nHybrid"},
 }
 
 
@@ -96,6 +104,8 @@ def _format_ms(v: float, _: object) -> str:
     """Format milliseconds as a human-readable time string."""
     if v >= 1_000:
         return f"{v / 1_000:.0f} s"
+    if v < 1:
+        return f"{v:.1g} ms"
     return f"{v:.0f} ms"
 
 
@@ -163,8 +173,8 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
 
     if warm:
         ax.set_xlabel("Query latency (warm)", fontsize=10, color="#444444")
-        ax.set_xlim(0.5, 500)
-        ax.set_xticks([1, 10, 100])
+        ax.set_xlim(0.01, 500)
+        ax.set_xticks([0.1, 1, 10, 100])
     else:
         ax.set_xlabel("Query latency (cold)", fontsize=10, color="#444444")
         ax.set_xlim(5, 200_000)
