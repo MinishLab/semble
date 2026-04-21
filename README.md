@@ -1,6 +1,11 @@
-# semble
 
-Instant local code search for agents.
+
+<h2 align="center">
+  <img width="30%" alt="semble logo" src="assets/images/semble_logo.png"><br/>
+  Instant Local Code Search for Agents
+</h2>
+
+
 
 ## Install
 
