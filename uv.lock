@@ -3084,7 +3084,7 @@ mcp = [
 [package.metadata]
 requires-dist = [
     { name = "bm25s", specifier = ">=0.2.0" },
-    { name = "chonkie", extras = ["code"], specifier = ">=1.6.2" },
+    { name = "chonkie", extras = ["code"], specifier = "==1.6.2" },
     { name = "einops", marker = "extra == 'benchmark'", specifier = ">=0.8.2" },
     { name = "matplotlib", marker = "extra == 'benchmark'", specifier = ">=3.7" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0" },
