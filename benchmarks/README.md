@@ -22,7 +22,7 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 | Method | NDCG@10 | Index time | Query p50 |
 |---|---|---|---|
 | ripgrep | 0.126 | — | 12 ms |
-| ColGREP | 0.692 | 5.8 s | 124 ms |
+| ColGREP | 0.693 | 5.8 s | 124 ms |
 | CodeRankEmbed | 0.765 | 57 s | 16 ms |
 | **semble** | **0.854** | **263 ms** | **1.5 ms** |
 | CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
@@ -65,12 +65,12 @@ NDCG@10 per language (3 repos each, except Python which has 9), sorted by CodeRa
 | java | 0.849 | 0.841 | 0.706 | 0.641 | 0.198 |
 | kotlin | 0.821 | 0.830 | 0.670 | 0.637 | 0.166 |
 | rust | 0.856 | 0.827 | 0.627 | 0.662 | 0.162 |
-| c | 0.741 | 0.806 | 0.706 | 0.659 | 0.000 |
+| c | 0.741 | 0.806 | 0.706 | 0.676 | 0.000 |
 | haskell | 0.765 | 0.771 | 0.776 | 0.683 | 0.000 |
 | typescript | 0.706 | 0.708 | 0.545 | 0.430 | 0.128 |
-| **overall** | **0.854** | **0.862** | **0.765** | **0.692** | **0.126** |
+| **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.126** |
 
-semble and CRE Hybrid are within 0.03 of each other across every language. ColGREP shows the most variance: scores near the overall average (0.692) for well-covered languages like Python (0.777), Go (0.785), and Elixir (0.808), but drops significantly for Zig (0.474), TypeScript (0.430), and header-heavy C++ (abseil-cpp pulls cpp down to 0.626). The Zig gap is the largest of any tool–language pair and is consistent across all three Zig repos (zig=0.389, zig-clap=0.494, zls=0.540), pointing to limited training coverage for this relatively new language. The TypeScript gap is driven by monorepo repos (zod, vitest) where many semantically distinct queries share the same ground-truth file (`api.ts`, `core.ts`) — a distribution ColGREP's retrieval does not handle well. ripgrep scores zero on Zig, Lua, C, Bash, and Haskell because none of the queries in those repos contain keyword substrings that appear in the relevant files.
+semble and CRE Hybrid are within 0.03 of each other across every language. ColGREP shows the most variance: scores near the overall average (0.693) for well-covered languages like Python (0.777), Go (0.785), and Elixir (0.808), but drops significantly for Zig (0.474), TypeScript (0.430), and header-heavy C++ (abseil-cpp pulls cpp down to 0.626). The Zig gap is the largest of any tool–language pair and is consistent across all three Zig repos (zig=0.389, zig-clap=0.494, zls=0.540), pointing to limited training coverage for this relatively new language. The TypeScript gap is driven by monorepo repos (zod, vitest) where many semantically distinct queries share the same ground-truth file (`api.ts`, `core.ts`) — a distribution ColGREP's retrieval does not handle well. ripgrep scores zero on Zig, Lua, C, Bash, and Haskell because none of the queries in those repos contain keyword substrings that appear in the relevant files.
 
 ## Ablations
 
@@ -166,6 +166,8 @@ Requires the `colgrep` binary on `$PATH`.
 uv run python -m benchmarks.baselines.colgrep
 uv run python -m benchmarks.baselines.colgrep --repo fastapi --repo axios
 ```
+
+ColGREP is run with `--code-only` (its default) for all non-bash repos. Bash repos (bash-it, bats-core, nvm) use `--no-code-only` because ColGREP's `--code-only` excludes `.sh`/`.bash` files, which are the primary source files in those repos.
 
 ### CodeRankEmbed
 

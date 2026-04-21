@@ -34,9 +34,12 @@ class RepoResult:
     index_ms: float
 
 
-def _run_colgrep(query: str, benchmark_dir: Path, top_k: int) -> list[str]:
+def _run_colgrep(query: str, benchmark_dir: Path, top_k: int, *, code_only: bool = True) -> list[str]:
     """Return list of absolute file paths from colgrep JSON output."""
-    cmd = [_COLGREP, "--force-cpu", "--json", "-k", str(top_k), query, str(benchmark_dir)]
+    cmd = [_COLGREP, "--force-cpu"]
+    if code_only:
+        cmd.append("--code-only")
+    cmd += ["--json", "-k", str(top_k), query, str(benchmark_dir)]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
     except subprocess.TimeoutExpired:
@@ -50,7 +53,9 @@ def _run_colgrep(query: str, benchmark_dir: Path, top_k: int) -> list[str]:
     return [item["unit"]["file"] for item in data if "unit" in item and "file" in item["unit"]]
 
 
-def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = False) -> tuple[float, float]:
+def _evaluate_repo(
+    tasks: list[Task], benchmark_dir: Path, *, code_only: bool = True, verbose: bool = False
+) -> tuple[float, float]:
     """Return (mean ndcg@10, p50 latency ms) for a list of tasks."""
     ndcg10_sum = 0.0
     latencies: list[float] = []
@@ -60,7 +65,7 @@ def _evaluate_repo(tasks: list[Task], benchmark_dir: Path, *, verbose: bool = Fa
         file_paths: list[str] = []
         for _ in range(_LATENCY_RUNS):
             t0 = time.perf_counter()
-            file_paths = _run_colgrep(task.query, benchmark_dir, _TOP_K)
+            file_paths = _run_colgrep(task.query, benchmark_dir, _TOP_K, code_only=code_only)
             query_latencies.append((time.perf_counter() - t0) * 1000)
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
@@ -177,6 +182,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
     parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
+    parser.add_argument(
+        "--no-code-only",
+        action="store_true",
+        help="Disable --code-only for all repos (overrides per-language default).",
+    )
     return parser.parse_args()
 
 
@@ -186,6 +196,7 @@ def _run_repos(
     completed: dict[str, RepoResult],
     out_path: Path | None,
     *,
+    no_code_only: bool = False,
     verbose: bool,
 ) -> list[RepoResult]:
     """Evaluate each repo and save incrementally; return all results."""
@@ -203,10 +214,12 @@ def _run_repos(
         if repo in completed:
             continue
         spec = repo_specs[repo]
+        # bash files (.sh, .bash) are excluded by --code-only; disable it for bash repos
+        code_only = not no_code_only and spec.language != "bash"
         if verbose:
-            print(f"\n--- {repo} ---", file=sys.stderr)
+            print(f"\n--- {repo} (code_only={code_only}) ---", file=sys.stderr)
         path, index_ms = _resolve_path(spec)
-        ndcg10, p50_ms = _evaluate_repo(repo_task_list, path, verbose=verbose)
+        ndcg10, p50_ms = _evaluate_repo(repo_task_list, path, code_only=code_only, verbose=verbose)
         result = RepoResult(repo=repo, language=spec.language, ndcg10=ndcg10, p50_ms=p50_ms, index_ms=index_ms)
         results.append(result)
         print(f"{repo:<22} {spec.language:<12} {index_ms:>8.0f}ms {ndcg10:>8.3f} {p50_ms:>7.1f}ms", file=sys.stderr)
@@ -235,7 +248,9 @@ def main() -> None:
     if completed:
         print(f"Resuming: {len(completed)} repo(s) already done, skipping.", file=sys.stderr)
 
-    results = _run_repos(repo_tasks, repo_specs, completed, out_path, verbose=args.verbose)
+    results = _run_repos(
+        repo_tasks, repo_specs, completed, out_path, no_code_only=args.no_code_only, verbose=args.verbose
+    )
 
     if not results:
         return
