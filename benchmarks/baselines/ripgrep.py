@@ -57,7 +57,7 @@ def _run_ripgrep(query: str, benchmark_dir: Path, *, fixed_strings: bool = True)
             continue
         entries.append((":".join(path_parts), count))
 
-    entries.sort(key=lambda x: -x[1])
+    entries.sort(key=lambda entry: -entry[1])
     return [path for path, _ in entries[:_TOP_K]]
 
 
@@ -76,12 +76,12 @@ def _evaluate_repo(
         query_latencies: list[float] = []
         file_paths: list[str] = []
         for _ in range(_LATENCY_RUNS):
-            t0 = time.perf_counter()
+            started = time.perf_counter()
             file_paths = _run_ripgrep(task.query, benchmark_dir, fixed_strings=fixed_strings)
-            query_latencies.append((time.perf_counter() - t0) * 1000)
+            query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
-        relevant_ranks = [r for t in task.all_relevant if (r := file_rank(file_paths, t.path)) is not None]
+        relevant_ranks = [rank for t in task.all_relevant if (rank := file_rank(file_paths, t.path)) is not None]
         q_ndcg10 = ndcg_at_k(relevant_ranks, len(task.all_relevant), _TOP_K)
         ndcg10_sum += q_ndcg10
 

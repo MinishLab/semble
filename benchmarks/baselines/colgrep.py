@@ -64,14 +64,14 @@ def _evaluate_repo(
         query_latencies: list[float] = []
         file_paths: list[str] = []
         for _ in range(_LATENCY_RUNS):
-            t0 = time.perf_counter()
+            started = time.perf_counter()
             file_paths = _run_colgrep(task.query, benchmark_dir, _TOP_K, code_only=code_only)
-            query_latencies.append((time.perf_counter() - t0) * 1000)
+            query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
         deduped = list(dict.fromkeys(file_paths))
 
-        relevant_ranks = [r for t in task.all_relevant if (r := file_rank(deduped, t.path)) is not None]
+        relevant_ranks = [rank for t in task.all_relevant if (rank := file_rank(deduped, t.path)) is not None]
         q_ndcg10 = ndcg_at_k(relevant_ranks, len(task.all_relevant), _TOP_K)
         ndcg10_sum += q_ndcg10
 
@@ -95,9 +95,9 @@ def _init_index(path: Path) -> tuple[bool, float]:
     """
     subprocess.run([_COLGREP, "clear", str(path)], capture_output=True, timeout=30)
     cmd = [_COLGREP, "init", "--force-cpu", "-y", str(path)]
-    t0 = time.perf_counter()
+    started = time.perf_counter()
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-    index_ms = (time.perf_counter() - t0) * 1000
+    index_ms = (time.perf_counter() - started) * 1000
     if proc.returncode != 0:
         print(f"  WARNING: colgrep init failed for {path}: {proc.stderr.strip()}", file=sys.stderr)
     output = proc.stdout + proc.stderr

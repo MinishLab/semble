@@ -20,6 +20,7 @@ from benchmarks.data import (
 from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
+from semble.types import SearchResult
 
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
@@ -49,11 +50,11 @@ def _evaluate(
     ndcg5_sum = 0.0
     ndcg10_sum = 0.0
     latencies: list[float] = []
-    cat_ndcg10: dict[str, list[float]] = defaultdict(list)
+    category_ndcg10: dict[str, list[float]] = defaultdict(list)
 
     for task in tasks:
         query_latencies: list[float] = []
-        results = []
+        results: list[SearchResult]
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
             results = index.search(task.query, top_k=_DIRECT_TOP_K)
@@ -63,26 +64,27 @@ def _evaluate(
         relevant_ranks = [rank for t in task.all_relevant if (rank := target_rank(results, t)) is not None]
         n_relevant = len(task.all_relevant)
         q_ndcg5 = ndcg_at_k(relevant_ranks, n_relevant, 5)
-        q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, 10)
+        q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, _DIRECT_TOP_K)
         ndcg5_sum += q_ndcg5
         ndcg10_sum += q_ndcg10
-        cat_ndcg10[task.category or "unknown"].append(q_ndcg10)
+        category_ndcg10[task.category or "unknown"].append(q_ndcg10)
 
         if verbose:
-            cat = task.category or "?"
+            category = task.category or "?"
             targets_str = ", ".join(
                 t.path if not t.start_line else f"{t.path}:{t.start_line}-{t.end_line}" for t in task.all_relevant
             )
             top_files = [r.chunk.file_path for r in results[:5]]
             print(
-                f"  [{cat:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}  n_rel={n_relevant}  q={task.query!r}",
+                f"  [{category:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}"
+                f"  n_rel={n_relevant}  q={task.query!r}",
                 file=sys.stderr,
             )
             print(f"               targets: {targets_str}", file=sys.stderr)
             print(f"               top-5:   {top_files}", file=sys.stderr)
 
     total = len(tasks)
-    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(cat_ndcg10.items())}
+    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(category_ndcg10.items())}
     return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
 
 
@@ -92,18 +94,30 @@ def _print_summary(results: list[RepoResult]) -> None:
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
     columns = ["Avg", *[lang.title() for lang in languages]]
 
-    lang_ndcg10 = [sum(r.ndcg10 for r in g) / len(g) for g in by_language.values()]
-    lang_p50 = [sum(r.p50_ms for r in g) / len(g) for g in by_language.values()]
-    lang_p90 = [sum(r.p90_ms for r in g) / len(g) for g in by_language.values()]
-    lang_p95 = [sum(r.p95_ms for r in g) / len(g) for g in by_language.values()]
-    lang_p99 = [sum(r.p99_ms for r in g) / len(g) for g in by_language.values()]
-    lang_index = [sum(r.index_ms for r in g) / len(g) for g in by_language.values()]
-    avg_ndcg10 = sum(lang_ndcg10) / len(lang_ndcg10)
-    avg_p50 = sum(lang_p50) / len(lang_p50)
-    avg_p90 = sum(lang_p90) / len(lang_p90)
-    avg_p95 = sum(lang_p95) / len(lang_p95)
-    avg_p99 = sum(lang_p99) / len(lang_p99)
-    avg_index = sum(lang_index) / len(lang_index)
+    language_ndcg10 = [
+        sum(r.ndcg10 for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    language_p50 = [
+        sum(r.p50_ms for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    language_p90 = [
+        sum(r.p90_ms for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    language_p95 = [
+        sum(r.p95_ms for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    language_p99 = [
+        sum(r.p99_ms for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    language_index = [
+        sum(r.index_ms for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    avg_ndcg10 = sum(language_ndcg10) / len(language_ndcg10)
+    avg_p50 = sum(language_p50) / len(language_p50)
+    avg_p90 = sum(language_p90) / len(language_p90)
+    avg_p95 = sum(language_p95) / len(language_p95)
+    avg_p99 = sum(language_p99) / len(language_p99)
+    avg_index = sum(language_index) / len(language_index)
 
     print(file=sys.stderr)
     print("By language", file=sys.stderr)
@@ -163,7 +177,7 @@ def _bench_quality(
 ) -> list[RepoResult]:
     """Run quality benchmarks (NDCG@5, NDCG@10, latency) for each repo."""
     print(
-        f"{'Repo':<12} {'language':<12} {'chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8} {'p90':>8}"
+        f"{'Repo':<12} {'Language':<12} {'Chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8} {'p90':>8}"
         f" {'p95':>8} {'p99':>8}",
         file=sys.stderr,
     )

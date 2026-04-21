@@ -67,11 +67,11 @@ def _evaluate(
     ndcg5_sum = 0.0
     ndcg10_sum = 0.0
     latencies: list[float] = []
-    cat_ndcg10: dict[str, list[float]] = defaultdict(list)
+    category_ndcg10: dict[str, list[float]] = defaultdict(list)
 
     for task in tasks:
         query_latencies: list[float] = []
-        results: list[SearchResult] = []
+        results: list[SearchResult]
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
             results = index.search(task.query, top_k=_TOP_K, mode=mode, alpha=alpha)
@@ -84,23 +84,24 @@ def _evaluate(
         q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, _TOP_K)
         ndcg5_sum += q_ndcg5
         ndcg10_sum += q_ndcg10
-        cat_ndcg10[task.category or "unknown"].append(q_ndcg10)
+        category_ndcg10[task.category or "unknown"].append(q_ndcg10)
 
         if verbose:
-            cat = task.category or "?"
+            category = task.category or "?"
             targets_str = ", ".join(
                 t.path if not t.start_line else f"{t.path}:{t.start_line}-{t.end_line}" for t in task.all_relevant
             )
             top_files = [r.chunk.file_path for r in results[:5]]
             print(
-                f"  [{cat:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}  n_rel={n_relevant}  q={task.query!r}",
+                f"  [{category:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}"
+                f"  n_rel={n_relevant}  q={task.query!r}",
                 file=sys.stderr,
             )
             print(f"               targets: {targets_str}", file=sys.stderr)
             print(f"               top-5:   {top_files}", file=sys.stderr)
 
     total = len(tasks)
-    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(cat_ndcg10.items())}
+    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(category_ndcg10.items())}
     return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
 
 

@@ -73,11 +73,11 @@ def _evaluate(
     ndcg5_sum = 0.0
     ndcg10_sum = 0.0
     latencies: list[float] = []
-    cat_ndcg10: dict[str, list[float]] = defaultdict(list)
+    category_ndcg10: dict[str, list[float]] = defaultdict(list)
 
     for task in tasks:
         query_latencies: list[float] = []
-        results: list[SearchResult] = []
+        results: list[SearchResult]
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
             results = index.search(task.query, top_k=_TOP_K, mode=mode)
@@ -90,22 +90,23 @@ def _evaluate(
         q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, _TOP_K)
         ndcg5_sum += q_ndcg5
         ndcg10_sum += q_ndcg10
-        cat_ndcg10[task.category or "unknown"].append(q_ndcg10)
+        category_ndcg10[task.category or "unknown"].append(q_ndcg10)
 
         if verbose:
-            cat = task.category or "?"
+            category = task.category or "?"
             targets_str = ", ".join(
                 t.path if not t.start_line else f"{t.path}:{t.start_line}-{t.end_line}" for t in task.all_relevant
             )
             print(
-                f"  [{cat:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}  n_rel={n_relevant}  q={task.query!r}",
+                f"  [{category:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}"
+                f"  n_rel={n_relevant}  q={task.query!r}",
                 file=sys.stderr,
             )
             print(f"               targets: {targets_str}", file=sys.stderr)
-            print(f"               top-5:   {[r.chunk.file_path for r in results[:5]]}", file=sys.stderr)
+            print(f"               top-5:   {[result.chunk.file_path for result in results[:5]]}", file=sys.stderr)
 
     total = len(tasks)
-    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(cat_ndcg10.items())}
+    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(category_ndcg10.items())}
     return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
 
 
@@ -117,19 +118,19 @@ def _build_summary(results: list[RepoResult], modes: list[str]) -> dict[str, obj
         "by_mode": {
             mode: {
                 "avg_ndcg10": round(
-                    sum(r.ndcg10 for r in results if r.mode == mode)
-                    / max(1, sum(1 for r in results if r.mode == mode)),
+                    sum(result.ndcg10 for result in results if result.mode == mode)
+                    / max(1, sum(1 for result in results if result.mode == mode)),
                     4,
                 ),
                 "avg_p50_ms": round(
-                    sum(r.p50_ms for r in results if r.mode == mode)
-                    / max(1, sum(1 for r in results if r.mode == mode)),
+                    sum(result.p50_ms for result in results if result.mode == mode)
+                    / max(1, sum(1 for result in results if result.mode == mode)),
                     1,
                 ),
             }
             for mode in modes
         },
-        "repos": [asdict(r) for r in results],
+        "repos": [asdict(result) for result in results],
     }
 
 
@@ -141,9 +142,9 @@ def _load_completed(out_path: Path, modes: list[str]) -> dict[str, list[RepoResu
         data = json.loads(out_path.read_text(encoding="utf-8"))
         by_repo: dict[str, list[RepoResult]] = {}
         for entry in data.get("repos", []):
-            r = RepoResult(**entry)
-            by_repo.setdefault(r.repo, []).append(r)
-        return {repo: results for repo, results in by_repo.items() if {r.mode for r in results} >= set(modes)}
+            result = RepoResult(**entry)
+            by_repo.setdefault(result.repo, []).append(result)
+        return {repo: results for repo, results in by_repo.items() if {result.mode for result in results} >= set(modes)}
     except (json.JSONDecodeError, KeyError, TypeError):
         return {}
 
@@ -151,7 +152,7 @@ def _load_completed(out_path: Path, modes: list[str]) -> dict[str, list[RepoResu
 def _bench(
     repo_tasks: dict[str, list[Task]],
     specs: dict[str, RepoSpec],
-    model: "_AsymmetricWrapper",
+    model: _AsymmetricWrapper,
     modes: list[str],
     out_path: Path | None,
     *,
