@@ -133,7 +133,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     ax.spines["left"].set_color("#cccccc")
     ax.spines["bottom"].set_color("#cccccc")
 
-    # Frontier line connecting the Pareto-efficient methods in speed order.
+    # Frontier line connecting the incumbent methods in speed order.
     frontier = sorted(
         [
             (m["query_p50_ms"] if warm else m["index_ms"] + m["query_p50_ms"], m["ndcg10"])
@@ -141,6 +141,11 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             if m["name"] in _FRONTIER_NAMES[mode]
         ]
     )
+    xlim = (0.01, 500) if warm else (5, 200_000)
+    # Shade the incumbent zone: region below the frontier, closed to the plot edges.
+    shade_xs = [xlim[0]] + [p[0] for p in frontier] + [xlim[1]]
+    shade_ys = [frontier[0][1]] + [p[1] for p in frontier] + [frontier[-1][1]]
+    ax.fill_between(shade_xs, shade_ys, 0.0, color="#1a5fa8", alpha=0.07, zorder=0.5, linewidth=0)
     ax.plot(
         [p[0] for p in frontier],
         [p[1] for p in frontier],
