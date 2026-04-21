@@ -29,7 +29,7 @@ dependencies = [
     "vicinity>=0.4.4",
     "numpy>=1.24.0",
     "bm25s>=0.2.0",
-    "chonkie[code]>=1.6.2",
+    "chonkie[code]==1.6.2",
 ]
 
 [project.optional-dependencies]
