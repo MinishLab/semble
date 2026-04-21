@@ -29,7 +29,7 @@ Quality is NDCG@10 averaged across all queries. Index time and query p50 are fro
 
 semble reaches 0.854 NDCG@10, close to CodeRankEmbed Hybrid (0.862, a 137M-param transformer), while indexing 218x faster and querying 11x faster.
 
-| ![Speed vs quality (cold)](results/speed_vs_ndcg.png) | ![Speed vs quality (warm)](results/speed_vs_ndcg_warm.png) |
+| ![Speed vs quality (cold)](results/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](results/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
 | *Time to first result (index + query) vs NDCG@10* | *Query latency (warm index) vs NDCG@10* |
 
@@ -121,7 +121,7 @@ Requires the `benchmark` extra (`uv sync --extra benchmark`).
 uv run python -m benchmarks.plot
 ```
 
-Saves `speed_vs_ndcg.png` (cold) and `speed_vs_ndcg_warm.png` (warm) to `benchmarks/results/`.
+Saves `speed_vs_ndcg_cold.png` (cold) and `speed_vs_ndcg_warm.png` (warm) to `benchmarks/results/`.
 
 ### semble
 

@@ -166,7 +166,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
         ax.set_xlim(0.5, 500)
         ax.set_xticks([1, 10, 100])
     else:
-        ax.set_xlabel("Time to first result (index + query)", fontsize=10, color="#444444")
+        ax.set_xlabel("Query latency (cold)", fontsize=10, color="#444444")
         ax.set_xlim(5, 200_000)
         ax.set_xticks([100, 1_000, 10_000, 100_000])
 
@@ -209,7 +209,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
 
 def main() -> None:
     """Generate cold and warm speed-vs-quality scatter plots."""
-    _make_plot(_RESULTS_DIR / "speed_vs_ndcg.png")
+    _make_plot(_RESULTS_DIR / "speed_vs_ndcg_cold.png")
     _make_plot(_RESULTS_DIR / "speed_vs_ndcg_warm.png", warm=True)
 
 
