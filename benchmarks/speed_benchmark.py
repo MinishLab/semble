@@ -55,7 +55,7 @@ class ToolResult:
 class _CREWrapper:
     """Wrap SentenceTransformer with asymmetric query/document prompts."""
 
-    def __init__(self, model: "SentenceTransformer", max_seq_length: int = 512) -> None:
+    def __init__(self, model: SentenceTransformer, max_seq_length: int = 512) -> None:
         """Initialise wrapper and cap sequence length to avoid OOM on CPU."""
         self._model = model
         self._model.max_seq_length = max_seq_length
@@ -167,12 +167,9 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float] | N
     latencies: list[float] = []
     code_only = spec.language != "bash"
     for task in tasks:
-        qlats: list[float] = []
-        for _ in range(1):
-            t0 = time.perf_counter()
-            _run_colgrep(task.query, spec.benchmark_dir, code_only=code_only)
-            qlats.append((time.perf_counter() - t0) * 1000)
-        latencies.append(sorted(qlats)[0])
+        t0 = time.perf_counter()
+        _run_colgrep(task.query, spec.benchmark_dir, code_only=code_only)
+        latencies.append((time.perf_counter() - t0) * 1000)
     return index_ms, float(np.median(latencies))
 
 

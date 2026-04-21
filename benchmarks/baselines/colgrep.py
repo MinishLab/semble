@@ -69,12 +69,7 @@ def _evaluate_repo(
             query_latencies.append((time.perf_counter() - t0) * 1000)
         latencies.append(sorted(query_latencies)[_LATENCY_RUNS // 2])
 
-        seen: set[str] = set()
-        deduped: list[str] = []
-        for fp in file_paths:
-            if fp not in seen:
-                seen.add(fp)
-                deduped.append(fp)
+        deduped = list(dict.fromkeys(file_paths))
 
         relevant_ranks = [r for t in task.all_relevant if (r := file_rank(deduped, t.path)) is not None]
         q_ndcg10 = ndcg_at_k(relevant_ranks, len(task.all_relevant), _TOP_K)

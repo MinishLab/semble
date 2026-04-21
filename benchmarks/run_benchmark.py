@@ -13,6 +13,7 @@ from benchmarks.data import (
     Task,
     apply_task_filters,
     available_repo_specs,
+    grouped_tasks,
     load_tasks,
     save_results,
 )
@@ -274,9 +275,7 @@ def main() -> None:
     model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f} ms", file=sys.stderr)
     print(file=sys.stderr)
-    repo_tasks: dict[str, list[Task]] = {}
-    for task in tasks:
-        repo_tasks.setdefault(task.repo, []).append(task)
+    repo_tasks = grouped_tasks(tasks)
     results = _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
     _print_summary(results)
     if not args.repo and not args.language:

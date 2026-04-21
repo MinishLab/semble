@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import numpy as np
+from sentence_transformers import SentenceTransformer
 
 from benchmarks.data import (
     RepoSpec,
@@ -22,13 +23,6 @@ from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
 from semble.types import SearchResult
 
-try:
-    from sentence_transformers import SentenceTransformer
-
-    _HAS_ST = True
-except ImportError:
-    _HAS_ST = False
-
 _MODEL_NAME = "nomic-ai/CodeRankEmbed"
 _TOP_K = 10
 _LATENCY_RUNS = 3  # transformer inference is slow; keep runs low
@@ -41,7 +35,7 @@ class _AsymmetricWrapper:
     max_seq_length is capped to avoid OOM on CPU with long chunks.
     """
 
-    def __init__(self, model: "SentenceTransformer", max_seq_length: int = 512) -> None:
+    def __init__(self, model: SentenceTransformer, max_seq_length: int = 512) -> None:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
@@ -243,9 +237,6 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> None:
     """Run the CodeRankEmbed baseline benchmark."""
-    if not _HAS_ST:
-        raise SystemExit("sentence-transformers is required.\nInstall with: uv sync --extra benchmark")
-
     args = _parse_args()
     modes = args.mode or ["semantic", "hybrid"]
     is_full_run = not args.repo and not args.language
