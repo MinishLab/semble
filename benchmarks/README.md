@@ -56,8 +56,6 @@ NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best sc
 | typescript | 0.706 | **0.708** | 0.545 | 0.430 | 0.128 |
 | **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.126** |
 
-semble stays within 0.03 of CRE Hybrid for every language and takes the top spot in six.
-
 ## Ablations
 
 `raw` returns retrieval scores directly; `+ ranking` feeds them through semble's hybrid ranker.
@@ -67,8 +65,6 @@ semble stays within 0.03 of CRE Hybrid for every language and takes the top spot
 | BM25 | 0.675 | 0.834 |
 | potion-code-16M | 0.650 | 0.821 |
 | BM25 + potion-code-16M | — | **0.854** |
-
-The ranking stack contributes ~0.16 NDCG@10 on either retriever alone. Combining them adds another ~0.02.
 
 <details>
 <summary>By query category</summary>
