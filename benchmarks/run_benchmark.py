@@ -216,8 +216,6 @@ def _save_results(results: list[RepoResult]) -> None:
         }
         for lang, grouped in by_language.items()
     }
-    n_langs = len(lang_means)
-
     all_categories: set[str] = set()
     for r in results:
         all_categories.update(r.by_category)
@@ -226,16 +224,17 @@ def _save_results(results: list[RepoResult]) -> None:
         vals = [r.by_category[cat] for r in results if cat in r.by_category]
         cat_means[cat] = round(sum(vals) / len(vals), 4) if vals else 0.0
 
+    n_repos = len(results)
     output = {
         "tool": "semble-hybrid",
         "model": _DEFAULT_MODEL_NAME,
         "summary": {
-            "ndcg10": round(sum(v["ndcg10"] for v in lang_means.values()) / n_langs, 4),
-            "p50_ms": round(sum(v["p50_ms"] for v in lang_means.values()) / n_langs, 3),
-            "p90_ms": round(sum(v["p90_ms"] for v in lang_means.values()) / n_langs, 3),
-            "p95_ms": round(sum(v["p95_ms"] for v in lang_means.values()) / n_langs, 3),
-            "p99_ms": round(sum(v["p99_ms"] for v in lang_means.values()) / n_langs, 3),
-            "index_ms": round(sum(v["index_ms"] for v in lang_means.values()) / n_langs, 1),
+            "ndcg10": round(sum(r.ndcg10 for r in results) / n_repos, 4),
+            "p50_ms": round(sum(r.p50_ms for r in results) / n_repos, 3),
+            "p90_ms": round(sum(r.p90_ms for r in results) / n_repos, 3),
+            "p95_ms": round(sum(r.p95_ms for r in results) / n_repos, 3),
+            "p99_ms": round(sum(r.p99_ms for r in results) / n_repos, 3),
+            "index_ms": round(sum(r.index_ms for r in results) / n_repos, 1),
             "by_category": cat_means,
         },
         "by_language": {

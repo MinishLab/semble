@@ -101,9 +101,11 @@ def _run_ripgrep(query: str, benchmark_dir: Path) -> list[str]:
     return [path for path, _ in entries[:_TOP_K]]
 
 
-def _run_colgrep(query: str, benchmark_dir: Path) -> list[str]:
+def _run_colgrep(query: str, benchmark_dir: Path, *, code_only: bool = True) -> list[str]:
     """Run ColGREP and return top-k file paths from the JSON output."""
     cmd = [_COLGREP, "--force-cpu", "--json", "-k", str(_TOP_K), query, str(benchmark_dir)]
+    if code_only:
+        cmd.append("--code-only")
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     except subprocess.TimeoutExpired:
@@ -163,11 +165,12 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, float] | N
         print(f"  SKIP: colgrep indexed 0 files (unsupported language?)", file=sys.stderr)
         return None
     latencies: list[float] = []
+    code_only = spec.language != "bash"
     for task in tasks:
         qlats: list[float] = []
         for _ in range(1):
             t0 = time.perf_counter()
-            _run_colgrep(task.query, spec.benchmark_dir)
+            _run_colgrep(task.query, spec.benchmark_dir, code_only=code_only)
             qlats.append((time.perf_counter() - t0) * 1000)
         latencies.append(sorted(qlats)[0])
     return index_ms, float(np.median(latencies))
@@ -254,7 +257,7 @@ def main() -> None:
     summary = _build_summary(all_results, tools)
 
     print(file=sys.stderr)
-    print("Summary (averages across 20 repos):", file=sys.stderr)
+    print("Summary (averages across 19 repos):", file=sys.stderr)
     for tool, stats in summary.items():
         assert isinstance(stats, dict)
         idx_str = f"{stats['avg_index_ms']:.0f}ms" if stats["avg_index_ms"] is not None else "N/A"

@@ -2,15 +2,15 @@
   "sha": "f028a753fd5df3f83f310d33a602156400ce18bb",
   "model": "minishlab/potion-code-16M",
   "summary": {
-    "ndcg10": 0.8509,
-    "p50_ms": 1.311,
-    "p90_ms": 4.966,
-    "p95_ms": 5.583,
-    "p99_ms": 6.408,
-    "index_ms": 452.3,
+    "ndcg10": 0.8544,
+    "p50_ms": 1.258,
+    "p90_ms": 4.928,
+    "p95_ms": 5.564,
+    "p99_ms": 6.41,
+    "index_ms": 439.4,
     "by_category": {
-      "architecture": 0.8091,
-      "semantic": 0.843,
+      "architecture": 0.8034,
+      "semantic": 0.8455,
       "symbol": 0.9579
     }
   },
@@ -50,15 +50,6 @@
       "p95_ms": 7.469,
       "p99_ms": 8.428,
       "index_ms": 437.5
-    },
-    "dart": {
-      "repos": 3,
-      "ndcg10": 0.8089,
-      "p50_ms": 0.628,
-      "p90_ms": 3.243,
-      "p95_ms": 3.366,
-      "p99_ms": 3.502,
-      "index_ms": 69.2
     },
     "elixir": {
       "repos": 3,
@@ -170,12 +161,12 @@
     },
     "swift": {
       "repos": 3,
-      "ndcg10": 0.8616,
-      "p50_ms": 1.574,
-      "p90_ms": 4.542,
-      "p95_ms": 4.739,
-      "p99_ms": 5.1,
-      "index_ms": 233.5
+      "ndcg10": 0.8603,
+      "p50_ms": 1.372,
+      "p90_ms": 4.878,
+      "p95_ms": 5.576,
+      "p99_ms": 6.432,
+      "index_ms": 180.9
     },
     "typescript": {
       "repos": 3,
