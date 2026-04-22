@@ -60,14 +60,10 @@ def test_search_invalid_mode(indexed_index: SembleIndex) -> None:
         indexed_index.search("query", mode="invalid")
 
 
-def test_search_top_k_respected(indexed_index: SembleIndex) -> None:
-    """Results never exceed the requested top_k."""
-    results = indexed_index.search("function", top_k=1, mode="bm25")
-    assert len(results) <= 1
+def test_search_constraints(indexed_index: SembleIndex) -> None:
+    """search: top_k is respected; no duplicate chunks are returned."""
+    assert len(indexed_index.search("function", top_k=1, mode="bm25")) <= 1
 
-
-def test_search_no_duplicate_chunks(indexed_index: SembleIndex) -> None:
-    """Each result chunk appears at most once in the result list."""
     results = indexed_index.search("authenticate", top_k=5)
     assert len(results) == len(set(r.chunk for r in results))
 
@@ -87,19 +83,15 @@ def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str,
     assert indexed_index.search(query, mode=mode) == []
 
 
-def test_find_related_returns_similar_chunks(indexed_index: SembleIndex) -> None:
-    """find_related returns semantically similar chunks for a known file location."""
+def test_find_related(indexed_index: SembleIndex) -> None:
+    """find_related: returns similar chunks for a known location; returns [] for an unknown file."""
     chunk = indexed_index.chunks[0]
     results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
     assert isinstance(results, list)
     assert all(r.chunk != chunk for r in results)
     assert len(results) <= 3
 
-
-def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> None:
-    """find_related returns an empty list when the file is not in the index."""
-    results = indexed_index.find_related("/does/not/exist.py", 1)
-    assert results == []
+    assert indexed_index.find_related("/does/not/exist.py", 1) == []
 
 
 _GIT_ENV = {
@@ -154,12 +146,6 @@ def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
     assert "feature.py" in file_names
 
 
-def test_from_git_invalid_url_raises(mock_model: Any) -> None:
-    """from_git raises RuntimeError when the clone fails."""
-    with pytest.raises(RuntimeError, match="git clone failed"):
-        SembleIndex.from_git("/nonexistent/path/that/does/not/exist", model=mock_model)
-
-
 @pytest.mark.parametrize(
     ("kind", "expected_exc"),
     [("missing", FileNotFoundError), ("file", NotADirectoryError)],
@@ -177,8 +163,11 @@ def test_from_path_rejects_invalid_paths(
         SembleIndex.from_path(target, model=mock_model)
 
 
-def test_from_git_no_git_installed(mock_model: Any) -> None:
-    """from_git raises RuntimeError with helpful message when git is not on PATH."""
+def test_from_git_raises_on_failure(mock_model: Any) -> None:
+    """from_git raises RuntimeError when the clone fails or git is not installed."""
+    with pytest.raises(RuntimeError, match="git clone failed"):
+        SembleIndex.from_git("/nonexistent/path/that/does/not/exist", model=mock_model)
+
     with patch("semble.index.index.subprocess.run", side_effect=FileNotFoundError):
         with pytest.raises(RuntimeError, match="git is not installed"):
             SembleIndex.from_git("https://github.com/x/y", model=mock_model)

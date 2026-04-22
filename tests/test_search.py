@@ -49,18 +49,15 @@ def semantic(embeddings: npt.NDArray[np.float32]) -> SelectableBasicBackend:
     return SelectableBasicBackend(embeddings, BasicArgs())
 
 
-def test_bm25_search(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """BM25 returns results with the most relevant chunk first."""
+def test_search_bm25(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
+    """search_bm25: returns most relevant chunk first; selector restricts to given indices."""
     results = search_bm25("authenticate token", bm25, chunks, top_k=4, selector=None)
     assert len(results) > 0
     assert "authenticate" in results[0].chunk.content
 
-
-def test_bm25_with_selector_high_indices(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """BM25 with a selector whose indices exceed len(selector) does not crash."""
     selector = np.array([len(chunks) - 1], dtype=np.int_)
-    results = search_bm25("format", bm25, chunks, top_k=4, selector=selector)
-    assert all(r.chunk is chunks[len(chunks) - 1] for r in results)
+    filtered = search_bm25("format", bm25, chunks, top_k=4, selector=selector)
+    assert all(r.chunk is chunks[len(chunks) - 1] for r in filtered)
 
 
 @pytest.mark.parametrize("query", ["", "   ", "\n\n", "zzzznonexistentterm"])
@@ -76,16 +73,13 @@ def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], 
     assert all(-1.0 <= r.score <= 1.0 for r in results)
 
 
-def test_hybrid_returns_results(
+def test_search_hybrid(
     chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: bm25s.BM25, mock_model: Any
 ) -> None:
-    """Hybrid search returns results combining semantic and BM25 signals."""
+    """search_hybrid: returns combined results; identical content in different files produces separate results."""
     results = search_hybrid("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
     assert len(results) > 0
 
-
-def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> None:
-    """Identical chunk content in different files produces two distinct results."""
     shared_content = "def helper():\n    pass"
     chunk_a = make_chunk(shared_content, "module_a.py")
     chunk_b = make_chunk(shared_content, "module_b.py")
@@ -99,8 +93,8 @@ def test_hybrid_keeps_both_locations_for_identical_content(mock_model: Any) -> N
     bm25_index = bm25s.BM25()
     bm25_index.index([tokenize(c.content) for c in all_chunks], show_progress=False)
 
-    results = search_hybrid("helper", mock_model, sem_index, bm25_index, all_chunks, top_k=5)
-    result_locations = {r.chunk.file_path for r in results}
+    deduped = search_hybrid("helper", mock_model, sem_index, bm25_index, all_chunks, top_k=5)
+    result_locations = {r.chunk.file_path for r in deduped}
     assert "module_a.py" in result_locations
     assert "module_b.py" in result_locations
 

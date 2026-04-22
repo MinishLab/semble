@@ -119,24 +119,14 @@ def test_apply_query_boost_nl_stem_match_boosts(query: str, file_path: str) -> N
     assert boosted[chunk] > 0.5
 
 
-def test_apply_query_boost_all_stopwords_is_noop() -> None:
-    """NL query composed entirely of stopwords performs no stem boost."""
+def test_apply_query_boost_edge_cases() -> None:
+    """apply_query_boost: stopwords → noop; namespace-qualified → boosts leaf; empty scores → {}."""
     chunk = make_chunk("def foo(): pass", "src/auth.py")
-    scores: dict = {chunk: 0.5}
-    boosted = apply_query_boost(scores, "the and or", [chunk])
-    assert boosted[chunk] == pytest.approx(0.5)
+    assert apply_query_boost({chunk: 0.5}, "the and or", [chunk])[chunk] == pytest.approx(0.5)
 
-
-def test_apply_query_boost_namespace_qualified_adds_full_name() -> None:
-    """Namespace-qualified symbol adds both the leaf and the full query to the names set."""
     defining = make_chunk("class Base:\n    pass", "src/base.py")
-    scores: dict = {defining: 0.5}
-    boosted = apply_query_boost(scores, "Sinatra::Base", [defining])
-    assert boosted[defining] > 0.5
+    assert apply_query_boost({defining: 0.5}, "Sinatra::Base", [defining])[defining] > 0.5
 
-
-def test_apply_query_boost_empty_scores_returns_empty() -> None:
-    """Empty scores dict returns empty dict without error."""
     assert apply_query_boost({}, "SomeQuery", []) == {}
 
 
