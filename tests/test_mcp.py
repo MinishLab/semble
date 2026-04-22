@@ -1,5 +1,3 @@
-"""Tests for semble.mcp: pure helpers, _IndexCache, and server tools."""
-
 from __future__ import annotations
 
 import sys

@@ -27,6 +27,24 @@ def test_rerank_topk_empty_returns_empty_list() -> None:
 
 
 @pytest.mark.parametrize(
+    "penalised_path",
+    [
+        "src/semble/__init__.py",  # _REEXPORT_FILENAMES
+        "tests/test_auth.py",  # _TEST_FILE_RE / _TEST_DIR_RE
+        "src/compat/old_api.py",  # _COMPAT_DIR_RE
+        "examples/demo.py",  # _EXAMPLES_DIR_RE
+        "src/types/index.d.ts",  # _TYPE_DEFS_RE
+    ],
+)
+def test_rerank_topk_demotes_penalised_paths(penalised_path: str) -> None:
+    """Files matching each penalty pattern rank below an equal-scored regular file."""
+    regular = make_chunk("def impl(): pass", "src/regular.py")
+    penalised = make_chunk("def impl(): pass", penalised_path)
+    ranked = rerank_topk({regular: 1.0, penalised: 1.0}, top_k=2)
+    assert ranked[0][0] == regular
+
+
+@pytest.mark.parametrize(
     ("query", "alpha_in", "expected"),
     [
         ("MyService", 0.7, 0.7),  # explicit value returned as-is
@@ -155,21 +173,3 @@ def test_boost_multi_chunk_files_noop_cases(scores_in: dict) -> None:
     snapshot = dict(scores)
     boost_multi_chunk_files(scores)
     assert scores == snapshot
-
-
-@pytest.mark.parametrize(
-    "penalised_path",
-    [
-        "src/semble/__init__.py",  # _REEXPORT_FILENAMES
-        "tests/test_auth.py",  # _TEST_FILE_RE / _TEST_DIR_RE
-        "src/compat/old_api.py",  # _COMPAT_DIR_RE
-        "examples/demo.py",  # _EXAMPLES_DIR_RE
-        "src/types/index.d.ts",  # _TYPE_DEFS_RE
-    ],
-)
-def test_rerank_topk_demotes_penalised_paths(penalised_path: str) -> None:
-    """Files matching each penalty pattern rank below an equal-scored regular file."""
-    regular = make_chunk("def impl(): pass", "src/regular.py")
-    penalised = make_chunk("def impl(): pass", penalised_path)
-    ranked = rerank_topk({regular: 1.0, penalised: 1.0}, top_k=2)
-    assert ranked[0][0] == regular

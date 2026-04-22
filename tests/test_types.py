@@ -1,5 +1,3 @@
-"""Tests for semble.types formatting helpers."""
-
 from semble.types import Chunk, SearchMode, SearchResult
 
 

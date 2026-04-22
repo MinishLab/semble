@@ -72,21 +72,6 @@ def test_search_no_duplicate_chunks(indexed_index: SembleIndex) -> None:
     assert len(results) == len(set(r.chunk for r in results))
 
 
-def test_find_related_returns_similar_chunks(indexed_index: SembleIndex) -> None:
-    """find_related returns semantically similar chunks for a known file location."""
-    chunk = indexed_index.chunks[0]
-    results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
-    assert isinstance(results, list)
-    assert all(r.chunk != chunk for r in results)
-    assert len(results) <= 3
-
-
-def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> None:
-    """find_related returns an empty list when the file is not in the index."""
-    results = indexed_index.find_related("/does/not/exist.py", 1)
-    assert results == []
-
-
 @pytest.mark.parametrize("mode", ["bm25", "hybrid", "semantic"])
 def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex, mode: str) -> None:
     """Filtered search works regardless of where the selected chunk lives in the corpus."""
@@ -100,6 +85,21 @@ def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex, mod
 def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str, query: str) -> None:
     """Empty / whitespace-only queries return [] across all modes."""
     assert indexed_index.search(query, mode=mode) == []
+
+
+def test_find_related_returns_similar_chunks(indexed_index: SembleIndex) -> None:
+    """find_related returns semantically similar chunks for a known file location."""
+    chunk = indexed_index.chunks[0]
+    results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
+    assert isinstance(results, list)
+    assert all(r.chunk != chunk for r in results)
+    assert len(results) <= 3
+
+
+def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> None:
+    """find_related returns an empty list when the file is not in the index."""
+    results = indexed_index.find_related("/does/not/exist.py", 1)
+    assert results == []
 
 
 _GIT_ENV = {

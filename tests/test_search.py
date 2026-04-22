@@ -62,6 +62,19 @@ def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> N
     assert results == []
 
 
+def test_bm25_with_selector_high_indices(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
+    """BM25 with a selector whose indices exceed len(selector) does not crash."""
+    selector = np.array([len(chunks) - 1], dtype=np.int_)
+    results = search_bm25("format", bm25, chunks, top_k=4, selector=selector)
+    assert all(r.chunk is chunks[len(chunks) - 1] for r in results)
+
+
+@pytest.mark.parametrize("query", ["", "   ", "\n\n"])
+def test_bm25_empty_query_returns_empty(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
+    """Empty / whitespace-only queries return [] instead of crashing bm25s."""
+    assert search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
+
+
 def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any) -> None:
     """Semantic search returns results with scores in [-1, 1]."""
     results = search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
@@ -123,25 +136,12 @@ def test_search_source_labels(
 
 
 def test_sort_top_k() -> None:
-    """Test that the sort top k is a faster version of argsort."""
+    """_sort_top_k returns the same indices as np.argsort(-x)[:top_k]."""
     gen = np.random.default_rng()
     x = gen.standard_normal(size=(10000,))
     top_k = 100
     indices = _sort_top_k(x, top_k)
     assert np.all(indices == np.argsort(-x)[:top_k])
-
-
-def test_bm25_with_selector_high_indices(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """BM25 with a selector whose indices exceed len(selector) does not crash."""
-    selector = np.array([len(chunks) - 1], dtype=np.int_)
-    results = search_bm25("format", bm25, chunks, top_k=4, selector=selector)
-    assert all(r.chunk is chunks[len(chunks) - 1] for r in results)
-
-
-@pytest.mark.parametrize("query", ["", "   ", "\n\n"])
-def test_bm25_empty_query_returns_empty(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
-    """Empty / whitespace-only queries return [] instead of crashing bm25s."""
-    assert search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
 
 
 @pytest.mark.parametrize(
