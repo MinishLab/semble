@@ -1,4 +1,3 @@
-import contextlib
 from pathlib import Path
 
 import numpy as np
@@ -16,19 +15,15 @@ def selector_to_mask(selector: npt.NDArray[np.int_] | None, size: int) -> npt.ND
     return mask
 
 
-def enrich_for_bm25(chunk: Chunk, root: Path | None) -> str:
+def enrich_for_bm25(chunk: Chunk) -> str:
     """Append file path components to BM25 content to boost path-based queries.
 
-    Uses a repo-relative path so that machine-specific directory components
-    (usernames, workspace names, temp dirs) are never indexed as tokens.
+    Assumes ``chunk.file_path`` is already repo-relative (set by ``create_index_from_path``)
+    so machine-specific directory components are never indexed.
     """
     path = Path(chunk.file_path)
-    if root is not None:
-        with contextlib.suppress(ValueError):
-            path = path.relative_to(root)
     stem = path.stem
-    # Collect directory names from the (now relative) path, skipping filesystem roots.
     dir_parts = [part for part in path.parent.parts if part not in (".", "/")]
-    dir_text = " ".join(dir_parts[-3:])  # Last 3 repo-relative directory components
+    dir_text = " ".join(dir_parts[-3:])  # Last 3 directory components
     # Repeat the stem twice to up-weight file-path matches in BM25.
     return f"{chunk.content} {stem} {stem} {dir_text}"

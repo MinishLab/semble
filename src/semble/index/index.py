@@ -25,7 +25,7 @@ class SembleIndex:
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
     ) -> None:
-        """Configure the index.
+        """Internal constructor — use :meth:`from_path` or :meth:`from_git`.
 
         :param model: Embedding model to use.
         :param bm25_index: The bm25 index.
@@ -36,10 +36,10 @@ class SembleIndex:
         self.chunks: list[Chunk] = chunks
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
-        self.file_mapping, self.language_mapping = self._populate_mapping()
+        self._file_mapping, self._language_mapping = self._populate_mapping()
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
-        """Creates two mappings, one from language to chunk, and one from file to chunk."""
+        """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
         language_to_id = defaultdict(list)
         file_to_id = defaultdict(list)
         for i, chunk in enumerate(self.chunks):
@@ -53,16 +53,16 @@ class SembleIndex:
     @property
     def stats(self) -> IndexStats:
         """Stats of an index."""
-        indexed_files = set()
-        total_chunks = len(self.chunks)
         language_counts: dict[str, int] = defaultdict(int)
-
         for chunk in self.chunks:
-            indexed_files.add(chunk.file_path)
             if chunk.language:
                 language_counts[chunk.language] += 1
 
-        return IndexStats(indexed_files=len(indexed_files), total_chunks=total_chunks, languages=dict(language_counts))
+        return IndexStats(
+            indexed_files=len(self._file_mapping),
+            total_chunks=len(self.chunks),
+            languages=dict(language_counts),
+        )
 
     @classmethod
     def from_path(
@@ -71,7 +71,7 @@ class SembleIndex:
         model: Encoder | None = None,
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
-        include_docs: bool = False,
+        include_text_files: bool = False,
     ) -> SembleIndex:
         """Create and index a SembleIndex from a directory.
 
@@ -79,7 +79,7 @@ class SembleIndex:
         :param model: Embedding model to use. Defaults to potion-code-16M.
         :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
-        :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
+        :param include_text_files: If True, also index non-code text files (.md, .yaml, .json, etc.).
         :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
@@ -93,7 +93,12 @@ class SembleIndex:
             raise NotADirectoryError(f"Path is not a directory: {path}")
         path = path.resolve()
         bm25, vicinity, chunks = create_index_from_path(
-            path, model=model, extensions=extensions, ignore=ignore, include_docs=include_docs, display_root=path
+            path,
+            model=model,
+            extensions=extensions,
+            ignore=ignore,
+            include_text_files=include_text_files,
+            display_root=path,
         )
 
         index = SembleIndex(model, bm25, vicinity, chunks)
@@ -108,16 +113,21 @@ class SembleIndex:
         model: Encoder | None = None,
         extensions: frozenset[str] | None = None,
         ignore: frozenset[str] | None = None,
-        include_docs: bool = False,
+        include_text_files: bool = False,
     ) -> SembleIndex:
         """Clone a git repository and index it.
+
+        The repository is cloned into a temporary directory that is removed once
+        indexing finishes. Chunk content is preserved in-memory, but
+        ``chunk.file_path`` will not point to a readable file after this call
+        returns — it is a repo-relative label, not a filesystem path.
 
         :param url: URL of the git repository to clone (any git provider).
         :param ref: Branch or tag to check out. Defaults to the remote HEAD.
         :param model: Embedding model to use. Defaults to potion-code-16M.
         :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
-        :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
+        :param include_text_files: If True, also index non-code text files (.md, .yaml, .json, etc.).
         :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH or the clone fails.
         """
@@ -137,7 +147,7 @@ class SembleIndex:
                 model=model,
                 extensions=extensions,
                 ignore=ignore,
-                include_docs=include_docs,
+                include_text_files=include_text_files,
                 display_root=resolved_path,
             )
 
@@ -163,23 +173,23 @@ class SembleIndex:
         if target is None:
             return []
         if target.language:
-            selector = self._get_selector_vector(select_language=[target.language])
+            selector = self._get_selector_vector(filter_languages=[target.language])
         else:
             selector = None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         return [r for r in results if r.chunk != target][:top_k]
 
     def _get_selector_vector(
-        self, select_language: list[str] | None = None, select_document: list[str] | None = None
+        self, filter_languages: list[str] | None = None, filter_paths: list[str] | None = None
     ) -> npt.NDArray[np.int_] | None:
-        """Create a vector of integers corresponding to the items that should be retrieved."""
+        """Create a vector of chunk indices to restrict retrieval to."""
         selector = []
-        for language in select_language or []:
-            selector.extend(self.language_mapping.get(language, []))
-        for filename in select_document or []:
-            selector.extend(self.file_mapping.get(filename, []))
+        for language in filter_languages or []:
+            selector.extend(self._language_mapping.get(language, []))
+        for filename in filter_paths or []:
+            selector.extend(self._file_mapping.get(filename, []))
 
-        return np.asarray(selector) if selector else None
+        return np.unique(selector) if selector else None
 
     def search(
         self,
@@ -187,8 +197,8 @@ class SembleIndex:
         top_k: int = 10,
         mode: SearchMode | str = SearchMode.HYBRID,
         alpha: float | None = None,
-        select_language: list[str] | None = None,
-        select_document: list[str] | None = None,
+        filter_languages: list[str] | None = None,
+        filter_paths: list[str] | None = None,
     ) -> list[SearchResult]:
         """Search the index and return the top-k most relevant chunks.
 
@@ -198,8 +208,10 @@ class SembleIndex:
         :param alpha: Blend weight for hybrid score combination; 1.0 = full semantic
             weight, 0.0 = full BM25 weight. File-path penalties and diversity reranking
             are applied regardless. ``None`` auto-detects from query type.
-        :param select_language: Optional list of language codes to filter results by.
-        :param select_document: Optional list of document paths to filter results by.
+        :param filter_languages: Optional list of language codes; if set, only chunks in
+            these languages are returned.
+        :param filter_paths: Optional list of repo-relative file paths; if set, only
+            chunks from these files are returned.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         :raises ValueError: If `mode` is not a recognised search strategy.
         """
@@ -207,7 +219,7 @@ class SembleIndex:
         if not self.chunks or not query.strip():
             return []
 
-        selector = self._get_selector_vector(select_language, select_document)
+        selector = self._get_selector_vector(filter_languages, filter_paths)
 
         if mode == SearchMode.BM25:
             return search_bm25(query, bm25_index, self.chunks, top_k, selector=selector)

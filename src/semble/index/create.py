@@ -17,7 +17,7 @@ def create_index_from_path(
     model: Encoder,
     extensions: frozenset[str] | None = None,
     ignore: frozenset[str] | None = None,
-    include_docs: bool = False,
+    include_text_files: bool = False,
     display_root: Path | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
     """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
@@ -26,12 +26,12 @@ def create_index_from_path(
     :param model: The model to use for indexing.
     :param extensions: File extensions to include.
     :param ignore: Directory names to skip.
-    :param include_docs: If True, also index documentation files.
+    :param include_text_files: If True, also index non-code text files (.md, .yaml, .json, etc.).
     :param display_root: If set, chunk file paths are stored relative to this root.
     :raises ValueError: if no items were found, no index can be created.
     :return: A bm25 index, vicinity index and list of chunks
     """
-    extensions = filter_extensions(extensions, include_docs=include_docs)
+    extensions = filter_extensions(extensions, include_text_files=include_text_files)
 
     chunks: list[Chunk] = []
 
@@ -46,7 +46,7 @@ def create_index_from_path(
         embeddings = embed_chunks(model, chunks)
         bm25_index = bm25s.BM25()
         bm25_index.index(
-            [tokenize(enrich_for_bm25(chunk, display_root or path)) for chunk in chunks],
+            [tokenize(enrich_for_bm25(chunk)) for chunk in chunks],
             show_progress=False,
         )
         args = BasicArgs()

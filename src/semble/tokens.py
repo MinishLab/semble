@@ -9,7 +9,7 @@ _TOKEN_RE = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*")
 _CAMEL_RE = re.compile(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|[0-9]+")
 
 
-def _split_identifier(token: str) -> list[str]:
+def split_identifier(token: str) -> list[str]:
     """Split a single identifier into sub-tokens via camelCase/snake_case.
 
     Returns the original token (lowered) plus any sub-tokens.
@@ -42,5 +42,5 @@ def tokenize(text: str) -> list[str]:
     raw_tokens = _TOKEN_RE.findall(text)
     result: list[str] = []
     for tok in raw_tokens:
-        result.extend(_split_identifier(tok))
+        result.extend(split_identifier(tok))
     return result

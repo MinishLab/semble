@@ -17,14 +17,14 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
 
 
 @pytest.mark.parametrize(
-    ("include_docs", "md_in_results"),
+    ("include_text_files", "md_in_results"),
     [(False, False), (True, True)],
 )
 def test_index_markdown_inclusion(
-    mock_model: Encoder, tmp_project: Path, include_docs: bool, md_in_results: bool
+    mock_model: Encoder, tmp_project: Path, include_text_files: bool, md_in_results: bool
 ) -> None:
-    """Markdown files are excluded by default and included when include_docs=True."""
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, include_docs=include_docs)
+    """Markdown files are excluded by default and included when include_text_files=True."""
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, include_text_files=include_text_files)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 
@@ -87,10 +87,10 @@ def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> 
 
 
 @pytest.mark.parametrize("mode", ["bm25", "hybrid", "semantic"])
-def test_search_with_select_document_does_not_crash(indexed_index: SembleIndex, mode: str) -> None:
+def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex, mode: str) -> None:
     """Filtered search works regardless of where the selected chunk lives in the corpus."""
     target_path = indexed_index.chunks[-1].file_path
-    results = indexed_index.search("function", top_k=3, mode=mode, select_document=[target_path])
+    results = indexed_index.search("function", top_k=3, mode=mode, filter_paths=[target_path])
     assert all(r.chunk.file_path == target_path for r in results)
 
 

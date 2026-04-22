@@ -3,7 +3,7 @@ import re
 from collections.abc import Callable
 from pathlib import Path
 
-from semble.tokens import _split_identifier
+from semble.tokens import split_identifier
 from semble.types import Chunk
 
 # Symbol-lookup queries: namespace-qualified, leading-underscore, or containing
@@ -314,9 +314,9 @@ def _boost_stem_matches(
     for chunk in list(boosted):
         if chunk.file_path not in path_cache:
             path = Path(chunk.file_path)
-            parts: set[str] = set(_split_identifier(path.stem))
+            parts: set[str] = set(split_identifier(path.stem))
             if path.parent.name and path.parent.name not in (".", "/", ".."):
-                parts.update(_split_identifier(path.parent.name))
+                parts.update(split_identifier(path.parent.name))
             path_cache[chunk.file_path] = parts
         n_matches = _count_keyword_matches(keywords, path_cache[chunk.file_path])
         if n_matches > 0:

@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Protocol
+from typing import Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -20,8 +20,8 @@ class SearchMode(str, Enum):
 class Encoder(Protocol):
     """Protocol for embedding models."""
 
-    def encode(self, texts: Sequence[str], /) -> npt.NDArray[Any]:
-        """Encode texts into embeddings."""
+    def encode(self, texts: Sequence[str], /) -> EmbeddingMatrix:
+        """Encode texts into embeddings as a 2D float32 array."""
         ...  # pragma: no cover
 
 

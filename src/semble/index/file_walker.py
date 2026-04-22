@@ -5,7 +5,7 @@ from enum import Enum
 from pathlib import Path
 
 
-class FileTypeType(str, Enum):
+class FileCategory(str, Enum):
     CODE = "CODE"
     DOCUMENT = "DOCUMENT"
 
@@ -15,44 +15,44 @@ class FileType:
     """Language and indexing policy for a file extension."""
 
     language: str
-    type: FileTypeType
+    category: FileCategory
 
 
 FILE_TYPES: dict[str, FileType] = {
-    ".py": FileType("python", FileTypeType.CODE),
-    ".js": FileType("javascript", FileTypeType.CODE),
-    ".jsx": FileType("javascript", FileTypeType.CODE),
-    ".ts": FileType("typescript", FileTypeType.CODE),
-    ".tsx": FileType("typescript", FileTypeType.CODE),
-    ".go": FileType("go", FileTypeType.CODE),
-    ".rs": FileType("rust", FileTypeType.CODE),
-    ".java": FileType("java", FileTypeType.CODE),
-    ".kt": FileType("kotlin", FileTypeType.CODE),
-    ".kts": FileType("kotlin", FileTypeType.CODE),
-    ".rb": FileType("ruby", FileTypeType.CODE),
-    ".php": FileType("php", FileTypeType.CODE),
-    ".c": FileType("c", FileTypeType.CODE),
-    ".h": FileType("c", FileTypeType.CODE),
-    ".cpp": FileType("cpp", FileTypeType.CODE),
-    ".hpp": FileType("cpp", FileTypeType.CODE),
-    ".cs": FileType("csharp", FileTypeType.CODE),
-    ".swift": FileType("swift", FileTypeType.CODE),
-    ".scala": FileType("scala", FileTypeType.CODE),
-    ".sbt": FileType("scala", FileTypeType.CODE),
-    ".ex": FileType("elixir", FileTypeType.CODE),
-    ".exs": FileType("elixir", FileTypeType.CODE),
-    ".dart": FileType("dart", FileTypeType.CODE),
-    ".lua": FileType("lua", FileTypeType.CODE),
-    ".sql": FileType("sql", FileTypeType.CODE),
-    ".sh": FileType("bash", FileTypeType.CODE),
-    ".bash": FileType("bash", FileTypeType.CODE),
-    ".zig": FileType("zig", FileTypeType.CODE),
-    ".hs": FileType("haskell", FileTypeType.CODE),
-    ".md": FileType("markdown", FileTypeType.DOCUMENT),
-    ".yaml": FileType("yaml", FileTypeType.DOCUMENT),
-    ".yml": FileType("yaml", FileTypeType.DOCUMENT),
-    ".toml": FileType("toml", FileTypeType.DOCUMENT),
-    ".json": FileType("json", FileTypeType.DOCUMENT),
+    ".py": FileType("python", FileCategory.CODE),
+    ".js": FileType("javascript", FileCategory.CODE),
+    ".jsx": FileType("javascript", FileCategory.CODE),
+    ".ts": FileType("typescript", FileCategory.CODE),
+    ".tsx": FileType("typescript", FileCategory.CODE),
+    ".go": FileType("go", FileCategory.CODE),
+    ".rs": FileType("rust", FileCategory.CODE),
+    ".java": FileType("java", FileCategory.CODE),
+    ".kt": FileType("kotlin", FileCategory.CODE),
+    ".kts": FileType("kotlin", FileCategory.CODE),
+    ".rb": FileType("ruby", FileCategory.CODE),
+    ".php": FileType("php", FileCategory.CODE),
+    ".c": FileType("c", FileCategory.CODE),
+    ".h": FileType("c", FileCategory.CODE),
+    ".cpp": FileType("cpp", FileCategory.CODE),
+    ".hpp": FileType("cpp", FileCategory.CODE),
+    ".cs": FileType("csharp", FileCategory.CODE),
+    ".swift": FileType("swift", FileCategory.CODE),
+    ".scala": FileType("scala", FileCategory.CODE),
+    ".sbt": FileType("scala", FileCategory.CODE),
+    ".ex": FileType("elixir", FileCategory.CODE),
+    ".exs": FileType("elixir", FileCategory.CODE),
+    ".dart": FileType("dart", FileCategory.CODE),
+    ".lua": FileType("lua", FileCategory.CODE),
+    ".sql": FileType("sql", FileCategory.CODE),
+    ".sh": FileType("bash", FileCategory.CODE),
+    ".bash": FileType("bash", FileCategory.CODE),
+    ".zig": FileType("zig", FileCategory.CODE),
+    ".hs": FileType("haskell", FileCategory.CODE),
+    ".md": FileType("markdown", FileCategory.DOCUMENT),
+    ".yaml": FileType("yaml", FileCategory.DOCUMENT),
+    ".yml": FileType("yaml", FileCategory.DOCUMENT),
+    ".toml": FileType("toml", FileCategory.DOCUMENT),
+    ".json": FileType("json", FileCategory.DOCUMENT),
 }
 
 DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
@@ -84,16 +84,16 @@ def language_for_path(path: Path) -> str | None:
     return None
 
 
-def filter_extensions(extensions: frozenset[str] | None, *, include_docs: bool) -> frozenset[str]:
+def filter_extensions(extensions: frozenset[str] | None, *, include_text_files: bool) -> frozenset[str]:
     """Return the set of file extensions to index."""
     if extensions is not None:
         return extensions
     # Always index code files
-    types_to_include = {FileTypeType.CODE}
-    if include_docs:
-        types_to_include.add(FileTypeType.DOCUMENT)
+    categories_to_include = {FileCategory.CODE}
+    if include_text_files:
+        categories_to_include.add(FileCategory.DOCUMENT)
     # Return a default set of extensions
-    return frozenset(ext for ext, spec in FILE_TYPES.items() if spec.type in types_to_include)
+    return frozenset(ext for ext, spec in FILE_TYPES.items() if spec.category in categories_to_include)
 
 
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
