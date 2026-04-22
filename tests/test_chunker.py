@@ -26,40 +26,34 @@ def test_chunk_lines_line_numbers() -> None:
     assert chunks[0].start_line == 1
 
 
-def test_chunk_file_nonexistent() -> None:
-    """Non-existent file returns empty list without raising."""
-    chunks = chunk_file(Path("/nonexistent/file.py"))
-    assert chunks == []
+@pytest.mark.parametrize(
+    ("filename", "content"),
+    [
+        (None, None),  # nonexistent path
+        ("empty.py", "   \n\n  "),  # whitespace-only
+        ("file.xyz", "hello world\n" * 5),  # unknown extension
+    ],
+    ids=["nonexistent", "whitespace_only", "unknown_extension"],
+)
+def test_chunk_file_edge_cases_return_list(tmp_path: Path, filename: str | None, content: str | None) -> None:
+    """chunk_file returns a list (usually empty) for missing / empty / unknown-type files without raising."""
+    if filename is None:
+        target = Path("/nonexistent/file.py")
+    else:
+        target = tmp_path / filename
+        assert content is not None
+        target.write_text(content)
+    chunks = chunk_file(target)
+    assert isinstance(chunks, list)
 
 
-def test_chunk_file_empty(tmp_path: Path) -> None:
-    """Whitespace-only file returns no chunks."""
-    f = tmp_path / "empty.py"
-    f.write_text("   \n\n  ")
-    chunks = chunk_file(f)
-    assert chunks == []
-
-
-def test_chunk_file_py_produces_chunks(tmp_py_file: Path) -> None:
-    """Python file with functions is split into at least one chunk."""
-    chunks = chunk_file(tmp_py_file)
-    assert len(chunks) >= 1
-
-
-def test_chunk_file_sorted_by_line(tmp_py_file: Path) -> None:
-    """Chunks are returned in ascending start-line order."""
+def test_chunk_file_py_produces_sorted_chunks(tmp_py_file: Path) -> None:
+    """Python file with functions produces at least one chunk in ascending start-line order."""
     pytest.importorskip("tree_sitter_python")
     chunks = chunk_file(tmp_py_file)
+    assert len(chunks) >= 1
     start_lines = [c.start_line for c in chunks]
     assert start_lines == sorted(start_lines)
-
-
-def test_chunk_file_unknown_extension(tmp_path: Path) -> None:
-    """Unknown file extension returns a list without raising."""
-    f = tmp_path / "file.xyz"
-    f.write_text("hello world\n" * 5)
-    chunks = chunk_file(f)
-    assert isinstance(chunks, list)
 
 
 def _whitespace_chunker() -> MagicMock:

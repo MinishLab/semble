@@ -19,6 +19,24 @@ def _tool_text(result: Any) -> str:
     return result[0][0].text
 
 
+async def _call_tool(
+    cache: _IndexCache,
+    tool: str,
+    args: dict[str, Any],
+    *,
+    index_method: str,
+    index_return: list[SearchResult],
+    default_source: str | None = "/some/path",
+) -> str:
+    """Patch SembleIndex.from_path with a fake index and invoke the tool, returning the text."""
+    fake_index = MagicMock()
+    getattr(fake_index, index_method).return_value = index_return
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
+        server = create_server(cache, default_source=default_source)
+        result = await server.call_tool(tool, args)
+    return _tool_text(result)
+
+
 @pytest.fixture()
 def cache() -> _IndexCache:
     """An _IndexCache backed by a stub model."""
@@ -52,48 +70,43 @@ def test_format_results_empty() -> None:
     assert "```" not in out
 
 
-def test_format_results_with_results() -> None:
-    """Each result is rendered as a numbered fenced code block with score."""
-    chunk = make_chunk("def foo(): pass", "src/foo.py")
-    result = SearchResult(chunk=chunk, score=0.85, source=SearchMode.HYBRID)
-    out = _format_results("Results for: 'foo'", [result])
+def test_format_results_renders_fenced_blocks_with_numbering() -> None:
+    """Each result is rendered as a numbered fenced code block with its score."""
+    chunks = [make_chunk(f"def fn_{i}(): pass", f"f{i}.py") for i in range(3)]
+    results = [
+        SearchResult(chunk=c, score=round(0.1 * (i + 1), 3), source=SearchMode.HYBRID) for i, c in enumerate(chunks)
+    ]
+    out = _format_results("Results for: 'foo'", results)
+
     assert "Results for: 'foo'" in out
-    assert "0.850" in out
-    assert "def foo(): pass" in out
-    assert "```" in out
-    assert "1." in out
-
-
-def test_format_results_numbering() -> None:
-    """Results are numbered sequentially starting at 1."""
-    chunks = [make_chunk(f"line {i}", f"f{i}.py") for i in range(3)]
-    results = [SearchResult(chunk=c, score=float(i), source=SearchMode.BM25) for i, c in enumerate(chunks)]
-    out = _format_results("header", results)
-    assert "## 1." in out
-    assert "## 2." in out
-    assert "## 3." in out
+    assert out.count("```") >= len(results) * 2  # opening + closing fence each
+    for i, c in enumerate(chunks, start=1):
+        assert f"## {i}." in out
+        assert c.content in out
+    assert "0.100" in out and "0.200" in out and "0.300" in out
 
 
 @pytest.mark.anyio
-async def test_index_cache_local_path(cache: _IndexCache, tmp_path: Path) -> None:
-    """_IndexCache.get() builds a local-path index and caches it."""
+@pytest.mark.parametrize(
+    ("source", "patch_target"),
+    [
+        ("local_tmp_path", "from_path"),
+        ("https://github.com/org/repo", "from_git"),
+    ],
+    ids=["local_path", "git_url"],
+)
+async def test_index_cache_builds_and_caches(
+    cache: _IndexCache, tmp_path: Path, source: str, patch_target: str
+) -> None:
+    """_IndexCache.get() builds via the correct SembleIndex.* entrypoint and caches subsequent calls."""
+    resolved_source = str(tmp_path) if source == "local_tmp_path" else source
     fake_index = MagicMock()
-    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index) as mock_fp:
-        index1 = await cache.get(str(tmp_path))
-        index2 = await cache.get(str(tmp_path))
-    assert index1 is fake_index
-    assert index2 is fake_index
-    mock_fp.assert_called_once()
-
-
-@pytest.mark.anyio
-async def test_index_cache_git_url(cache: _IndexCache) -> None:
-    """_IndexCache.get() builds a git-URL index and caches it."""
-    fake_index = MagicMock()
-    with patch("semble.mcp.SembleIndex.from_git", return_value=fake_index) as mock_fg:
-        index = await cache.get("https://github.com/org/repo")
-    assert index is fake_index
-    mock_fg.assert_called_once()
+    with patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=fake_index) as mock_build:
+        first = await cache.get(resolved_source)
+        second = await cache.get(resolved_source)
+    assert first is fake_index
+    assert second is fake_index
+    mock_build.assert_called_once()
 
 
 @pytest.mark.anyio
@@ -132,31 +145,6 @@ async def test_tool_no_repo_no_default(cache: _IndexCache, tool: str, args: dict
 
 
 @pytest.mark.anyio
-async def test_search_tool_returns_results(cache: _IndexCache) -> None:
-    """Search tool formats and returns index results."""
-    fake_index = MagicMock()
-    chunk = make_chunk("def bar(): pass", "src/bar.py")
-    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)]
-    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
-        server = create_server(cache, default_source="/some/local/path")
-        result = await server.call_tool("search", {"query": "bar"})
-    text = _tool_text(result)
-    assert "bar" in text
-    assert "0.900" in text
-
-
-@pytest.mark.anyio
-async def test_search_tool_no_results(cache: _IndexCache) -> None:
-    """Search tool returns 'No results found.' when the index returns nothing."""
-    fake_index = MagicMock()
-    fake_index.search.return_value = []
-    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
-        server = create_server(cache, default_source="/some/path")
-        result = await server.call_tool("search", {"query": "nothing"})
-    assert "No results found" in _tool_text(result)
-
-
-@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("tool", "args"),
     [
@@ -175,28 +163,55 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
 
 
 @pytest.mark.anyio
-async def test_find_related_tool_returns_results(cache: _IndexCache) -> None:
-    """find_related formats and returns related chunks."""
-    fake_index = MagicMock()
-    chunk = make_chunk("class Foo: pass", "src/foo.py")
-    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8, source=SearchMode.SEMANTIC)]
-    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
-        server = create_server(cache, default_source="/some/path")
-        result = await server.call_tool("find_related", {"file_path": "src/foo.py", "line": 1})
-    text = _tool_text(result)
-    assert "src/foo.py:1" in text
-    assert "0.800" in text
-
-
-@pytest.mark.anyio
-async def test_find_related_tool_no_results(cache: _IndexCache) -> None:
-    """find_related returns a descriptive message when no related chunks are found."""
-    fake_index = MagicMock()
-    fake_index.find_related.return_value = []
-    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
-        server = create_server(cache, default_source="/some/path")
-        result = await server.call_tool("find_related", {"file_path": "src/foo.py", "line": 99})
-    assert "No related chunks found" in _tool_text(result)
+@pytest.mark.parametrize(
+    ("tool", "args", "method", "results", "expected_substrings"),
+    [
+        pytest.param(
+            "search",
+            {"query": "bar"},
+            "search",
+            [SearchResult(chunk=make_chunk("def bar(): pass", "src/bar.py"), score=0.9, source=SearchMode.HYBRID)],
+            ["bar", "0.900"],
+            id="search_with_results",
+        ),
+        pytest.param(
+            "search",
+            {"query": "nothing"},
+            "search",
+            [],
+            ["No results found"],
+            id="search_no_results",
+        ),
+        pytest.param(
+            "find_related",
+            {"file_path": "src/foo.py", "line": 1},
+            "find_related",
+            [SearchResult(chunk=make_chunk("class Foo: pass", "src/foo.py"), score=0.8, source=SearchMode.SEMANTIC)],
+            ["src/foo.py:1", "0.800"],
+            id="find_related_with_results",
+        ),
+        pytest.param(
+            "find_related",
+            {"file_path": "src/foo.py", "line": 99},
+            "find_related",
+            [],
+            ["No related chunks found"],
+            id="find_related_no_results",
+        ),
+    ],
+)
+async def test_tool_output(
+    cache: _IndexCache,
+    tool: str,
+    args: dict[str, Any],
+    method: str,
+    results: list[SearchResult],
+    expected_substrings: list[str],
+) -> None:
+    """Search and find_related format results (or an empty-state message) through the server."""
+    text = await _call_tool(cache, tool, args, index_method=method, index_return=results)
+    for substring in expected_substrings:
+        assert substring in text
 
 
 @pytest.mark.anyio
