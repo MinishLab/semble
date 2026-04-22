@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -147,9 +148,14 @@ class _IndexCache:
             raise
 
 
+_GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
+# scp-like syntax: [user@]host:path, where host has no '/' before the ':'.
+_SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
+
+
 def _is_git_url(path: str) -> bool:
     """Return True if path looks like a remote git URL rather than a local path."""
-    return path.startswith(("https://", "http://", "git@", "ssh://"))
+    return path.startswith(_GIT_URL_SCHEMES) or _SCP_GIT_URL_RE.match(path) is not None
 
 
 def _format_results(header: str, results: list[SearchResult]) -> str:

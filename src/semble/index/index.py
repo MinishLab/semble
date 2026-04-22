@@ -11,7 +11,6 @@ from bm25s import BM25
 
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
-from semble.index.sparse import selector_to_mask
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
@@ -82,9 +81,17 @@ class SembleIndex:
         :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
         :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
+        :raises FileNotFoundError: If `path` does not exist.
+        :raises NotADirectoryError: If `path` exists but is not a directory.
+        :raises ValueError: If `path` is a directory but contains no supported files.
         """
         model = model or load_model()
-        path = Path(path).resolve()
+        path = Path(path)
+        if not path.exists():
+            raise FileNotFoundError(f"Path does not exist: {path}")
+        if not path.is_dir():
+            raise NotADirectoryError(f"Path is not a directory: {path}")
+        path = path.resolve()
         bm25, vicinity, chunks = create_index_from_path(
             path, model=model, extensions=extensions, ignore=ignore, include_docs=include_docs, display_root=path
         )
@@ -115,7 +122,8 @@ class SembleIndex:
         :raises RuntimeError: If git is not on PATH or the clone fails.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
-            cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), url, tmp_dir]
+            # `--` prevents `url` from being interpreted as a git option (e.g. `--upload-pack=...`).
+            cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), "--", url, tmp_dir]
             try:
                 result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
             except FileNotFoundError:

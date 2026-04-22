@@ -52,6 +52,6 @@ def create_index_from_path(
         args = BasicArgs()
         semantic_index = SelectableBasicBackend(embeddings, args)
     else:
-        raise ValueError("Unable to create index.")
+        raise ValueError(f"No supported files found under {path}.")
 
     return bm25_index, semantic_index, chunks
