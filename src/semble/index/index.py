@@ -204,7 +204,7 @@ class SembleIndex:
         :raises ValueError: If `mode` is not a recognised search strategy.
         """
         bm25_index, semantic_index = self._bm25_index, self._semantic_index
-        if not self.chunks:
+        if not self.chunks or not query.strip():
             return []
 
         selector = self._get_selector_vector(select_language, select_document)

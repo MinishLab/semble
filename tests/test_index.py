@@ -86,6 +86,21 @@ def test_find_related_unknown_file_returns_empty(indexed_index: SembleIndex) -> 
     assert results == []
 
 
+@pytest.mark.parametrize("mode", ["bm25", "hybrid", "semantic"])
+def test_search_with_select_document_does_not_crash(indexed_index: SembleIndex, mode: str) -> None:
+    """Filtered search works regardless of where the selected chunk lives in the corpus."""
+    target_path = indexed_index.chunks[-1].file_path
+    results = indexed_index.search("function", top_k=3, mode=mode, select_document=[target_path])
+    assert all(r.chunk.file_path == target_path for r in results)
+
+
+@pytest.mark.parametrize("mode", ["bm25", "hybrid", "semantic"])
+@pytest.mark.parametrize("query", ["", "   ", "\n\n"])
+def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str, query: str) -> None:
+    """Empty / whitespace-only queries return [] across all modes."""
+    assert indexed_index.search(query, mode=mode) == []
+
+
 _GIT_ENV = {
     **os.environ,
     "GIT_AUTHOR_NAME": "test",

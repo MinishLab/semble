@@ -54,8 +54,11 @@ def search_bm25(
     selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
     """Return chunks ranked by BM25 score, excluding zero-score results."""
-    mask = selector_to_mask(selector)
-    scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokenize(query), weight_mask=mask)
+    tokens = tokenize(query)
+    if not tokens:
+        return []
+    mask = selector_to_mask(selector, len(chunks))
+    scores: npt.NDArray[np.float32] = bm25_index.get_scores(tokens, weight_mask=mask)
     indices = _sort_top_k(scores, top_k)
 
     # Exclude chunks with zero score, no query tokens matched.

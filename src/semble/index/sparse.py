@@ -7,11 +7,11 @@ import numpy.typing as npt
 from semble.types import Chunk
 
 
-def selector_to_mask(selector: npt.NDArray[np.int_] | None) -> npt.NDArray[np.bool_] | None:
-    """Convert a selector array to a boolean mask."""
+def selector_to_mask(selector: npt.NDArray[np.int_] | None, size: int) -> npt.NDArray[np.bool_] | None:
+    """Convert a selector array of indices into a boolean mask of length ``size``."""
     if selector is None:
         return None
-    mask = np.zeros(len(selector), dtype=bool)
+    mask = np.zeros(size, dtype=bool)
     mask[selector] = True
     return mask
 
