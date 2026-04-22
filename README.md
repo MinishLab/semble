@@ -13,7 +13,7 @@
 
 </div>
 
-Semble is a fast code search library for local and remote repositories. It combines static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using ([potion-code-16M](https://huggingface.co/minishlab/potion-code-16M)) with [BM25](https://github.com/xhluca/bm25s) and a specialized hybrid reranking stack to deliver near-transformer accuracy at a fraction of the cost. It can also run as an MCP server so agents can search any codebase on demand.
+Semble is a fast code search library for local and remote repositories. It combines static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) with [BM25](https://github.com/xhluca/bm25s) and a specialized hybrid reranking stack to deliver near-transformer accuracy at a fraction of the cost. It can also run as an MCP server so agents can search any codebase on demand.
 
 ## Quickstart
 
@@ -99,3 +99,19 @@ The 137M-parameter CodeRankEmbed Hybrid leads NDCG@10 by 0.008. Semble indexes 2
 ## License
 
 MIT
+
+## Citing
+
+If you use Semble in your research, please cite the following:
+
+```bibtex
+@software{minishlab2026semble,
+  author       = {{van Dongen}, Thomas and Stephan Tulkens},
+  title        = {Semble: Fast Code Search for Agents},
+  year         = {2026},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.XXXXXXX},
+  url          = {https://github.com/MinishLab/semble},
+  license      = {MIT}
+}
+```
