@@ -5,14 +5,6 @@ from semble.ranking.penalties import rerank_topk
 from tests.conftest import make_chunk
 
 
-def test_rerank_topk_init_demoted_by_default() -> None:
-    """__init__.py is demoted below an equal-scored regular file."""
-    init_chunk = make_chunk("from .auth import authenticate", "src/semble/__init__.py")
-    impl_chunk = make_chunk("def authenticate(token): ...", "src/semble/auth.py")
-    ranked = rerank_topk({init_chunk: 1.0, impl_chunk: 1.0}, top_k=2)
-    assert ranked[0][0] == impl_chunk
-
-
 def test_rerank_topk_penalise_paths_false_respects_scores() -> None:
     """penalise_paths=False leaves score order intact, including __init__.py."""
     init_chunk = make_chunk("from .auth import authenticate", "src/semble/__init__.py")
@@ -84,26 +76,35 @@ def test_apply_query_boost_scans_non_candidates(query: str) -> None:
     assert boosted[defining] > 0
 
 
-def test_apply_query_boost_non_matching_stem_skipped() -> None:
-    """Non-candidate chunk with an unrelated stem is not boosted."""
+@pytest.mark.parametrize(
+    "query",
+    [
+        "UserService",  # bare symbol query
+        "how does UserService work",  # NL with embedded symbol
+    ],
+)
+def test_apply_query_boost_skips_non_matching_stem(query: str) -> None:
+    """Non-candidate chunk with an unrelated stem is not boosted, regardless of query style."""
     defining = make_chunk("class UserService:\n    pass", "src/user_service.py")
     unrelated = make_chunk("x = 1", "src/totally_unrelated_name.py")
     scores: dict = {defining: 0.5}
-
-    boosted = apply_query_boost(scores, "how does UserService work", [defining, unrelated])
-
+    boosted = apply_query_boost(scores, query, [defining, unrelated])
     assert unrelated not in boosted
 
 
-def test_apply_query_boost_nl_query_boosts_stem_match() -> None:
-    """NL query keywords matching file stems boost those chunks."""
-    auth_chunk = make_chunk("def authenticate(): pass", "src/auth.py")
-    other_chunk = make_chunk("def foo(): pass", "src/utils.py")
-    scores: dict = {auth_chunk: 0.5, other_chunk: 0.5}
-
-    boosted = apply_query_boost(scores, "authenticate user session", [auth_chunk, other_chunk])
-
-    assert boosted[auth_chunk] > boosted[other_chunk]
+@pytest.mark.parametrize(
+    ("query", "file_path"),
+    [
+        ("authenticate user session", "src/auth.py"),  # prefix / morphological match
+        ("auth service", "src/auth_service.py"),  # every keyword exact-matches a stem part
+    ],
+)
+def test_apply_query_boost_nl_stem_match_boosts(query: str, file_path: str) -> None:
+    """NL query keywords matching file-stem parts boost the chunk above its baseline score."""
+    chunk = make_chunk("def authenticate(): pass", file_path)
+    scores: dict = {chunk: 0.5}
+    boosted = apply_query_boost(scores, query, [chunk])
+    assert boosted[chunk] > 0.5
 
 
 def test_apply_query_boost_all_stopwords_is_noop() -> None:
@@ -154,3 +155,21 @@ def test_boost_multi_chunk_files_noop_cases(scores_in: dict) -> None:
     snapshot = dict(scores)
     boost_multi_chunk_files(scores)
     assert scores == snapshot
+
+
+@pytest.mark.parametrize(
+    "penalised_path",
+    [
+        "src/semble/__init__.py",  # _REEXPORT_FILENAMES
+        "tests/test_auth.py",  # _TEST_FILE_RE / _TEST_DIR_RE
+        "src/compat/old_api.py",  # _COMPAT_DIR_RE
+        "examples/demo.py",  # _EXAMPLES_DIR_RE
+        "src/types/index.d.ts",  # _TYPE_DEFS_RE
+    ],
+)
+def test_rerank_topk_demotes_penalised_paths(penalised_path: str) -> None:
+    """Files matching each penalty pattern rank below an equal-scored regular file."""
+    regular = make_chunk("def impl(): pass", "src/regular.py")
+    penalised = make_chunk("def impl(): pass", penalised_path)
+    ranked = rerank_topk({regular: 1.0, penalised: 1.0}, top_k=2)
+    assert ranked[0][0] == regular

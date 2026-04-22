@@ -171,10 +171,7 @@ class SembleIndex:
         )
         if target is None:
             return []
-        if target.language:
-            selector = self._get_selector_vector(filter_languages=[target.language])
-        else:
-            selector = None
+        selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         return [r for r in results if r.chunk != target][:top_k]
 

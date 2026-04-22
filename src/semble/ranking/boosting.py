@@ -215,9 +215,6 @@ def _boost_symbol_definitions(
 ) -> None:
     """Boost chunks that define the queried symbol, scanning candidates and stem-matched non-candidates (in-place)."""
     symbol_name = _extract_symbol_name(query)
-    if not symbol_name:
-        return
-
     names = {symbol_name}
     if symbol_name != query.strip():
         names.add(query.strip())
