@@ -83,7 +83,6 @@ class SembleIndex:
         :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
-        :raises ValueError: If `path` is a directory but contains no supported files.
         """
         model = model or load_model()
         path = Path(path)

@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from semble.mcp import _format_results, _IndexCache, _is_git_url, create_server
+from semble.mcp import _format_results, _IndexCache, _is_git_url, create_server, main, serve
 from semble.types import Encoder, SearchMode, SearchResult
 from tests.conftest import make_chunk
 
@@ -16,6 +17,14 @@ from tests.conftest import make_chunk
 def _tool_text(result: Any) -> str:
     """Extract the text string from a FastMCP call_tool result."""
     return result[0][0].text
+
+
+def _close_coroutine(coro: object) -> None:
+    """Close an unawaited coroutine to suppress ResourceWarning."""
+    import inspect
+
+    if inspect.iscoroutine(coro):
+        coro.close()
 
 
 @pytest.fixture()
@@ -145,17 +154,6 @@ async def test_search_tool_returns_results(cache: _IndexCache) -> None:
 
 
 @pytest.mark.anyio
-async def test_search_tool_index_failure(cache: _IndexCache) -> None:
-    """Search tool returns a friendly error when indexing fails."""
-    with patch("semble.mcp.SembleIndex.from_git", side_effect=RuntimeError("clone failed")):
-        server = create_server(cache)
-        result = await server.call_tool("search", {"query": "foo", "repo": "https://github.com/x/y"})
-    text = _tool_text(result)
-    assert "Failed to index" in text
-    assert "clone failed" in text
-
-
-@pytest.mark.anyio
 async def test_search_tool_no_results(cache: _IndexCache) -> None:
     """Search tool returns 'No results found.' when the index returns nothing."""
     fake_index = MagicMock()
@@ -164,6 +162,24 @@ async def test_search_tool_no_results(cache: _IndexCache) -> None:
         server = create_server(cache, default_source="/some/path")
         result = await server.call_tool("search", {"query": "nothing"})
     assert "No results found" in _tool_text(result)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("tool", "args"),
+    [
+        ("search", {"query": "foo", "repo": "https://github.com/x/y"}),
+        ("find_related", {"file_path": "src/foo.py", "line": 1, "repo": "https://github.com/x/y"}),
+    ],
+)
+async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str, object]) -> None:
+    """Both tools return a friendly error message when indexing fails."""
+    with patch("semble.mcp.SembleIndex.from_git", side_effect=RuntimeError("clone failed")):
+        server = create_server(cache)
+        result = await server.call_tool(tool, args)
+    text = _tool_text(result)
+    assert "Failed to index" in text
+    assert "clone failed" in text
 
 
 @pytest.mark.anyio
@@ -189,3 +205,49 @@ async def test_find_related_tool_no_results(cache: _IndexCache) -> None:
         server = create_server(cache, default_source="/some/path")
         result = await server.call_tool("find_related", {"file_path": "src/foo.py", "line": 99})
     assert "No related chunks found" in _tool_text(result)
+
+
+@pytest.mark.anyio
+async def test_serve_starts_server(tmp_path: Path) -> None:
+    """serve() loads the model, builds a cache, pre-indexes the path, and runs stdio."""
+    fake_model = MagicMock(spec=Encoder)
+    fake_index = MagicMock()
+
+    with (
+        patch("semble.mcp.load_model", return_value=fake_model) as mock_load,
+        patch("semble.mcp.SembleIndex.from_path", return_value=fake_index),
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
+    ):
+        await serve(str(tmp_path))
+
+    mock_load.assert_called_once()
+    mock_run.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_serve_no_path() -> None:
+    """serve() with no path still runs without pre-indexing."""
+    fake_model = MagicMock(spec=Encoder)
+
+    with (
+        patch("semble.mcp.load_model", return_value=fake_model),
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
+    ):
+        await serve()
+
+    mock_run.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["semble", "/some/path", "--ref", "main"],
+        ["semble"],
+    ],
+)
+def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
+    """main() parses argv and delegates to asyncio.run(serve(...))."""
+    monkeypatch.setattr(sys, "argv", argv)
+    with patch("semble.mcp.asyncio.run", side_effect=_close_coroutine) as mock_run:
+        main()
+    mock_run.assert_called_once()

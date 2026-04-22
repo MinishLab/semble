@@ -2,12 +2,18 @@ import os
 import subprocess
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 
+import bm25s
+import numpy as np
 import pytest
+from vicinity.backends.basic import BasicArgs
 
 from semble import SembleIndex
 from semble.index.create import create_index_from_path
-from semble.types import Encoder
+from semble.index.dense import SelectableBasicBackend
+from semble.tokens import tokenize
+from semble.types import Chunk, Encoder
 
 
 @pytest.fixture
@@ -163,3 +169,45 @@ def test_from_git_invalid_url_raises(mock_model: Any) -> None:
     """from_git raises RuntimeError when the clone fails."""
     with pytest.raises(RuntimeError, match="git clone failed"):
         SembleIndex.from_git("/nonexistent/path/that/does/not/exist", model=mock_model)
+
+
+def test_from_path_not_found(mock_model: Any, tmp_path: Path) -> None:
+    """from_path raises FileNotFoundError for a non-existent directory."""
+    missing = tmp_path / "does_not_exist"
+    with pytest.raises(FileNotFoundError, match="does_not_exist"):
+        SembleIndex.from_path(missing, model=mock_model)
+
+
+def test_from_path_not_a_directory(mock_model: Any, tmp_path: Path) -> None:
+    """from_path raises NotADirectoryError when the path is a file, not a directory."""
+    f = tmp_path / "not_a_dir.py"
+    f.write_text("x = 1\n")
+    with pytest.raises(NotADirectoryError):
+        SembleIndex.from_path(f, model=mock_model)
+
+
+def test_from_git_no_git_installed(mock_model: Any) -> None:
+    """from_git raises RuntimeError with helpful message when git is not on PATH."""
+    with patch("semble.index.index.subprocess.run", side_effect=FileNotFoundError):
+        with pytest.raises(RuntimeError, match="git is not installed"):
+            SembleIndex.from_git("https://github.com/x/y", model=mock_model)
+
+
+def test_find_related_no_language_uses_no_selector(mock_model: Any) -> None:
+    """find_related uses selector=None when the target chunk has no language."""
+    chunk = Chunk(
+        content="some plain text content here without a language",
+        file_path="notes.txt",
+        start_line=1,
+        end_line=1,
+        language=None,
+    )
+    bm25_idx = bm25s.BM25()
+    bm25_idx.index([tokenize(chunk.content)], show_progress=False)
+    embs = np.array(mock_model.encode([chunk.content]), dtype=np.float32)
+    sem_idx = SelectableBasicBackend(embs, BasicArgs())
+    idx = SembleIndex(mock_model, bm25_idx, sem_idx, [chunk])
+
+    results = idx.find_related("notes.txt", 1, top_k=3)
+    # The target chunk itself is filtered out; result list may be empty but must not raise.
+    assert isinstance(results, list)

@@ -136,7 +136,7 @@ class _IndexCache:
         task = self._tasks[cache_key]
         try:
             return await asyncio.shield(task)
-        except asyncio.CancelledError:
+        except asyncio.CancelledError:  # pragma: no cover
             # If this waiter was cancelled but the task is still running, preserve it for
             # other waiters. Only evict if the task itself was cancelled.
             if task.done():

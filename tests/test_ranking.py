@@ -1,6 +1,7 @@
 import pytest
 
 from semble.ranking.boosting import (
+    _boost_symbol_definitions,
     _chunk_defines_symbol,
     _count_keyword_matches,
     _extract_symbol_name,
@@ -8,6 +9,7 @@ from semble.ranking.boosting import (
     _stem_matches,
     apply_query_boost,
     boost_multi_chunk_files,
+    resolve_alpha,
 )
 from semble.ranking.penalties import _file_path_penalty, rerank_topk
 from tests.conftest import make_chunk
@@ -196,3 +198,97 @@ def test_boost_multi_chunk_files_promotes_top_chunk() -> None:
     scores: dict = {c1: 1.0, c2: 0.8, c3: 1.0}
     boost_multi_chunk_files(scores)
     assert scores[c1] > 1.0
+
+
+@pytest.mark.parametrize(
+    ("query", "alpha_in", "expected"),
+    [
+        ("MyService", 0.7, 0.7),  # explicit value returned as-is
+        ("MyService", None, 0.3),  # symbol query → _ALPHA_SYMBOL
+        ("how does routing work", None, 0.5),  # NL query → _ALPHA_NL
+    ],
+)
+def test_resolve_alpha(query: str, alpha_in: float | None, expected: float) -> None:
+    """resolve_alpha returns explicit alpha or auto-detects from query type."""
+    assert resolve_alpha(query, alpha_in) == pytest.approx(expected)
+
+
+def test_apply_query_boost_symbol_query_boosts_defining_chunk() -> None:
+    """Symbol query boosts chunks that define the queried symbol."""
+    defining = make_chunk("class MyService:\n    pass", "src/my_service.py")
+    other = make_chunk("x = MyService()", "src/utils.py")
+    scores: dict = {defining: 0.5, other: 0.4}
+
+    boosted = apply_query_boost(scores, "MyService", [defining, other])
+
+    assert boosted[defining] > boosted[other]
+
+
+def test_apply_query_boost_symbol_scans_non_candidates() -> None:
+    """Symbol query scans non-candidate chunks on stem-matched files."""
+    defining = make_chunk("class MyService:\n    pass", "src/myservice.py")
+    candidate = make_chunk("x = 1", "src/other.py")
+    scores: dict = {candidate: 0.5}
+
+    boosted = apply_query_boost(scores, "MyService", [defining, candidate])
+
+    assert defining in boosted
+    assert boosted[defining] > 0
+
+
+def test_boost_embedded_symbols_non_matching_stem_skipped() -> None:
+    """Non-candidate chunk with an unrelated stem is skipped in _boost_embedded_symbols."""
+    defining = make_chunk("class UserService:\n    pass", "src/user_service.py")
+    unrelated = make_chunk("x = 1", "src/totally_unrelated_name.py")
+    scores: dict = {defining: 0.5}
+
+    boosted = apply_query_boost(scores, "how does UserService work", [defining, unrelated])
+
+    # The unrelated chunk should NOT be boosted (stem doesn't match UserService).
+    assert unrelated not in boosted
+
+
+def test_boost_stem_matches_all_stopwords_skips_boost() -> None:
+    """NL query composed entirely of stopwords performs no stem boost."""
+    chunk = make_chunk("def foo(): pass", "src/auth.py")
+    scores: dict = {chunk: 0.5}
+
+    boosted = apply_query_boost(scores, "the and or", [chunk])
+
+    # Score should be unchanged because all words are stopwords.
+    assert boosted[chunk] == pytest.approx(0.5)
+
+
+def test_rerank_topk_empty_returns_empty_list() -> None:
+    """rerank_topk with an empty scores dict returns an empty list."""
+    assert rerank_topk({}, top_k=5) == []
+
+
+def test_boost_symbol_definitions_empty_symbol_is_noop() -> None:
+    """_boost_symbol_definitions with a whitespace-only query is a no-op."""
+    chunk = make_chunk("class Foo:\n    pass", "src/foo.py")
+    scores: dict = {chunk: 0.5}
+    _boost_symbol_definitions(scores, "   ", 1.0, [chunk])
+    assert scores[chunk] == 0.5
+
+
+def test_apply_query_boost_namespace_qualified_adds_full_name() -> None:
+    """Namespace-qualified symbol adds both the leaf and the full query to the names set."""
+    defining = make_chunk("class Base:\n    pass", "src/base.py")
+    scores: dict = {defining: 0.5}
+
+    boosted = apply_query_boost(scores, "Sinatra::Base", [defining])
+
+    assert boosted[defining] > 0.5
+
+
+def test_scan_non_candidates_non_matching_stem_skipped() -> None:
+    """Non-candidate chunks with a non-matching stem are skipped by _scan_non_candidates."""
+    defining = make_chunk("class MyService:\n    pass", "src/myservice.py")
+    unrelated = make_chunk("x = 1", "src/unrelated.py")
+    # Only defining is a candidate; unrelated is NOT in scores and has a non-matching stem.
+    scores: dict = {defining: 0.5}
+
+    boosted = apply_query_boost(scores, "MyService", [defining, unrelated])
+
+    assert unrelated not in boosted

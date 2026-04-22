@@ -1,4 +1,5 @@
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import bm25s
 import numpy as np
@@ -6,10 +7,10 @@ import numpy.typing as npt
 import pytest
 from vicinity.backends.basic import BasicArgs
 
-from semble.index.dense import SelectableBasicBackend
+from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
 from semble.search import _sort_top_k, search_bm25, search_hybrid, search_semantic
 from semble.tokens import tokenize
-from semble.types import Chunk, SearchMode
+from semble.types import Chunk, Encoder, SearchMode
 from tests.conftest import make_chunk
 
 
@@ -141,3 +142,33 @@ def test_bm25_with_selector_high_indices(bm25: bm25s.BM25, chunks: list[Chunk]) 
 def test_bm25_empty_query_returns_empty(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
     """Empty / whitespace-only queries return [] instead of crashing bm25s."""
     assert search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
+
+
+@pytest.mark.parametrize(
+    ("model_path", "expected_call_arg"),
+    [
+        (None, "minishlab/potion-code-16M"),  # default model
+        ("some/custom/model", "some/custom/model"),  # explicit path forwarded
+    ],
+)
+def test_load_model(model_path: str | None, expected_call_arg: str) -> None:
+    """load_model calls from_pretrained with default or custom model path."""
+    fake_model = MagicMock(spec=Encoder)
+    with patch("semble.index.dense.StaticModel.from_pretrained", return_value=fake_model) as mock_fp:
+        result = load_model(model_path)
+    mock_fp.assert_called_once_with(expected_call_arg)
+    assert result is fake_model
+
+
+def test_embed_chunks_empty_returns_empty_array(mock_model: Any) -> None:
+    """embed_chunks with an empty list returns a (0, 256) float32 array."""
+    result = embed_chunks(mock_model, [])
+    assert result.shape == (0, 256)
+    assert result.dtype == np.float32
+
+
+def test_selectable_basic_backend_k_zero_raises(embeddings: npt.NDArray[np.float32]) -> None:
+    """SelectableBasicBackend.query raises ValueError when k < 1."""
+    backend = SelectableBasicBackend(embeddings, BasicArgs())
+    with pytest.raises(ValueError, match="k should be >= 1"):
+        backend.query(embeddings[:1], k=0)
