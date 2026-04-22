@@ -1,7 +1,7 @@
 
 <h2 align="center">
   <img width="30%" alt="semble logo" src="assets/images/semble_logo.png"><br/>
-  Fast Code Search for Agents
+  Fast and Accurate Code Search for Agents
 </h2>
 
 <div align="center">
