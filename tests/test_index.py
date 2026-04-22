@@ -160,19 +160,21 @@ def test_from_git_invalid_url_raises(mock_model: Any) -> None:
         SembleIndex.from_git("/nonexistent/path/that/does/not/exist", model=mock_model)
 
 
-def test_from_path_not_found(mock_model: Any, tmp_path: Path) -> None:
-    """from_path raises FileNotFoundError for a non-existent directory."""
-    missing = tmp_path / "does_not_exist"
-    with pytest.raises(FileNotFoundError, match="does_not_exist"):
-        SembleIndex.from_path(missing, model=mock_model)
-
-
-def test_from_path_not_a_directory(mock_model: Any, tmp_path: Path) -> None:
-    """from_path raises NotADirectoryError when the path is a file, not a directory."""
-    f = tmp_path / "not_a_dir.py"
-    f.write_text("x = 1\n")
-    with pytest.raises(NotADirectoryError):
-        SembleIndex.from_path(f, model=mock_model)
+@pytest.mark.parametrize(
+    ("kind", "expected_exc"),
+    [("missing", FileNotFoundError), ("file", NotADirectoryError)],
+)
+def test_from_path_rejects_invalid_paths(
+    mock_model: Any, tmp_path: Path, kind: str, expected_exc: type[Exception]
+) -> None:
+    """from_path raises FileNotFoundError for missing paths and NotADirectoryError for files."""
+    if kind == "missing":
+        target = tmp_path / "does_not_exist"
+    else:
+        target = tmp_path / "not_a_dir.py"
+        target.write_text("x = 1\n")
+    with pytest.raises(expected_exc):
+        SembleIndex.from_path(target, model=mock_model)
 
 
 def test_from_git_no_git_installed(mock_model: Any) -> None:

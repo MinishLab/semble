@@ -7,22 +7,14 @@ from semble.index.chunker import chunk_file, chunk_lines, chunk_source
 from semble.index.file_walker import filter_extensions
 
 
-def test_chunk_lines_basic() -> None:
-    """Chunks are produced with non-empty content."""
+def test_chunk_lines() -> None:
+    """chunk_lines: empty input → []; real input → non-empty chunks starting at line 1."""
+    assert chunk_lines("", "empty.py", "python") == []
+
     content = "\n".join(f"line {i}" for i in range(10))
     chunks = chunk_lines(content, "test.py", "python", max_lines=5, overlap_lines=1)
     assert len(chunks) >= 2
     assert all(c.content.strip() for c in chunks)
-
-
-def test_chunk_lines_empty() -> None:
-    """Empty source produces no chunks."""
-    assert chunk_lines("", "empty.py", "python") == []
-
-
-def test_chunk_lines_line_numbers() -> None:
-    """First chunk starts at line 1."""
-    chunks = chunk_lines("a\nb\nc\nd\ne\n", "t.py", "python", max_lines=3, overlap_lines=0)
     assert chunks[0].start_line == 1
 
 

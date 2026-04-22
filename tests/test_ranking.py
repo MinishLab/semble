@@ -5,25 +5,19 @@ from semble.ranking.penalties import rerank_topk
 from tests.conftest import make_chunk
 
 
-def test_rerank_topk_penalise_paths_false_respects_scores() -> None:
-    """penalise_paths=False leaves score order intact, including __init__.py."""
+def test_rerank_topk() -> None:
+    """rerank_topk: empty → []; penalise_paths=False respects raw scores; saturation decay keeps order."""
+    assert rerank_topk({}, top_k=5) == []
+
     init_chunk = make_chunk("from .auth import authenticate", "src/semble/__init__.py")
     impl_chunk = make_chunk("def authenticate(token): ...", "src/semble/auth.py")
     ranked = rerank_topk({init_chunk: 2.0, impl_chunk: 1.0}, top_k=2, penalise_paths=False)
     assert ranked[0][0] == init_chunk
 
-
-def test_rerank_topk_saturation_decay_preserves_order() -> None:
-    """Chunks beyond the saturation threshold get decay but results stay score-ordered."""
-    chunks = [make_chunk(f"def fn_{i}(): pass", "big_file.py") for i in range(5)]
-    ranked = rerank_topk({c: float(5 - i) for i, c in enumerate(chunks)}, top_k=5)
-    scores = [s for _, s in ranked]
+    saturated = [make_chunk(f"def fn_{i}(): pass", "big_file.py") for i in range(5)]
+    ranked_sat = rerank_topk({c: float(5 - i) for i, c in enumerate(saturated)}, top_k=5)
+    scores = [s for _, s in ranked_sat]
     assert scores == sorted(scores, reverse=True)
-
-
-def test_rerank_topk_empty_returns_empty_list() -> None:
-    """rerank_topk with an empty scores dict returns an empty list."""
-    assert rerank_topk({}, top_k=5) == []
 
 
 @pytest.mark.parametrize(
@@ -146,30 +140,20 @@ def test_apply_query_boost_empty_scores_returns_empty() -> None:
     assert apply_query_boost({}, "SomeQuery", []) == {}
 
 
-def test_boost_multi_chunk_files_promotes_top_chunk() -> None:
-    """File with multiple chunks gets its top chunk boosted."""
+def test_boost_multi_chunk_files() -> None:
+    """boost_multi_chunk_files: no-op on empty / all-zero; promotes top chunk of a multi-chunk file."""
+    empty: dict = {}
+    boost_multi_chunk_files(empty)
+    assert empty == {}
+
+    zero_chunk = make_chunk("x = 1", "src/foo.py")
+    all_zero: dict = {zero_chunk: 0.0}
+    boost_multi_chunk_files(all_zero)
+    assert all_zero[zero_chunk] == 0.0
+
     c1 = make_chunk("def a(): pass", "src/big.py")
     c2 = make_chunk("def b(): pass", "src/big.py")
     c3 = make_chunk("def c(): pass", "src/small.py")
     scores: dict = {c1: 1.0, c2: 0.8, c3: 1.0}
     boost_multi_chunk_files(scores)
     assert scores[c1] > 1.0
-
-
-@pytest.mark.parametrize(
-    "scores_in",
-    [
-        {},  # empty
-        {"__zero__": 0.0},  # all-zero max (division-by-zero guard)
-    ],
-)
-def test_boost_multi_chunk_files_noop_cases(scores_in: dict) -> None:
-    """Empty dict and all-zero scores are both no-ops."""
-    if "__zero__" in scores_in:
-        chunk = make_chunk("x = 1", "src/foo.py")
-        scores: dict = {chunk: 0.0}
-    else:
-        scores = {}
-    snapshot = dict(scores)
-    boost_multi_chunk_files(scores)
-    assert scores == snapshot

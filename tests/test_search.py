@@ -56,12 +56,6 @@ def test_bm25_search(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     assert "authenticate" in results[0].chunk.content
 
 
-def test_bm25_no_results_for_garbage(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """Query with no matching tokens returns an empty list."""
-    results = search_bm25("zzzznonexistentterm", bm25, chunks, top_k=3, selector=None)
-    assert results == []
-
-
 def test_bm25_with_selector_high_indices(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     """BM25 with a selector whose indices exceed len(selector) does not crash."""
     selector = np.array([len(chunks) - 1], dtype=np.int_)
@@ -69,9 +63,9 @@ def test_bm25_with_selector_high_indices(bm25: bm25s.BM25, chunks: list[Chunk]) 
     assert all(r.chunk is chunks[len(chunks) - 1] for r in results)
 
 
-@pytest.mark.parametrize("query", ["", "   ", "\n\n"])
-def test_bm25_empty_query_returns_empty(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
-    """Empty / whitespace-only queries return [] instead of crashing bm25s."""
+@pytest.mark.parametrize("query", ["", "   ", "\n\n", "zzzznonexistentterm"])
+def test_bm25_returns_empty_for_no_match(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
+    """Empty / whitespace-only / token-less queries return [] instead of crashing bm25s."""
     assert search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
 
 

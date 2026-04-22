@@ -61,21 +61,17 @@ def test_is_git_url(path: str, expected: bool) -> None:
     assert _is_git_url(path) is expected
 
 
-def test_format_results_empty() -> None:
-    """Empty results list produces a header with no code blocks."""
-    out = _format_results("My header", [])
-    assert "My header" in out
-    assert "```" not in out
+def test_format_results() -> None:
+    """_format_results: empty list → header only; with results → numbered fenced blocks with scores."""
+    empty_out = _format_results("My header", [])
+    assert "My header" in empty_out
+    assert "```" not in empty_out
 
-
-def test_format_results_renders_fenced_blocks_with_numbering() -> None:
-    """Each result is rendered as a numbered fenced code block with its score."""
     chunks = [make_chunk(f"def fn_{i}(): pass", f"f{i}.py") for i in range(3)]
     results = [
         SearchResult(chunk=c, score=round(0.1 * (i + 1), 3), source=SearchMode.HYBRID) for i, c in enumerate(chunks)
     ]
     out = _format_results("Results for: 'foo'", results)
-
     assert "Results for: 'foo'" in out
     assert out.count("```") >= len(results) * 2  # opening + closing fence each
     for i, c in enumerate(chunks, start=1):
