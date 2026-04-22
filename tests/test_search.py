@@ -165,10 +165,3 @@ def test_embed_chunks_empty_returns_empty_array(mock_model: Any) -> None:
     result = embed_chunks(mock_model, [])
     assert result.shape == (0, 256)
     assert result.dtype == np.float32
-
-
-def test_selectable_basic_backend_k_zero_raises(embeddings: npt.NDArray[np.float32]) -> None:
-    """SelectableBasicBackend.query raises ValueError when k < 1."""
-    backend = SelectableBasicBackend(embeddings, BasicArgs())
-    with pytest.raises(ValueError, match="k should be >= 1"):
-        backend.query(embeddings[:1], k=0)

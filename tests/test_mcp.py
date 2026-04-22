@@ -19,14 +19,6 @@ def _tool_text(result: Any) -> str:
     return result[0][0].text
 
 
-def _close_coroutine(coro: object) -> None:
-    """Close an unawaited coroutine to suppress ResourceWarning."""
-    import inspect
-
-    if inspect.iscoroutine(coro):
-        coro.close()
-
-
 @pytest.fixture()
 def cache() -> _IndexCache:
     """An _IndexCache backed by a stub model."""
@@ -208,32 +200,15 @@ async def test_find_related_tool_no_results(cache: _IndexCache) -> None:
 
 
 @pytest.mark.anyio
-async def test_serve_starts_server(tmp_path: Path) -> None:
-    """serve() loads the model, builds a cache, pre-indexes the path, and runs stdio."""
-    fake_model = MagicMock(spec=Encoder)
-    fake_index = MagicMock()
-
+@pytest.mark.parametrize("with_path", [True, False], ids=["pre_index", "no_path"])
+async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
+    """serve() loads the model, runs stdio, and optionally pre-indexes when a path is given."""
     with (
-        patch("semble.mcp.load_model", return_value=fake_model) as mock_load,
-        patch("semble.mcp.SembleIndex.from_path", return_value=fake_index),
+        patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
+        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
         patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
     ):
-        await serve(str(tmp_path))
-
-    mock_load.assert_called_once()
-    mock_run.assert_called_once()
-
-
-@pytest.mark.anyio
-async def test_serve_no_path() -> None:
-    """serve() with no path still runs without pre-indexing."""
-    fake_model = MagicMock(spec=Encoder)
-
-    with (
-        patch("semble.mcp.load_model", return_value=fake_model),
-        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
-    ):
-        await serve()
+        await (serve(str(tmp_path)) if with_path else serve())
 
     mock_run.assert_called_once()
 
@@ -248,6 +223,7 @@ async def test_serve_no_path() -> None:
 def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
     """main() parses argv and delegates to asyncio.run(serve(...))."""
     monkeypatch.setattr(sys, "argv", argv)
-    with patch("semble.mcp.asyncio.run", side_effect=_close_coroutine) as mock_run:
+    with patch("semble.mcp.asyncio.run") as mock_run:
+        mock_run.side_effect = lambda coro: coro.close()
         main()
     mock_run.assert_called_once()

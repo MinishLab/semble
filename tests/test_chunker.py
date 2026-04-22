@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from semble.index.chunker import _chunk_with_chonkie, chunk_file, chunk_lines, chunk_source
+from semble.index.chunker import chunk_file, chunk_lines, chunk_source
 from semble.index.file_walker import filter_extensions
 
 
@@ -40,12 +40,6 @@ def test_chunk_file_empty(tmp_path: Path) -> None:
     assert chunks == []
 
 
-def test_chunk_with_chonkie_fallback() -> None:
-    """Chonkie produces chunks from Python source."""
-    chunks = _chunk_with_chonkie("def foo():\n    pass\n", "code.py", "python")
-    assert len(chunks) > 0
-
-
 def test_chunk_file_py_produces_chunks(tmp_py_file: Path) -> None:
     """Python file with functions is split into at least one chunk."""
     chunks = chunk_file(tmp_py_file)
@@ -68,37 +62,28 @@ def test_chunk_file_unknown_extension(tmp_path: Path) -> None:
     assert isinstance(chunks, list)
 
 
-def test_chunk_with_chonkie_exception_falls_back_to_lines(tmp_path: Path) -> None:
-    """When CodeChunker raises, _chunk_with_chonkie falls back to line-based chunking."""
+def _whitespace_chunker() -> MagicMock:
+    whitespace_chunk = MagicMock(text="   \n", start_index=0, end_index=0)
+    chunker = MagicMock()
+    chunker.chunk.return_value = [whitespace_chunk]
+    return chunker
+
+
+@pytest.mark.parametrize(
+    "codechunker_patch",
+    [
+        {"side_effect": Exception("boom")},  # raises
+        {"return_value": MagicMock(chunk=MagicMock(return_value=[]))},  # empty result
+        {"return_value": _whitespace_chunker()},  # whitespace-only chunks
+    ],
+    ids=["raises", "empty", "whitespace_only"],
+)
+def test_chunk_source_falls_back_when_chonkie_unusable(codechunker_patch: dict) -> None:
+    """chunk_source falls back to line-based chunking when chonkie fails or yields nothing usable."""
     source = "def foo():\n    pass\n"
-    with patch("semble.index.chunker.CodeChunker", side_effect=Exception("boom")):
-        chunks = _chunk_with_chonkie(source, "foo.py", "python")
+    with patch("semble.index.chunker.CodeChunker", **codechunker_patch):
+        chunks = chunk_source(source, "foo.py", "python")
     assert len(chunks) > 0
-    assert all(c.content.strip() for c in chunks)
-
-
-def test_chunk_with_chonkie_empty_result_falls_back_to_lines() -> None:
-    """When CodeChunker returns an empty list, fall back to line-based chunking."""
-    source = "def foo():\n    pass\n"
-    mock_chunker = MagicMock()
-    mock_chunker.chunk.return_value = []
-    with patch("semble.index.chunker.CodeChunker", return_value=mock_chunker):
-        chunks = _chunk_with_chonkie(source, "foo.py", "python")
-    assert len(chunks) > 0
-
-
-def test_chunk_with_chonkie_whitespace_only_chunk_skipped() -> None:
-    """Chonkie chunks with whitespace-only text are skipped; fallback if none remain."""
-    source = "def foo():\n    pass\n"
-    whitespace_chunk = MagicMock()
-    whitespace_chunk.text = "   \n"
-    whitespace_chunk.start_index = 0
-    whitespace_chunk.end_index = 0
-    mock_chunker = MagicMock()
-    mock_chunker.chunk.return_value = [whitespace_chunk]
-    with patch("semble.index.chunker.CodeChunker", return_value=mock_chunker):
-        chunks = _chunk_with_chonkie(source, "foo.py", "python")
-    # All whitespace chunks are skipped; fallback produces real line chunks.
     assert all(c.content.strip() for c in chunks)
 
 

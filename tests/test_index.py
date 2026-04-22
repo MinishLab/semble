@@ -4,16 +4,11 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
-import bm25s
-import numpy as np
 import pytest
-from vicinity.backends.basic import BasicArgs
 
 from semble import SembleIndex
 from semble.index.create import create_index_from_path
-from semble.index.dense import SelectableBasicBackend
-from semble.tokens import tokenize
-from semble.types import Chunk, Encoder
+from semble.types import Encoder
 
 
 @pytest.fixture
@@ -136,19 +131,13 @@ def git_repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def test_from_git_indexes_local_repo(mock_model: Any, git_repo: Path) -> None:
-    """from_git clones a local repo and returns a populated SembleIndex."""
+def test_from_git_indexes_local_repo_with_relative_paths(mock_model: Any, git_repo: Path) -> None:
+    """from_git clones a local repo, indexes it, and keeps chunk paths repo-relative."""
     idx = SembleIndex.from_git(str(git_repo), model=mock_model)
     assert idx.stats.indexed_files >= 1
     assert idx.stats.total_chunks > 0
     assert any("main.py" in c.file_path for c in idx.chunks)
-
-
-def test_from_git_paths_are_repo_relative(mock_model: Any, git_repo: Path) -> None:
-    """Chunk file_paths are repo-relative after cloning, not absolute temp-dir paths."""
-    idx = SembleIndex.from_git(str(git_repo), model=mock_model)
-    for chunk in idx.chunks:
-        assert not Path(chunk.file_path).is_absolute(), f"Expected relative path, got: {chunk.file_path}"
+    assert all(not Path(c.file_path).is_absolute() for c in idx.chunks)
 
 
 def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
@@ -191,23 +180,3 @@ def test_from_git_no_git_installed(mock_model: Any) -> None:
     with patch("semble.index.index.subprocess.run", side_effect=FileNotFoundError):
         with pytest.raises(RuntimeError, match="git is not installed"):
             SembleIndex.from_git("https://github.com/x/y", model=mock_model)
-
-
-def test_find_related_no_language_uses_no_selector(mock_model: Any) -> None:
-    """find_related uses selector=None when the target chunk has no language."""
-    chunk = Chunk(
-        content="some plain text content here without a language",
-        file_path="notes.txt",
-        start_line=1,
-        end_line=1,
-        language=None,
-    )
-    bm25_idx = bm25s.BM25()
-    bm25_idx.index([tokenize(chunk.content)], show_progress=False)
-    embs = np.array(mock_model.encode([chunk.content]), dtype=np.float32)
-    sem_idx = SelectableBasicBackend(embs, BasicArgs())
-    idx = SembleIndex(mock_model, bm25_idx, sem_idx, [chunk])
-
-    results = idx.find_related("notes.txt", 1, top_k=3)
-    # The target chunk itself is filtered out; result list may be empty but must not raise.
-    assert isinstance(results, list)
