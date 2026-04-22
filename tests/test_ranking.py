@@ -90,11 +90,6 @@ def test_rerank_topk_saturation_decay_preserves_order() -> None:
     assert scores == sorted(scores, reverse=True)
 
 
-# ---------------------------------------------------------------------------
-# _extract_symbol_name
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.parametrize(
     ("query", "expected"),
     [
@@ -108,11 +103,6 @@ def test_rerank_topk_saturation_decay_preserves_order() -> None:
 def test_extract_symbol_name(query: str, expected: str) -> None:
     """Extracts the final identifier from namespace-qualified or plain symbols."""
     assert _extract_symbol_name(query) == expected
-
-
-# ---------------------------------------------------------------------------
-# _stem_matches
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -130,35 +120,18 @@ def test_stem_matches(stem: str, name: str, expected: bool) -> None:
     assert _stem_matches(stem, name) is expected
 
 
-# ---------------------------------------------------------------------------
-# _count_keyword_matches – prefix matching
-# ---------------------------------------------------------------------------
-
-
-def test_count_keyword_matches_exact() -> None:
-    """All keywords match exactly."""
-    assert _count_keyword_matches({"auth", "service"}, {"auth", "service", "utils"}) == 2
-
-
-def test_count_keyword_matches_prefix() -> None:
-    """Shorter keyword matches longer path-part as a prefix (min 3 chars)."""
-    # "dep" is a 3-char prefix of "dependencies"
-    assert _count_keyword_matches({"dep"}, {"dependencies"}) == 1
-
-
-def test_count_keyword_matches_no_match() -> None:
-    """No match returns zero."""
-    assert _count_keyword_matches({"foo"}, {"bar", "baz"}) == 0
-
-
-def test_count_keyword_matches_short_prefix_not_counted() -> None:
-    """Prefix shorter than 3 chars is not counted."""
-    assert _count_keyword_matches({"ab"}, {"abcdef"}) == 0
-
-
-# ---------------------------------------------------------------------------
-# apply_query_boost – NL query with embedded CamelCase symbol
-# ---------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    ("keywords", "parts", "expected"),
+    [
+        ({"auth", "service"}, {"auth", "service", "utils"}, 2),  # exact
+        ({"dep"}, {"dependencies"}, 1),  # prefix (3+ chars)
+        ({"foo"}, {"bar", "baz"}, 0),  # no match
+        ({"ab"}, {"abcdef"}, 0),  # prefix too short
+    ],
+)
+def test_count_keyword_matches(keywords: set[str], parts: set[str], expected: int) -> None:
+    """Keyword matching handles exact, prefix, and short-prefix cases."""
+    assert _count_keyword_matches(keywords, parts) == expected
 
 
 def test_apply_query_boost_embedded_symbol_boosts_defining_chunk() -> None:
@@ -174,14 +147,12 @@ def test_apply_query_boost_embedded_symbol_boosts_defining_chunk() -> None:
 
 def test_apply_query_boost_embedded_symbol_scans_non_candidates() -> None:
     """Non-candidate chunks on stem-matched files get boosted when defining the symbol."""
-    # This chunk is NOT in the initial scores dict (non-candidate)
     defining = make_chunk("class StateManager:\n    pass", "src/state.py")
     candidate = make_chunk("x = 1", "src/other.py")
     scores: dict = {candidate: 0.5}
 
     boosted = apply_query_boost(scores, "how does StateManager work", [defining, candidate])
 
-    # defining chunk should have been added to boosted results
     assert defining in boosted
     assert boosted[defining] > 0
 
@@ -199,13 +170,7 @@ def test_apply_query_boost_nl_query_boosts_stem_match() -> None:
 
 def test_apply_query_boost_empty_scores_returns_empty() -> None:
     """Empty scores dict returns empty dict without error."""
-    result = apply_query_boost({}, "SomeQuery", [])
-    assert result == {}
-
-
-# ---------------------------------------------------------------------------
-# boost_multi_chunk_files
-# ---------------------------------------------------------------------------
+    assert apply_query_boost({}, "SomeQuery", []) == {}
 
 
 def test_boost_multi_chunk_files_empty() -> None:
@@ -230,5 +195,4 @@ def test_boost_multi_chunk_files_promotes_top_chunk() -> None:
     c3 = make_chunk("def c(): pass", "src/small.py")
     scores: dict = {c1: 1.0, c2: 0.8, c3: 1.0}
     boost_multi_chunk_files(scores)
-    # big.py top chunk (c1) should get a coherence boost
     assert scores[c1] > 1.0
