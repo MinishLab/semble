@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "semble"
-description = "Instant local code search for agents."
+description = "Fast Code Search for Agents"
 authors = [{name = "Thomas van Dongen", email = "thomas123@live.nl"}, { name = "Stéphan Tulkens", email = "stephantul@gmail.com"}]
 readme = { file = "README.md", content-type = "text/markdown" }
 dynamic = ["version"]
