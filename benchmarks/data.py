@@ -141,10 +141,10 @@ def apply_task_filters(
 
 
 def path_matches(file_path: str, target_path: str) -> bool:
-    """Return True if file_path ends with target_path (file-level match, no line span)."""
+    """Return True if either path is a suffix of the other (handles absolute vs relative paths)."""
     norm_file = file_path.replace("\\", "/")
     norm_target = target_path.replace("\\", "/")
-    return norm_file == norm_target or norm_file.endswith(f"/{norm_target}")
+    return norm_file == norm_target or norm_file.endswith(f"/{norm_target}") or norm_target.endswith(f"/{norm_file}")
 
 
 def target_matches_location(file_path: str, start_line: int, end_line: int, target: Target) -> bool:

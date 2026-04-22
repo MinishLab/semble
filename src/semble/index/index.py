@@ -25,7 +25,6 @@ class SembleIndex:
         bm25_index: BM25,
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
-        index_root: Path,
     ) -> None:
         """Configure the index.
 
@@ -33,13 +32,11 @@ class SembleIndex:
         :param bm25_index: The bm25 index.
         :param semantic_index: The semantic index.
         :param chunks: The found chunks.
-        :param index_root: The root of the index.
         """
         self.model: Encoder = model
         self.chunks: list[Chunk] = chunks
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
-        self._index_root: Path = index_root
         self.file_mapping, self.language_mapping = self._populate_mapping()
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
@@ -84,15 +81,15 @@ class SembleIndex:
         :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
         :param include_docs: If True, also index documentation files (.md, .yaml, etc.).
-        :return: An indexed SembleIndex.
+        :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
         """
         model = model or load_model()
-        path = Path(path)
+        path = Path(path).resolve()
         bm25, vicinity, chunks = create_index_from_path(
-            path, model=model, extensions=extensions, ignore=ignore, include_docs=include_docs
+            path, model=model, extensions=extensions, ignore=ignore, include_docs=include_docs, display_root=path
         )
 
-        index = SembleIndex(model, bm25, vicinity, chunks, path)
+        index = SembleIndex(model, bm25, vicinity, chunks)
 
         return index
 
@@ -136,7 +133,7 @@ class SembleIndex:
                 display_root=resolved_path,
             )
 
-            index = SembleIndex(model, bm25, vicinity, chunks, resolved_path)
+            index = SembleIndex(model, bm25, vicinity, chunks)
 
             return index
 
@@ -144,8 +141,7 @@ class SembleIndex:
         """Return chunks semantically similar to the chunk at the given file location.
 
         :param file_path: Path to the file, in the same format stored by the index.
-            For indexes built with `from_path` this is an absolute path; for
-            indexes built with `from_git` this is a repo-relative path
+            For both `from_path` and `from_git` this is a repo-relative path
             (e.g. ``src/foo.py``).  Use `chunk.file_path` from a prior search result
             to guarantee the correct format.
         :param line: Line number (1-indexed) used to identify the source chunk.
