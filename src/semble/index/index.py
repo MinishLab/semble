@@ -185,15 +185,19 @@ class SembleIndex:
         else:
             if line is None:
                 raise TypeError("line is required when source is a file path string")
-            # Prefer exclusive end boundary to resolve ambiguity when adjacent chunks share
-            # a boundary line (e.g. chunk A ends at 127, chunk B starts at 127).
-            target = next(
-                (c for c in self.chunks if c.file_path == source and c.start_line <= line < c.end_line),
-                None,
-            ) or next(
-                (c for c in self.chunks if c.file_path == source and c.start_line <= line <= c.end_line),
-                None,
-            )
+            # Single pass: prefer exclusive end boundary to resolve ambiguity when adjacent
+            # chunks share a boundary line (e.g. chunk A ends at 127, chunk B starts at 127).
+            # Keep the first inclusive-only match as fallback for end-of-file chunks.
+            target = None
+            fallback: Chunk | None = None
+            for c in self.chunks:
+                if c.file_path == source and c.start_line <= line <= c.end_line:
+                    if line < c.end_line:
+                        target = c
+                        break
+                    if fallback is None:
+                        fallback = c
+            target = target or fallback
         if target is None:
             return []
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None

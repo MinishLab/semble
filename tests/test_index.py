@@ -94,6 +94,17 @@ def test_find_related(indexed_index: SembleIndex) -> None:
     assert indexed_index.find_related("/does/not/exist.py", 1) == []
 
 
+def test_find_related_at_end_line_boundary(indexed_index: SembleIndex) -> None:
+    """find_related resolves correctly when line equals a chunk's end_line (the inclusive fallback path)."""
+    chunk = indexed_index.chunks[0]
+    # Query at the last line of the chunk — exercises the inclusive-only fallback.
+    results = indexed_index.find_related(chunk.file_path, chunk.end_line, top_k=3)
+    assert isinstance(results, list)
+    # Should find the same chunk as seeding by start_line.
+    via_start = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
+    assert [r.chunk for r in results] == [r.chunk for r in via_start]
+
+
 def test_find_related_accepts_chunk(indexed_index: SembleIndex) -> None:
     """find_related accepts a Chunk directly and returns the same results as the file_path form."""
     chunk = indexed_index.chunks[0]
