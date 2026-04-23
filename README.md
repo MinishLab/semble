@@ -40,8 +40,8 @@ result.chunk.start_line  # 127
 result.chunk.end_line    # 150
 result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
-# Find code similar to a specific location in the codebase
-related = index.find_related("model2vec/model.py", line=127, top_k=3)
+# Find code similar to a specific result
+related = index.find_related(results[0], top_k=3)
 ```
 
 ## Main Features

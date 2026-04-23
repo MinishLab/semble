@@ -154,23 +154,14 @@ class SembleIndex:
 
             return index
 
-    def find_related(self, file_path: str, line: int, top_k: int = 5) -> list[SearchResult]:
-        """Return chunks semantically similar to the chunk at the given file location.
+    def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
+        """Return chunks semantically similar to the given chunk or search result.
 
-        :param file_path: Path to the file, in the same format stored by the index.
-            For both `from_path` and `from_git` this is a repo-relative path
-            (e.g. ``src/foo.py``).  Use `chunk.file_path` from a prior search result
-            to guarantee the correct format.
-        :param line: Line number (1-indexed) used to identify the source chunk.
+        :param source: A SearchResult or Chunk to use as the seed.
         :param top_k: Number of similar chunks to return.
         :return: Ranked list of SearchResult objects, most similar first.
         """
-        target = next(
-            (c for c in self.chunks if c.file_path == file_path and c.start_line <= line <= c.end_line),
-            None,
-        )
-        if target is None:
-            return []
+        target = source.chunk if isinstance(source, SearchResult) else source
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         return [r for r in results if r.chunk != target][:top_k]

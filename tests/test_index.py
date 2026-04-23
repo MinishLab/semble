@@ -84,14 +84,18 @@ def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str,
 
 
 def test_find_related(indexed_index: SembleIndex) -> None:
-    """find_related: returns similar chunks for a known location; returns [] for an unknown file."""
+    """find_related returns related chunks for a Chunk or SearchResult seed."""
     chunk = indexed_index.chunks[0]
-    results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
-    assert isinstance(results, list)
-    assert all(r.chunk != chunk for r in results)
-    assert len(results) <= 3
+    via_chunk = indexed_index.find_related(chunk, top_k=3)
+    assert isinstance(via_chunk, list)
+    assert len(via_chunk) <= 3
+    assert all(r.chunk != chunk for r in via_chunk)
 
-    assert indexed_index.find_related("/does/not/exist.py", 1) == []
+    # SearchResult form returns the same results as Chunk form.
+    result = indexed_index.search("authenticate", top_k=1)[0]
+    assert [r.chunk for r in indexed_index.find_related(result, top_k=3)] == [
+        r.chunk for r in indexed_index.find_related(result.chunk, top_k=3)
+    ]
 
 
 _GIT_ENV = {

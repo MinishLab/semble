@@ -10,7 +10,7 @@ from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
-from semble.types import Encoder, SearchResult
+from semble.types import Chunk, Encoder, SearchResult
 
 _REPO_DESCRIPTION = (
     "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
@@ -18,18 +18,21 @@ _REPO_DESCRIPTION = (
     "The index is cached after the first call, so repeat queries are fast."
 )
 
+_GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
+# scp-like syntax: [user@]host:path, where host has no '/' before the ':'.
+_SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
+
 
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
         "semble",
         instructions=(
-            "Use this server to search any codebase by source code. "
-            "When the user asks how a library or project works, call `search` with the "
-            "GitHub URL of the relevant repository as `repo` and a natural-language query. "
-            "Resolve the GitHub URL from your training knowledge (e.g. a PyPI package name "
-            "maps to its source repo). Always prefer `search` over Grep, Glob, or Read for "
-            "any question about how code works."
+            "Instant code search for any local or GitHub repository. "
+            "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
+            "For questions about a library (e.g. a PyPI/npm package), resolve the GitHub URL from your training "
+            "knowledge and pass it as `repo`. "
+            "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
     )
 
@@ -41,13 +44,12 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             Literal["hybrid", "semantic", "bm25"],
             Field(description="Search mode. 'hybrid' is best for most queries."),
         ] = "hybrid",
-        top_k: Annotated[int, Field(description="Number of results to return.", ge=1, le=20)] = 5,
+        top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
-        Pass a git URL or local path as `repo` to clone and index it on demand.
-        The index is cached so subsequent searches on the same repo are instant.
-        Returns the most relevant code chunks with file paths and line numbers.
+        Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
+        Use this to find where something is implemented, understand a library, or locate related code.
         """
         source = repo or default_source
         if not source:
@@ -72,12 +74,12 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         ],
         line: Annotated[int, Field(description="Line number (1-indexed).")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
-        top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1, le=10)] = 5,
+        top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1)] = 5,
     ) -> str:
         """Find code chunks semantically similar to a specific location in a file.
 
-        Useful for discovering related logic elsewhere in the codebase.
-        Pass the same `repo` used in the original `search` call.
+        Use after `search` to explore related implementations or callers.
+        Pass file_path and line from a prior search result.
         """
         source = repo or default_source
         if not source:
@@ -89,12 +91,15 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             index = await cache.get(source)
         except Exception as exc:
             return f"Failed to index {source!r}: {exc}"
-        results = index.find_related(file_path, line, top_k=top_k)
-        if not results:
+        chunk = _resolve_chunk(index.chunks, file_path, line)
+        if chunk is None:
             return (
-                f"No related chunks found for {file_path}:{line}. "
+                f"No chunk found at {file_path}:{line}. "
                 "Make sure the file is indexed and the line number is within a known chunk."
             )
+        results = index.find_related(chunk, top_k=top_k)
+        if not results:
+            return f"No related chunks found for {file_path}:{line}."
         return _format_results(f"Chunks related to {file_path}:{line}", results)
 
     return server
@@ -148,9 +153,26 @@ class _IndexCache:
             raise
 
 
-_GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
-# scp-like syntax: [user@]host:path, where host has no '/' before the ':'.
-_SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
+def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
+    """Return the chunk that contains *line* in *file_path*, or None.
+
+    MCP tool arguments are JSON primitives (strings and ints), so the agent
+    passes file_path + line rather than a Chunk object. This function
+    reconstructs the Chunk at the MCP boundary before calling into the library.
+
+    :param chunks: All indexed chunks to search.
+    :param file_path: File path as stored in the index.
+    :param line: 1-indexed line number to resolve.
+    :return: The best-matching Chunk, or None if not found.
+    """
+    fallback = None
+    for chunk in chunks:
+        if chunk.file_path == file_path and chunk.start_line <= line <= chunk.end_line:
+            if line < chunk.end_line:
+                return chunk
+            if fallback is None:  # line == end_line: boundary; keep as fallback for end-of-file chunks
+                fallback = chunk
+    return fallback
 
 
 def _is_git_url(path: str) -> bool:
