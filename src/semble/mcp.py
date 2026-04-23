@@ -155,8 +155,8 @@ def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | No
     """Return the chunk that contains *line* in *file_path*, or None.
 
     When a line sits exactly on the shared boundary between two adjacent chunks
-    (i.e. ``line == c.end_line``), prefer the chunk where the line is strictly
-    interior (``line < c.end_line``).  The boundary chunk is used as a fallback
+    (i.e. ``line == chunk.end_line``), prefer the chunk where the line is strictly
+    interior (``line < chunk.end_line``).  The boundary chunk is used as a fallback
     for the final chunk in a file, where ``end_line`` is inclusive.
 
     :param chunks: All indexed chunks to search.
@@ -165,12 +165,12 @@ def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | No
     :return: The best-matching Chunk, or None if not found.
     """
     fallback = None
-    for c in chunks:
-        if c.file_path == file_path and c.start_line <= line <= c.end_line:
-            if line < c.end_line:
-                return c
+    for chunk in chunks:
+        if chunk.file_path == file_path and chunk.start_line <= line <= chunk.end_line:
+            if line < chunk.end_line:
+                return chunk
             if fallback is None:
-                fallback = c
+                fallback = chunk
     return fallback
 
 
