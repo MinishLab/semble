@@ -10,7 +10,7 @@ from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
-from semble.types import Encoder, SearchResult
+from semble.types import Chunk, Encoder, SearchResult
 
 _REPO_DESCRIPTION = (
     "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
@@ -89,15 +89,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             index = await cache.get(source)
         except Exception as exc:
             return f"Failed to index {source!r}: {exc}"
-        # Resolve file_path + line to a chunk, preferring exclusive end to avoid
-        # shared-boundary ambiguity.
-        chunk = next(
-            (c for c in index.chunks if c.file_path == file_path and c.start_line <= line < c.end_line),
-            None,
-        ) or next(
-            (c for c in index.chunks if c.file_path == file_path and c.start_line <= line <= c.end_line),
-            None,
-        )
+        chunk = _resolve_chunk(index.chunks, file_path, line)
         if chunk is None:
             return (
                 f"No chunk found at {file_path}:{line}. "
@@ -157,6 +149,29 @@ class _IndexCache:
             # Build failed: evict so the next caller can retry.
             self._tasks.pop(cache_key, None)
             raise
+
+
+def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
+    """Return the chunk that contains *line* in *file_path*, or None.
+
+    When a line sits exactly on the shared boundary between two adjacent chunks
+    (i.e. ``line == c.end_line``), prefer the chunk where the line is strictly
+    interior (``line < c.end_line``).  The boundary chunk is used as a fallback
+    for the final chunk in a file, where ``end_line`` is inclusive.
+
+    :param chunks: All indexed chunks to search.
+    :param file_path: File path as stored in the index.
+    :param line: 1-indexed line number to resolve.
+    :return: The best-matching Chunk, or None if not found.
+    """
+    fallback = None
+    for c in chunks:
+        if c.file_path == file_path and c.start_line <= line <= c.end_line:
+            if line < c.end_line:
+                return c
+            if fallback is None:
+                fallback = c
+    return fallback
 
 
 _GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")

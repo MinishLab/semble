@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from semble.mcp import _format_results, _IndexCache, _is_git_url, create_server, main, serve
+from semble.mcp import _format_results, _IndexCache, _is_git_url, _resolve_chunk, create_server, main, serve
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
 from tests.conftest import make_chunk
 
@@ -40,6 +40,24 @@ async def _call_tool(
 def cache() -> _IndexCache:
     """An _IndexCache backed by a stub model."""
     return _IndexCache(model=MagicMock(spec=Encoder))
+
+
+def test_resolve_chunk() -> None:
+    """_resolve_chunk returns the correct chunk and handles boundary and miss cases."""
+    interior = make_chunk("line1\nline2\nline3", "src/a.py")  # start=1, end=3
+    boundary = make_chunk("last line", "src/a.py")  # start=1, end=1 (single-line)
+
+    # Line strictly inside a multi-line chunk hits the early-return path.
+    assert _resolve_chunk([interior], "src/a.py", 2) is interior
+
+    # Line equal to end_line of a single-line chunk hits the fallback path.
+    assert _resolve_chunk([boundary], "src/a.py", 1) is boundary
+
+    # Unknown file returns None.
+    assert _resolve_chunk([interior], "src/other.py", 1) is None
+
+    # Line out of range returns None.
+    assert _resolve_chunk([interior], "src/a.py", 99) is None
 
 
 @pytest.mark.parametrize(
