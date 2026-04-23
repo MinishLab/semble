@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
-_RESULTS_DIR = Path(__file__).parent / "results"
+_RESULTS_DIR = Path(__file__).parent.parent / "assets" / "images"
 
 
 class _Method(TypedDict):
