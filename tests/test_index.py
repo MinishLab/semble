@@ -84,45 +84,27 @@ def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str,
 
 
 def test_find_related(indexed_index: SembleIndex) -> None:
-    """find_related: returns similar chunks for a known location; returns [] for an unknown file."""
+    """find_related returns related chunks via all three input forms and handles edge cases."""
     chunk = indexed_index.chunks[0]
-    results = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
-    assert isinstance(results, list)
-    assert all(r.chunk != chunk for r in results)
-    assert len(results) <= 3
-
-    assert indexed_index.find_related("/does/not/exist.py", 1) == []
-
-
-def test_find_related_at_end_line_boundary(indexed_index: SembleIndex) -> None:
-    """find_related resolves correctly when line equals a chunk's end_line (the inclusive fallback path)."""
-    chunk = indexed_index.chunks[0]
-    # Query at the last line of the chunk — exercises the inclusive-only fallback.
-    results = indexed_index.find_related(chunk.file_path, chunk.end_line, top_k=3)
-    assert isinstance(results, list)
-    # Should find the same chunk as seeding by start_line.
-    via_start = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
-    assert [r.chunk for r in results] == [r.chunk for r in via_start]
-
-
-def test_find_related_accepts_chunk(indexed_index: SembleIndex) -> None:
-    """find_related accepts a Chunk directly and returns the same results as the file_path form."""
-    chunk = indexed_index.chunks[0]
-    via_chunk = indexed_index.find_related(chunk, top_k=3)
     via_path = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
-    assert [r.chunk for r in via_chunk] == [r.chunk for r in via_path]
+    assert isinstance(via_path, list)
+    assert len(via_path) <= 3
+    assert all(r.chunk != chunk for r in via_path)
 
+    # Chunk and SearchResult forms return the same results as file_path+line.
+    assert [r.chunk for r in indexed_index.find_related(chunk, top_k=3)] == [r.chunk for r in via_path]
+    result = indexed_index.search("authenticate", top_k=1)[0]
+    assert [r.chunk for r in indexed_index.find_related(result, top_k=3)] == [
+        r.chunk for r in indexed_index.find_related(result.chunk, top_k=3)
+    ]
 
-def test_find_related_accepts_search_result(indexed_index: SembleIndex) -> None:
-    """find_related accepts a SearchResult and returns the same results as passing the chunk."""
-    search_result = indexed_index.search("authenticate", top_k=1)[0]
-    via_result = indexed_index.find_related(search_result, top_k=3)
-    via_chunk = indexed_index.find_related(search_result.chunk, top_k=3)
-    assert [r.chunk for r in via_result] == [r.chunk for r in via_chunk]
+    # end_line boundary resolves to the same chunk as start_line.
+    assert [r.chunk for r in indexed_index.find_related(chunk.file_path, chunk.end_line, top_k=3)] == [
+        r.chunk for r in via_path
+    ]
 
-
-def test_find_related_raises_without_line(indexed_index: SembleIndex) -> None:
-    """find_related raises TypeError when a file path string is given without a line number."""
+    # Unknown file returns empty; missing line raises.
+    assert indexed_index.find_related("/does/not/exist.py", 1) == []
     with pytest.raises(TypeError, match="line is required"):
         indexed_index.find_related("src/module.py")  # type: ignore[call-overload]
 

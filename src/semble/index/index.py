@@ -166,17 +166,13 @@ class SembleIndex:
     ) -> list[SearchResult]:
         """Return chunks semantically similar to a given chunk or file location.
 
-        Accepts three forms:
+        Accepts a SearchResult or Chunk directly, or a file path string with a line number.
 
-        - ``find_related(result)`` — pass a :class:`SearchResult` from a prior search.
-        - ``find_related(chunk)`` — pass a :class:`Chunk` directly.
-        - ``find_related(file_path, line)`` — look up by file path and line number.
-
-        :param source: A :class:`SearchResult`, :class:`Chunk`, or file path string.
-        :param line: Line number (1-indexed). Required when ``source`` is a file path string.
+        :param source: A SearchResult, Chunk, or file path string.
+        :param line: Line number (1-indexed). Required when source is a file path string.
         :param top_k: Number of similar chunks to return.
         :return: Ranked list of SearchResult objects, most similar first.
-        :raises TypeError: If ``source`` is a string but ``line`` is not provided.
+        :raises TypeError: If source is a string but line is not provided.
         """
         if isinstance(source, SearchResult):
             target: Chunk | None = source.chunk
