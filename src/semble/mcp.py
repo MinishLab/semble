@@ -28,12 +28,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     server = FastMCP(
         "semble",
         instructions=(
-            "Use this server to search any codebase by source code. "
-            "When the user asks how a library or project works, call `search` with the "
-            "GitHub URL of the relevant repository as `repo` and a natural-language query. "
-            "Resolve the GitHub URL from your training knowledge (e.g. a PyPI package name "
-            "maps to its source repo). Always prefer `search` over Grep, Glob, or Read for "
-            "any question about how code works."
+            "Instant code search for any local or GitHub repository. "
+            "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
+            "For questions about a library (e.g. a PyPI/npm package), resolve the GitHub URL from your training "
+            "knowledge and pass it as `repo`. "
+            "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
     )
 
@@ -49,9 +48,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
-        Pass a git URL or local path as `repo` to clone and index it on demand.
-        The index is cached so subsequent searches on the same repo are instant.
-        Returns the most relevant code chunks with file paths and line numbers.
+        Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
+        Use this to find where something is implemented, understand a library, or locate related code.
         """
         source = repo or default_source
         if not source:
@@ -80,8 +78,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     ) -> str:
         """Find code chunks semantically similar to a specific location in a file.
 
-        Useful for discovering related logic elsewhere in the codebase.
-        Pass the same `repo` used in the original `search` call.
+        Use after `search` to explore related implementations or callers.
+        Pass file_path and line from a prior search result.
         """
         source = repo or default_source
         if not source:
