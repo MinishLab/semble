@@ -154,11 +154,6 @@ class _IndexCache:
 def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
     """Return the chunk that contains *line* in *file_path*, or None.
 
-    When a line sits exactly on the shared boundary between two adjacent chunks
-    (i.e. ``line == chunk.end_line``), prefer the chunk where the line is strictly
-    interior (``line < chunk.end_line``).  The boundary chunk is used as a fallback
-    for the final chunk in a file, where ``end_line`` is inclusive.
-
     :param chunks: All indexed chunks to search.
     :param file_path: File path as stored in the index.
     :param line: 1-indexed line number to resolve.
@@ -169,7 +164,7 @@ def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | No
         if chunk.file_path == file_path and chunk.start_line <= line <= chunk.end_line:
             if line < chunk.end_line:
                 return chunk
-            if fallback is None:
+            if fallback is None:  # line == end_line: boundary; keep as fallback for end-of-file chunks
                 fallback = chunk
     return fallback
 
