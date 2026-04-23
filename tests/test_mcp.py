@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from semble.mcp import _format_results, _IndexCache, _is_git_url, create_server, main, serve
-from semble.types import Encoder, SearchMode, SearchResult
+from semble.types import Chunk, Encoder, SearchMode, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -22,11 +22,14 @@ async def _call_tool(
     *,
     index_method: str,
     index_return: list[SearchResult],
+    index_chunks: list[Chunk] | None = None,
     default_source: str | None = "/some/path",
 ) -> str:
     """Patch SembleIndex.from_path with a fake index and invoke the tool, returning the text."""
     fake_index = MagicMock()
     getattr(fake_index, index_method).return_value = index_return
+    if index_chunks is not None:
+        fake_index.chunks = index_chunks
     with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
         server = create_server(cache, default_source=default_source)
         result = await server.call_tool(tool, args)
@@ -156,13 +159,14 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("tool", "args", "method", "results", "expected_substrings"),
+    ("tool", "args", "method", "results", "chunks", "expected_substrings"),
     [
         pytest.param(
             "search",
             {"query": "bar"},
             "search",
             [SearchResult(chunk=make_chunk("def bar(): pass", "src/bar.py"), score=0.9, source=SearchMode.HYBRID)],
+            None,
             ["bar", "0.900"],
             id="search_with_results",
         ),
@@ -171,6 +175,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
             {"query": "nothing"},
             "search",
             [],
+            None,
             ["No results found"],
             id="search_no_results",
         ),
@@ -179,16 +184,27 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
             {"file_path": "src/foo.py", "line": 1},
             "find_related",
             [SearchResult(chunk=make_chunk("class Foo: pass", "src/foo.py"), score=0.8, source=SearchMode.SEMANTIC)],
+            [make_chunk("class Foo: pass", "src/foo.py")],
             ["src/foo.py:1", "0.800"],
             id="find_related_with_results",
         ),
         pytest.param(
             "find_related",
-            {"file_path": "src/foo.py", "line": 99},
+            {"file_path": "src/foo.py", "line": 1},
             "find_related",
             [],
+            [make_chunk("class Foo: pass", "src/foo.py")],
             ["No related chunks found"],
             id="find_related_no_results",
+        ),
+        pytest.param(
+            "find_related",
+            {"file_path": "src/unknown.py", "line": 1},
+            "find_related",
+            [],
+            [],
+            ["No chunk found"],
+            id="find_related_unknown_file",
         ),
     ],
 )
@@ -198,10 +214,11 @@ async def test_tool_output(
     args: dict[str, Any],
     method: str,
     results: list[SearchResult],
+    chunks: list[Chunk] | None,
     expected_substrings: list[str],
 ) -> None:
     """Search and find_related format results (or an empty-state message) through the server."""
-    text = await _call_tool(cache, tool, args, index_method=method, index_return=results)
+    text = await _call_tool(cache, tool, args, index_method=method, index_return=results, index_chunks=chunks)
     for substring in expected_substrings:
         assert substring in text
 

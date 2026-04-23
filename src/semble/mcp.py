@@ -89,12 +89,23 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             index = await cache.get(source)
         except Exception as exc:
             return f"Failed to index {source!r}: {exc}"
-        results = index.find_related(file_path, line, top_k=top_k)
-        if not results:
+        # Resolve file_path + line to a chunk, preferring exclusive end to avoid
+        # shared-boundary ambiguity.
+        chunk = next(
+            (c for c in index.chunks if c.file_path == file_path and c.start_line <= line < c.end_line),
+            None,
+        ) or next(
+            (c for c in index.chunks if c.file_path == file_path and c.start_line <= line <= c.end_line),
+            None,
+        )
+        if chunk is None:
             return (
-                f"No related chunks found for {file_path}:{line}. "
+                f"No chunk found at {file_path}:{line}. "
                 "Make sure the file is indexed and the line number is within a known chunk."
             )
+        results = index.find_related(chunk, top_k=top_k)
+        if not results:
+            return f"No related chunks found for {file_path}:{line}."
         return _format_results(f"Chunks related to {file_path}:{line}", results)
 
     return server

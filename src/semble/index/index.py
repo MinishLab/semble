@@ -4,7 +4,6 @@ import subprocess
 import tempfile
 from collections import defaultdict
 from pathlib import Path
-from typing import overload
 
 import numpy as np
 import numpy.typing as npt
@@ -155,45 +154,14 @@ class SembleIndex:
 
             return index
 
-    @overload
-    def find_related(self, source: Chunk | SearchResult, *, top_k: int = ...) -> list[SearchResult]: ...
+    def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
+        """Return chunks semantically similar to the given chunk or search result.
 
-    @overload
-    def find_related(self, source: str, line: int, *, top_k: int = ...) -> list[SearchResult]: ...
-
-    def find_related(
-        self, source: Chunk | SearchResult | str, line: int | None = None, *, top_k: int = 5
-    ) -> list[SearchResult]:
-        """Return chunks semantically similar to a given chunk or file location.
-
-        Accepts a SearchResult or Chunk directly, or a file path string with a line number.
-
-        :param source: A SearchResult, Chunk, or file path string.
-        :param line: Line number (1-indexed). Required when source is a file path string.
+        :param source: A SearchResult or Chunk to use as the seed.
         :param top_k: Number of similar chunks to return.
         :return: Ranked list of SearchResult objects, most similar first.
-        :raises TypeError: If source is a string but line is not provided.
         """
-        if isinstance(source, SearchResult):
-            target: Chunk | None = source.chunk
-        elif isinstance(source, Chunk):
-            target = source
-        else:
-            if line is None:
-                raise TypeError("line is required when source is a file path string")
-            # Prefer exclusive end to avoid shared-boundary ambiguity; fall back to inclusive.
-            target = None
-            fallback: Chunk | None = None
-            for chunk in self.chunks:
-                if chunk.file_path == source and chunk.start_line <= line <= chunk.end_line:
-                    if line < chunk.end_line:
-                        target = chunk
-                        break
-                    if fallback is None:
-                        fallback = chunk
-            target = target or fallback
-        if target is None:
-            return []
+        target = source.chunk if isinstance(source, SearchResult) else source
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         return [r for r in results if r.chunk != target][:top_k]

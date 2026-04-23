@@ -84,29 +84,18 @@ def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str,
 
 
 def test_find_related(indexed_index: SembleIndex) -> None:
-    """find_related returns related chunks via all three input forms and handles edge cases."""
+    """find_related returns related chunks for a Chunk or SearchResult seed."""
     chunk = indexed_index.chunks[0]
-    via_path = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
-    assert isinstance(via_path, list)
-    assert len(via_path) <= 3
-    assert all(r.chunk != chunk for r in via_path)
+    via_chunk = indexed_index.find_related(chunk, top_k=3)
+    assert isinstance(via_chunk, list)
+    assert len(via_chunk) <= 3
+    assert all(r.chunk != chunk for r in via_chunk)
 
-    # Chunk and SearchResult forms return the same results as file_path+line.
-    assert [r.chunk for r in indexed_index.find_related(chunk, top_k=3)] == [r.chunk for r in via_path]
+    # SearchResult form returns the same results as Chunk form.
     result = indexed_index.search("authenticate", top_k=1)[0]
     assert [r.chunk for r in indexed_index.find_related(result, top_k=3)] == [
         r.chunk for r in indexed_index.find_related(result.chunk, top_k=3)
     ]
-
-    # end_line boundary resolves to the same chunk as start_line.
-    assert [r.chunk for r in indexed_index.find_related(chunk.file_path, chunk.end_line, top_k=3)] == [
-        r.chunk for r in via_path
-    ]
-
-    # Unknown file returns empty; missing line raises.
-    assert indexed_index.find_related("/does/not/exist.py", 1) == []
-    with pytest.raises(TypeError, match="line is required"):
-        indexed_index.find_related("src/module.py")  # type: ignore[call-overload]
 
 
 _GIT_ENV = {
