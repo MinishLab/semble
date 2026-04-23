@@ -94,6 +94,28 @@ def test_find_related(indexed_index: SembleIndex) -> None:
     assert indexed_index.find_related("/does/not/exist.py", 1) == []
 
 
+def test_find_related_accepts_chunk(indexed_index: SembleIndex) -> None:
+    """find_related accepts a Chunk directly and returns the same results as the file_path form."""
+    chunk = indexed_index.chunks[0]
+    via_chunk = indexed_index.find_related(chunk, top_k=3)
+    via_path = indexed_index.find_related(chunk.file_path, chunk.start_line, top_k=3)
+    assert [r.chunk for r in via_chunk] == [r.chunk for r in via_path]
+
+
+def test_find_related_accepts_search_result(indexed_index: SembleIndex) -> None:
+    """find_related accepts a SearchResult and returns the same results as passing the chunk."""
+    search_result = indexed_index.search("authenticate", top_k=1)[0]
+    via_result = indexed_index.find_related(search_result, top_k=3)
+    via_chunk = indexed_index.find_related(search_result.chunk, top_k=3)
+    assert [r.chunk for r in via_result] == [r.chunk for r in via_chunk]
+
+
+def test_find_related_raises_without_line(indexed_index: SembleIndex) -> None:
+    """find_related raises TypeError when a file path string is given without a line number."""
+    with pytest.raises(TypeError, match="line is required"):
+        indexed_index.find_related("src/module.py")  # type: ignore[call-overload]
+
+
 _GIT_ENV = {
     **os.environ,
     "GIT_AUTHOR_NAME": "test",
