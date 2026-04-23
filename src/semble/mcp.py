@@ -18,6 +18,10 @@ _REPO_DESCRIPTION = (
     "The index is cached after the first call, so repeat queries are fast."
 )
 
+_GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
+# scp-like syntax: [user@]host:path, where host has no '/' before the ':'.
+_SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
+
 
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
@@ -41,7 +45,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             Literal["hybrid", "semantic", "bm25"],
             Field(description="Search mode. 'hybrid' is best for most queries."),
         ] = "hybrid",
-        top_k: Annotated[int, Field(description="Number of results to return.", ge=1, le=20)] = 5,
+        top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
@@ -72,7 +76,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         ],
         line: Annotated[int, Field(description="Line number (1-indexed).")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
-        top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1, le=10)] = 5,
+        top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1)] = 5,
     ) -> str:
         """Find code chunks semantically similar to a specific location in a file.
 
@@ -154,6 +158,10 @@ class _IndexCache:
 def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
     """Return the chunk that contains *line* in *file_path*, or None.
 
+    MCP tool arguments are JSON primitives (strings and ints), so the agent
+    passes file_path + line rather than a Chunk object. This function
+    reconstructs the Chunk at the MCP boundary before calling into the library.
+
     :param chunks: All indexed chunks to search.
     :param file_path: File path as stored in the index.
     :param line: 1-indexed line number to resolve.
@@ -167,11 +175,6 @@ def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | No
             if fallback is None:  # line == end_line: boundary; keep as fallback for end-of-file chunks
                 fallback = chunk
     return fallback
-
-
-_GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
-# scp-like syntax: [user@]host:path, where host has no '/' before the ':'.
-_SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
 
 
 def _is_git_url(path: str) -> bool:
