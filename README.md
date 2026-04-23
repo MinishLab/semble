@@ -18,9 +18,8 @@ Semble is a fast code search library for local and remote repositories. It combi
 ## Quickstart
 
 ```bash
-pip install semble
-# or
-uv add semble
+pip install semble  # Install with pip
+uv add semble       # Install with uv
 ```
 
 ```python
@@ -107,9 +106,9 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 ## Benchmarks
 
-Quality and speed across all methods on ~1,250 queries over 63 repositories in 19 languages.
+Quality and speed across all methods on ~1,250 queries over 63 repositories in 19 languages. X-axis is total latency (index + first query); y-axis is NDCG@10. Marker size reflects model parameter count.
 
-![Speed vs quality scatter plot](assets/images/speed_vs_ndcg_cold.png)
+![Speed vs quality](assets/images/speed_vs_ndcg_cold.png)
 
 | Method | NDCG@10 | Index time | Query p50 |
 |--------|--------:|-----------:|----------:|
