@@ -13,7 +13,7 @@
 
 </div>
 
-Semble is a fast code search library for local and remote repositories. It combines static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) with [BM25](https://github.com/xhluca/bm25s) and a specialized hybrid reranking stack to deliver near-transformer accuracy at a fraction of the cost. As an [MCP server](#mcp-server), it gives agents (Claude Code, Cursor, Codex, OpenCode, etc.) instant access to any codebase: repos are cloned and indexed on demand.
+Semble is a code search library for local and remote repositories, designed to be fast enough for agents to use in the loop. It indexes ~200x faster and answers queries ~10x faster than a code-specialized transformer model while retaining 99% of its retrieval quality, letting you index and search a codebase end-to-end in under a second. Everything runs on CPU with no API keys or external services required. Under the hood it combines static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) with [BM25](https://github.com/xhluca/bm25s) and a hybrid reranking stack. As an [MCP server](#mcp-server), it gives agents (Claude Code, Cursor, Codex, OpenCode, etc.) instant access to any codebase: repos are cloned and indexed on demand.
 
 ## Quickstart
 
@@ -50,7 +50,7 @@ related = index.find_related("model2vec/model.py", line=127, top_k=3)
 - **Accurate**: NDCG@10 of 0.854 on our benchmarks, on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Local and remote**: pass a local path or a git URL.
 - **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
-- **Lightweight**: CPU-only, minimal dependencies.
+- **Self-contained**: runs on CPU with no API keys, GPU, or external services required.
 
 ## MCP Server
 
