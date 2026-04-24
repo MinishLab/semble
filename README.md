@@ -138,10 +138,11 @@ Quality and speed across all methods on ~1,250 queries over 63 repositories in 1
 
 | Method | NDCG@10 | Index time | Query p50 |
 |--------|--------:|-----------:|----------:|
-| CodeRankEmbed Hybrid | **0.862** | 57 s | 16 ms |
-| **semble** | 0.854 | **263 ms** | **1.5 ms** |
+| CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
+| **semble** | **0.854** | **263 ms** | **1.5 ms** |
 | CodeRankEmbed | 0.765 | 57 s | 16 ms |
 | ColGREP | 0.693 | 5.8 s | 124 ms |
+| BM25 | 0.673 | 263 ms | 0.02 ms |
 | ripgrep | 0.126 | — | 12 ms |
 
 The 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid leads NDCG@10 by 0.008. Semble indexes 218x faster and answers queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
