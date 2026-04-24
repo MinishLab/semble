@@ -70,20 +70,15 @@ Semble can run as an MCP server so agents can search any codebase directly. Repo
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-<details>
-<summary><b>Codex</b></summary>
-
+#### Codex
 Add to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.semble]
 command = "uvx"
 args = ["--from", "semble[mcp]", "semble"]
 ```
-</details>
 
-<details>
-<summary><b>OpenCode</b></summary>
-
+#### OpenCode
 Add to `~/.opencode/config.json`:
 ```json
 {
@@ -95,11 +90,8 @@ Add to `~/.opencode/config.json`:
   }
 }
 ```
-</details>
 
-<details>
-<summary><b>Cursor</b></summary>
-
+#### Cursor
 Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 ```json
 {
@@ -111,7 +103,6 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
   }
 }
 ```
-</details>
 
 ### Tools
 
@@ -147,13 +138,13 @@ Quality and speed across all methods on ~1,250 queries over 63 repositories in 1
 
 | Method | NDCG@10 | Index time | Query p50 |
 |--------|--------:|-----------:|----------:|
-| ripgrep | 0.126 | — | 12 ms |
-| ColGREP | 0.693 | 5.8 s | 124 ms |
-| CodeRankEmbed | 0.765 | 57 s | 16 ms |
-| semble | 0.854 | **263 ms** | **1.5 ms** |
 | CodeRankEmbed Hybrid | **0.862** | 57 s | 16 ms |
+| **semble** | 0.854 | **263 ms** | **1.5 ms** |
+| CodeRankEmbed | 0.765 | 57 s | 16 ms |
+| ColGREP | 0.693 | 5.8 s | 124 ms |
+| ripgrep | 0.126 | — | 12 ms |
 
-The 137M-parameter CodeRankEmbed Hybrid leads NDCG@10 by 0.008. Semble indexes 218x faster and answers queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
+The 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid leads NDCG@10 by 0.008. Semble indexes 218x faster and answers queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
 
 ## License
 

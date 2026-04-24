@@ -15,11 +15,11 @@ Quality and speed across all methods.
 
 | Method | NDCG@10 | Index | Query p50 |
 |---|---:|---:|---:|
-| ripgrep | 0.126 | — | 12 ms |
-| ColGREP | 0.693 | 5.8 s | 124 ms |
-| CodeRankEmbed | 0.765 | 57 s | 16 ms |
-| semble | 0.854 | **263 ms** | **1.5 ms** |
 | CodeRankEmbed Hybrid | **0.862** | 57 s | 16 ms |
+| **semble** | 0.854 | **263 ms** | **1.5 ms** |
+| CodeRankEmbed | 0.765 | 57 s | 16 ms |
+| ColGREP | 0.693 | 5.8 s | 124 ms |
+| ripgrep | 0.126 | — | 12 ms |
 
 | ![Speed vs quality (cold)](results/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](results/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
