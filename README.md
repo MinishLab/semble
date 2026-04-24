@@ -146,7 +146,7 @@ We benchmark quality and speed across all methods on ~1,250 queries over 63 repo
 | BM25 | 0.673 | 263 ms | 0.02 ms |
 | ripgrep | 0.126 | — | 12 ms |
 
-The 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid leads NDCG@10 by 0.008. Semble indexes 218x faster and answers queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
+Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
 
 ## License
 
