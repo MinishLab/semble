@@ -5,6 +5,12 @@
 </h2>
 
 <div align="center">
+  <h2>
+    <a href="https://pypi.org/project/semble/"><img src="https://img.shields.io/pypi/v/semble?color=%23007ec6&label=pypi%20package" alt="Package version"></a>
+    <a href="https://github.com/MinishLab/semble/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/license-MIT-green" alt="License - MIT">
+    </a>
+  </h2>
 
 [Quickstart](#quickstart) •
 [Main Features](#main-features) •
@@ -13,7 +19,7 @@
 
 </div>
 
-Semble is a code search library for local and remote repositories, designed to be fast enough for agents to use in the loop. It indexes ~200x faster and answers queries ~10x faster than a code-specialized transformer model while retaining 99% of its retrieval quality, letting you index and search a codebase end-to-end in under a second. Everything runs on CPU with no API keys or external services required. Under the hood it combines static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) with [BM25](https://github.com/xhluca/bm25s) and a hybrid reranking stack. As an [MCP server](#mcp-server), it gives agents (Claude Code, Cursor, Codex, OpenCode, etc.) instant access to any codebase: repos are cloned and indexed on demand.
+Semble is a code search library built to be fast enough for agents to use in the loop. It indexes and searches a codebase end-to-end in under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo, cloned and indexed on demand.
 
 ## Quickstart
 
