@@ -15,6 +15,7 @@
 [Quickstart](#quickstart) •
 [Main Features](#main-features) •
 [MCP Server](#mcp-server) •
+[How it works](#how-it-works) •
 [Benchmarks](#benchmarks)
 
 </div>
@@ -109,6 +110,20 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 |------|-------------|
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a git URL or local path. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
+
+## How it works
+
+Semble splits each file into code-aware chunks using [Chonkie](https://github.com/chonkie-inc/chonkie), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) model for semantic similarity, and [BM25](https://github.com/xhluca/bm25s) for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
+
+After fusing, results are reranked with a set of code-aware signals:
+
+- **Adaptive weighting.** Symbol-like queries (`Foo::bar`, `_private`, `getUserById`) get more lexical weight, while  natural-language queries stay balanced between semantic and lexical retrievers.
+- **Definition boosts.** A chunk that defines the queried symbol (a `class`, `def`, `func`, etc.) is ranked above chunks that merely reference it.
+- **Identifier stems.** Query tokens matching identifier stems in a chunk receive an additional weight.
+- **File coherence.** When multiple chunks from the same file match the query, the file is boosted so the top result reflects broad file-level relevance rather than a single out-of-context chunk.
+- **Noise penalties.** Test files, `compat/`/`legacy/` shims, example code, and `.d.ts` declaration stubs are down-ranked so canonical implementations surface first.
+
+Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
 
 ## Benchmarks
 
