@@ -3058,6 +3058,7 @@ dependencies = [
     { name = "model2vec" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pathspec" },
     { name = "vicinity" },
 ]
 
@@ -3092,6 +3093,7 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "numpy", marker = "extra == 'benchmark'", specifier = ">=1.24.0" },
+    { name = "pathspec", specifier = ">=0.12" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0" },
     { name = "pydoclint", marker = "extra == 'dev'", specifier = ">=0.5.3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },

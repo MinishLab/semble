@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+from pathspec import GitIgnoreSpec
+
 
 class FileCategory(str, Enum):
     CODE = "CODE"
@@ -64,14 +66,11 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
         "node_modules",
         ".venv",
         "venv",
-        ".env",
         ".tox",
-        "dist",
-        "build",
-        ".eggs",
         ".mypy_cache",
         ".pytest_cache",
         ".ruff_cache",
+        ".cache",
         ".semble",
     }
 )
@@ -96,15 +95,44 @@ def filter_extensions(extensions: frozenset[str] | None, *, include_text_files: 
     return frozenset(ext for ext, spec in FILE_TYPES.items() if spec.category in categories_to_include)
 
 
+def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
+    """Load the root-level ``.gitignore`` as a spec, if present."""
+    gitignore = root / ".gitignore"
+    if not gitignore.is_file():
+        return None
+    try:
+        with gitignore.open("r", encoding="utf-8", errors="ignore") as f:
+            return GitIgnoreSpec.from_lines(f)
+    except OSError:
+        return None
+
+
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
-    """Yield files under root matching extensions, skipping ignored directories."""
-    # Always skip the defaults.
-    ignore = (ignore or frozenset()) | DEFAULT_IGNORED_DIRS
-    for dirpath, _, filenames in os.walk(root):
-        dirpath_as_path = Path(dirpath)
-        if set(dirpath_as_path.parts) & ignore:
-            continue
+    """Yield files under root matching extensions, skipping ignored paths.
+
+    Directories matching ``DEFAULT_IGNORED_DIRS`` (plus any ``ignore`` override) are always
+    skipped. If the root contains a ``.gitignore``, its patterns are also honoured.
+    """
+    ignore_dirs = (ignore or frozenset()) | DEFAULT_IGNORED_DIRS
+    gitignore = _load_root_gitignore(root)
+    for dirpath, dirnames, filenames in os.walk(root):
+        rel_dir = Path(dirpath).relative_to(root)
+        # Prune in-place so os.walk doesn't descend into ignored trees.
+        kept: list[str] = []
+        for d in dirnames:
+            if d in ignore_dirs:
+                continue
+            rel = (rel_dir / d).as_posix() + "/"
+            if gitignore is not None and gitignore.match_file(rel):
+                continue
+            kept.append(d)
+        dirnames[:] = kept
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename
-            if file_path.suffix.lower() in extensions:
-                yield file_path
+            if file_path.suffix.lower() not in extensions:
+                continue
+            if gitignore is not None:
+                rel_file = (rel_dir / filename).as_posix()
+                if gitignore.match_file(rel_file):
+                    continue
+            yield file_path
