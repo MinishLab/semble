@@ -99,7 +99,7 @@ def filter_extensions(extensions: frozenset[str] | None, *, include_text_files: 
 
 
 def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
-    """Load the root-level ``.gitignore`` as a spec, if present."""
+    """Load the root-level .gitignore as a spec, if present."""
     gitignore = root / ".gitignore"
     if not gitignore.is_file():
         return None
@@ -110,22 +110,28 @@ def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
     """Yield files under root matching extensions, skipping ignored paths.
 
-    Directories matching ``DEFAULT_IGNORED_DIRS`` (plus any ``ignore`` override) are always
-    skipped. If the root contains a ``.gitignore``, its patterns are also honoured.
+    Directories matching DEFAULT_IGNORED_DIRS plus any names in ignore are always
+    skipped. If the root contains a .gitignore, its patterns are also honoured.
+
+    :param root: Root directory to walk.
+    :param extensions: Set of file extensions to include (e.g. {".py", ".js"}).
+    :param ignore: Additional directory names to ignore (e.g. {"build", "dist"}).
+    :yield: Path to each file under root matching the criteria.
+    :ytype: Path
     """
-    ignore_dirs = (ignore or frozenset()) | DEFAULT_IGNORED_DIRS
+    ignore_dirs = DEFAULT_IGNORED_DIRS | (ignore or frozenset())
     gitignore = _load_root_gitignore(root)
     for dirpath, dirnames, filenames in os.walk(root):
         rel_dir = Path(dirpath).relative_to(root)
         # Prune in-place so os.walk doesn't descend into ignored trees.
         kept: list[str] = []
-        for d in dirnames:
-            if d in ignore_dirs:
+        for dirname in dirnames:
+            if dirname in ignore_dirs:
                 continue
-            rel = (rel_dir / d).as_posix() + "/"
+            rel = (rel_dir / dirname).as_posix() + "/"
             if gitignore is not None and gitignore.match_file(rel):
                 continue
-            kept.append(d)
+            kept.append(dirname)
         dirnames[:] = kept
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename

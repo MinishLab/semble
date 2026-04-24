@@ -8,6 +8,7 @@ from semble.index.file_walker import walk_files
 
 
 def _touch(path: Path, content: str = "x = 1\n") -> None:
+    """Create path (and any missing parents) and write content to it."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
 
@@ -47,7 +48,7 @@ def test_walk_files_filtering(tmp_path: Path, files: list[str], gitignore: str |
 
 
 def test_walk_files_prunes_ignored_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Ignored directories are pruned so ``os.walk`` never descends into them."""
+    """Ignored directories are pruned so os.walk never descends into them."""
     _touch(tmp_path / "src" / "a.py")
     _touch(tmp_path / "node_modules" / "deep" / "deeper" / "b.js")
 
