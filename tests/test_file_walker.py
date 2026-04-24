@@ -1,4 +1,8 @@
+import os
+from collections.abc import Iterator
 from pathlib import Path
+
+import pytest
 
 from semble.index.file_walker import walk_files
 
@@ -8,50 +12,50 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
     path.write_text(content)
 
 
-def test_walk_files_skips_default_ignored_dirs(tmp_path: Path) -> None:
-    """Files under ``.venv``, ``node_modules``, ``.cache`` etc. are not yielded."""
-    _touch(tmp_path / "src" / "a.py")
-    _touch(tmp_path / ".venv" / "lib" / "b.py")
-    _touch(tmp_path / "node_modules" / "pkg" / "c.js")
-    _touch(tmp_path / ".cache" / "uv" / "d.py")
-
-    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, frozenset({".py", ".js"}))}
-    assert found == {"src/a.py"}
-
-
-def test_walk_files_respects_root_gitignore(tmp_path: Path) -> None:
-    """Patterns in a root ``.gitignore`` exclude both directories and files."""
-    _touch(tmp_path / "src" / "keep.py")
-    _touch(tmp_path / "local" / "ignored.py")
-    _touch(tmp_path / "generated.py")
-    (tmp_path / ".gitignore").write_text("local/\ngenerated.py\n")
+@pytest.mark.parametrize(
+    ("files", "gitignore", "expected"),
+    [
+        # Default-ignored dirs (.venv, node_modules, .cache) are always skipped.
+        (
+            ["src/a.py", ".venv/lib/b.py", "node_modules/pkg/c.py", ".cache/uv/d.py"],
+            None,
+            {"src/a.py"},
+        ),
+        # Root .gitignore excludes both directories and files.
+        (
+            ["src/keep.py", "local/ignored.py", "generated.py"],
+            "local/\ngenerated.py\n",
+            {"src/keep.py"},
+        ),
+        # Negation (`!`) patterns re-include previously ignored files.
+        (
+            ["out/a.py", "out/keep.py"],
+            "out/*\n!out/keep.py\n",
+            {"out/keep.py"},
+        ),
+    ],
+)
+def test_walk_files_filtering(tmp_path: Path, files: list[str], gitignore: str | None, expected: set[str]) -> None:
+    """Directory defaults, gitignore patterns, and negations filter the yielded files."""
+    for rel in files:
+        _touch(tmp_path / rel)
+    if gitignore is not None:
+        (tmp_path / ".gitignore").write_text(gitignore)
 
     found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, frozenset({".py"}))}
-    assert found == {"src/keep.py"}
+    assert found == expected
 
 
-def test_walk_files_gitignore_negation(tmp_path: Path) -> None:
-    """``!`` negation patterns re-include previously ignored files."""
-    _touch(tmp_path / "build" / "out.py")
-    _touch(tmp_path / "build" / "keep.py")
-    (tmp_path / ".gitignore").write_text("build/*\n!build/keep.py\n")
-
-    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, frozenset({".py"}))}
-    assert found == {"build/keep.py"}
-
-
-def test_walk_files_prunes_ignored_dirs(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+def test_walk_files_prunes_ignored_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Ignored directories are pruned so ``os.walk`` never descends into them."""
     _touch(tmp_path / "src" / "a.py")
     _touch(tmp_path / "node_modules" / "deep" / "deeper" / "b.js")
 
     visited: list[str] = []
-    import os
-
     real_walk = os.walk
 
-    def tracking_walk(*args, **kwargs):  # type: ignore[no-untyped-def]
-        for dirpath, dirnames, filenames in real_walk(*args, **kwargs):
+    def tracking_walk(top: str) -> Iterator[tuple[str, list[str], list[str]]]:
+        for dirpath, dirnames, filenames in real_walk(top):
             visited.append(dirpath)
             yield dirpath, dirnames, filenames
 

@@ -72,6 +72,9 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
         ".ruff_cache",
         ".cache",
         ".semble",
+        "dist",
+        "build",
+        ".eggs",
     }
 )
 
@@ -100,11 +103,8 @@ def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
     gitignore = root / ".gitignore"
     if not gitignore.is_file():
         return None
-    try:
-        with gitignore.open("r", encoding="utf-8", errors="ignore") as f:
-            return GitIgnoreSpec.from_lines(f)
-    except OSError:
-        return None
+    with gitignore.open("r", encoding="utf-8", errors="ignore") as f:
+        return GitIgnoreSpec.from_lines(f)
 
 
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
