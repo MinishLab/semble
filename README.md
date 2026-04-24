@@ -49,12 +49,13 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
 # Find code similar to a specific result
 related = index.find_related(results[0], top_k=3)
+related[0].chunk.file_path  # "model2vec/model.py"
 ```
 
 ## Main Features
 
 - **Fast**: indexes a repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
-- **Accurate**: NDCG@10 of 0.854 on our benchmarks, on par with code-specialized transformer models, at a fraction of the size and cost.
+- **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Local and remote**: pass a local path or a git URL.
 - **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
@@ -132,7 +133,7 @@ Because the embedding model is static with no transformer forward pass at query 
 
 ## Benchmarks
 
-Quality and speed across all methods on ~1,250 queries over 63 repositories in 19 languages. X-axis is total latency (index + first query); y-axis is NDCG@10. Marker size reflects model parameter count.
+We benchmark quality and speed across all methods on ~1,250 queries over 63 repositories in 19 languages. The x-axis is total latency (index + first query); the y-axis is NDCG@10. Marker size reflects model parameter count.
 
 ![Speed vs quality](assets/images/speed_vs_ndcg_cold.png)
 
