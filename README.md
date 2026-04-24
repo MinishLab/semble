@@ -70,15 +70,20 @@ Semble can run as an MCP server so agents can search any codebase directly. Repo
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-#### Codex
+<details>
+<summary><b>Codex</b></summary>
+
 Add to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.semble]
 command = "uvx"
 args = ["--from", "semble[mcp]", "semble"]
 ```
+</details>
 
-#### OpenCode
+<details>
+<summary><b>OpenCode</b></summary>
+
 Add to `~/.opencode/config.json`:
 ```json
 {
@@ -90,8 +95,11 @@ Add to `~/.opencode/config.json`:
   }
 }
 ```
+</details>
 
-#### Cursor
+<details>
+<summary><b>Cursor</b></summary>
+
 Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 ```json
 {
@@ -103,6 +111,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
   }
 }
 ```
+</details>
 
 ### Tools
 
@@ -117,11 +126,16 @@ Semble splits each file into code-aware chunks using [Chonkie](https://github.co
 
 After fusing, results are reranked with a set of code-aware signals:
 
-- **Adaptive weighting.** Symbol-like queries (`Foo::bar`, `_private`, `getUserById`) get more lexical weight, while  natural-language queries stay balanced between semantic and lexical retrievers.
+<details>
+<summary><b>Ranking signals</b></summary>
+
+- **Adaptive weighting.** Symbol-like queries (`Foo::bar`, `_private`, `getUserById`) get more lexical weight, while natural-language queries stay balanced between semantic and lexical retrievers.
 - **Definition boosts.** A chunk that defines the queried symbol (a `class`, `def`, `func`, etc.) is ranked above chunks that merely reference it.
 - **Identifier stems.** Query tokens matching identifier stems in a chunk receive an additional weight.
 - **File coherence.** When multiple chunks from the same file match the query, the file is boosted so the top result reflects broad file-level relevance rather than a single out-of-context chunk.
 - **Noise penalties.** Test files, `compat/`/`legacy/` shims, example code, and `.d.ts` declaration stubs are down-ranked so canonical implementations surface first.
+
+</details>
 
 Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
 
