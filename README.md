@@ -38,6 +38,7 @@ index = SembleIndex.from_path("./my-project")
 # Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
 
+# Search the index with a natural-language or code query
 results = index.search("save model to disk", top_k=3)
 
 # Each result exposes the matched chunk
@@ -49,7 +50,6 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
 # Find code similar to a specific result
 related = index.find_related(results[0], top_k=3)
-related[0].chunk.file_path  # "model2vec/model.py"
 ```
 
 ## Main Features
