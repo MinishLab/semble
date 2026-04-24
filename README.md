@@ -19,7 +19,7 @@
 
 </div>
 
-Semble is a code search library built to be fast enough for agents to use in the loop. It indexes and searches a codebase end-to-end in under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo, cloned and indexed on demand.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, cutting both token usage and waiting time on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo, cloned and indexed on demand.
 
 ## Quickstart
 
@@ -56,7 +56,7 @@ related = index.find_related(results[0], top_k=3)
 - **Accurate**: NDCG@10 of 0.854 on our benchmarks, on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Local and remote**: pass a local path or a git URL.
 - **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
-- **Self-contained**: runs on CPU with no API keys, GPU, or external services required.
+- **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
 
 ## MCP Server
 
