@@ -66,6 +66,8 @@ Semble can run as an MCP server so agents can search any codebase directly. Repo
 
 ### Setup
 
+> Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
+
 #### Claude Code
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
