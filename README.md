@@ -13,9 +13,6 @@
     <a href="https://github.com/MinishLab/semble/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/license-MIT-green" alt="License - MIT">
     </a>
-    <a href="https://doi.org/10.5281/zenodo.19785932">
-      <img src="https://zenodo.org/badge/1202937420.svg" alt="DOI">
-    </a>
   </h2>
 
 [Quickstart](#quickstart) •
