@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "setuptools_scm"]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Natural Language :: English",
 ]
 dependencies = [
@@ -53,7 +54,7 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/MinishLab"
+"Homepage" = "https://github.com/MinishLab/semble"
 "Bug Reports" = "https://github.com/MinishLab/semble/issues"
 "Source" = "https://github.com/MinishLab/semble"
 
@@ -62,10 +63,11 @@ semble = "semble.mcp:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-license-files = []
+license-files = ["LICENSE*"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["semble*"]
 
 [tool.setuptools.package-data]
 semble = ["py.typed"]
@@ -95,6 +97,8 @@ select = [
     "D",
     # Pycodestyle errors
     "E",
+    # Remove unused imports
+    "F",
     # Isort: Enforce import order
     "I",
     # Numpy: Enforce numpy style
@@ -106,7 +110,7 @@ ignore = [
     # Allow Any type
     "ANN401",
     # Pydocstyle ignores
-    "D100", "D101", "D104", "D203", "D213", "D401",
+    "D100", "D101", "D104", "D203", "D212", "D401",
 ]
 
 [tool.pydoclint]
@@ -125,6 +129,9 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--tb=short", "--strict-markers", "--cov=semble", "--cov-report=term-missing"]
+
+[tool.coverage.run]
+relative_files = true
 
 [tool.coverage.report]
 skip_covered = true
