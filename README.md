@@ -7,6 +7,9 @@
 <div align="center">
   <h2>
     <a href="https://pypi.org/project/semble/"><img src="https://img.shields.io/pypi/v/semble?color=%23007ec6&label=pypi%20package" alt="Package version"></a>
+    <a href="https://app.codecov.io/gh/MinishLabl/semble">
+      <img src="https://codecov.io/gh/MinishLabl/semble/graph/badge.svg?token=SZKRFKPPCG" alt="Codecov">
+    </a>
     <a href="https://github.com/MinishLab/semble/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/license-MIT-green" alt="License - MIT">
     </a>
