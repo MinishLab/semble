@@ -1,14 +1,14 @@
 
 <h2 align="center">
-  <img width="30%" alt="semble logo" src="assets/images/semble_logo.png"><br/>
+  <img width="30%" alt="semble logo" src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/semble_logo.png"><br/>
   Fast and Accurate Code Search for Agents
 </h2>
 
 <div align="center">
   <h2>
     <a href="https://pypi.org/project/semble/"><img src="https://img.shields.io/pypi/v/semble?color=%23007ec6&label=pypi%20package" alt="Package version"></a>
-    <a href="https://app.codecov.io/gh/MinishLabl/semble">
-      <img src="https://codecov.io/gh/MinishLabl/semble/graph/badge.svg?token=SZKRFKPPCG" alt="Codecov">
+    <a href="https://app.codecov.io/gh/MinishLab/semble">
+      <img src="https://codecov.io/gh/MinishLab/semble/graph/badge.svg?token=SZKRFKPPCG" alt="Codecov">
     </a>
     <a href="https://github.com/MinishLab/semble/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/license-MIT-green" alt="License - MIT">
@@ -140,7 +140,7 @@ Because the embedding model is static with no transformer forward pass at query 
 
 We benchmark quality and speed across all methods on ~1,250 queries over 63 repositories in 19 languages. The x-axis is total latency (index + first query); the y-axis is NDCG@10. Marker size reflects model parameter count.
 
-![Speed vs quality](assets/images/speed_vs_ndcg_cold.png)
+![Speed vs quality](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/speed_vs_ndcg_cold.png)
 
 | Method | NDCG@10 | Index time | Query p50 |
 |--------|--------:|-----------:|----------:|
