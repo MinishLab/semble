@@ -13,6 +13,9 @@
     <a href="https://github.com/MinishLab/semble/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/license-MIT-green" alt="License - MIT">
     </a>
+    <a href="https://doi.org/10.5281/zenodo.19785932">
+      <img src="https://zenodo.org/badge/1202937420.svg" alt="DOI">
+    </a>
   </h2>
 
 [Quickstart](#quickstart) •
@@ -167,7 +170,7 @@ If you use Semble in your research, please cite the following:
   title        = {Semble: Fast Code Search for Agents},
   year         = {2026},
   publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.XXXXXXX},
+  doi          = {10.5281/zenodo.19785932},
   url          = {https://github.com/MinishLab/semble},
   license      = {MIT}
 }

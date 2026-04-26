@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use Semble in your research, please cite it as below."
+title: "Semble: Fast and Accurate Code Search for Agents"
+authors:
+  - family-names: "van Dongen"
+    given-names: "Thomas"
+  - family-names: "Tulkens"
+    given-names: "Stephan"
+doi: 10.5281/zenodo.19785932
+license: MIT
+url: "https://github.com/MinishLab/semble"
+repository-code: "https://github.com/MinishLab/semble"
+date-released: "2026-04-26"
+
+preferred-citation:
+  type: software
+  title: "Semble: Fast and Accurate Code Search for Agents"
+  authors:
+    - family-names: "van Dongen"
+      given-names: "Thomas"
+    - family-names: "Tulkens"
+      given-names: "Stephan"
+  year: 2026
+  publisher: Zenodo
+  doi: 10.5281/zenodo.19785932
+  url: "https://github.com/MinishLab/semble"
+  license: MIT
