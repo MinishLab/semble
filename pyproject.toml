@@ -124,7 +124,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["--tb=short", "--strict-markers", "--cov=src", "--cov-report=term-missing"]
+addopts = ["--tb=short", "--strict-markers", "--cov=semble", "--cov-report=term-missing"]
 
 [tool.coverage.report]
 skip_covered = true
