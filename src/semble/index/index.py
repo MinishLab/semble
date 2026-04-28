@@ -25,7 +25,8 @@ class SembleIndex:
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
     ) -> None:
-        """Internal constructor — use :meth:`from_path` or :meth:`from_git`.
+        """
+        Internal constructor — use :meth:`from_path` or :meth:`from_git`.
 
         :param model: Embedding model to use.
         :param bm25_index: The bm25 index.
@@ -65,6 +66,27 @@ class SembleIndex:
         )
 
     @classmethod
+    def _build(
+        cls,
+        model: Encoder | None,
+        path: Path,
+        extensions: frozenset[str] | None,
+        ignore: frozenset[str] | None,
+        include_text_files: bool,
+    ) -> SembleIndex:
+        """Build a SembleIndex from an already-resolved directory path."""
+        model = model or load_model()
+        bm25, vicinity, chunks = create_index_from_path(
+            path,
+            model=model,
+            extensions=extensions,
+            ignore=ignore,
+            include_text_files=include_text_files,
+            display_root=path,
+        )
+        return cls(model, bm25, vicinity, chunks)
+
+    @classmethod
     def from_path(
         cls,
         path: str | Path,
@@ -73,7 +95,8 @@ class SembleIndex:
         ignore: frozenset[str] | None = None,
         include_text_files: bool = False,
     ) -> SembleIndex:
-        """Create and index a SembleIndex from a directory.
+        """
+        Create and index a SembleIndex from a directory.
 
         :param path: Root directory to index.
         :param model: Embedding model to use. Defaults to potion-code-16M.
@@ -84,25 +107,12 @@ class SembleIndex:
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
         """
-        model = model or load_model()
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Path does not exist: {path}")
         if not path.is_dir():
             raise NotADirectoryError(f"Path is not a directory: {path}")
-        path = path.resolve()
-        bm25, vicinity, chunks = create_index_from_path(
-            path,
-            model=model,
-            extensions=extensions,
-            ignore=ignore,
-            include_text_files=include_text_files,
-            display_root=path,
-        )
-
-        index = SembleIndex(model, bm25, vicinity, chunks)
-
-        return index
+        return cls._build(model, path.resolve(), extensions, ignore, include_text_files)
 
     @classmethod
     def from_git(
@@ -114,7 +124,8 @@ class SembleIndex:
         ignore: frozenset[str] | None = None,
         include_text_files: bool = False,
     ) -> SembleIndex:
-        """Clone a git repository and index it.
+        """
+        Clone a git repository and index it.
 
         The repository is cloned into a temporary directory that is removed once
         indexing finishes. Chunk content is preserved in-memory, but
@@ -139,23 +150,11 @@ class SembleIndex:
                 raise RuntimeError("git is not installed or not on PATH") from None
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
-            model = model or load_model()
-            resolved_path = Path(tmp_dir).resolve()
-            bm25, vicinity, chunks = create_index_from_path(
-                resolved_path,
-                model=model,
-                extensions=extensions,
-                ignore=ignore,
-                include_text_files=include_text_files,
-                display_root=resolved_path,
-            )
-
-            index = SembleIndex(model, bm25, vicinity, chunks)
-
-            return index
+            return cls._build(model, Path(tmp_dir).resolve(), extensions, ignore, include_text_files)
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
-        """Return chunks semantically similar to the given chunk or search result.
+        """
+        Return chunks semantically similar to the given chunk or search result.
 
         :param source: A SearchResult or Chunk to use as the seed.
         :param top_k: Number of similar chunks to return.
@@ -187,7 +186,8 @@ class SembleIndex:
         filter_languages: list[str] | None = None,
         filter_paths: list[str] | None = None,
     ) -> list[SearchResult]:
-        """Search the index and return the top-k most relevant chunks.
+        """
+        Search the index and return the top-k most relevant chunks.
 
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
