@@ -177,13 +177,12 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
     ax.set_ylim(0.05, 0.95)
 
+    ax.set_xlabel("Query latency", fontsize=10, color="#444444")
     if warm:
-        ax.set_xlabel("Query latency (warm)", fontsize=10, color="#444444")
         ax.set_xlim(0.01, 500)
         ax.set_xticks([0.1, 1, 10, 100])
         ax.set_title("Code search quality vs. latency (warm)", fontsize=12, color="#222222", pad=12)
     else:
-        ax.set_xlabel("Query latency (cold)", fontsize=10, color="#444444")
         ax.set_xlim(5, 200_000)
         ax.set_xticks([100, 1_000, 10_000, 100_000])
         ax.set_title("Code search quality vs. latency (cold)", fontsize=12, color="#222222", pad=12)
