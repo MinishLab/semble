@@ -110,7 +110,8 @@ def _format_ms(v: float, _: object) -> str:
 
 
 def _make_plot(out_path: Path, *, warm: bool = False) -> None:
-    """Generate a speed-vs-quality scatter plot.
+    """
+    Generate a speed-vs-quality scatter plot.
 
     :param out_path: Destination PNG path.
     :param warm: If True, use per-query latency (index pre-built). If False, use index + query latency.
@@ -180,10 +181,12 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
         ax.set_xlabel("Query latency (warm)", fontsize=10, color="#444444")
         ax.set_xlim(0.01, 500)
         ax.set_xticks([0.1, 1, 10, 100])
+        ax.set_title("Code search quality vs. latency (warm)", fontsize=12, color="#222222", pad=12)
     else:
         ax.set_xlabel("Query latency (cold)", fontsize=10, color="#444444")
         ax.set_xlim(5, 200_000)
         ax.set_xticks([100, 1_000, 10_000, 100_000])
+        ax.set_title("Code search quality vs. latency (cold)", fontsize=12, color="#222222", pad=12)
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(_format_ms))
     ax.tick_params(labelsize=9, colors="#555555")
