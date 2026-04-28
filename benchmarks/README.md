@@ -22,7 +22,7 @@ Quality and speed across all methods.
 | BM25 | 0.673 | 263 ms | 0.02 ms |
 | ripgrep | 0.126 | — | 12 ms |
 
-| ![Speed vs quality (cold)](results/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](results/speed_vs_ndcg_warm.png) |
+| ![Speed vs quality (cold)](../assets/images/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](../assets/images/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
 | *Time to first result (index + query) vs NDCG@10* | *Query latency on a warm index vs NDCG@10* |
 
@@ -197,6 +197,6 @@ uv run python -m benchmarks.baselines.coderankembed --mode semantic
 uv run python -m benchmarks.plot
 ```
 
-Writes `speed_vs_ndcg_cold.png` and `speed_vs_ndcg_warm.png` to `benchmarks/results/`.
+Writes `speed_vs_ndcg_cold.png` and `speed_vs_ndcg_warm.png` to `assets/images/`.
 
 </details>
