@@ -46,21 +46,15 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         ] = "hybrid",
         top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
     ) -> str:
-        """Search a codebase with a natural-language or code query.
+        """
+        Search a codebase with a natural-language or code query.
 
         Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
-        try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
+        index = await _get_index_or_error(cache, repo, default_source)
+        if isinstance(index, str):
+            return index
         results = index.search(query, top_k=top_k, mode=mode)
         if not results:
             return "No results found."
@@ -76,21 +70,15 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
         top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1)] = 5,
     ) -> str:
-        """Find code chunks semantically similar to a specific location in a file.
+        """
+        Find code chunks semantically similar to a specific location in a file.
 
         Use after `search` to explore related implementations or callers.
         Pass file_path and line from a prior search result.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
-        try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
+        index = await _get_index_or_error(cache, repo, default_source)
+        if isinstance(index, str):
+            return index
         chunk = _resolve_chunk(index.chunks, file_path, line)
         if chunk is None:
             return (
@@ -153,8 +141,22 @@ class _IndexCache:
             raise
 
 
+async def _get_index_or_error(cache: _IndexCache, repo: str | None, default_source: str | None) -> SembleIndex | str:
+    """Resolve a repo source to an index, or return an error message string."""
+    source = repo or default_source
+    if not source:
+        return (
+            "No repo specified and no default index. Pass a git URL (https://github.com/...) or local path as `repo`."
+        )
+    try:
+        return await cache.get(source)
+    except Exception as exc:
+        return f"Failed to index {source!r}: {exc}"
+
+
 def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
-    """Return the chunk that contains *line* in *file_path*, or None.
+    """
+    Return the chunk that contains *line* in *file_path*, or None.
 
     MCP tool arguments are JSON primitives (strings and ints), so the agent
     passes file_path + line rather than a Chunk object. This function
