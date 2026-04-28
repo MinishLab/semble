@@ -88,7 +88,8 @@ def _evaluate_repo(
 
 
 def _init_index(path: Path) -> tuple[bool, float]:
-    """Build (or rebuild) the colgrep index at path; return (non_empty, elapsed_ms).
+    """
+    Build (or rebuild) the colgrep index at path; return (non_empty, elapsed_ms).
 
     :param path: Directory to index.
     :return: Tuple of (non_empty, index_ms) where non_empty is False if colgrep reported 0 files.
@@ -106,7 +107,8 @@ def _init_index(path: Path) -> tuple[bool, float]:
 
 
 def _resolve_path(spec: RepoSpec) -> tuple[Path, float]:
-    """Return the path ColGREP should index and elapsed index build time.
+    """
+    Return the path ColGREP should index and elapsed index build time.
 
     Tries benchmark_dir first; if that yields 0 files falls back to checkout_dir,
     which is the project root ColGREP needs to discover the .git boundary.

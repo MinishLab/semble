@@ -84,7 +84,8 @@ def rerank_topk(
     *,
     penalise_paths: bool = True,
 ) -> list[tuple[Chunk, float]]:
-    """Select top-k results with optional file-path penalties and file-saturation decay.
+    """
+    Select top-k results with optional file-path penalties and file-saturation decay.
 
     When `penalise_paths` is True, path penalties are applied before sorting.
     Saturation decay is applied greedily during the greedy pass; because decay

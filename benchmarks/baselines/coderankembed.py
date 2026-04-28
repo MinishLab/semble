@@ -3,6 +3,7 @@ import json
 import sys
 import time
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -29,7 +30,8 @@ _LATENCY_RUNS = 3  # transformer inference is slow; keep runs low
 
 
 class _AsymmetricWrapper:
-    """Wrap SentenceTransformer with asymmetric query/document prompts.
+    """
+    Wrap SentenceTransformer with asymmetric query/document prompts.
 
     Single-element lists are treated as queries; larger batches as documents.
     max_seq_length is capped to avoid OOM on CPU with long chunks.
@@ -39,11 +41,12 @@ class _AsymmetricWrapper:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: list[str]) -> np.ndarray:
+    def encode(self, texts: Sequence[str], /) -> np.ndarray:
         """Encode texts with query or document prompt based on batch size."""
-        if len(texts) == 1:
-            return self._model.encode(texts, prompt_name="query", batch_size=1)  # type: ignore[return-value]
-        return self._model.encode(texts, batch_size=1)  # type: ignore[return-value]
+        batch = list(texts)
+        if len(batch) == 1:
+            return self._model.encode(batch, prompt_name="query", batch_size=1)  # type: ignore[return-value]
+        return self._model.encode(batch, batch_size=1)  # type: ignore[return-value]
 
 
 @dataclass(frozen=True)

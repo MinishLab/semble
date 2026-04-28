@@ -2,7 +2,6 @@ import numpy as np
 import numpy.typing as npt
 from huggingface_hub.utils.tqdm import disable_progress_bars
 from model2vec import StaticModel
-from numpy import typing as npt
 from vicinity.backends.basic import CosineBasicBackend
 from vicinity.datatypes import QueryResult
 from vicinity.utils import normalize
@@ -40,7 +39,8 @@ class SelectableBasicBackend(CosineBasicBackend):
         return 1 - sim
 
     def query(self, vectors: npt.NDArray, k: int, selector: npt.NDArray[np.int_] | None = None) -> QueryResult:
-        """Batched distance query.
+        """
+        Batched distance query.
 
         :param vectors: The vectors to query.
         :param k: The number of nearest neighbors to return.

@@ -20,7 +20,8 @@ def create_index_from_path(
     include_text_files: bool = False,
     display_root: Path | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
-    """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
+    """
+    Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
 
     :param path: Resolved absolute path to index.
     :param model: The model to use for indexing.

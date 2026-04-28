@@ -10,7 +10,8 @@ _CAMEL_RE = re.compile(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|[0-9]+")
 
 
 def split_identifier(token: str) -> list[str]:
-    """Split a single identifier into sub-tokens via camelCase/snake_case.
+    """
+    Split a single identifier into sub-tokens via camelCase/snake_case.
 
     Returns the original token (lowered) plus any sub-tokens.
     E.g. "HandlerStack" -> ["handlerstack", "handler", "stack"]
@@ -33,7 +34,8 @@ def split_identifier(token: str) -> list[str]:
 
 
 def tokenize(text: str) -> list[str]:
-    """Split text into lowercase identifier-like tokens for BM25 indexing.
+    """
+    Split text into lowercase identifier-like tokens for BM25 indexing.
 
     Compound identifiers (camelCase, PascalCase, snake_case) are expanded
     into sub-tokens so that partial matches work. The original compound

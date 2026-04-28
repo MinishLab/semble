@@ -77,7 +77,8 @@ def search_hybrid(
     alpha: float | None = None,
     selector: npt.NDArray[np.int_] | None = None,
 ) -> list[SearchResult]:
-    """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
+    """
+    Hybrid search: alpha-weighted combination of semantic and BM25 scores.
 
     Both score sets are converted to RRF scores before combining, so alpha has
     a consistent meaning regardless of raw score magnitude.

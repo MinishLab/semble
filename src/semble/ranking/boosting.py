@@ -145,7 +145,8 @@ def _is_symbol_query(query: str) -> bool:
 
 
 def _extract_symbol_name(query: str) -> str:
-    """Extract the final identifier from a possibly namespace-qualified query.
+    """
+    Extract the final identifier from a possibly namespace-qualified query.
 
     Examples: "Sinatra::Base" → "Base", "Client" → "Client".
     """
@@ -167,7 +168,8 @@ def _definition_pattern(symbol_name: str) -> tuple[re.Pattern[str], re.Pattern[s
 
 
 def _chunk_defines_symbol(chunk: Chunk, symbol_name: str) -> bool:
-    """Return True if the chunk contains a definition of *symbol_name*.
+    """
+    Return True if the chunk contains a definition of *symbol_name*.
 
     Case-sensitive for general keywords, case-insensitive for SQL DDL.
     Also matches namespace-qualified forms (e.g. ``defmodule Phoenix.Router`` for ``Router``).
@@ -240,7 +242,8 @@ def _boost_embedded_symbols(
     max_score: float,
     all_chunks: list[Chunk],
 ) -> None:
-    """Boost chunks defining CamelCase/camelCase symbols embedded in NL queries (in-place).
+    """
+    Boost chunks defining CamelCase/camelCase symbols embedded in NL queries (in-place).
 
     Half-strength vs pure symbol queries. Non-candidate scan uses stem-prefix match
     so e.g. ``state.ts`` is found for symbol ``StateManager``.
@@ -293,7 +296,8 @@ def _boost_stem_matches(
     query: str,
     max_score: float,
 ) -> None:
-    """Boost chunks whose file paths match NL query keywords (in-place).
+    """
+    Boost chunks whose file paths match NL query keywords (in-place).
 
     Uses prefix matching for morphological variants (e.g. "dependency" matches
     "dependencies").  Matches file stems and the immediate parent directory name.

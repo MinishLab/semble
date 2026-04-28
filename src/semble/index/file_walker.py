@@ -108,7 +108,8 @@ def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
 
 
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
-    """Yield files under root matching extensions, skipping ignored paths.
+    """
+    Yield files under root matching extensions, skipping ignored paths.
 
     Directories matching DEFAULT_IGNORED_DIRS plus any names in ignore are always
     skipped. If the root contains a .gitignore, its patterns are also honoured.

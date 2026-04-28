@@ -173,7 +173,8 @@ def current_sha() -> str:
 
 
 def results_path(method: str) -> Path:
-    """Return the path where results for this method and the current HEAD SHA will be saved.
+    """
+    Return the path where results for this method and the current HEAD SHA will be saved.
 
     :param method: Short tool/method label (e.g. 'ripgrep', 'colgrep').
     :return: Path of the form benchmarks/results/<method>-<sha12>.json.
@@ -185,7 +186,8 @@ def results_path(method: str) -> Path:
 
 
 def save_results(method: str, payload: object) -> Path:
-    """Write payload to benchmarks/results/<method>-<sha12>.json and return the path.
+    """
+    Write payload to benchmarks/results/<method>-<sha12>.json and return the path.
 
     :param method: Short tool/method label used as the filename prefix (e.g. 'ripgrep').
     :param payload: JSON-serialisable object to write.
