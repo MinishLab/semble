@@ -24,7 +24,7 @@ _METHODS: list[_Method] = [
     {
         "name": "ripgrep",
         "ndcg10": 0.126,
-        "index_ms": 0.0,
+        "index_ms": 0.0,  # no persistent index; scans on the fly
         "query_p50_ms": 12.08,
         "color": "#606060",
         "params_m": 0,
@@ -56,7 +56,7 @@ _METHODS: list[_Method] = [
     {
         "name": "grepai",
         "ndcg10": 0.561,
-        "index_ms": 34955.0,  # Ollama nomic-embed-text; large repos take several minutes
+        "index_ms": 34955.0,
         "query_p50_ms": 47.7,
         "color": "#c0724a",
         "params_m": 137,
