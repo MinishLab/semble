@@ -7,7 +7,7 @@ Quality and speed benchmarks for `semble`.
 - [Ablations](#ablations)
 - [Dataset](#dataset)
 - [Methods](#methods)
-- [Excluded comparisons](#excluded-comparisons)
+- [Excluded methods](#excluded-methods)
 - [Running the benchmarks](#running-the-benchmarks)
 
 ## Main results
