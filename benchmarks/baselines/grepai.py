@@ -40,12 +40,8 @@ class RepoResult:
     index_ms: float
 
 
-def _grepai_dir(benchmark_dir: Path) -> Path:
-    return benchmark_dir / ".grepai"
-
-
 def _cleanup_index(benchmark_dir: Path) -> None:
-    d = _grepai_dir(benchmark_dir)
+    d = benchmark_dir / ".grepai"
     if d.exists():
         shutil.rmtree(d, ignore_errors=True)
 

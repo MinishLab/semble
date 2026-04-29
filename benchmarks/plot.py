@@ -174,7 +174,6 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     for m in _METHODS:
         x = m["query_p50_ms"] if warm else m["index_ms"] + m["query_p50_ms"]
         y = m["ndcg10"]
-        is_semble = m["name"] == "semble"
         ax.scatter(
             x,
             y,
@@ -192,7 +191,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             y,
             m["name"],
             fontsize=8.5,
-            fontweight="bold" if is_semble else "normal",
+            fontweight="bold" if m["name"] == "semble" else "normal",
             color=m["color"],
             ha="left",
             va="center",

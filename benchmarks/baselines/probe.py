@@ -136,8 +136,9 @@ def main() -> None:
     avg_ndcg10 = sum(r.ndcg10 for r in results) / len(results)
     avg_p50 = sum(r.p50_ms for r in results) / len(results)
     print(f"{'-' * 22} {'-' * 12} {'-' * 8} {'-' * 8}", file=sys.stderr)
+    avg_label = f"Average ({len(results)})"
     print(
-        f"{'Average (' + str(len(results)) + ')':<22} {'':<12} {avg_ndcg10:>8.3f} {avg_p50:>7.1f}ms",
+        f"{avg_label:<22} {'':<12} {avg_ndcg10:>8.3f} {avg_p50:>7.1f}ms",
         file=sys.stderr,
     )
 
