@@ -4,6 +4,8 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
+      - id: no-commit-to-branch
+        args: [--branch, main]
       - id: check-ast
         description: Simply check whether files parse as valid python.
       - id: trailing-whitespace
