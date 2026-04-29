@@ -30,6 +30,14 @@ _METHODS: list[_Method] = [
         "params_m": 0,
     },
     {
+        "name": "probe",
+        "ndcg10": 0.387,
+        "index_ms": 0.0,  # no persistent index; scans on the fly
+        "query_p50_ms": 207.1,
+        "color": "#9b7bb0",
+        "params_m": 0,
+    },
+    {
         "name": "BM25",
         "ndcg10": 0.673,
         "index_ms": 262.6,  # same semble index infrastructure; BM25 component adds negligible overhead
@@ -44,6 +52,14 @@ _METHODS: list[_Method] = [
         "query_p50_ms": 123.83,
         "color": "#e8a838",
         "params_m": 16,
+    },
+    {
+        "name": "grepai",
+        "ndcg10": 0.561,
+        "index_ms": 34955.0,  # Ollama nomic-embed-text; large repos take several minutes
+        "query_p50_ms": 47.7,
+        "color": "#c0724a",
+        "params_m": 137,
     },
     {
         "name": "CodeRankEmbed",
@@ -158,6 +174,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     for m in _METHODS:
         x = m["query_p50_ms"] if warm else m["index_ms"] + m["query_p50_ms"]
         y = m["ndcg10"]
+        is_semble = m["name"] == "semble"
         ax.scatter(
             x,
             y,
@@ -170,7 +187,17 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
         )
 
         x_label = (x ** (1 / 3) + cbrt_label_delta) ** 3
-        ax.text(x_label, y, m["name"], fontsize=8.5, color=m["color"], ha="left", va="center", zorder=4)
+        ax.text(
+            x_label,
+            y,
+            m["name"],
+            fontsize=8.5,
+            fontweight="bold" if is_semble else "normal",
+            color=m["color"],
+            ha="left",
+            va="center",
+            zorder=4,
+        )
 
     ax.set_xscale("function", functions=(_cbrt_forward, _cbrt_inverse))
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")

@@ -149,6 +149,8 @@ We benchmark quality and speed across all methods on ~1,250 queries over 63 repo
 | CodeRankEmbed | 0.765 | 57 s | 16 ms |
 | ColGREP | 0.693 | 5.8 s | 124 ms |
 | BM25 | 0.673 | 263 ms | 0.02 ms |
+| grepai | 0.561 | 35 s | 48 ms |
+| probe | 0.387 | — | 207 ms |
 | ripgrep | 0.126 | — | 12 ms |
 
 Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
