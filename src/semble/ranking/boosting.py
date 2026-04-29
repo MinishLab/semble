@@ -97,7 +97,7 @@ def apply_query_boost(
     max_score = max(combined_scores.values())
     boosted = dict(combined_scores)
 
-    if _is_symbol_query(query):
+    if is_symbol_query(query):
         _boost_symbol_definitions(boosted, query, max_score, all_chunks)
     else:
         _boost_stem_matches(boosted, query, max_score)
@@ -129,7 +129,7 @@ def boost_multi_chunk_files(scores: dict[Chunk, float]) -> None:
         scores[chunk] += boost_unit * file_sum[file_path] / max_file_sum
 
 
-def _is_symbol_query(query: str) -> bool:
+def is_symbol_query(query: str) -> bool:
     """Return True if the query looks like a bare symbol or namespace-qualified identifier."""
     return _SYMBOL_QUERY_RE.match(query.strip()) is not None
 
