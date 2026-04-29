@@ -110,8 +110,7 @@ def _format_ms(v: float, _: object) -> str:
 
 
 def _make_plot(out_path: Path, *, warm: bool = False) -> None:
-    """
-    Generate a speed-vs-quality scatter plot.
+    """Generate a speed-vs-quality scatter plot.
 
     :param out_path: Destination PNG path.
     :param warm: If True, use per-query latency (index pre-built). If False, use index + query latency.

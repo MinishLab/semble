@@ -3,6 +3,7 @@ import json
 import sys
 import time
 from collections import defaultdict
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -39,7 +40,7 @@ class _AsymmetricWrapper:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: list[str]) -> np.ndarray:
+    def encode(self, texts: Sequence[str]) -> np.ndarray:
         """Encode texts with query or document prompt based on batch size."""
         if len(texts) == 1:
             return self._model.encode(texts, prompt_name="query", batch_size=1)  # type: ignore[return-value]

@@ -194,7 +194,7 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, tuple[floa
     if proc.returncode != 0:
         print(f"  WARNING: colgrep init failed: {proc.stderr.strip()}", file=sys.stderr)
     if "(0 files)" in proc.stdout or "(0 files)" in proc.stderr:
-        print(f"  SKIP: colgrep indexed 0 files (unsupported language?)", file=sys.stderr)
+        print("  SKIP: colgrep indexed 0 files (unsupported language?)", file=sys.stderr)
         return None
     latencies: list[float] = []
     code_only = spec.language != "bash"

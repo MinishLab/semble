@@ -110,7 +110,7 @@ ignore = [
     # Allow Any type
     "ANN401",
     # Pydocstyle ignores
-    "D100", "D101", "D104", "D203", "D212", "D401",
+    "D100", "D101", "D104", "D203", "D213", "D401",
 ]
 
 [tool.pydoclint]
