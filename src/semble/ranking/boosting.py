@@ -31,9 +31,6 @@ _EMBEDDED_STEM_MIN_LEN = 4
 # Half-strength: the symbol may be incidental to the NL query.
 _EMBEDDED_SYMBOL_BOOST_SCALE = 0.5
 
-_ALPHA_SYMBOL = 0.3  # lean BM25 for exact keyword matching
-_ALPHA_NL = 0.5  # balanced semantic + BM25
-
 # Case-sensitive: IGNORECASE produces false positives like "Module" in Python docs
 # or "Class" method calls in Ruby.
 _DEFINITION_KEYWORDS = (
@@ -86,13 +83,6 @@ _STOPWORDS = frozenset(
     "a an and are as at be by do does for from has have how if in is it not of on or the to was"
     " what when where which who why with".split()
 )
-
-
-def resolve_alpha(query: str, alpha: float | None) -> float:
-    """Return the blending weight for semantic scores, auto-detecting from query type."""
-    if alpha is not None:
-        return alpha
-    return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
 
 
 def apply_query_boost(

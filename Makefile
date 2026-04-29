@@ -16,6 +16,9 @@ install:
 test:
 	uv run pytest
 
+test-no-git:
+	uv run pytest --ignore=tests/test_git.py
+
 lint:
 	uv run ruff check src/ tests/
 	uv run pydoclint src/
