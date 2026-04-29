@@ -1,20 +1,3 @@
-"""Probe (BM25) baseline benchmark.
-
-probe (https://github.com/buger/probe) is a CLI code-search tool that uses
-BM25 keyword ranking backed by tree-sitter parse trees.  It has no embedding
-model and no persistent index — every query scans the directory on the fly.
-
-NOTE: our benchmark tasks use natural-language queries, which disadvantages
-probe relative to its intended exact/symbol-search use case.  Results should
-be interpreted accordingly.
-
-Install:
-    npm install -g @buger/probe
-
-Run from repo root:
-    uv run python benchmarks/baselines/probe.py [--repo <name>] [--language <lang>] [--verbose]
-"""
-
 import argparse
 import json
 import subprocess

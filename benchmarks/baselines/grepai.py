@@ -1,36 +1,3 @@
-"""grepai (semantic, Ollama nomic-embed-text) baseline benchmark.
-
-grepai (https://github.com/nicholasgasior/grepai) uses vector embeddings via a
-locally running Ollama daemon for semantic code search.
-
-Requirements:
-  - Ollama running: https://ollama.com/download
-  - nomic-embed-text model pulled: ollama pull nomic-embed-text
-
-For each repo this script:
-  1. Runs ``grepai init --provider ollama --yes`` to create a .grepai/ config.
-  2. Runs ``grepai watch`` and waits until embeddings are fully written to disk
-     (detected by "Initial scan complete" followed by 3 s of output silence).
-  3. Kills the watch process.
-  4. Runs ``grepai search <query> --json -n 10`` for each task.
-  5. Cleans up the .grepai/ directory.
-
-NOTE: nomic-embed-text is 137 M parameters (~274 MB on disk), approximately 8×
-larger than semble's potion-code-16M (16 M). Index time scales accordingly —
-large repos (>500 files) can take several minutes. Use --timeout to increase the
-default 120 s watch deadline when running on those repos.
-
-Install:
-    brew install nicholasgasior/tap/grepai   # macOS
-    # or download from https://github.com/nicholasgasior/grepai/releases
-
-Run from repo root:
-    uv run python benchmarks/baselines/grepai.py [--repo <name>] [--language <lang>] [--timeout <s>] [--verbose]
-
-Resume a partial run (skip repos already in output file):
-    uv run python benchmarks/baselines/grepai.py --output <file.json> [--timeout <s>]
-"""
-
 import argparse
 import json
 import os
