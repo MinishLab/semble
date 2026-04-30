@@ -154,7 +154,7 @@ We benchmark quality and speed across all methods on ~1,250 queries over 63 repo
 | probe | 0.387 | — | 207 ms |
 | ripgrep | 0.126 | — | 12 ms |
 
-Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster.
+Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
 
 ### Token efficiency
 
@@ -162,7 +162,7 @@ Agents using grep+read spend most of their context budget on irrelevant code. Se
 
 ![Token efficiency: recall vs. retrieved tokens](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/token_efficiency.png)
 
-At a 2k token budget, semble reaches 94% recall. Grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
+At a 2k token budget, semble reaches 94% recall. Grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for details.
 
 ## License
 
