@@ -259,7 +259,7 @@ def _evaluate_repo_recall(
 
 _PLOT_STYLE: dict[str, dict[str, object]] = {
     "semble": {"label": "semble", "color": "#1a5fa8", "linewidth": 2.4, "zorder": 4},
-    "grep-kw+read": {"label": "grep + read file", "color": "#b7770d", "linewidth": 1.8, "zorder": 3},
+    "grep-kw+read": {"label": "ripgrep + read", "color": "#b7770d", "linewidth": 1.8, "zorder": 3},
 }
 
 
@@ -301,8 +301,7 @@ def _plot_recall_vs_tokens(payload: dict[str, Any], out_path: Path) -> None:
             zorder=style["zorder"],
         )
 
-    ax.set_xscale("log")
-    ax.set_xlim(min(budgets), _PLOT_MAX_BUDGET)
+    ax.set_xlim(0, _PLOT_MAX_BUDGET)
     ax.set_ylim(0.0, 1.02)
     ax.set_xlabel("Retrieved context tokens", fontsize=10, color="#444444")
     ax.set_ylabel("Recall (relevant files surfaced)", fontsize=10, color="#444444")
@@ -312,8 +311,6 @@ def _plot_recall_vs_tokens(payload: dict[str, Any], out_path: Path) -> None:
         color="#222222",
         pad=12,
     )
-    ax.xaxis.set_major_locator(ticker.LogLocator(base=10, numticks=10))
-    ax.xaxis.set_minor_locator(ticker.NullLocator())
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v / 1000:.0f}k" if v >= 1000 else f"{v:.0f}"))
     ax.tick_params(labelsize=9, colors="#555555")
     ax.legend(loc="lower right", fontsize=9, frameon=True, framealpha=0.95, edgecolor="#dddddd")
