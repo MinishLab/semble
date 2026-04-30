@@ -141,7 +141,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 ### Sub-agent support
 
-Claude Code and Codex CLI lazy-load MCP tool schemas, so sub-agents cannot call `mcp__semble__search` directly. The fix is to have sub-agents invoke semble through the [CLI](#cli) via Bash instead.
+Claude Code and Codex CLI lazy-load MCP tool schemas, so sub-agents cannot call `mcp__semble__search` directly. The fix is to invoke semble through the [CLI](#cli) via Bash instead.
 
 **Claude Code** — run this once in your project root and commit the result:
 
@@ -151,7 +151,29 @@ semble init
 uvx --from "semble[mcp]" semble init
 ```
 
-This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md) into your project. Use `--force` to overwrite an existing file.
+This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md). Use `--force` to overwrite.
+
+**Other tools (Codex, etc.)** — append the following to your `AGENTS.md`:
+
+```markdown
+## Code Search
+
+Use `semble search` to find code by describing what it does, instead of grep:
+
+​```bash
+semble search "authentication flow" /path/to/repo
+semble search "save model to disk" /path/to/repo --top-k 10
+​```
+
+Use `semble find-related` to discover code similar to a known location:
+
+​```bash
+semble find-related src/auth.py 42 /path/to/repo
+​```
+
+Both commands default `path` to the current directory. Git URLs are accepted.
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+```
 
 ## How it works
 
