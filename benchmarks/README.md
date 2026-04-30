@@ -3,8 +3,8 @@
 Quality and speed benchmarks for `semble`.
 
 - [Main results](#main-results)
-- [By language](#by-language)
 - [Token efficiency](#token-efficiency)
+- [By language](#by-language)
 - [Ablations](#ablations)
 - [Dataset](#dataset)
 - [Methods](#methods)
@@ -33,33 +33,6 @@ Quality and speed across all methods.
 The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 218x and query latency by 11x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
-
-## By language
-
-NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best score per row is bolded.
-
-| Language | semble | CRE Hybrid | CRE | ColGREP | grepai | probe | ripgrep |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| scala | 0.909 | **0.922** | 0.845 | 0.765 | 0.330 | 0.392 | 0.180 |
-| cpp | **0.915** | 0.913 | 0.846 | 0.626 | 0.731 | 0.375 | 0.126 |
-| ruby | **0.909** | **0.909** | 0.769 | 0.708 | 0.643 | 0.382 | 0.230 |
-| elixir | 0.894 | **0.905** | 0.869 | 0.808 | 0.669 | 0.412 | 0.134 |
-| javascript | 0.917 | 0.903 | **0.920** | 0.823 | 0.675 | 0.588 | 0.176 |
-| zig | **0.913** | 0.901 | 0.807 | 0.474 | 0.755 | 0.369 | 0.000 |
-| csharp | 0.885 | **0.889** | 0.743 | 0.614 | 0.277 | 0.392 | 0.117 |
-| go | **0.895** | 0.884 | 0.676 | 0.785 | 0.722 | 0.410 | 0.133 |
-| python | 0.867 | **0.880** | 0.794 | 0.777 | 0.634 | 0.488 | 0.202 |
-| php | 0.858 | **0.874** | 0.758 | 0.663 | 0.402 | 0.340 | 0.123 |
-| swift | 0.860 | **0.873** | 0.721 | 0.710 | 0.429 | 0.280 | 0.160 |
-| bash | 0.825 | 0.852 | **0.892** | 0.706 | 0.723 | 0.226 | 0.000 |
-| lua | 0.823 | **0.847** | 0.803 | 0.798 | 0.699 | 0.336 | 0.000 |
-| java | **0.849** | 0.841 | 0.706 | 0.641 | 0.386 | 0.536 | 0.198 |
-| kotlin | 0.821 | **0.830** | 0.670 | 0.637 | 0.478 | 0.335 | 0.166 |
-| rust | **0.856** | 0.827 | 0.627 | 0.662 | 0.519 | 0.242 | 0.162 |
-| c | 0.741 | **0.806** | 0.706 | 0.676 | 0.555 | 0.384 | 0.000 |
-| haskell | 0.765 | 0.771 | **0.776** | 0.683 | 0.483 | 0.313 | 0.000 |
-| typescript | 0.706 | **0.708** | 0.545 | 0.430 | 0.394 | 0.354 | 0.128 |
-| **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.561** | **0.387** | **0.126** |
 
 ## Token efficiency
 
@@ -90,9 +63,36 @@ A relevant file is "covered" once any retrieved unit comes from it.
 <details>
 <summary>Methodology</summary>
 
-semble returns the top-50 ranked chunks. `ripgrep+read` extracts non-stopword tokens from the query, runs `rg --fixed-strings --ignore-case` for each keyword (scoped to the same code-file extensions and ignored directories that semble indexes), then reads matched files in full ranked by how many distinct keywords they contain. Tokens counted with `cl100k_base` via `tiktoken`. Recall curves record cumulative tokens of whole retrieved units without truncation; a relevant file is "covered" once any retrieved unit overlaps its annotated span.
+semble returns the top-50 ranked chunks. `ripgrep+read` splits the query into keywords (dropping stopwords and short words), runs `rg --fixed-strings --ignore-case` for each keyword, then reads matched files in full ranked by how many distinct keywords they contain. Both methods search the same set of file types and ignored directories. Tokens are counted with `cl100k_base` via `tiktoken`. A relevant file is "covered" once any retrieved unit overlaps its annotated span.
 
 </details>
+
+## By language
+
+NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best score per row is bolded.
+
+| Language | semble | CRE Hybrid | CRE | ColGREP | grepai | probe | ripgrep |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| scala | 0.909 | **0.922** | 0.845 | 0.765 | 0.330 | 0.392 | 0.180 |
+| cpp | **0.915** | 0.913 | 0.846 | 0.626 | 0.731 | 0.375 | 0.126 |
+| ruby | **0.909** | **0.909** | 0.769 | 0.708 | 0.643 | 0.382 | 0.230 |
+| elixir | 0.894 | **0.905** | 0.869 | 0.808 | 0.669 | 0.412 | 0.134 |
+| javascript | 0.917 | 0.903 | **0.920** | 0.823 | 0.675 | 0.588 | 0.176 |
+| zig | **0.913** | 0.901 | 0.807 | 0.474 | 0.755 | 0.369 | 0.000 |
+| csharp | 0.885 | **0.889** | 0.743 | 0.614 | 0.277 | 0.392 | 0.117 |
+| go | **0.895** | 0.884 | 0.676 | 0.785 | 0.722 | 0.410 | 0.133 |
+| python | 0.867 | **0.880** | 0.794 | 0.777 | 0.634 | 0.488 | 0.202 |
+| php | 0.858 | **0.874** | 0.758 | 0.663 | 0.402 | 0.340 | 0.123 |
+| swift | 0.860 | **0.873** | 0.721 | 0.710 | 0.429 | 0.280 | 0.160 |
+| bash | 0.825 | 0.852 | **0.892** | 0.706 | 0.723 | 0.226 | 0.000 |
+| lua | 0.823 | **0.847** | 0.803 | 0.798 | 0.699 | 0.336 | 0.000 |
+| java | **0.849** | 0.841 | 0.706 | 0.641 | 0.386 | 0.536 | 0.198 |
+| kotlin | 0.821 | **0.830** | 0.670 | 0.637 | 0.478 | 0.335 | 0.166 |
+| rust | **0.856** | 0.827 | 0.627 | 0.662 | 0.519 | 0.242 | 0.162 |
+| c | 0.741 | **0.806** | 0.706 | 0.676 | 0.555 | 0.384 | 0.000 |
+| haskell | 0.765 | 0.771 | **0.776** | 0.683 | 0.483 | 0.313 | 0.000 |
+| typescript | 0.706 | **0.708** | 0.545 | 0.430 | 0.394 | 0.354 | 0.128 |
+| **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.561** | **0.387** | **0.126** |
 
 ## Ablations
 

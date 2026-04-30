@@ -162,7 +162,7 @@ Agents using grep+read spend most of their context budget on irrelevant code. Se
 
 ![Token efficiency: recall vs. retrieved tokens](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/token_efficiency.png)
 
-At a 2k token budget, semble reaches 94% recall. Grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for details.
+Semble uses **98% fewer tokens** on average, and reaches 94% recall at a budget of only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md#token-efficiency) for details.
 
 ## License
 
