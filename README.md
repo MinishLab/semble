@@ -18,8 +18,8 @@
 
 [Quickstart](#quickstart) •
 [Main Features](#main-features) •
-[CLI](#cli) •
 [MCP Server](#mcp-server) •
+[CLI](#cli) •
 [How it works](#how-it-works) •
 [Benchmarks](#benchmarks)
 
@@ -65,25 +65,6 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
 - **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
 - **Local and remote**: pass a local path or a git URL.
-
-## CLI
-
-Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
-
-```bash
-# Search a local repo
-semble search "authentication flow" ./my-project
-
-# Search a remote repo (cloned on demand)
-semble search "save model to disk" https://github.com/MinishLab/model2vec
-
-# Find code similar to a known location (file_path and line from a prior search result)
-semble find-related src/auth.py 42 ./my-project
-```
-
-`path` defaults to the current directory when omitted; git URLs are accepted.
-
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 ## MCP Server
 
@@ -174,6 +155,25 @@ semble find-related src/auth.py 42 ./my-project
 `path` defaults to the current directory when omitted; git URLs are accepted.
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 ```
+
+## CLI
+
+Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
+
+```bash
+# Search a local repo
+semble search "authentication flow" ./my-project
+
+# Search a remote repo (cloned on demand)
+semble search "save model to disk" https://github.com/MinishLab/model2vec
+
+# Find code similar to a known location (file_path and line from a prior search result)
+semble find-related src/auth.py 42 ./my-project
+```
+
+`path` defaults to the current directory when omitted; git URLs are accepted.
+
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 ## How it works
 
