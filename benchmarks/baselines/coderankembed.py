@@ -22,7 +22,7 @@ from benchmarks.data import (
 )
 from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
-from semble.types import EmbeddingMatrix, SearchResult
+from semble.types import SearchResult
 
 _MODEL_NAME = "nomic-ai/CodeRankEmbed"
 _TOP_K = 10
@@ -36,7 +36,7 @@ class _AsymmetricWrapper:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: Sequence[str], /) -> EmbeddingMatrix:
+    def encode(self, texts: Sequence[str]) -> np.ndarray:
         """Encode texts with query or document prompt based on batch size."""
         text_list = list(texts)
         if len(text_list) == 1:
