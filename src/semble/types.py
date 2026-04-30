@@ -1,12 +1,12 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Protocol
+from typing import Protocol, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
 
-EmbeddingMatrix = npt.NDArray[np.float32]
+EmbeddingMatrix: TypeAlias = npt.NDArray[np.float32]
 
 
 class SearchMode(str, Enum):

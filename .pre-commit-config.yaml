@@ -1,24 +1,27 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+minimum_pre_commit_version: "3.2.0"
+
+default_language_version:
+  python: python3
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
       - id: no-commit-to-branch
         args: [--branch, main]
       - id: check-ast
-        description: Simply check whether files parse as valid python.
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: debug-statements
       - id: trailing-whitespace
-        description: Trims trailing whitespace
       - id: end-of-file-fixer
-        description: Makes sure files end in a newline and only a newline.
       - id: check-added-large-files
         args: ["--maxkb=5000"]
-        description: Prevent giant files from being committed.
       - id: check-case-conflict
-        description: Check for files with names that would conflict on case-insensitive filesystems like MacOS/Windows.
   - repo: https://github.com/jsh9/pydoclint
-    rev: 0.5.3
+    rev: 0.8.3
     hooks:
       - id: pydoclint
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -27,10 +30,8 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
     hooks:
       - id: mypy
-        name: mypy
-        entry: mypy
-        language: python
-        types: [python]
+        additional_dependencies: []
