@@ -272,10 +272,8 @@ def _plot_recall_vs_tokens(payload: dict[str, Any], out_path: Path) -> None:
     all_budgets = plot_data["budgets"]
     all_recalls = plot_data["recall"]
 
-    # Trim to the configured max budget so the right edge lands on a clean tick.
-    cutoff = next((i for i, b in enumerate(all_budgets) if b > _PLOT_MAX_BUDGET), len(all_budgets))
-    budgets = all_budgets[:cutoff]
-    recalls = {m: vs[:cutoff] for m, vs in all_recalls.items()}
+    budgets = all_budgets
+    recalls = all_recalls
 
     fig, ax = plt.subplots(figsize=(8, 5))
     fig.patch.set_facecolor("white")
