@@ -152,7 +152,7 @@ semble init
 uvx --from "semble[mcp]" semble init
 ```
 
-This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md) into your project. Commit it so the whole team gets sub-agent search automatically.
+This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md) into your project.
 
 ## How it works
 
