@@ -61,7 +61,7 @@ dev = [
 "Source" = "https://github.com/MinishLab/semble"
 
 [project.scripts]
-semble = "semble.mcp:main"
+semble = "semble.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -88,7 +88,7 @@ target-version = "py310"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["ANN"]
 "benchmarks/*.py" = ["T20"]
-"src/semble/mcp.py" = ["T20", "E501"]
+"src/semble/cli.py" = ["T20", "E501"]
 
 [tool.ruff.lint]
 select = [
@@ -132,6 +132,7 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--tb=short", "--strict-markers", "--cov=semble", "--cov-report=term-missing"]
+markers = ["slow: end-to-end tests that run real indexing and CLI subprocesses (deselect with -m 'not slow')"]
 
 [tool.coverage.run]
 relative_files = true

@@ -18,6 +18,7 @@
 
 [Quickstart](#quickstart) •
 [Main Features](#main-features) •
+[CLI](#cli) •
 [MCP Server](#mcp-server) •
 [How it works](#how-it-works) •
 [Benchmarks](#benchmarks)
@@ -67,7 +68,7 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
 ## CLI
 
-Semble also ships as a standalone CLI for use outside of MCP — useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
+Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
 
 ```bash
 # Search a local repo
@@ -78,10 +79,6 @@ semble search "save model to disk" https://github.com/MinishLab/model2vec
 
 # Find code similar to a known location (file_path and line from a prior search result)
 semble find-related src/auth.py 42 ./my-project
-
-# Options
-semble search "query" ./my-project --top-k 10 --mode bm25
-semble find-related src/auth.py 42 ./my-project --top-k 10
 ```
 
 `path` defaults to the current directory when omitted.
@@ -144,7 +141,9 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 ### Sub-agent support
 
-Claude Code and Codex CLI lazy-load MCP tool schemas, so sub-agents cannot call `mcp__semble__search` directly. Run this once in your project root to drop in a Bash-based agent definition that works in all sub-agent contexts:
+Claude Code and Codex CLI lazy-load MCP tool schemas, so sub-agents cannot call `mcp__semble__search` directly. The fix is to have sub-agents invoke semble through the [CLI](#cli) via Bash instead.
+
+**Claude Code** — run this once in your project root and commit the result:
 
 ```bash
 semble init
@@ -152,7 +151,7 @@ semble init
 uvx --from "semble[mcp]" semble init
 ```
 
-This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md) into your project.
+This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md) into your project. Use `--force` to overwrite an existing file.
 
 ## How it works
 
