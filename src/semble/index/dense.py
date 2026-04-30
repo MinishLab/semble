@@ -2,7 +2,6 @@ import numpy as np
 import numpy.typing as npt
 from huggingface_hub.utils.tqdm import disable_progress_bars
 from model2vec import StaticModel
-from numpy import typing as npt
 from vicinity.backends.basic import CosineBasicBackend
 from vicinity.datatypes import QueryResult
 from vicinity.utils import normalize

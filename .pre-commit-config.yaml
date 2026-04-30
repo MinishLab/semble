@@ -1,10 +1,11 @@
-
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
+      - id: no-commit-to-branch
+        args: [--branch, main]
       - id: check-ast
         description: Simply check whether files parse as valid python.
       - id: trailing-whitespace
@@ -12,7 +13,7 @@ repos:
       - id: end-of-file-fixer
         description: Makes sure files end in a newline and only a newline.
       - id: check-added-large-files
-        args: ['--maxkb=5000']
+        args: ["--maxkb=5000"]
         description: Prevent giant files from being committed.
       - id: check-case-conflict
         description: Check for files with names that would conflict on case-insensitive filesystems like MacOS/Windows.
@@ -21,10 +22,10 @@ repos:
     hooks:
       - id: pydoclint
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.0
+    rev: v0.15.12
     hooks:
-      - id: ruff
-        args: [ --fix ]
+      - id: ruff-check
+        args: [--fix]
       - id: ruff-format
   - repo: local
     hooks:

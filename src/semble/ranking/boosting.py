@@ -31,9 +31,6 @@ _EMBEDDED_STEM_MIN_LEN = 4
 # Half-strength: the symbol may be incidental to the NL query.
 _EMBEDDED_SYMBOL_BOOST_SCALE = 0.5
 
-_ALPHA_SYMBOL = 0.3  # lean BM25 for exact keyword matching
-_ALPHA_NL = 0.5  # balanced semantic + BM25
-
 # Case-sensitive: IGNORECASE produces false positives like "Module" in Python docs
 # or "Class" method calls in Ruby.
 _DEFINITION_KEYWORDS = (
@@ -88,13 +85,6 @@ _STOPWORDS = frozenset(
 )
 
 
-def resolve_alpha(query: str, alpha: float | None) -> float:
-    """Return the blending weight for semantic scores, auto-detecting from query type."""
-    if alpha is not None:
-        return alpha
-    return _ALPHA_SYMBOL if _is_symbol_query(query) else _ALPHA_NL
-
-
 def apply_query_boost(
     combined_scores: dict[Chunk, float],
     query: str,
@@ -107,7 +97,7 @@ def apply_query_boost(
     max_score = max(combined_scores.values())
     boosted = dict(combined_scores)
 
-    if _is_symbol_query(query):
+    if is_symbol_query(query):
         _boost_symbol_definitions(boosted, query, max_score, all_chunks)
     else:
         _boost_stem_matches(boosted, query, max_score)
@@ -139,7 +129,7 @@ def boost_multi_chunk_files(scores: dict[Chunk, float]) -> None:
         scores[chunk] += boost_unit * file_sum[file_path] / max_file_sum
 
 
-def _is_symbol_query(query: str) -> bool:
+def is_symbol_query(query: str) -> bool:
     """Return True if the query looks like a bare symbol or namespace-qualified identifier."""
     return _SYMBOL_QUERY_RE.match(query.strip()) is not None
 

@@ -24,9 +24,17 @@ _METHODS: list[_Method] = [
     {
         "name": "ripgrep",
         "ndcg10": 0.126,
-        "index_ms": 0.0,
+        "index_ms": 0.0,  # no persistent index; scans on the fly
         "query_p50_ms": 12.08,
         "color": "#606060",
+        "params_m": 0,
+    },
+    {
+        "name": "probe",
+        "ndcg10": 0.387,
+        "index_ms": 0.0,  # no persistent index; scans on the fly
+        "query_p50_ms": 207.1,
+        "color": "#9b7bb0",
         "params_m": 0,
     },
     {
@@ -44,6 +52,14 @@ _METHODS: list[_Method] = [
         "query_p50_ms": 123.83,
         "color": "#e8a838",
         "params_m": 16,
+    },
+    {
+        "name": "grepai",
+        "ndcg10": 0.561,
+        "index_ms": 34955.0,
+        "query_p50_ms": 47.7,
+        "color": "#c0724a",
+        "params_m": 137,
     },
     {
         "name": "CodeRankEmbed",
@@ -110,8 +126,7 @@ def _format_ms(v: float, _: object) -> str:
 
 
 def _make_plot(out_path: Path, *, warm: bool = False) -> None:
-    """
-    Generate a speed-vs-quality scatter plot.
+    """Generate a speed-vs-quality scatter plot.
 
     :param out_path: Destination PNG path.
     :param warm: If True, use per-query latency (index pre-built). If False, use index + query latency.
@@ -171,7 +186,17 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
         )
 
         x_label = (x ** (1 / 3) + cbrt_label_delta) ** 3
-        ax.text(x_label, y, m["name"], fontsize=8.5, color=m["color"], ha="left", va="center", zorder=4)
+        ax.text(
+            x_label,
+            y,
+            m["name"],
+            fontsize=8.5,
+            fontweight="bold" if m["name"] == "semble" else "normal",
+            color=m["color"],
+            ha="left",
+            va="center",
+            zorder=4,
+        )
 
     ax.set_xscale("function", functions=(_cbrt_forward, _cbrt_inverse))
     ax.set_ylabel("NDCG@10", fontsize=10, color="#444444")
