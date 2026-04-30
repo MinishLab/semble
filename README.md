@@ -65,6 +65,29 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 - **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
 - **Local and remote**: pass a local path or a git URL.
 
+## CLI
+
+Semble also ships as a standalone CLI for use outside of MCP — useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
+
+```bash
+# Search a local repo
+semble search "authentication flow" ./my-project
+
+# Search a remote repo (cloned on demand)
+semble search "save model to disk" https://github.com/MinishLab/model2vec
+
+# Find code similar to a known location (file_path and line from a prior search result)
+semble find-related src/auth.py 42 ./my-project
+
+# Options
+semble search "query" ./my-project --top-k 10 --mode bm25
+semble find-related src/auth.py 42 ./my-project --top-k 10
+```
+
+`path` defaults to the current directory when omitted.
+
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
 ## MCP Server
 
 Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand, and indexes are cached for the lifetime of the session.
@@ -118,6 +141,56 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 |------|-------------|
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a git URL or local path. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
+
+### Sub-agent support (Claude Code and Codex)
+
+Both Claude Code and Codex CLI lazy-load MCP tool schemas. Sub-agents spawned in either tool cannot call `mcp__semble__search` directly — the schema isn't available in their context until an explicit discovery step. The fix is to let sub-agents invoke semble through the CLI via Bash instead.
+
+Run this once in your project root to create the agent definition:
+
+```bash
+semble init
+# or, if semble is not on $PATH:
+uvx --from "semble[mcp]" semble init
+```
+
+This writes `.claude/agents/semble-search.md` into your project. Commit it alongside your code so the whole team gets sub-agent search automatically.
+
+The file looks like this (you can also create it manually):
+
+```markdown
+---
+name: semble-search
+description: Code search agent for exploring any codebase. Use for finding code by intent, locating implementations, understanding how something works, or discovering related code. Prefer over Grep/Glob/Read for any semantic or exploratory question.
+tools: Bash, Read
+---
+
+Use `semble search` to find code by describing what it does:
+
+​```bash
+semble search "authentication flow" /path/to/repo
+semble search "save model to disk" /path/to/repo --top-k 10
+​```
+
+Use `semble find-related` to find code similar to a known location (pass `file_path` and `line` from a prior search result):
+
+​```bash
+semble find-related src/auth.py 42 /path/to/repo
+​```
+
+Both commands default `path` to the current directory if omitted. Git URLs are also accepted as `path`.
+
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in place of `semble`.
+
+## Workflow
+
+1. Start with `semble search` to find relevant chunks.
+2. Use `Read` to inspect a full file when the chunk alone isn't enough context.
+3. Use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+4. Fall back to Bash `grep` only for exact string matches (variable names, import statements).
+```
+
+This agent definition uses `tools: Bash, Read` — no MCP — so it works in all sub-agent contexts without schema loading. The parent agent continues to use the MCP tool (with its cached index) for maximum performance.
 
 ## How it works
 
