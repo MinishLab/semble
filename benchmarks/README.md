@@ -36,15 +36,13 @@ NDCG@10 is averaged across all queries. Speed numbers use one repo per language,
 
 ## Token efficiency
 
-Coding agents (Claude Code, OpenCode, etc.) typically find code by running `grep` on keywords and reading the matched files. We model that workflow and compare it against semble's chunk retrieval across 1,251 queries.
-
-**semble uses 98% fewer tokens than grep+read.**
+Coding agents (Claude Code, OpenCode, etc.) typically find code by running `grep` on keywords and reading the matched files. We model that workflow and compare it against semble's chunk retrieval across our full benchmark of 1251 queries.
 
 ![Token efficiency: recall vs. retrieved tokens](../assets/images/token_efficiency.png)
 
 ### Expected tokens per query
 
-For each query: tokens consumed at first relevant hit, or 32k if the method never finds anything. Averaged across all 1,251 queries.
+For each query: tokens consumed at first relevant hit, or 32k if the method never finds anything. Averaged across all 1251 queries.
 
 | Method | Expected tokens | Savings |
 |---|---:|---:|
