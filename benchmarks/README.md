@@ -63,7 +63,7 @@ NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best sc
 
 ## Token efficiency
 
-Coding agents (Claude Code, OpenCode, etc.) typically find code by running `grep` on keywords and reading the matched files. We model that exact workflow and compare it against semble's chunk retrieval across 1,251 queries.
+Coding agents (Claude Code, OpenCode, etc.) typically find code by running `grep` on keywords and reading the matched files. We model that workflow and compare it against semble's chunk retrieval across 1,251 queries.
 
 **semble uses 98% fewer tokens than grep+read.**
 
@@ -75,8 +75,8 @@ For each query: tokens consumed at first relevant hit, or 32k if the method neve
 
 | Method | Expected tokens | Savings |
 |---|---:|---:|
-| grep + read file | 29,675 | baseline |
-| **semble** | **567** | **98% fewer** |
+| grep + read file | 45,692 | baseline |
+| **semble** | **566** | **98% fewer** |
 
 ### Recall at fixed token budgets
 
@@ -84,13 +84,13 @@ A relevant file is "covered" once any retrieved unit comes from it.
 
 | Method | 500 | 1k | 2k | 4k | 8k | 16k | 32k |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| **semble** | **0.686** | **0.849** | **0.937** | **0.976** | **0.991** | **0.996** | **0.996** |
-| grep + read file | 0.000 | 0.007 | 0.023 | 0.042 | 0.076 | 0.100 | 0.125 |
+| **semble** | **0.685** | **0.849** | **0.938** | **0.976** | **0.991** | **0.996** | **0.996** |
+| grep + read file | 0.001 | 0.008 | 0.037 | 0.088 | 0.212 | 0.379 | 0.583 |
 
 <details>
 <summary>Methodology</summary>
 
-semble returns the top-50 ranked chunks. `grep+read` runs `rg --fixed-strings --ignore-case` on the raw query string, scoped to the same code-file extensions and ignored directories that semble indexes, then reads matched files in full in descending match-count order. Tokens counted with `cl100k_base` via `tiktoken`. Recall curves record cumulative tokens of whole retrieved units without truncation; a relevant file is "covered" once any retrieved unit overlaps its annotated span.
+semble returns the top-50 ranked chunks. `grep+read` extracts non-stopword tokens from the query, runs `rg --fixed-strings --ignore-case` for each keyword (scoped to the same code-file extensions and ignored directories that semble indexes), then reads matched files in full ranked by how many distinct keywords they contain. Tokens counted with `cl100k_base` via `tiktoken`. Recall curves record cumulative tokens of whole retrieved units without truncation; a relevant file is "covered" once any retrieved unit overlaps its annotated span.
 
 </details>
 

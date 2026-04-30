@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import subprocess
 import sys
 import time
@@ -25,6 +26,7 @@ from benchmarks.data import (
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
 from semble.index.file_walker import DEFAULT_IGNORED_DIRS, FILE_TYPES, FileCategory
+from semble.ranking.boosting import _STOPWORDS as _SEMBLE_STOPWORDS
 from semble.types import Chunk
 
 _RG_INCLUDE_GLOBS: tuple[str, ...] = tuple(
@@ -34,10 +36,21 @@ _RG_EXCLUDE_GLOBS: tuple[str, ...] = tuple(f"!{d}" for d in DEFAULT_IGNORED_DIRS
 
 _BUDGETS = (500, 1000, 2000, 4000, 8000, 16000, 32000)
 _EXPECTED_COST_CAP = 32_000
-_PLOT_BUDGETS = sorted({int(b) for b in np.logspace(np.log10(100), np.log10(64000), 60)})
+_PLOT_BUDGETS = sorted({int(b) for b in np.logspace(np.log10(100), np.log10(256000), 60)})
 _TOKENIZER_NAME = "cl100k_base"
 _RG_MAX_MATCHES = 500
 _SEMBLE_TOP_K = 50
+_KW_MIN_LEN = 3
+
+# Extend semble's code-ranking stopwords with broader NL query words.
+_STOPWORDS: frozenset[str] = _SEMBLE_STOPWORDS | frozenset(
+    """
+    but its can not no nor so yet both either neither than then
+    will would could should may might been being had did will
+    they all any each few more most other some such only own same too very just
+    about after also before between during into through under up down over
+    """.split()
+)
 
 _IMAGES_DIR = Path(__file__).parent.parent / "assets" / "images"
 _RESULTS_DIR = Path(__file__).parent / "results"
@@ -110,6 +123,39 @@ def _grep_file_units(
     return units
 
 
+def _keywords(query: str) -> list[str]:
+    """Extract meaningful search keywords from a natural-language query."""
+    words = re.findall(r"[a-zA-Z][a-zA-Z0-9]*", query)
+    seen: set[str] = set()
+    result: list[str] = []
+    for w in words:
+        lw = w.lower()
+        if len(lw) >= _KW_MIN_LEN and lw not in _STOPWORDS and lw not in seen:
+            seen.add(lw)
+            result.append(w)
+    return result
+
+
+def _grep_keywords_file_units(query: str, repo_dir: Path) -> list[Chunk]:
+    """Return files ranked by how many distinct query keywords they contain."""
+    keywords = _keywords(query)
+    if not keywords:
+        return _grep_file_units(query, repo_dir)
+    keyword_hits: Counter[str] = Counter()
+    for kw in keywords:
+        for path, _ in _rg_matches(kw, repo_dir)[:_RG_MAX_MATCHES]:
+            keyword_hits[path] += 1
+    ranked = sorted(keyword_hits.items(), key=lambda kv: (-kv[1], kv[0]))
+    units: list[Chunk] = []
+    for path, _ in ranked:
+        try:
+            text = Path(path).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        units.append(Chunk(content=text, file_path=path, start_line=1, end_line=text.count("\n") + 1))
+    return units
+
+
 def _retrieval_units_for_task(
     index: SembleIndex,
     task: Task,
@@ -119,6 +165,7 @@ def _retrieval_units_for_task(
     return [
         ("semble", _semble_units(index, task.query)),
         ("grep+read", _grep_file_units(task.query, repo_dir)),
+        ("grep-kw+read", _grep_keywords_file_units(task.query, repo_dir)),
     ]
 
 
@@ -212,15 +259,23 @@ def _evaluate_repo_recall(
 
 _PLOT_STYLE: dict[str, dict[str, object]] = {
     "semble": {"label": "semble", "color": "#1a5fa8", "linewidth": 2.4, "zorder": 4},
-    "grep+read": {"label": "grep + read file", "color": "#922b21", "linewidth": 1.8, "zorder": 3},
+    "grep-kw+read": {"label": "grep + read file", "color": "#b7770d", "linewidth": 1.8, "zorder": 3},
 }
+
+
+_PLOT_MAX_BUDGET = 100_000
 
 
 def _plot_recall_vs_tokens(payload: dict[str, Any], out_path: Path) -> None:
     """Render a recall-vs-tokens curve from a recall-mode payload."""
     plot_data = payload["plot"]
-    budgets = plot_data["budgets"]
-    recalls = plot_data["recall"]
+    all_budgets = plot_data["budgets"]
+    all_recalls = plot_data["recall"]
+
+    # Trim to the configured max budget so the right edge lands on a clean tick.
+    cutoff = next((i for i, b in enumerate(all_budgets) if b > _PLOT_MAX_BUDGET), len(all_budgets))
+    budgets = all_budgets[:cutoff]
+    recalls = {m: vs[:cutoff] for m, vs in all_recalls.items()}
 
     fig, ax = plt.subplots(figsize=(8, 5))
     fig.patch.set_facecolor("white")
@@ -247,7 +302,7 @@ def _plot_recall_vs_tokens(payload: dict[str, Any], out_path: Path) -> None:
         )
 
     ax.set_xscale("log")
-    ax.set_xlim(min(budgets), max(budgets))
+    ax.set_xlim(min(budgets), _PLOT_MAX_BUDGET)
     ax.set_ylim(0.0, 1.02)
     ax.set_xlabel("Retrieved context tokens", fontsize=10, color="#444444")
     ax.set_ylabel("Recall (relevant files surfaced)", fontsize=10, color="#444444")
@@ -257,6 +312,8 @@ def _plot_recall_vs_tokens(payload: dict[str, Any], out_path: Path) -> None:
         color="#222222",
         pad=12,
     )
+    ax.xaxis.set_major_locator(ticker.LogLocator(base=10, numticks=10))
+    ax.xaxis.set_minor_locator(ticker.NullLocator())
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v / 1000:.0f}k" if v >= 1000 else f"{v:.0f}"))
     ax.tick_params(labelsize=9, colors="#555555")
     ax.legend(loc="lower right", fontsize=9, frameon=True, framealpha=0.95, edgecolor="#dddddd")

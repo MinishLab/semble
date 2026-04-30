@@ -2,7 +2,7 @@
 <h2 align="center">
   <img width="30%" alt="semble logo" src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/semble_logo.png"><br/>
   Fast and Accurate Code Search for Agents<br/>
-  <sub>Uses ~90% fewer tokens than grep+read</sub>
+  <sub>Uses ~98% fewer tokens than grep+read</sub>
 </h2>
 
 <div align="center">
@@ -24,7 +24,7 @@
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~90% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo, cloned and indexed on demand.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo, cloned and indexed on demand.
 
 ## Quickstart
 
@@ -154,7 +154,15 @@ We benchmark quality and speed across all methods on ~1,250 queries over 63 repo
 | probe | 0.387 | — | 207 ms |
 | ripgrep | 0.126 | — | 12 ms |
 
-Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
+Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster.
+
+### Token efficiency
+
+Agents using grep+read spend most of their context budget on irrelevant code. Semble returns only the chunks that match, keeping token usage low even at high recall.
+
+![Token efficiency: recall vs. retrieved tokens](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/token_efficiency.png)
+
+At a 2k token budget, semble reaches 94% recall. Grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
 
 ## License
 
