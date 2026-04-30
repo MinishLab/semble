@@ -14,16 +14,10 @@ def _is_git_url(path: str) -> bool:
 
 
 def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
-    """Return the chunk that contains *line* in *file_path*, or None.
+    """Return the chunk containing *line* in *file_path*, or None.
 
-    MCP tool arguments are JSON primitives (strings and ints), so the agent
-    passes file_path + line rather than a Chunk object. This function
-    reconstructs the Chunk at the MCP boundary before calling into the library.
-
-    :param chunks: All indexed chunks to search.
-    :param file_path: File path as stored in the index.
-    :param line: 1-indexed line number to resolve.
-    :return: The best-matching Chunk, or None if not found.
+    Reconstructs a Chunk from its JSON-primitive MCP tool arguments (file_path + line)
+    before calling into the library.
     """
     fallback = None
     for chunk in chunks:

@@ -12,6 +12,17 @@ from tests.conftest import make_chunk
 
 _CLAUDE_AGENT_FILE = files("semble").joinpath("agents/semble-search.md").read_text(encoding="utf-8")
 
+_SEARCH_CHUNK = make_chunk("def foo(): pass", "src/foo.py")
+_SEARCH_RESULT = SearchResult(chunk=_SEARCH_CHUNK, score=0.9, source=SearchMode.HYBRID)
+
+
+@pytest.fixture()
+def fake_search_index() -> MagicMock:
+    """Fake index that returns one search result."""
+    fake = MagicMock()
+    fake.search.return_value = [_SEARCH_RESULT]
+    return fake
+
 
 @pytest.mark.parametrize(
     "argv",
@@ -57,36 +68,36 @@ def test_cli_search(
         assert fragment in out
 
 
+_BAR_CHUNK = make_chunk("class Bar: pass", "src/bar.py")
+
+
+@pytest.mark.parametrize(
+    ("find_related_return", "expected_fragments"),
+    [
+        pytest.param(
+            [SearchResult(chunk=_BAR_CHUNK, score=0.8, source=SearchMode.SEMANTIC)],
+            ["src/bar.py", "0.800"],
+            id="with_results",
+        ),
+        pytest.param([], ["No related chunks found"], id="no_results"),
+    ],
+)
 def test_cli_find_related(
+    find_related_return: list[SearchResult],
+    expected_fragments: list[str],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """_cli_main find-related subcommand calls index.find_related and prints results."""
-    chunk = make_chunk("class Bar: pass", "src/bar.py")
+    """_cli_main find-related prints results or an empty-state message."""
     fake_index = MagicMock()
-    fake_index.chunks = [chunk]
-    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8, source=SearchMode.SEMANTIC)]
+    fake_index.chunks = [_BAR_CHUNK]
+    fake_index.find_related.return_value = find_related_return
     monkeypatch.setattr(sys, "argv", ["semble", "find-related", "src/bar.py", "1", "/some/path"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         _cli_main()
     out = capsys.readouterr().out
-    assert "src/bar.py" in out
-    assert "0.800" in out
-
-
-def test_cli_find_related_no_results(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """_cli_main find-related prints a message when the index returns no related chunks."""
-    chunk = make_chunk("class Bar: pass", "src/bar.py")
-    fake_index = MagicMock()
-    fake_index.chunks = [chunk]
-    fake_index.find_related.return_value = []
-    monkeypatch.setattr(sys, "argv", ["semble", "find-related", "src/bar.py", "1", "/some/path"])
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        _cli_main()
-    assert "No related chunks found" in capsys.readouterr().out
+    for fragment in expected_fragments:
+        assert fragment in out
 
 
 def test_cli_find_related_unknown_chunk(
@@ -146,31 +157,27 @@ def test_init_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: p
 
 
 def test_main_dispatches_to_cli(
+    fake_search_index: MagicMock,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """main() routes to _cli_main when first argument is a CLI subcommand."""
-    chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
-    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query text", "/some/path"])
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_search_index):
         main()
     assert "query text" in capsys.readouterr().out
 
 
 def test_cli_works_without_mcp_installed(
+    fake_search_index: MagicMock,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """CLI subcommands succeed even when the mcp package is not installed."""
-    chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
-    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path"])
     monkeypatch.setitem(sys.modules, "mcp", None)
     monkeypatch.setitem(sys.modules, "mcp.server.fastmcp", None)
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_search_index):
         _cli_main()
     assert "query" in capsys.readouterr().out
 
