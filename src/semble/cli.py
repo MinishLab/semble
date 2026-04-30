@@ -12,15 +12,13 @@ _CLAUDE_FILE_PATH = Path(".claude") / "agents" / "semble-search.md"
 
 def main() -> None:
     """Entry point for the semble command-line tool."""
-    if len(sys.argv) > 1 and sys.argv[1] in ("search", "find-related", "init"):
+    if len(sys.argv) > 1 and sys.argv[1] in ("search", "find-related", "init", "-h", "--help"):
         _cli_main()
     else:
         _mcp_main()
 
 
 def _mcp_main() -> None:
-    from semble.mcp import serve
-
     parser = argparse.ArgumentParser(
         prog="semble",
         description="Instant local code search for agents.",
@@ -33,6 +31,8 @@ def _mcp_main() -> None:
     )
     parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
     args = parser.parse_args()
+    from semble.mcp import serve
+
     asyncio.run(serve(args.path, ref=args.ref))
 
 

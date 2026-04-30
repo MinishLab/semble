@@ -143,7 +143,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 Claude Code and Codex CLI lazy-load MCP tool schemas, so sub-agents cannot call `mcp__semble__search` directly. The fix is to invoke semble through the [CLI](#cli) via Bash instead.
 
-**Claude Code** — run this once in your project root and commit the result:
+**Claude Code**: run this once in your project root:
 
 ```bash
 semble init
@@ -151,9 +151,9 @@ semble init
 uvx --from "semble[mcp]" semble init
 ```
 
-This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md). Use `--force` to overwrite.
+This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md).
 
-**Other tools (Codex, etc.)** — append the following to your `AGENTS.md`:
+**Other tools (Codex, etc.)**: append the following to your `AGENTS.md`:
 
 ```markdown
 ## Code Search
