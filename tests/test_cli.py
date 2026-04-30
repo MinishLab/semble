@@ -56,51 +56,43 @@ def test_cli_search(
         assert fragment in out
 
 
+@pytest.mark.parametrize(
+    ("scenario", "expected_stdout", "expected_stderr", "expected_exit_code"),
+    [
+        ("with_results", ["src/bar.py", "0.800"], None, None),
+        ("no_results", ["No related chunks found"], None, None),
+        ("unknown_chunk", [], "No chunk found", 1),
+    ],
+)
 def test_cli_find_related(
+    scenario: str,
+    expected_stdout: list[str],
+    expected_stderr: str | None,
+    expected_exit_code: int | None,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """_cli_main find-related prints results."""
+    """_cli_main find-related prints results, empty states, and missing-chunk errors."""
     chunk = make_chunk("class Bar: pass", "src/bar.py")
     fake_index = MagicMock()
-    fake_index.chunks = [chunk]
-    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8, source=SearchMode.SEMANTIC)]
-    monkeypatch.setattr(sys, "argv", ["semble", "find-related", "src/bar.py", "1", "/some/path"])
+    fake_index.chunks = [] if scenario == "unknown_chunk" else [chunk]
+    fake_index.find_related.return_value = (
+        [SearchResult(chunk=chunk, score=0.8, source=SearchMode.SEMANTIC)] if scenario == "with_results" else []
+    )
+    file_path = "unknown.py" if scenario == "unknown_chunk" else "src/bar.py"
+    monkeypatch.setattr(sys, "argv", ["semble", "find-related", file_path, "1", "/some/path"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        _cli_main()
-    out = capsys.readouterr().out
-    assert "src/bar.py" in out
-    assert "0.800" in out
-
-
-def test_cli_find_related_no_results(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """_cli_main find-related prints a message when the index returns no related chunks."""
-    chunk = make_chunk("class Bar: pass", "src/bar.py")
-    fake_index = MagicMock()
-    fake_index.chunks = [chunk]
-    fake_index.find_related.return_value = []
-    monkeypatch.setattr(sys, "argv", ["semble", "find-related", "src/bar.py", "1", "/some/path"])
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        _cli_main()
-    assert "No related chunks found" in capsys.readouterr().out
-
-
-def test_cli_find_related_unknown_chunk(
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """_cli_main find-related exits with code 1 when chunk is not found."""
-    fake_index = MagicMock()
-    fake_index.chunks = []
-    monkeypatch.setattr(sys, "argv", ["semble", "find-related", "unknown.py", "1", "/some/path"])
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        with pytest.raises(SystemExit) as exc_info:
+        if expected_exit_code is None:
             _cli_main()
-    assert exc_info.value.code == 1
-    assert "No chunk found" in capsys.readouterr().err
+        else:
+            with pytest.raises(SystemExit) as exc_info:
+                _cli_main()
+            assert exc_info.value.code == expected_exit_code
+    captured = capsys.readouterr()
+    for fragment in expected_stdout:
+        assert fragment in captured.out
+    if expected_stderr:
+        assert expected_stderr in captured.err
 
 
 def test_init_creates_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
@@ -158,20 +150,37 @@ def test_main_dispatches_to_cli(
     assert "query text" in capsys.readouterr().out
 
 
-def test_cli_works_without_mcp_installed(
+@pytest.mark.parametrize(
+    ("argv", "expected_stdout", "expect_system_exit"),
+    [
+        (["semble", "--help"], "find-related", True),
+        (["semble", "search", "query", "/some/path"], "query", False),
+    ],
+)
+def test_cli_entrypoint_works_without_mcp_installed(
+    argv: list[str],
+    expected_stdout: str,
+    expect_system_exit: bool,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """CLI subcommands succeed even when the mcp package is not installed."""
+    """CLI entrypoint paths succeed even when the mcp package is not installed."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
     fake_index = MagicMock()
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)]
-    monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path"])
+    monkeypatch.setattr(sys, "argv", argv)
     monkeypatch.setitem(sys.modules, "mcp", None)
+    monkeypatch.setitem(sys.modules, "mcp.server", None)
     monkeypatch.setitem(sys.modules, "mcp.server.fastmcp", None)
+    monkeypatch.setitem(sys.modules, "semble.mcp", None)
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        _cli_main()
-    assert "query" in capsys.readouterr().out
+        if expect_system_exit:
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            assert exc_info.value.code == 0
+        else:
+            main()
+    assert expected_stdout in capsys.readouterr().out
 
 
 def test_agent_file_tools_are_bash_only() -> None:

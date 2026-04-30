@@ -146,14 +146,22 @@ semble search "authentication flow" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
-Use `semble find-related` to discover code similar to a known location:
+Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
 
 ​```bash
 semble find-related src/auth.py 42 ./my-project
 ​```
 
 `path` defaults to the current directory when omitted; git URLs are accepted.
+
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
+## Workflow
+
+1. Start with `semble search` to find relevant chunks.
+2. Use `Read` to inspect a full file when the chunk alone isn't enough context.
+3. Use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+4. Fall back to Bash `grep` only for exact string matches (variable names, import statements).
 ```
 
 ## CLI
