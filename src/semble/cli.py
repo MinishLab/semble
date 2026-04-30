@@ -8,11 +8,12 @@ from semble.index import SembleIndex
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
 _CLAUDE_FILE_PATH = Path(".claude") / "agents" / "semble-search.md"
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "-h", "--help"})
 
 
 def main() -> None:
     """Entry point for the semble command-line tool."""
-    if len(sys.argv) > 1 and sys.argv[1] in ("search", "find-related", "init", "-h", "--help"):
+    if len(sys.argv) > 1 and sys.argv[1] in _CLI_DISPATCH_ARGS:
         _cli_main()
     else:
         _mcp_main()
