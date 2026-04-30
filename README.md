@@ -81,7 +81,7 @@ semble search "save model to disk" https://github.com/MinishLab/model2vec
 semble find-related src/auth.py 42 ./my-project
 ```
 
-`path` defaults to the current directory when omitted.
+`path` defaults to the current directory when omitted; git URLs are accepted.
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
@@ -161,17 +161,17 @@ This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.
 Use `semble search` to find code by describing what it does, instead of grep:
 
 ​```bash
-semble search "authentication flow" /path/to/repo
-semble search "save model to disk" /path/to/repo --top-k 10
+semble search "authentication flow" ./my-project
+semble search "save model to disk" ./my-project --top-k 10
 ​```
 
 Use `semble find-related` to discover code similar to a known location:
 
 ​```bash
-semble find-related src/auth.py 42 /path/to/repo
+semble find-related src/auth.py 42 ./my-project
 ​```
 
-Both commands default `path` to the current directory. Git URLs are accepted.
+`path` defaults to the current directory when omitted; git URLs are accepted.
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 ```
 

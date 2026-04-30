@@ -4,22 +4,22 @@ description: Code search agent for exploring any codebase. Use for finding code 
 tools: Bash, Read
 ---
 
-Use `semble search` to find code by describing what it does:
+Use `semble search` to find code by describing what it does, instead of grep:
 
 ```bash
-semble search "authentication flow" /path/to/repo
-semble search "save model to disk" /path/to/repo --top-k 10
+semble search "authentication flow" ./my-project
+semble search "save model to disk" ./my-project --top-k 10
 ```
 
-Use `semble find-related` to find code similar to a known location (pass `file_path` and `line` from a prior search result):
+Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
 
 ```bash
-semble find-related src/auth.py 42 /path/to/repo
+semble find-related src/auth.py 42 ./my-project
 ```
 
-Both commands default `path` to the current directory if omitted. Git URLs are also accepted as `path`.
+`path` defaults to the current directory when omitted; git URLs are accepted.
 
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in place of `semble`.
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 ## Workflow
 
