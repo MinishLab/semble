@@ -139,3 +139,6 @@ relative_files = true
 [tool.coverage.report]
 skip_covered = true
 exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
+
+[tool.uv]
+exclude-newer = "1 week"
