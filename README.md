@@ -59,7 +59,7 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
 ## Main Features
 
-- **Fast**: indexes a repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
+- **Fast**: indexes an average repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
 - **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Token-efficient**: returns only the relevant chunks, using ~98% fewer tokens than grep+read.
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
