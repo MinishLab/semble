@@ -24,40 +24,6 @@ _NO_SOURCE_MSG = (
 )
 
 
-async def _search(cache: _IndexCache, source: str | None, query: str, top_k: int, mode: str) -> str:
-    """Implement the search tool logic."""
-    if not source:
-        return _NO_SOURCE_MSG
-    try:
-        index = await cache.get(source)
-    except Exception as exc:
-        return f"Failed to index {source!r}: {exc}"
-    results = index.search(query, top_k=top_k, mode=mode)
-    if not results:
-        return "No results found."
-    return _format_results(f"Search results for: {query!r} (mode={mode})", results)
-
-
-async def _find_related(cache: _IndexCache, source: str | None, file_path: str, line: int, top_k: int) -> str:
-    """Implement the find_related tool logic."""
-    if not source:
-        return _NO_SOURCE_MSG
-    try:
-        index = await cache.get(source)
-    except Exception as exc:
-        return f"Failed to index {source!r}: {exc}"
-    chunk = _resolve_chunk(index.chunks, file_path, line)
-    if chunk is None:
-        return (
-            f"No chunk found at {file_path}:{line}. "
-            "Make sure the file is indexed and the line number is within a known chunk."
-        )
-    results = index.find_related(chunk, top_k=top_k)
-    if not results:
-        return f"No related chunks found for {file_path}:{line}."
-    return _format_results(f"Chunks related to {file_path}:{line}", results)
-
-
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
@@ -86,7 +52,17 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
-        return await _search(cache, repo or default_source, query, top_k, mode)
+        source = repo or default_source
+        if not source:
+            return _NO_SOURCE_MSG
+        try:
+            index = await cache.get(source)
+        except Exception as exc:
+            return f"Failed to index {source!r}: {exc}"
+        results = index.search(query, top_k=top_k, mode=mode)
+        if not results:
+            return "No results found."
+        return _format_results(f"Search results for: {query!r} (mode={mode})", results)
 
     @server.tool()
     async def find_related(
@@ -103,7 +79,23 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Use after `search` to explore related implementations or callers.
         Pass file_path and line from a prior search result.
         """
-        return await _find_related(cache, repo or default_source, file_path, line, top_k)
+        source = repo or default_source
+        if not source:
+            return _NO_SOURCE_MSG
+        try:
+            index = await cache.get(source)
+        except Exception as exc:
+            return f"Failed to index {source!r}: {exc}"
+        chunk = _resolve_chunk(index.chunks, file_path, line)
+        if chunk is None:
+            return (
+                f"No chunk found at {file_path}:{line}. "
+                "Make sure the file is indexed and the line number is within a known chunk."
+            )
+        results = index.find_related(chunk, top_k=top_k)
+        if not results:
+            return f"No related chunks found for {file_path}:{line}."
+        return _format_results(f"Chunks related to {file_path}:{line}", results)
 
     return server
 
