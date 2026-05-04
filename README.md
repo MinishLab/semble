@@ -33,7 +33,7 @@ pip install semble  # Install with pip
 uv add semble       # Install with uv
 ```
 
-Add Semble to Claude Code:
+Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
@@ -98,6 +98,8 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
   }
 }
 ```
+
+To upgrade to a newer version of Semble, run `uv cache clean semble` and restart your MCP client.
 
 ### Tools
 
