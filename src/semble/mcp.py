@@ -19,6 +19,57 @@ _REPO_DESCRIPTION = (
 )
 
 
+_NO_SOURCE_MSG = (
+    "No repo specified and no default index. Pass a git URL (https://github.com/...) or local path as `repo`."
+)
+
+
+async def _search(cache: _IndexCache, source: str | None, query: str, top_k: int, mode: str) -> str:
+    """Implement the search tool logic."""
+    if not source:
+        return _NO_SOURCE_MSG
+    try:
+        index = await cache.get(source)
+    except Exception as exc:
+        return f"Failed to index {source!r}: {exc}"
+    results = index.search(query, top_k=top_k, mode=mode)
+    if not results:
+        return "No results found."
+    return _format_results(f"Search results for: {query!r} (mode={mode})", results)
+
+
+async def _find_related(cache: _IndexCache, source: str | None, file_path: str, line: int, top_k: int) -> str:
+    """Implement the find_related tool logic."""
+    if not source:
+        return _NO_SOURCE_MSG
+    try:
+        index = await cache.get(source)
+    except Exception as exc:
+        return f"Failed to index {source!r}: {exc}"
+    chunk = _resolve_chunk(index.chunks, file_path, line)
+    if chunk is None:
+        return (
+            f"No chunk found at {file_path}:{line}. "
+            "Make sure the file is indexed and the line number is within a known chunk."
+        )
+    results = index.find_related(chunk, top_k=top_k)
+    if not results:
+        return f"No related chunks found for {file_path}:{line}."
+    return _format_results(f"Chunks related to {file_path}:{line}", results)
+
+
+async def _reindex(cache: _IndexCache, source: str | None) -> str:
+    """Implement the reindex tool logic."""
+    if not source:
+        return "No repo specified and no default index. Pass a git URL or local path as `repo`."
+    cache.evict(source)
+    try:
+        await cache.get(source)
+    except Exception as exc:
+        return f"Failed to reindex {source!r}: {exc}"
+    return f"Reindexed {source!r} successfully."
+
+
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
@@ -47,20 +98,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
-        try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
-        results = index.search(query, top_k=top_k, mode=mode)
-        if not results:
-            return "No results found."
-        return _format_results(f"Search results for: {query!r} (mode={mode})", results)
+        return await _search(cache, repo or default_source, query, top_k, mode)
 
     @server.tool()
     async def find_related(
@@ -77,26 +115,18 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Use after `search` to explore related implementations or callers.
         Pass file_path and line from a prior search result.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
-        try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
-        chunk = _resolve_chunk(index.chunks, file_path, line)
-        if chunk is None:
-            return (
-                f"No chunk found at {file_path}:{line}. "
-                "Make sure the file is indexed and the line number is within a known chunk."
-            )
-        results = index.find_related(chunk, top_k=top_k)
-        if not results:
-            return f"No related chunks found for {file_path}:{line}."
-        return _format_results(f"Chunks related to {file_path}:{line}", results)
+        return await _find_related(cache, repo or default_source, file_path, line, top_k)
+
+    @server.tool()
+    async def reindex(
+        repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
+    ) -> str:
+        """Drop the cached index for a repo and rebuild it from scratch.
+
+        Use this to pick up upstream changes for a git URL, or to force a refresh of a local path.
+        Local paths are also refreshed automatically when files change.
+        """
+        return await _reindex(cache, repo or default_source)
 
     return server
 
@@ -107,6 +137,8 @@ async def serve(path: str | None = None, ref: str | None = None) -> None:
     cache = _IndexCache(model=model)
     if path:
         await cache.get(path, ref=ref)
+        if not _is_git_url(path):
+            await cache.start_watcher(path)
 
     server = create_server(cache, default_source=path)
     await server.run_stdio_async()
@@ -119,6 +151,35 @@ class _IndexCache:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
         self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
+
+    def evict(self, source: str) -> None:
+        """Remove a cached index so the next :meth:`get` rebuilds it."""
+        is_git = _is_git_url(source)
+        cache_key = source if is_git else str(Path(source).resolve())
+        self._tasks.pop(cache_key, None)
+
+    async def start_watcher(self, path: str) -> None:
+        """Start a background task that refreshes the local-path index on file changes."""
+        asyncio.create_task(self._watch_loop(path))
+
+    async def _watch_loop(self, path: str) -> None:
+        """Watch a local path and refresh its cached index whenever files change."""
+        try:
+            import watchfiles
+        except ImportError:
+            return
+        key = str(Path(path).resolve())
+        try:
+            async for _ in watchfiles.awatch(path):
+                if key not in self._tasks:
+                    continue
+                try:
+                    index = await asyncio.shield(self._tasks[key])
+                    await asyncio.to_thread(index.refresh)
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""

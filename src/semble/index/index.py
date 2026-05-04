@@ -37,6 +37,7 @@ class SembleIndex:
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
         self._file_mapping, self._language_mapping = self._populate_mapping()
+        self._path: Path | None = None
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -101,6 +102,7 @@ class SembleIndex:
         )
 
         index = SembleIndex(model, bm25, vicinity, chunks)
+        index._path = path
 
         return index
 
@@ -153,6 +155,23 @@ class SembleIndex:
             index = SembleIndex(model, bm25, vicinity, chunks)
 
             return index
+
+    def refresh(self) -> None:
+        """Rebuild the index in-place from the stored local path.
+
+        :raises ValueError: If the index was not built from a local path (e.g. a git URL clone).
+        """
+        if self._path is None:
+            raise ValueError("refresh() is only supported for indexes built from a local path.")
+        bm25, vicinity, chunks = create_index_from_path(
+            self._path,
+            model=self.model,
+            display_root=self._path,
+        )
+        self._bm25_index = bm25
+        self._semantic_index = vicinity
+        self.chunks = chunks
+        self._file_mapping, self._language_mapping = self._populate_mapping()
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically similar to the given chunk or search result.

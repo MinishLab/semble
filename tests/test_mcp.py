@@ -248,8 +248,56 @@ async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
     with (
         patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
         patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
         patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
     ):
         await (serve(str(tmp_path)) if with_path else serve())
 
     mock_run.assert_called_once()
+
+
+def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
+    """evict() removes an existing cache entry by resolved path."""
+    key = str(tmp_path.resolve())
+    cache._tasks[key] = MagicMock()
+    cache.evict(str(tmp_path))
+    assert key not in cache._tasks
+
+
+def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
+    """evict() on an unknown path is a no-op."""
+    cache.evict(str(tmp_path))  # should not raise
+
+
+@pytest.mark.anyio
+async def test_reindex_tool_no_repo(cache: _IndexCache) -> None:
+    """Reindex returns an error when no repo and no default source are given."""
+    server = create_server(cache, default_source=None)
+    result = await server.call_tool("reindex", {})
+    assert "No repo specified" in _tool_text(result)
+
+
+@pytest.mark.anyio
+async def test_reindex_tool_success(cache: _IndexCache, tmp_path: Path) -> None:
+    """Reindex evicts the cache and rebuilds, returning a success message."""
+    fake_index = MagicMock()
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index) as mock_build:
+        server = create_server(cache, default_source=str(tmp_path))
+        # Prime the cache.
+        await cache.get(str(tmp_path))
+        assert mock_build.call_count == 1
+        # reindex should evict and rebuild.
+        result = await server.call_tool("reindex", {})
+        assert mock_build.call_count == 2
+    assert "successfully" in _tool_text(result)
+
+
+@pytest.mark.anyio
+async def test_reindex_tool_failure(cache: _IndexCache, tmp_path: Path) -> None:
+    """Reindex returns a friendly error when the rebuild fails."""
+    with patch("semble.mcp.SembleIndex.from_path", side_effect=RuntimeError("disk error")):
+        server = create_server(cache, default_source=str(tmp_path))
+        result = await server.call_tool("reindex", {})
+    text = _tool_text(result)
+    assert "Failed to reindex" in text
+    assert "disk error" in text
