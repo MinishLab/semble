@@ -38,6 +38,9 @@ class SembleIndex:
         self._semantic_index: SelectableBasicBackend = semantic_index
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self._path: Path | None = None
+        self._extensions: frozenset[str] | None = None
+        self._ignore: frozenset[str] | None = None
+        self._include_text_files: bool = False
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -103,6 +106,9 @@ class SembleIndex:
 
         index = SembleIndex(model, bm25, vicinity, chunks)
         index._path = path
+        index._extensions = extensions
+        index._ignore = ignore
+        index._include_text_files = include_text_files
 
         return index
 
@@ -166,6 +172,9 @@ class SembleIndex:
         bm25, vicinity, chunks = create_index_from_path(
             self._path,
             model=self.model,
+            extensions=self._extensions,
+            ignore=self._ignore,
+            include_text_files=self._include_text_files,
             display_root=self._path,
         )
         self._bm25_index = bm25

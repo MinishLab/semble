@@ -172,14 +172,11 @@ class _IndexCache:
             import watchfiles
         except ImportError:
             return
-        key = self._cache_key(path)
         try:
             async for _ in watchfiles.awatch(path):
-                if key not in self._tasks:
-                    continue
+                self.evict(path)
                 try:
-                    index = await self._tasks[key]
-                    await asyncio.to_thread(index.refresh)
+                    await self.get(path)
                 except Exception:
                     pass
         except Exception:
