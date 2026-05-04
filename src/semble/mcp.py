@@ -129,15 +129,15 @@ class _IndexCache:
         return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
     def evict(self, source: str) -> None:
-        """Remove a cached index so the next :meth:`get` rebuilds it."""
+        """Evict the cache entry for the given source, if it exists."""
         self._tasks.pop(self._cache_key(source), None)
 
     async def start_watcher(self, path: str) -> None:
-        """Start a background task that refreshes the local-path index on file changes."""
+        """Start a background task that re-indexes the path whenever files change."""
         self._watcher_task = asyncio.create_task(self._watch_loop(path))
 
     async def _watch_loop(self, path: str) -> None:
-        """Watch a local path and refresh its cached index whenever files change."""
+        """Watch the given path for changes and evict the cache entry on changes."""
         try:
             import watchfiles
         except ImportError:
