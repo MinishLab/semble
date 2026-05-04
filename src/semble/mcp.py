@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -12,6 +13,8 @@ from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import Encoder
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
+
+logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
     "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
@@ -124,14 +127,13 @@ class _IndexCache:
         self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
         self._watcher_task: asyncio.Task[None] | None = None
 
-    def _cache_key(self, source: str, ref: str | None = None) -> str:
+    def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
         """Compute the canonical cache key for a source."""
         is_git = _is_git_url(source)
         return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
     def evict(self, source: str) -> None:
-        """Evict the cache entry for the given source, if it exists."""
-        self._tasks.pop(self._cache_key(source), None)
+        self._tasks.pop(self._compute_cache_key(source), None)
 
     async def start_watcher(self, path: str) -> None:
         """Start a background task that re-indexes the path whenever files change."""
@@ -145,13 +147,13 @@ class _IndexCache:
                 try:
                     await self.get(path)
                 except Exception:
-                    pass
+                    logger.warning("Failed to rebuild index for %r after file change", path, exc_info=True)
         except Exception:
             pass
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""
-        cache_key = self._cache_key(source, ref)
+        cache_key = self._compute_cache_key(source, ref)
 
         if cache_key not in self._tasks:
             if _is_git_url(source):
@@ -166,11 +168,11 @@ class _IndexCache:
         try:
             return await asyncio.shield(task)
         except asyncio.CancelledError:  # pragma: no cover
-            if task.done() and self._tasks.get(cache_key) is task:
-                self._tasks.pop(cache_key, None)
+            if task.done():
+                self.evict(source)
             raise
         except Exception:
             # Only evict if this task hasn't already been replaced by evict()+get().
             if self._tasks.get(cache_key) is task:
-                self._tasks.pop(cache_key, None)
+                self.evict(source)
             raise
