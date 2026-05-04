@@ -74,4 +74,4 @@ PRs that appear to be unreviewed AI output (large scope, multiple unrelated file
 
 ---
 
-Questions? Open an issue or start a discussion.
+Questions? Open an issue.
