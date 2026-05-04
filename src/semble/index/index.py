@@ -12,6 +12,7 @@ from bm25s import BM25
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.search import search_bm25, search_hybrid, search_semantic
+from semble.stats import log_search_stats
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
 
@@ -36,6 +37,7 @@ class SembleIndex:
         self.chunks: list[Chunk] = chunks
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
+        self._root_path: Path | None = None
         self._file_mapping, self._language_mapping = self._populate_mapping()
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
@@ -101,6 +103,7 @@ class SembleIndex:
         )
 
         index = SembleIndex(model, bm25, vicinity, chunks)
+        index._root_path = path
 
         return index
 
@@ -164,7 +167,9 @@ class SembleIndex:
         target = source.chunk if isinstance(source, SearchResult) else source
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
-        return [r for r in results if r.chunk != target][:top_k]
+        results = [r for r in results if r.chunk != target][:top_k]
+        log_search_stats(results, "find_related", self._root_path)
+        return results
 
     def _get_selector_vector(
         self, filter_languages: list[str] | None = None, filter_paths: list[str] | None = None
@@ -209,11 +214,14 @@ class SembleIndex:
         selector = self._get_selector_vector(filter_languages, filter_paths)
 
         if mode == SearchMode.BM25:
-            return search_bm25(query, bm25_index, self.chunks, top_k, selector=selector)
-        if mode == SearchMode.SEMANTIC:
-            return search_semantic(query, self.model, semantic_index, self.chunks, top_k, selector=selector)
-        if mode == SearchMode.HYBRID:
-            return search_hybrid(
+            results = search_bm25(query, bm25_index, self.chunks, top_k, selector=selector)
+        elif mode == SearchMode.SEMANTIC:
+            results = search_semantic(query, self.model, semantic_index, self.chunks, top_k, selector=selector)
+        elif mode == SearchMode.HYBRID:
+            results = search_hybrid(
                 query, self.model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha, selector=selector
             )
-        raise ValueError(f"Unknown search mode: {mode!r}")
+        else:
+            raise ValueError(f"Unknown search mode: {mode!r}")
+        log_search_stats(results, "search", self._root_path)
+        return results
