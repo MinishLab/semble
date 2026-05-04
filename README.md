@@ -43,11 +43,7 @@ Add Semble to Claude Code:
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Then ask Claude Code to use Semble when navigating the codebase:
-
-```
-Use Semble to find where authentication errors are handled.
-```
+Then ask Claude Code questions about the codebase, e.g. `How is authentication handled in this project?`? Claude Code will automatically use Semble to find the relevant code and answer the question efficiently.
 
 Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients.
 
