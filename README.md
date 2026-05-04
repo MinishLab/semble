@@ -17,11 +17,7 @@
   </h2>
 
 [Quickstart](#quickstart) •
-[Main Features](#main-features) •
 [MCP Server](#mcp-server) •
-[CLI](#cli) •
-[Python API](#python-api) •
-[How it works](#how-it-works) •
 [Benchmarks](#benchmarks)
 
 </div>
@@ -43,7 +39,7 @@ Add Semble to Claude Code:
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Then ask Claude Code questions about the codebase, e.g. `How is authentication handled in this project?`? Claude Code will automatically use Semble to find the relevant code and answer the question efficiently.
+Then ask Claude Code questions about the codebase, e.g. `How is authentication handled in this project?`. Claude Code will automatically use Semble to find the relevant code and answer the question.
 
 Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients.
 
@@ -178,6 +174,8 @@ semble find-related src/auth.py 42 ./my-project
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 ## Python API
+
+Semble can also be used as a Python library for programmatic access, useful when building custom tooling or integrating search directly into your own code.
 
 ```python
 from semble import SembleIndex
