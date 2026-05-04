@@ -5,6 +5,8 @@ from importlib.resources import files
 from importlib.util import find_spec
 from pathlib import Path
 
+from model2vec.utils import get_package_extras
+
 from semble.index import SembleIndex
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
@@ -20,14 +22,6 @@ def main() -> None:
         _mcp_main()
 
 
-def _require_mcp_extra() -> None:
-    missing = [module for module in ("mcp", "watchfiles") if find_spec(module) is None]
-    if missing:
-        deps = ", ".join(missing)
-        print(f"MCP dependencies are not installed ({deps}). Run: pip install 'semble[mcp]'", file=sys.stderr)
-        raise SystemExit(1)
-
-
 def _mcp_main() -> None:
     parser = argparse.ArgumentParser(
         prog="semble",
@@ -41,7 +35,9 @@ def _mcp_main() -> None:
     )
     parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
     args = parser.parse_args()
-    _require_mcp_extra()
+    if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
+        print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
+        raise SystemExit(1)
     from semble.mcp import serve
 
     asyncio.run(serve(args.path, ref=args.ref))
