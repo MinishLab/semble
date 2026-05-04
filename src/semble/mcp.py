@@ -19,11 +19,6 @@ _REPO_DESCRIPTION = (
 )
 
 
-_NO_SOURCE_MSG = (
-    "No repo specified and no default index. Pass a git URL (https://github.com/...) or local path as `repo`."
-)
-
-
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
@@ -54,7 +49,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         """
         source = repo or default_source
         if not source:
-            return _NO_SOURCE_MSG
+            return (
+                "No repo specified and no default index. "
+                "Pass a git URL (https://github.com/...) or local path as `repo`."
+            )
         try:
             index = await cache.get(source)
         except Exception as exc:
@@ -81,7 +79,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         """
         source = repo or default_source
         if not source:
-            return _NO_SOURCE_MSG
+            return (
+                "No repo specified and no default index. "
+                "Pass a git URL (https://github.com/...) or local path as `repo`."
+            )
         try:
             index = await cache.get(source)
         except Exception as exc:
