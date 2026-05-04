@@ -18,6 +18,8 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
+[CLI](#cli) •
+[Python API](#python-api) •
 [Benchmarks](#benchmarks)
 
 </div>
@@ -25,13 +27,6 @@
 Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo, cloned and indexed on demand.
 
 ## Quickstart
-
-Install Semble:
-
-```bash
-pip install semble  # Install with pip
-uv add semble       # Install with uv
-```
 
 Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
@@ -154,6 +149,13 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ```
 
 ## CLI
+
+Install Semble:
+
+```bash
+pip install semble  # Install with pip
+uv add semble       # Install with uv
+```
 
 Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
 
