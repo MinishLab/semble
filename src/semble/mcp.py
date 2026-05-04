@@ -4,6 +4,7 @@ import asyncio
 from pathlib import Path
 from typing import Annotated, Literal
 
+import watchfiles
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
@@ -138,10 +139,6 @@ class _IndexCache:
 
     async def _watch_loop(self, path: str) -> None:
         """Watch the given path for changes and evict the cache entry on changes."""
-        try:
-            import watchfiles
-        except ImportError:
-            return
         try:
             async for _ in watchfiles.awatch(path):
                 self.evict(path)
