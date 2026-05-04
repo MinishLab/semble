@@ -68,7 +68,7 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
 ## MCP Server
 
-Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand, and indexes are cached for the lifetime of the session.
+Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand, and indexes are cached for the lifetime of the session. Local paths are watched for file changes and re-indexed automatically.
 
 ### Setup
 

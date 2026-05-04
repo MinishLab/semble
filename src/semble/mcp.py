@@ -58,18 +58,6 @@ async def _find_related(cache: _IndexCache, source: str | None, file_path: str, 
     return _format_results(f"Chunks related to {file_path}:{line}", results)
 
 
-async def _reindex(cache: _IndexCache, source: str | None) -> str:
-    """Implement the reindex tool logic."""
-    if not source:
-        return _NO_SOURCE_MSG
-    cache.evict(source)
-    try:
-        await cache.get(source)
-    except Exception as exc:
-        return f"Failed to reindex {source!r}: {exc}"
-    return f"Reindexed {source!r} successfully."
-
-
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
@@ -116,17 +104,6 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Pass file_path and line from a prior search result.
         """
         return await _find_related(cache, repo or default_source, file_path, line, top_k)
-
-    @server.tool()
-    async def reindex(
-        repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
-    ) -> str:
-        """Drop the cached index for a repo and rebuild it from scratch.
-
-        Use this to pick up upstream changes for a git URL, or to force a refresh of a local path.
-        Local paths are also refreshed automatically when files change.
-        """
-        return await _reindex(cache, repo or default_source)
 
     return server
 
