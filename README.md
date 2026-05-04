@@ -20,6 +20,7 @@
 [Main Features](#main-features) •
 [MCP Server](#mcp-server) •
 [CLI](#cli) •
+[Python API](#python-api) •
 [How it works](#how-it-works) •
 [Benchmarks](#benchmarks)
 
@@ -29,33 +30,26 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 ## Quickstart
 
+Install Semble:
+
 ```bash
 pip install semble  # Install with pip
 uv add semble       # Install with uv
 ```
 
-```python
-from semble import SembleIndex
+Add Semble to Claude Code:
 
-# Index a local directory
-index = SembleIndex.from_path("./my-project")
-
-# Index a remote git repository
-index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
-
-# Search the index with a natural-language or code query
-results = index.search("save model to disk", top_k=3)
-
-# Find code similar to a specific result
-related = index.find_related(results[0], top_k=3)
-
-# Each result exposes the matched chunk
-result = results[0]
-result.chunk.file_path   # "model2vec/model.py"
-result.chunk.start_line  # 127
-result.chunk.end_line    # 150
-result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
+```bash
+claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
+
+Then ask Claude Code to use Semble when navigating the codebase:
+
+```
+Use Semble to find where authentication errors are handled.
+```
+
+Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients.
 
 ## Main Features
 
@@ -186,6 +180,31 @@ semble find-related src/auth.py 42 ./my-project
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
+## Python API
+
+```python
+from semble import SembleIndex
+
+# Index a local directory
+index = SembleIndex.from_path("./my-project")
+
+# Index a remote git repository
+index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
+
+# Search the index with a natural-language or code query
+results = index.search("save model to disk", top_k=3)
+
+# Find code similar to a specific result
+related = index.find_related(results[0], top_k=3)
+
+# Each result exposes the matched chunk
+result = results[0]
+result.chunk.file_path   # "model2vec/model.py"
+result.chunk.start_line  # 127
+result.chunk.end_line    # 150
+result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
+```
 
 ## How it works
 
