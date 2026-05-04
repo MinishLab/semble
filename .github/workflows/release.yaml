@@ -2,10 +2,6 @@ name: Release to PyPI
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release (e.g. 0.2.0)"
-        required: true
 
 jobs:
   build:
