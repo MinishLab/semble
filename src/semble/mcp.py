@@ -169,10 +169,11 @@ class _IndexCache:
         try:
             return await asyncio.shield(task)
         except asyncio.CancelledError:  # pragma: no cover
-            if task.done():
+            if task.done() and self._tasks.get(cache_key) is task:
                 self._tasks.pop(cache_key, None)
             raise
         except Exception:
-            # Build failed: evict so the next caller can retry.
-            self._tasks.pop(cache_key, None)
+            # Only evict if this task hasn't already been replaced by evict()+get().
+            if self._tasks.get(cache_key) is task:
+                self._tasks.pop(cache_key, None)
             raise
