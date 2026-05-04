@@ -61,7 +61,7 @@ async def _find_related(cache: _IndexCache, source: str | None, file_path: str, 
 async def _reindex(cache: _IndexCache, source: str | None) -> str:
     """Implement the reindex tool logic."""
     if not source:
-        return "No repo specified and no default index. Pass a git URL or local path as `repo`."
+        return _NO_SOURCE_MSG
     cache.evict(source)
     try:
         await cache.get(source)
@@ -151,16 +151,20 @@ class _IndexCache:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
         self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
+        self._watcher_task: asyncio.Task[None] | None = None
+
+    def _cache_key(self, source: str, ref: str | None = None) -> str:
+        """Compute the canonical cache key for a source."""
+        is_git = _is_git_url(source)
+        return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
     def evict(self, source: str) -> None:
         """Remove a cached index so the next :meth:`get` rebuilds it."""
-        is_git = _is_git_url(source)
-        cache_key = source if is_git else str(Path(source).resolve())
-        self._tasks.pop(cache_key, None)
+        self._tasks.pop(self._cache_key(source), None)
 
     async def start_watcher(self, path: str) -> None:
         """Start a background task that refreshes the local-path index on file changes."""
-        asyncio.create_task(self._watch_loop(path))
+        self._watcher_task = asyncio.create_task(self._watch_loop(path))
 
     async def _watch_loop(self, path: str) -> None:
         """Watch a local path and refresh its cached index whenever files change."""
@@ -168,13 +172,13 @@ class _IndexCache:
             import watchfiles
         except ImportError:
             return
-        key = str(Path(path).resolve())
+        key = self._cache_key(path)
         try:
             async for _ in watchfiles.awatch(path):
                 if key not in self._tasks:
                     continue
                 try:
-                    index = await asyncio.shield(self._tasks[key])
+                    index = await self._tasks[key]
                     await asyncio.to_thread(index.refresh)
                 except Exception:
                     pass
@@ -183,11 +187,10 @@ class _IndexCache:
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""
-        is_git = _is_git_url(source)
-        cache_key = (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
+        cache_key = self._cache_key(source, ref)
 
         if cache_key not in self._tasks:
-            if is_git:
+            if _is_git_url(source):
                 self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(SembleIndex.from_git, source, ref=ref, model=self._model)
                 )
