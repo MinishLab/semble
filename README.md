@@ -29,7 +29,7 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 ## Quickstart
 
-Semble can be used as an [MCP server](#mcp-server) or via [Bash / AGENTS.md](#bash-integration). Once set up, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
+Semble can be used as an [MCP server](#mcp-server) or via [bash / AGENTS.md](#bash-integration). Once set up, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
 
 ### MCP
 
@@ -43,8 +43,6 @@ Using another agent harness? See [MCP Server](#mcp-server) for setup instruction
 
 ### Bash / AGENTS.md
 
-
-
 Install Semble and add the [code search snippet](#bash-integration) to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
@@ -52,7 +50,7 @@ pip install semble  # Install with pip
 uv add semble       # Or install with uv
 ```
 
-> Note: Claude Code and Codex CLI sub-agents cannot call MCP tools. To use Semble in sub-agents, you must add the bash integration as well.
+> Note: Claude Code and Codex CLI sub-agents cannot call MCP tools directly. To use Semble in sub-agents, you must add the bash integration as well.
 
 To update Semble, see [Updating](#updating).
 
