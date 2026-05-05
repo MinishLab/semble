@@ -34,9 +34,9 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Then ask Claude Code questions about the codebase, e.g. `How is authentication handled in this project?`. Claude Code will automatically use Semble to find the relevant code and answer the question.
+Once added, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
 
-Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients.
+Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients. To update Semble, see [Updating](#updating).
 
 ## Main Features
 
@@ -93,8 +93,6 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
   }
 }
 ```
-
-To upgrade to a newer version of Semble, run `uv cache clean semble` and restart your MCP client.
 
 ### Tools
 
@@ -157,6 +155,7 @@ pip install semble  # Install with pip
 uv add semble       # Install with uv
 ```
 
+
 Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
 
 ```bash
@@ -176,6 +175,16 @@ semble find-related src/auth.py 42 ./my-project
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
+### Updating
+
+To update/upgrade Semble to the latest version:
+
+```bash
+pip install --upgrade semble   # with pip
+uv add semble --upgrade        # with uv
+uv cache clean semble          # for MCP users (restart your MCP client after)
+```
 
 ## Python API
 
