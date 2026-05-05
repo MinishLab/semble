@@ -25,7 +25,7 @@
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an [MCP server](#mcp-server) or via [bash / AGENTS.md](#bash-integration) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from bash via [AGENTS.md](#bash-integration) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
 ## Quickstart
 
@@ -43,14 +43,14 @@ Using another agent harness? See [MCP Server](#mcp-server) for setup instruction
 
 ### Bash / AGENTS.md
 
-Install Semble and add the [code search snippet](#bash-integration) to your `AGENTS.md` or `CLAUDE.md`:
+Install Semble first, then add the [code search snippet](#bash-integration) to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 pip install semble  # Install with pip
 uv add semble       # Or install with uv
 ```
 
-> Note: Claude Code and Codex CLI sub-agents cannot call MCP tools directly. If you need sub-agent support, use the bash integration directly, or in addition to MCP.
+> Note: for Claude Code or Codex CLI sub-agents, use the [Bash integration](#bash-integration) instead of, or alongside, MCP.
 
 To update Semble, see [Updating](#updating).
 
