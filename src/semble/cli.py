@@ -4,7 +4,10 @@ import json
 import sys
 from datetime import datetime, timezone
 from importlib.resources import files
+from importlib.util import find_spec
 from pathlib import Path
+
+from model2vec.utils import get_package_extras
 
 from semble.index import SembleIndex
 from semble.stats import _STATS_FILE
@@ -35,6 +38,9 @@ def _mcp_main() -> None:
     )
     parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
     args = parser.parse_args()
+    if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
+        print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
+        raise SystemExit(1)
     from semble.mcp import serve
 
     asyncio.run(serve(args.path, ref=args.ref))

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -248,8 +248,36 @@ async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
     with (
         patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
         patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
         patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
     ):
         await (serve(str(tmp_path)) if with_path else serve())
 
     mock_run.assert_called_once()
+
+
+def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
+    """evict() removes an existing cache entry by resolved path."""
+    key = str(tmp_path.resolve())
+    cache._tasks[key] = MagicMock()
+    cache.evict(str(tmp_path))
+    assert key not in cache._tasks
+
+
+def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
+    """evict() on an unknown path is a no-op."""
+    cache.evict(str(tmp_path))  # should not raise
+
+
+@pytest.mark.anyio
+async def test_watch_loop(cache: _IndexCache, tmp_path: Path) -> None:
+    """_watch_loop rebuilds on change (inner errors swallowed) and exits cleanly on watcher error."""
+
+    async def fake_awatch(_path: str) -> AsyncGenerator:
+        yield set()
+        raise RuntimeError("watcher died")
+
+    with patch("semble.mcp.watchfiles.awatch", fake_awatch):
+        with patch("semble.mcp.SembleIndex.from_path", side_effect=RuntimeError("build failed")):
+            await cache.start_watcher(str(tmp_path))
+            await cache._watcher_task

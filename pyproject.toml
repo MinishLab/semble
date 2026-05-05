@@ -36,7 +36,8 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = [
-    "mcp>=1.0",
+    "mcp>=1.0,<2.0",
+    "watchfiles>=0.21",
 ]
 benchmark = [
     "sentence-transformers>=3.0",
@@ -139,3 +140,6 @@ relative_files = true
 [tool.coverage.report]
 skip_covered = true
 exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
+
+[tool.uv]
+exclude-newer = "1 week"

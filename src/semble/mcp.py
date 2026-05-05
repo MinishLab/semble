@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from pathlib import Path
 from typing import Annotated, Literal
 
+import watchfiles
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
@@ -11,6 +13,8 @@ from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import Encoder
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
+
+logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
     "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
@@ -107,6 +111,8 @@ async def serve(path: str | None = None, ref: str | None = None) -> None:
     cache = _IndexCache(model=model)
     if path:
         await cache.get(path, ref=ref)
+        if not _is_git_url(path):
+            await cache.start_watcher(path)
 
     server = create_server(cache, default_source=path)
     await server.run_stdio_async()
@@ -119,14 +125,38 @@ class _IndexCache:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
         self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
+        self._watcher_task: asyncio.Task[None] | None = None
+
+    def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
+        """Compute the canonical cache key for a source."""
+        is_git = _is_git_url(source)
+        return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
+
+    def evict(self, source: str) -> None:
+        self._tasks.pop(self._compute_cache_key(source), None)
+
+    async def start_watcher(self, path: str) -> None:
+        """Start a background task that re-indexes the path whenever files change."""
+        self._watcher_task = asyncio.create_task(self._watch_loop(path))
+
+    async def _watch_loop(self, path: str) -> None:
+        """Watch the given path for changes and evict the cache entry on changes."""
+        try:
+            async for _ in watchfiles.awatch(path):
+                self.evict(path)
+                try:
+                    await self.get(path)
+                except Exception:
+                    logger.warning("Failed to rebuild index for %r after file change", path, exc_info=True)
+        except Exception:
+            pass
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""
-        is_git = _is_git_url(source)
-        cache_key = (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
+        cache_key = self._compute_cache_key(source, ref)
 
         if cache_key not in self._tasks:
-            if is_git:
+            if _is_git_url(source):
                 self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(SembleIndex.from_git, source, ref=ref, model=self._model)
                 )
@@ -139,9 +169,10 @@ class _IndexCache:
             return await asyncio.shield(task)
         except asyncio.CancelledError:  # pragma: no cover
             if task.done():
-                self._tasks.pop(cache_key, None)
+                self.evict(source)
             raise
         except Exception:
-            # Build failed: evict so the next caller can retry.
-            self._tasks.pop(cache_key, None)
+            # Only evict if this task hasn't already been replaced by evict()+get().
+            if self._tasks.get(cache_key) is task:
+                self.evict(source)
             raise
