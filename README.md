@@ -50,7 +50,7 @@ pip install semble  # Install with pip
 uv add semble       # Or install with uv
 ```
 
-> Note: for Claude Code or Codex CLI sub-agents, use the [Bash integration](#bash-integration) instead of, or alongside, MCP.
+> Note: for Claude Code or Codex CLI sub-agents, use the [bash integration](#bash-integration) instead of, or alongside, MCP.
 
 To update Semble, see [Updating](#updating).
 
