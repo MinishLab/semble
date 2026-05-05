@@ -263,16 +263,15 @@ async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
         ("file:///home/user/secret", "search", {"query": "foo"}),
         ("ssh://internal-host/repo", "search", {"query": "foo"}),
         ("git@github.com:org/repo", "search", {"query": "foo"}),
-        ("/home/user/private-repo", "search", {"query": "foo"}),
         ("file:///home/user/secret", "find_related", {"file_path": "src/foo.py", "line": 1}),
         ("ssh://internal-host/repo", "find_related", {"file_path": "src/foo.py", "line": 1}),
     ],
-    ids=["file_search", "ssh_search", "scp_search", "local_path_search", "file_find_related", "ssh_find_related"],
+    ids=["file_search", "ssh_search", "scp_search", "file_find_related", "ssh_find_related"],
 )
 async def test_tool_rejects_unsafe_repo(
     cache: _IndexCache, repo: str, tool: str, extra_args: dict[str, object]
 ) -> None:
-    """Both tools reject non-https URLs and bare local paths supplied as repo."""
+    """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) supplied as repo."""
     server = create_server(cache, default_source=None)
     result = await server.call_tool(tool, {**extra_args, "repo": repo})
     assert "Only https://" in _tool_text(result)
@@ -294,25 +293,24 @@ async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> N
     assert len(cache._tasks) == _CACHE_MAX_SIZE
 
 
-@pytest.mark.parametrize(
-    ("pre_populate", "expected_present"),
-    [(True, False), (False, False)],
-    ids=["existing", "missing"],
-)
-def test_cache_evict(cache: _IndexCache, tmp_path: Path, pre_populate: bool, expected_present: bool) -> None:
-    """evict() removes an existing entry; evicting an unknown path is a no-op."""
+def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
+    """evict() removes an existing cache entry by resolved path."""
     key = str(tmp_path.resolve())
-    if pre_populate:
-        cache._tasks[key] = MagicMock()
+    cache._tasks[key] = MagicMock()
     cache.evict(str(tmp_path))
-    assert (key in cache._tasks) == expected_present
+    assert key not in cache._tasks
+
+
+def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
+    """evict() on an unknown path is a no-op."""
+    cache.evict(str(tmp_path))  # should not raise
 
 
 @pytest.mark.anyio
 async def test_watch_loop(cache: _IndexCache, tmp_path: Path) -> None:
     """_watch_loop rebuilds on change (inner errors swallowed) and exits cleanly on watcher error."""
 
-    async def fake_awatch(_path: str) -> AsyncGenerator[set[Any], None]:
+    async def fake_awatch(_path: str) -> AsyncGenerator:
         yield set()
         raise RuntimeError("watcher died")
 

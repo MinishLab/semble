@@ -18,7 +18,7 @@ from semble.utils import _format_results, _is_git_url, _resolve_chunk
 logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
-    "https:// (or http://) git URL (e.g. https://github.com/org/repo) to index and search. "
+    "https:// or http:// git URL (e.g. https://github.com/org/repo) or local directory path to index and search. "
     "Required when no default index was configured at startup. "
     "The index is cached after the first call, so repeat queries are fast."
 )
@@ -33,15 +33,17 @@ async def _get_index(
 ) -> SembleIndex:
     """Return a cached index for *repo*, applying MCP-boundary restrictions.
 
-    Tool-supplied *repo* values are restricted to https:// or http:// URLs; arbitrary local
-    paths may only reach the cache via the server's *default_source* startup config.
+    Local directory paths and https:// / http:// URLs are accepted. Unsafe git
+    transport schemes (ssh://, git://, file://, SCP-form) are rejected.
     Raises ``ValueError`` with a user-facing message on any failure.
     """
-    if repo is not None and not repo.startswith(("https://", "http://")):
-        raise ValueError(f"Only https:// or http:// git URLs are accepted as `repo`. Got: {repo!r}")
+    if repo is not None and _is_git_url(repo) and not repo.startswith(("https://", "http://")):
+        raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
     source = repo or default_source
     if not source:
-        raise ValueError("No repo specified and no default index. Pass an https:// git URL as `repo`.")
+        raise ValueError(
+            "No repo specified and no default index. Pass an https:// git URL or local directory path as `repo`."
+        )
     try:
         return await cache.get(source)
     except Exception as exc:
@@ -55,7 +57,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         instructions=(
             "Instant code search for any local or GitHub repository. "
             "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
-            "Pass an explicit https:// (or http://) git URL as `repo` — never guess or infer URLs. "
+            "When working in a local project, pass the project root as `repo`. "
+            "For remote repos, pass an explicit https:// URL — never guess or infer URLs. "
             "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
     )
@@ -72,7 +75,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
-        Pass an https:// or http:// git URL as `repo` to index it on demand; indexes are cached for the session.
+        Pass a local directory path or https:// git URL as `repo` to index it on demand;
+        indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
         try:
