@@ -43,12 +43,16 @@ Using another agent harness? See [MCP Server](#mcp-server) for setup instruction
 
 ### Bash / AGENTS.md
 
+
+
 Install Semble and add the [code search snippet](#bash-integration) to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 pip install semble  # Install with pip
 uv add semble       # Or install with uv
 ```
+
+> Note: Claude Code and Codex CLI sub-agents cannot call MCP tools. To use Semble in sub-agents, you must add the bash integration as well.
 
 To update Semble, see [Updating](#updating).
 
