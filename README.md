@@ -18,6 +18,7 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
+[Bash / Agent file](#bash--agent-file) •
 [CLI](#cli) •
 [Python API](#python-api) •
 [Benchmarks](#benchmarks)
@@ -36,7 +37,7 @@ claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 
 Once added, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
 
-Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients. To update Semble, see [Updating](#updating).
+Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients. For sub-agents or setups without MCP, see [Bash / Agent file](#bash--agent-file). To update Semble, see [Updating](#updating).
 
 ## Main Features
 
@@ -101,21 +102,12 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a git URL or local path. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
-### Sub-agent support
 
-Claude Code and Codex CLI lazy-load MCP tool schemas, so sub-agents cannot call `mcp__semble__search` directly. The fix is to invoke semble through the [CLI](#cli) via Bash instead.
+## Bash / Agent file
 
-**Claude Code**: run this once in your project root:
+An alternative to MCP is to invoke Semble via Bash. This is the only option for sub-agents, which cannot call MCP tools directly (Claude Code and Codex CLI lazy-load MCP schemas at the top-level agent only).
 
-```bash
-semble init
-# or, if semble is not on $PATH:
-uvx --from "semble[mcp]" semble init
-```
-
-This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md).
-
-**Other tools (Codex, etc.)**: append the following to your `AGENTS.md`:
+To add Bash support, append the following to your `AGENTS.md` or `CLAUDE.md`:
 
 ```markdown
 ## Code Search
@@ -137,6 +129,16 @@ semble find-related src/auth.py 42 ./my-project
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
+**Claude Code sub-agent**: Claude Code also supports a dedicated sub-agent, which gives more control over when and how Semble is invoked. Run this once in your project root:
+
+```bash
+semble init
+# or, if semble is not on $PATH:
+uvx --from "semble[mcp]" semble init
+```
+
+This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md).
 
 ## Workflow
 
