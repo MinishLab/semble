@@ -18,7 +18,7 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
-[Bash / Agent file](#bash--agent-file) •
+[Bash / AGENTS.md](#bash--agentsmd) •
 [CLI](#cli) •
 [Python API](#python-api) •
 [Benchmarks](#benchmarks)
@@ -37,7 +37,7 @@ claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 
 Once added, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
 
-Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients. For sub-agents or setups without MCP, see [Bash / Agent file](#bash--agent-file). To update Semble, see [Updating](#updating).
+Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients. For sub-agents or setups without MCP, see [Bash / AGENTS.md](#bash--agentsmd). To update Semble, see [Updating](#updating).
 
 ## Main Features
 
@@ -103,7 +103,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
 
-## Bash / Agent file
+## Bash / AGENTS.md
 
 An alternative to MCP is to invoke Semble via Bash. This is the only option for sub-agents, which cannot call MCP tools directly (Claude Code and Codex CLI lazy-load MCP schemas at the top-level agent only).
 
@@ -130,7 +130,15 @@ semble find-related src/auth.py 42 ./my-project
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
-**Claude Code sub-agent**: Claude Code also supports a dedicated sub-agent, which gives more control over when and how Semble is invoked. Run this once in your project root:
+## Workflow
+
+1. Start with `semble search` to find relevant chunks.
+2. Inspect full files only when the returned chunk is not enough context.
+3. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+```
+
+**Claude Code sub-agent**: Claude Code also supports a dedicated sub-agent. Run this once in your project root:
 
 ```bash
 semble init
@@ -139,14 +147,6 @@ uvx --from "semble[mcp]" semble init
 ```
 
 This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md).
-
-## Workflow
-
-1. Start with `semble search` to find relevant chunks.
-2. Inspect full files only when the returned chunk is not enough context.
-3. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
-```
 
 ## CLI
 
