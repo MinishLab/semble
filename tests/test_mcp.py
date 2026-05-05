@@ -294,24 +294,25 @@ async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> N
     assert len(cache._tasks) == _CACHE_MAX_SIZE
 
 
-def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
-    """evict() removes an existing cache entry by resolved path."""
+@pytest.mark.parametrize(
+    ("pre_populate", "expected_present"),
+    [(True, False), (False, False)],
+    ids=["existing", "missing"],
+)
+def test_cache_evict(cache: _IndexCache, tmp_path: Path, pre_populate: bool, expected_present: bool) -> None:
+    """evict() removes an existing entry; evicting an unknown path is a no-op."""
     key = str(tmp_path.resolve())
-    cache._tasks[key] = MagicMock()
+    if pre_populate:
+        cache._tasks[key] = MagicMock()
     cache.evict(str(tmp_path))
-    assert key not in cache._tasks
-
-
-def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
-    """evict() on an unknown path is a no-op."""
-    cache.evict(str(tmp_path))  # should not raise
+    assert (key in cache._tasks) == expected_present
 
 
 @pytest.mark.anyio
 async def test_watch_loop(cache: _IndexCache, tmp_path: Path) -> None:
     """_watch_loop rebuilds on change (inner errors swallowed) and exits cleanly on watcher error."""
 
-    async def fake_awatch(_path: str) -> AsyncGenerator:
+    async def fake_awatch(_path: str) -> AsyncGenerator[set[Any], None]:
         yield set()
         raise RuntimeError("watcher died")
 

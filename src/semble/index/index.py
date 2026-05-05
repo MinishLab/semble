@@ -25,13 +25,7 @@ class SembleIndex:
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
     ) -> None:
-        """Internal constructor — use :meth:`from_path` or :meth:`from_git`.
-
-        :param model: Embedding model to use.
-        :param bm25_index: The bm25 index.
-        :param semantic_index: The semantic index.
-        :param chunks: The found chunks.
-        """
+        """Internal constructor — use :meth:`from_path` or :meth:`from_git`."""
         self.model: Encoder = model
         self.chunks: list[Chunk] = chunks
         self._bm25_index: BM25 = bm25_index
@@ -76,11 +70,11 @@ class SembleIndex:
         """Create and index a SembleIndex from a directory.
 
         :param path: Root directory to index.
-        :param model: Embedding model to use. Defaults to potion-code-16M.
-        :param extensions: File extensions to include. Defaults to a standard set of code extensions.
-        :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
-        :param include_text_files: If True, also index non-code text files (.md, .yaml, .json, etc.).
-        :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
+        :param model: Embedding model; defaults to potion-code-16M.
+        :param extensions: File extensions to include.
+        :param ignore: Additional directory names to skip.
+        :param include_text_files: If True, also index .md, .yaml, .json, etc.
+        :return: Indexed SembleIndex with chunk paths relative to ``path``.
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
         """
@@ -100,9 +94,7 @@ class SembleIndex:
             display_root=path,
         )
 
-        index = SembleIndex(model, bm25, vicinity, chunks)
-
-        return index
+        return SembleIndex(model, bm25, vicinity, chunks)
 
     @classmethod
     def from_git(
@@ -117,18 +109,17 @@ class SembleIndex:
         """Clone a git repository and index it.
 
         The repository is cloned into a temporary directory that is removed once
-        indexing finishes. Chunk content is preserved in-memory, but
-        ``chunk.file_path`` will not point to a readable file after this call
-        returns — it is a repo-relative label, not a filesystem path.
+        indexing finishes. ``chunk.file_path`` is a repo-relative label, not a
+        readable filesystem path, after this call returns.
 
-        :param url: URL of the git repository to clone (any git provider).
-        :param ref: Branch or tag to check out. Defaults to the remote HEAD.
-        :param model: Embedding model to use. Defaults to potion-code-16M.
-        :param extensions: File extensions to include. Defaults to a standard set of code extensions.
-        :param ignore: Directory names to skip. Defaults to common VCS and build dirs.
-        :param include_text_files: If True, also index non-code text files (.md, .yaml, .json, etc.).
-        :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
-        :raises RuntimeError: If git is not on PATH or the clone fails.
+        :param url: URL of the git repository to clone.
+        :param ref: Branch or tag to check out; defaults to remote HEAD.
+        :param model: Embedding model; defaults to potion-code-16M.
+        :param extensions: File extensions to include.
+        :param ignore: Additional directory names to skip.
+        :param include_text_files: If True, also index .md, .yaml, .json, etc.
+        :return: Indexed SembleIndex with repo-relative chunk paths.
+        :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
         with tempfile.TemporaryDirectory() as tmp_dir:
             # `--` prevents `url` from being interpreted as a git option (e.g. `--upload-pack=...`).
@@ -152,9 +143,7 @@ class SembleIndex:
                 display_root=resolved_path,
             )
 
-            index = SembleIndex(model, bm25, vicinity, chunks)
-
-            return index
+            return SembleIndex(model, bm25, vicinity, chunks)
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically similar to the given chunk or search result.
@@ -204,18 +193,24 @@ class SembleIndex:
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         :raises ValueError: If `mode` is not a recognised search strategy.
         """
-        bm25_index, semantic_index = self._bm25_index, self._semantic_index
         if not self.chunks or not query.strip():
             return []
 
         selector = self._get_selector_vector(filter_languages, filter_paths)
 
         if mode == SearchMode.BM25:
-            return search_bm25(query, bm25_index, self.chunks, top_k, selector=selector)
+            return search_bm25(query, self._bm25_index, self.chunks, top_k, selector=selector)
         if mode == SearchMode.SEMANTIC:
-            return search_semantic(query, self.model, semantic_index, self.chunks, top_k, selector=selector)
+            return search_semantic(query, self.model, self._semantic_index, self.chunks, top_k, selector=selector)
         if mode == SearchMode.HYBRID:
             return search_hybrid(
-                query, self.model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha, selector=selector
+                query,
+                self.model,
+                self._semantic_index,
+                self._bm25_index,
+                self.chunks,
+                top_k,
+                alpha=alpha,
+                selector=selector,
             )
         raise ValueError(f"Unknown search mode: {mode!r}")

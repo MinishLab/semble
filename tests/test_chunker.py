@@ -78,15 +78,6 @@ def test_chunk_source_empty_string() -> None:
     assert chunk_source("   \n\n", "foo.py", "python") == []
 
 
-def test_chunk_file_skips_oversized_file(tmp_path: Path) -> None:
-    """chunk_file returns [] without reading files that exceed _MAX_FILE_BYTES."""
-    from semble.index.chunker import _MAX_FILE_BYTES
-
-    big = tmp_path / "big.py"
-    big.write_bytes(b"x = 1\n" * (_MAX_FILE_BYTES // 6 + 1))
-    assert chunk_file(big) == []
-
-
 def test_filter_extensions_explicit() -> None:
     """filter_extensions returns the provided set unchanged when extensions is not None."""
     explicit: frozenset[str] = frozenset({".py", ".ts"})

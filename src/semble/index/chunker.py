@@ -8,15 +8,10 @@ from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
 
-_MAX_FILE_BYTES = 1_000_000  # 1 MB
-
 
 def chunk_file(file_path: Path) -> list[Chunk]:
-    """Chunk a single file from disk, skipping files larger than 1 MB."""
+    """Chunk a single file from disk."""
     try:
-        if file_path.stat().st_size > _MAX_FILE_BYTES:
-            logger.debug("Skipping %s: exceeds %d bytes", file_path, _MAX_FILE_BYTES)
-            return []
         source = file_path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return []
