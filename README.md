@@ -29,7 +29,7 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 ## Quickstart
 
-Semble can be used as an [MCP server](#mcp-server) or via [bash / AGENTS.md](#bash-integration). Once set up, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
+Once set up, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `"authentication"`) and reading full files, it can query in natural language (e.g. `"How is authentication handled?"`) and immediately get back only the relevant context.
 
 ### MCP
 
