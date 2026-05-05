@@ -34,7 +34,7 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Then ask Claude Code questions about the codebase, e.g. `How is authentication handled in this project?`. Claude Code will automatically use Semble to find the relevant code and answer the question.
+Once added, your agent will automatically use Semble whenever it needs to find relevant code. Instead of having to use grep with a keyword (e.g. `authentication`) and reading full files, it can query in natural language (e.g. `How is authentication handled?`) and immediately get back only the relevant context.
 
 Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients. To update Semble, see [Updating](#updating).
 
