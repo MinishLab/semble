@@ -78,7 +78,7 @@ def test_from_path_rejects_invalid_paths(
 
 
 def test_from_git_raises_on_failure(mock_model: Any) -> None:
-    """from_git raises RuntimeError when the clone fails or git is not installed."""
+    """from_git raises RuntimeError when the clone fails, git is not installed, or times out."""
     with pytest.raises(RuntimeError, match="git clone failed"):
         SembleIndex.from_git("/nonexistent/path/that/does/not/exist", model=mock_model)
 
@@ -86,9 +86,6 @@ def test_from_git_raises_on_failure(mock_model: Any) -> None:
         with pytest.raises(RuntimeError, match="git is not installed"):
             SembleIndex.from_git("https://github.com/x/y", model=mock_model)
 
-
-def test_from_git_raises_on_timeout(mock_model: Any) -> None:
-    """from_git raises RuntimeError when git clone exceeds the timeout."""
     with patch(
         "semble.index.index.subprocess.run",
         side_effect=subprocess.TimeoutExpired(cmd=["git"], timeout=60),
