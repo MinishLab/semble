@@ -80,11 +80,9 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         except ValueError as exc:
             return str(exc)
         results = index.search(query, top_k=top_k, mode=mode)
-        return (
-            "No results found."
-            if not results
-            else _format_results(f"Search results for: {query!r} (mode={mode})", results)
-        )
+        if not results:
+            return "No results found."
+        return _format_results(f"Search results for: {query!r} (mode={mode})", results)
 
     @server.tool()
     async def find_related(
@@ -112,11 +110,9 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
                 "Make sure the file is indexed and the line number is within a known chunk."
             )
         results = index.find_related(chunk, top_k=top_k)
-        return (
-            f"No related chunks found for {file_path}:{line}."
-            if not results
-            else _format_results(f"Chunks related to {file_path}:{line}", results)
-        )
+        if not results:
+            return f"No related chunks found for {file_path}:{line}."
+        return _format_results(f"Chunks related to {file_path}:{line}", results)
 
     return server
 
