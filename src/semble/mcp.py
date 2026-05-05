@@ -23,7 +23,7 @@ _REPO_DESCRIPTION = (
     "The index is cached after the first call, so repeat queries are fast."
 )
 
-_CACHE_MAX_SIZE = 10
+_CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
 
 
 async def _get_index(
@@ -31,7 +31,7 @@ async def _get_index(
     default_source: str | None,
     cache: _IndexCache,
 ) -> SembleIndex:
-    """Return a cached index for *repo*, rejecting unsafe git transport schemes."""
+    """Return a cached index for a repo, rejecting unsafe git transport schemes."""
     if repo is not None and _is_git_url(repo) and not repo.startswith(("https://", "http://")):
         raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
     source = repo or default_source
@@ -50,10 +50,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     server = FastMCP(
         "semble",
         instructions=(
-            "Instant code search for any local or GitHub repository. "
+            "Instant code search for any local or remote git repository. "
             "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
             "When working in a local project, pass the project root as `repo`. "
-            "For remote repos, pass an explicit https:// URL — never guess or infer URLs. "
+            "For remote repos, pass an explicit https:// URL. Never guess or infer URLs. "
             "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
     )

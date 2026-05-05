@@ -11,7 +11,7 @@ from semble.index.sparse import enrich_for_bm25
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder
 
-_MAX_FILE_BYTES = 1_000_000  # 1 MB
+_MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
 
 
 def create_index_from_path(
