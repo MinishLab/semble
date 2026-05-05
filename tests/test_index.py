@@ -4,7 +4,7 @@ from typing import Any
 import pytest
 
 from semble import SembleIndex
-from semble.index.create import create_index_from_path
+from semble.index.create import _MAX_FILE_BYTES, create_index_from_path
 from semble.types import Encoder
 
 
@@ -30,6 +30,13 @@ def test_index_markdown_inclusion(
 def test_index_empty_returns_zero_chunks(mock_model: Encoder, tmp_path: Path) -> None:
     """Indexing an empty directory yields zero files and chunks."""
     with pytest.raises(ValueError):
+        create_index_from_path(tmp_path, mock_model)
+
+
+def test_oversized_file_is_skipped(mock_model: Encoder, tmp_path: Path) -> None:
+    """Files exceeding _MAX_FILE_BYTES are silently skipped during indexing."""
+    (tmp_path / "big.py").write_bytes(b"x" * (_MAX_FILE_BYTES + 1))
+    with pytest.raises(ValueError):  # no indexable content remains
         create_index_from_path(tmp_path, mock_model)
 
 
