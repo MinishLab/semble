@@ -85,3 +85,13 @@ def test_from_git_raises_on_failure(mock_model: Any) -> None:
     with patch("semble.index.index.subprocess.run", side_effect=FileNotFoundError):
         with pytest.raises(RuntimeError, match="git is not installed"):
             SembleIndex.from_git("https://github.com/x/y", model=mock_model)
+
+
+def test_from_git_raises_on_timeout(mock_model: Any) -> None:
+    """from_git raises RuntimeError when git clone exceeds the timeout."""
+    with patch(
+        "semble.index.index.subprocess.run",
+        side_effect=subprocess.TimeoutExpired(cmd=["git"], timeout=300),
+    ):
+        with pytest.raises(RuntimeError, match="timed out"):
+            SembleIndex.from_git("https://github.com/x/y", model=mock_model)

@@ -134,9 +134,11 @@ class SembleIndex:
             # `--` prevents `url` from being interpreted as a git option (e.g. `--upload-pack=...`).
             cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), "--", url, tmp_dir]
             try:
-                result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
+                result = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=300)
             except FileNotFoundError:
                 raise RuntimeError("git is not installed or not on PATH") from None
+            except subprocess.TimeoutExpired:
+                raise RuntimeError(f"git clone timed out for {url!r} (limit: 300 s)") from None
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
             model = model or load_model()

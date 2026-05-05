@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import OrderedDict
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -17,10 +18,36 @@ from semble.utils import _format_results, _is_git_url, _resolve_chunk
 logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
-    "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
+    "https:// git URL (e.g. https://github.com/org/repo) to index and search. "
     "Required when no default index was configured at startup. "
     "The index is cached after the first call, so repeat queries are fast."
 )
+
+_CACHE_MAX_SIZE = 10
+
+
+async def _get_index(
+    repo: str | None,
+    default_source: str | None,
+    cache: _IndexCache,
+) -> SembleIndex:
+    """Return a cached index for *repo*, applying MCP-boundary restrictions.
+
+    Tool-supplied *repo* values are restricted to https:// URLs; arbitrary local
+    paths may only reach the cache via the server's *default_source* startup config.
+    Raises ``ValueError`` with a user-facing message on any failure.
+    """
+    if repo is not None and not repo.startswith(("https://", "http://")):
+        raise ValueError(f"Only https:// git URLs are accepted as `repo`. Got: {repo!r}")
+    source = repo or default_source
+    if not source:
+        raise ValueError("No repo specified and no default index. Pass an https:// git URL as `repo`.")
+    try:
+        return await cache.get(source)
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise ValueError(f"Failed to index {source!r}: {exc}") from exc
 
 
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
@@ -30,8 +57,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         instructions=(
             "Instant code search for any local or GitHub repository. "
             "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
-            "For questions about a library (e.g. a PyPI/npm package), resolve the GitHub URL from your training "
-            "knowledge and pass it as `repo`. "
+            "Pass an explicit https:// git URL as `repo` — never guess or infer URLs. "
             "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
     )
@@ -48,23 +74,19 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
-        Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
+        Pass an https:// git URL as `repo` to index it on demand; indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
         try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
+            index = await _get_index(repo, default_source, cache)
+        except ValueError as exc:
+            return str(exc)
         results = index.search(query, top_k=top_k, mode=mode)
-        if not results:
-            return "No results found."
-        return _format_results(f"Search results for: {query!r} (mode={mode})", results)
+        return (
+            "No results found."
+            if not results
+            else _format_results(f"Search results for: {query!r} (mode={mode})", results)
+        )
 
     @server.tool()
     async def find_related(
@@ -81,16 +103,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Use after `search` to explore related implementations or callers.
         Pass file_path and line from a prior search result.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
         try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
+            index = await _get_index(repo, default_source, cache)
+        except ValueError as exc:
+            return str(exc)
         chunk = _resolve_chunk(index.chunks, file_path, line)
         if chunk is None:
             return (
@@ -98,9 +114,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
                 "Make sure the file is indexed and the line number is within a known chunk."
             )
         results = index.find_related(chunk, top_k=top_k)
-        if not results:
-            return f"No related chunks found for {file_path}:{line}."
-        return _format_results(f"Chunks related to {file_path}:{line}", results)
+        return (
+            f"No related chunks found for {file_path}:{line}."
+            if not results
+            else _format_results(f"Chunks related to {file_path}:{line}", results)
+        )
 
     return server
 
@@ -124,7 +142,7 @@ class _IndexCache:
     def __init__(self, model: Encoder) -> None:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
-        self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
+        self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()
         self._watcher_task: asyncio.Task[None] | None = None
 
     def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
@@ -155,7 +173,11 @@ class _IndexCache:
         """Return an index for the requested source, building and caching it on first access."""
         cache_key = self._compute_cache_key(source, ref)
 
-        if cache_key not in self._tasks:
+        if cache_key in self._tasks:
+            self._tasks.move_to_end(cache_key)
+        else:
+            if len(self._tasks) >= _CACHE_MAX_SIZE:
+                self._tasks.popitem(last=False)
             if _is_git_url(source):
                 self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(SembleIndex.from_git, source, ref=ref, model=self._model)
