@@ -98,7 +98,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local directory path or an https:// git URL. Unsafe git transports (ssh://, file://, SCP-form) are rejected. |
+| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local directory path or an https:// git URL. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
 ### Sub-agent support

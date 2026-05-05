@@ -31,12 +31,7 @@ async def _get_index(
     default_source: str | None,
     cache: _IndexCache,
 ) -> SembleIndex:
-    """Return a cached index for *repo*, applying MCP-boundary restrictions.
-
-    Local directory paths and https:// / http:// URLs are accepted. Unsafe git
-    transport schemes (ssh://, git://, file://, SCP-form) are rejected.
-    Raises ``ValueError`` with a user-facing message on any failure.
-    """
+    """Return a cached index for *repo*, rejecting unsafe git transport schemes."""
     if repo is not None and _is_git_url(repo) and not repo.startswith(("https://", "http://")):
         raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
     source = repo or default_source
@@ -75,8 +70,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
-        Pass a local directory path or https:// git URL as `repo` to index it on demand;
-        indexes are cached for the session.
+        Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
         try:
