@@ -18,7 +18,7 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
-[Bash / AGENTS.md](#bash--agentsmd) •
+[Bash / AGENTS.md](#bash-integration) •
 [CLI](#cli) •
 [Python API](#python-api) •
 [Benchmarks](#benchmarks)
@@ -41,9 +41,9 @@ Once added, your agent will automatically use Semble whenever it needs to find r
 
 Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients.
 
-### Bash / AGENTS.md
+### Bash integration
 
-Install Semble and add the [code search snippet](#bash--agentsmd) to your `AGENTS.md` or `CLAUDE.md`:
+Install Semble and add the [code search snippet](#bash-integration) to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 pip install semble  # Install with pip
@@ -116,7 +116,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
 
-## Bash / AGENTS.md
+## Bash integration
 
 An alternative to MCP is to invoke Semble via Bash. This is the only option for sub-agents, which cannot call MCP tools directly (Claude Code and Codex CLI lazy-load MCP schemas at the top-level agent only).
 
@@ -162,14 +162,6 @@ uvx --from "semble[mcp]" semble init
 This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.md).
 
 ## CLI
-
-Install Semble:
-
-```bash
-pip install semble  # Install with pip
-uv add semble       # Install with uv
-```
-
 
 Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts, sub-agents, or anywhere you want search results without an MCP session.
 
