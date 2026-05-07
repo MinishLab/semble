@@ -144,9 +144,3 @@ exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
 [tool.uv]
 exclude-newer = "1 week"
 constraint-dependencies = ["tree-sitter-language-pack!=1.6.3"] # no MacOS wheels
-
-[dependency-groups]
-dev = [
-    "anthropic>=0.99.0",
-    "openai>=2.34.0",
-]

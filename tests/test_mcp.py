@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from semble.mcp import _IndexCache, create_server, serve
+from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
 from semble.types import Chunk, Encoder, SearchMode, SearchResult
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 from tests.conftest import make_chunk
@@ -256,6 +256,43 @@ async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
     mock_run.assert_called_once()
 
 
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("repo", "tool", "extra_args"),
+    [
+        ("file:///home/user/secret", "search", {"query": "foo"}),
+        ("ssh://internal-host/repo", "search", {"query": "foo"}),
+        ("git@github.com:org/repo", "search", {"query": "foo"}),
+        ("file:///home/user/secret", "find_related", {"file_path": "src/foo.py", "line": 1}),
+        ("ssh://internal-host/repo", "find_related", {"file_path": "src/foo.py", "line": 1}),
+    ],
+    ids=["file_search", "ssh_search", "scp_search", "file_find_related", "ssh_find_related"],
+)
+async def test_tool_rejects_unsafe_repo(
+    cache: _IndexCache, repo: str, tool: str, extra_args: dict[str, object]
+) -> None:
+    """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) supplied as repo."""
+    server = create_server(cache, default_source=None)
+    result = await server.call_tool(tool, {**extra_args, "repo": repo})
+    assert "Only https://" in _tool_text(result)
+
+
+@pytest.mark.anyio
+async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> None:
+    """_IndexCache evicts the least-recently-used entry when the cache is full."""
+    dirs = [tmp_path / str(i) for i in range(_CACHE_MAX_SIZE + 1)]
+    for d in dirs:
+        d.mkdir()
+    with patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()):
+        for d in dirs[:_CACHE_MAX_SIZE]:
+            await cache.get(str(d))
+        first_key = str(dirs[0].resolve())
+        assert first_key in cache._tasks
+        await cache.get(str(dirs[_CACHE_MAX_SIZE]))
+    assert first_key not in cache._tasks
+    assert len(cache._tasks) == _CACHE_MAX_SIZE
+
+
 def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
     """evict() removes an existing cache entry by resolved path."""
     key = str(tmp_path.resolve())
@@ -280,4 +317,5 @@ async def test_watch_loop(cache: _IndexCache, tmp_path: Path) -> None:
     with patch("semble.mcp.watchfiles.awatch", fake_awatch):
         with patch("semble.mcp.SembleIndex.from_path", side_effect=RuntimeError("build failed")):
             await cache.start_watcher(str(tmp_path))
+            assert cache._watcher_task is not None
             await cache._watcher_task

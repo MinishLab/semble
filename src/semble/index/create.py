@@ -11,6 +11,8 @@ from semble.index.sparse import enrich_for_bm25
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder
 
+_MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
+
 
 def create_index_from_path(
     path: Path,
@@ -38,6 +40,8 @@ def create_index_from_path(
     for file_path in walk_files(path, extensions, ignore):
         language = language_for_path(file_path)
         with contextlib.suppress(OSError):
+            if file_path.stat().st_size > _MAX_FILE_BYTES:
+                continue
             source = file_path.read_text(encoding="utf-8", errors="replace")
             chunk_path = file_path.relative_to(display_root) if display_root else file_path
             chunks.extend(chunk_source(source, str(chunk_path), language))

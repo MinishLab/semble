@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import OrderedDict
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -17,10 +18,32 @@ from semble.utils import _format_results, _is_git_url, _resolve_chunk
 logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
-    "Git URL (e.g. https://github.com/org/repo) or local path to index and search. "
+    "https:// or http:// git URL (e.g. https://github.com/org/repo) or local directory path to index and search. "
     "Required when no default index was configured at startup. "
     "The index is cached after the first call, so repeat queries are fast."
 )
+
+_CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
+
+
+async def _get_index(
+    repo: str | None,
+    default_source: str | None,
+    cache: _IndexCache,
+) -> SembleIndex:
+    """Return a cached index for a repo, rejecting unsafe git transport schemes."""
+    if repo is not None and _is_git_url(repo) and not repo.startswith(("https://", "http://")):
+        raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
+    source = repo or default_source
+    if not source:
+        raise ValueError(
+            "No repo specified and no default index. "
+            "Pass an https:// or http:// git URL or local directory path as `repo`."
+        )
+    try:
+        return await cache.get(source)
+    except Exception as exc:
+        raise ValueError(f"Failed to index {source!r}: {exc}") from exc
 
 
 def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
@@ -28,10 +51,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     server = FastMCP(
         "semble",
         instructions=(
-            "Instant code search for any local or GitHub repository. "
+            "Instant code search for any local or remote git repository. "
             "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
-            "For questions about a library (e.g. a PyPI/npm package), resolve the GitHub URL from your training "
-            "knowledge and pass it as `repo`. "
+            "When working in a local project, pass the project root as `repo`. "
+            "For remote repos, pass an explicit https:// URL. Never guess or infer URLs. "
             "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
     )
@@ -51,16 +74,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
         Use this to find where something is implemented, understand a library, or locate related code.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
         try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
+            index = await _get_index(repo, default_source, cache)
+        except ValueError as exc:
+            return str(exc)
         results = index.search(query, top_k=top_k, mode=mode)
         if not results:
             return "No results found."
@@ -81,16 +98,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Use after `search` to explore related implementations or callers.
         Pass file_path and line from a prior search result.
         """
-        source = repo or default_source
-        if not source:
-            return (
-                "No repo specified and no default index. "
-                "Pass a git URL (https://github.com/...) or local path as `repo`."
-            )
         try:
-            index = await cache.get(source)
-        except Exception as exc:
-            return f"Failed to index {source!r}: {exc}"
+            index = await _get_index(repo, default_source, cache)
+        except ValueError as exc:
+            return str(exc)
         chunk = _resolve_chunk(index.chunks, file_path, line)
         if chunk is None:
             return (
@@ -124,7 +135,7 @@ class _IndexCache:
     def __init__(self, model: Encoder) -> None:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
-        self._tasks: dict[str, asyncio.Task[SembleIndex]] = {}
+        self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._watcher_task: asyncio.Task[None] | None = None
 
     def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
@@ -155,7 +166,11 @@ class _IndexCache:
         """Return an index for the requested source, building and caching it on first access."""
         cache_key = self._compute_cache_key(source, ref)
 
-        if cache_key not in self._tasks:
+        if cache_key in self._tasks:
+            self._tasks.move_to_end(cache_key)
+        else:
+            if len(self._tasks) >= _CACHE_MAX_SIZE:
+                self._tasks.popitem(last=False)
             if _is_git_url(source):
                 self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(SembleIndex.from_git, source, ref=ref, model=self._model)
