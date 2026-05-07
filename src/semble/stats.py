@@ -33,7 +33,7 @@ def save_search_stats(
     call_type: CallType,
     file_sizes: dict[str, int],
 ) -> None:
-    """Save token-savings stats for one call. Failures are silently ignored."""
+    """Save stats about a search or find_related call to the stats file."""
     try:
         snippet_chars = sum(len(result.chunk.content) for result in results)
         file_chars = sum(file_sizes.get(path, 0) for path in {result.chunk.file_path for result in results})
