@@ -35,13 +35,18 @@ def _mcp_main() -> None:
         help="Local directory or git URL to pre-index at startup (optional).",
     )
     parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
+    parser.add_argument(
+        "--include-text-files",
+        action="store_true",
+        help="Also index non-code text files (.md, .yaml, .json, etc.).",
+    )
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
         print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
         raise SystemExit(1)
     from semble.mcp import serve
 
-    asyncio.run(serve(args.path, ref=args.ref))
+    asyncio.run(serve(args.path, ref=args.ref, include_text_files=args.include_text_files))
 
 
 def _run_init(*, force: bool = False) -> None:
@@ -67,12 +72,22 @@ def _cli_main() -> None:
     search_p.add_argument(
         "-m", "--mode", default="hybrid", choices=["hybrid", "semantic", "bm25"], help="Search mode (default: hybrid)."
     )
+    search_p.add_argument(
+        "--include-text-files",
+        action="store_true",
+        help="Also index non-code text files (.md, .yaml, .json, etc.).",
+    )
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
     related_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
+    related_p.add_argument(
+        "--include-text-files",
+        action="store_true",
+        help="Also index non-code text files (.md, .yaml, .json, etc.).",
+    )
 
     init_p = sub.add_parser("init", help="Write .claude/agents/semble-search.md for Claude Code sub-agent support.")
     init_p.add_argument("--force", action="store_true", help="Overwrite if the file already exists.")
@@ -90,7 +105,12 @@ def _cli_main() -> None:
         print(format_savings_report(verbose=args.verbose), end="")
         return
 
-    index = SembleIndex.from_git(args.path) if _is_git_url(args.path) else SembleIndex.from_path(args.path)
+    include_text = args.include_text_files
+    index = (
+        SembleIndex.from_git(args.path, include_text_files=include_text)
+        if _is_git_url(args.path)
+        else SembleIndex.from_path(args.path, include_text_files=include_text)
+    )
 
     if args.command == "search":
         results = index.search(args.query, top_k=args.top_k, mode=args.mode)
