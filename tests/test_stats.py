@@ -12,7 +12,7 @@ from semble.types import SearchMode, SearchResult
 from tests.conftest import make_chunk
 
 
-def _make_stats_record(ts: str, call: str = "search", snippet_chars: int = 100, file_chars: int = 500) -> str:
+def _make_stats_record(ts: str, call: str = "search", snippet_chars: int = 1_000, file_chars: int = 20_000) -> str:
     return json.dumps({"ts": ts, "call": call, "results": 3, "snippet_chars": snippet_chars, "file_chars": file_chars})
 
 
@@ -65,6 +65,15 @@ def test_savings_output(sample_stats_file: Path, verbose: bool, expected: list[s
     result = format_savings_report(path=sample_stats_file, verbose=verbose)
     for s in expected:
         assert s in result
+
+
+def test_savings_output_millions(tmp_path: Path) -> None:
+    """Token counts >= 1M are formatted as M, not k."""
+    stats_file = tmp_path / "stats.jsonl"
+    stats_file.write_text(
+        _make_stats_record(datetime.now(timezone.utc).isoformat(), snippet_chars=0, file_chars=4_000_000) + "\n"
+    )
+    assert "M tokens" in format_savings_report(path=stats_file)
 
 
 @pytest.mark.parametrize(

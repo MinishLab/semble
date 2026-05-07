@@ -201,14 +201,12 @@ semble savings --verbose # also show breakdown by call type
   ════════════════════════════════════════════════════════════════
   Period        Calls   Savings
   ────────────────────────────────────────────────────────────────
-  Today         19      [█████████████░░░]  ~122.1k tokens (77%)
-  Last 7 days   125     [█████████████░░░]  ~575.0k tokens (83%)
-  All time      125     [█████████████░░░]  ~575.0k tokens (83%)
+  Today         42      [███████████████░]  ~58.4k tokens (95%)
+  Last 7 days   287     [██████████████░░]  ~312.4k tokens (90%)
+  All time      1.4k    [██████████████░░]  ~1.2M tokens (89%)
 ```
 
-**How savings are calculated:** savings are estimated against a full-file-read baseline: for each call, semble records the total character count of the unique files containing returned chunks and the character count of the snippets actually returned. Estimated tokens saved is `(file chars − snippet chars) / 4`, using the common 4 characters-per-token approximation.
-
-This is a local estimate, not a model of every workflow. Grep-only searches or targeted line-range reads may use fewer tokens; broad manual file reads may use more.
+**How savings are calculated:** for each call, semble records the total character count of the unique files containing returned chunks and the character count of the snippets returned. Estimated tokens saved is `(file chars − snippet chars) / 4` (4 chars per token). This is a conservative estimate: the baseline is reading matched files in full, which is how coding agents often explore unfamiliar code.
 
 Stats are stored in `~/.semble/savings.jsonl`.
 

@@ -115,19 +115,26 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
     for label, bucket in summary.buckets.items():
         saved_chars = max(0, bucket.file_chars - bucket.snippet_chars)
         saved_tokens = saved_chars // 4
-        saved_str = f"~{saved_tokens / 1000:.1f}k" if saved_tokens >= 1000 else f"~{saved_tokens}"
+        if saved_tokens >= 1_000_000:
+            saved_str = f"~{saved_tokens / 1_000_000:.1f}M"
+        elif saved_tokens >= 1000:
+            saved_str = f"~{saved_tokens / 1000:.1f}k"
+        else:
+            saved_str = f"~{saved_tokens}"
+        calls_str = f"{bucket.calls / 1000:.1f}k" if bucket.calls >= 1000 else str(bucket.calls)
         if bucket.file_chars > 0:
             ratio = saved_chars / bucket.file_chars
             filled = round(ratio * bar_width)
             bar = "█" * filled + "░" * (bar_width - filled)
             pct = round(ratio * 100)
-            lines.append(f"  {label:<12}  {bucket.calls:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
+            lines.append(f"  {label:<12}  {calls_str:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
         else:
-            lines.append(f"  {label:<12}  {bucket.calls:<6}  [{'░' * bar_width}]  {saved_str} tokens")
+            lines.append(f"  {label:<12}  {calls_str:<6}  [{'░' * bar_width}]  {saved_str} tokens")
     if verbose and summary.call_type_counts:
         lines += ["", "  Usage Breakdown", light_line, f"  {'Call type':<16}  Calls"]
         for call_type, count in sorted(summary.call_type_counts.items()):
-            lines.append(f"  {call_type:<16}  {count}")
+            count_str = f"{count / 1000:.1f}k" if count >= 1000 else str(count)
+            lines.append(f"  {call_type:<16}  {count_str}")
         lines.append(heavy_line)
     lines.append("")
     return "\n".join(lines)
