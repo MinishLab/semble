@@ -37,7 +37,7 @@ class SembleIndex:
         self.chunks: list[Chunk] = chunks
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
-        self._root_path: Path | None = None
+        self._file_sizes: dict[str, int] = {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
@@ -51,6 +51,20 @@ class SembleIndex:
             file_to_id[chunk.file_path].append(i)
 
         return dict(file_to_id), dict(language_to_id)
+
+    @staticmethod
+    def _compute_file_sizes(root: Path, chunks: list[Chunk]) -> dict[str, int]:
+        """Return a mapping of repo-relative file path → total character count."""
+        sizes: dict[str, int] = {}
+        for chunk in chunks:
+            fp = chunk.file_path
+            if fp in sizes:
+                continue
+            try:
+                sizes[fp] = len((root / fp).read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                pass
+        return sizes
 
     @property
     def stats(self) -> IndexStats:
@@ -103,7 +117,7 @@ class SembleIndex:
         )
 
         index = SembleIndex(model, bm25, vicinity, chunks)
-        index._root_path = path
+        index._file_sizes = SembleIndex._compute_file_sizes(path, chunks)
 
         return index
 
@@ -154,6 +168,7 @@ class SembleIndex:
             )
 
             index = SembleIndex(model, bm25, vicinity, chunks)
+            index._file_sizes = SembleIndex._compute_file_sizes(resolved_path, chunks)
 
             return index
 
@@ -168,7 +183,7 @@ class SembleIndex:
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         results = [r for r in results if r.chunk != target][:top_k]
-        log_search_stats(results, "find_related", self._root_path)
+        log_search_stats(results, "find_related", self._file_sizes)
         return results
 
     def _get_selector_vector(
@@ -223,5 +238,5 @@ class SembleIndex:
             )
         else:
             raise ValueError(f"Unknown search mode: {mode!r}")
-        log_search_stats(results, "search", self._root_path)
+        log_search_stats(results, "search", self._file_sizes)
         return results

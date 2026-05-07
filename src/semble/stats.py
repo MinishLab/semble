@@ -12,24 +12,21 @@ _STATS_FILE = Path.home() / ".semble" / "stats.jsonl"
 def log_search_stats(
     results: list[SearchResult],
     call_type: str,
-    root_path: Path | None = None,
+    file_sizes: dict[str, int] | None = None,
 ) -> None:
     """Append token-savings stats for one search/find_related call. Failures are silently ignored."""
     try:
         snippet_chars = sum(len(r.chunk.content) for r in results)
 
         file_chars = 0
-        if root_path is not None:
+        if file_sizes:
             seen: set[str] = set()
             for r in results:
                 fp = r.chunk.file_path
                 if fp in seen:
                     continue
                 seen.add(fp)
-                try:
-                    file_chars += len((root_path / fp).read_text(encoding="utf-8", errors="replace"))
-                except OSError:
-                    pass
+                file_chars += file_sizes.get(fp, 0)
 
         record = {
             "ts": datetime.now(timezone.utc).isoformat(),

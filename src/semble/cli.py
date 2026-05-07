@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from importlib.resources import files
 from importlib.util import find_spec
 from pathlib import Path
@@ -14,7 +14,7 @@ from semble.stats import _STATS_FILE
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
 _CLAUDE_FILE_PATH = Path(".claude") / "agents" / "semble-search.md"
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "stats", "-h", "--help"})
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help"})
 
 
 def main() -> None:
@@ -62,11 +62,11 @@ def _parse_stats() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
     """Read stats.jsonl and return (period_buckets, call_type_counts)."""
     now = datetime.now(timezone.utc)
     today = now.date().isoformat()
-    this_week = now.isocalendar()[:2]
+    seven_days_ago = (now - timedelta(days=7)).date()
 
     buckets: dict[str, dict[str, int]] = {
         "Today": {"calls": 0, "snippet_chars": 0, "file_chars": 0},
-        "This week": {"calls": 0, "snippet_chars": 0, "file_chars": 0},
+        "Last 7 days": {"calls": 0, "snippet_chars": 0, "file_chars": 0},
         "All time": {"calls": 0, "snippet_chars": 0, "file_chars": 0},
     }
     call_type_counts: dict[str, int] = {}
@@ -90,17 +90,17 @@ def _parse_stats() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
                     buckets["Today"]["calls"] -= 1
                     buckets["Today"]["snippet_chars"] -= sc
                     buckets["Today"]["file_chars"] -= fc
-                if dt.isocalendar()[:2] != this_week:
-                    buckets["This week"]["calls"] -= 1
-                    buckets["This week"]["snippet_chars"] -= sc
-                    buckets["This week"]["file_chars"] -= fc
+                if dt.date() <= seven_days_ago:
+                    buckets["Last 7 days"]["calls"] -= 1
+                    buckets["Last 7 days"]["snippet_chars"] -= sc
+                    buckets["Last 7 days"]["file_chars"] -= fc
             except ValueError:
                 pass
 
     return buckets, call_type_counts
 
 
-def _run_stats() -> None:
+def _run_stats(*, verbose: bool = False) -> None:
     """Print a summary of semble usage and token savings from ~/.semble/stats.jsonl."""
     if not _STATS_FILE.exists():
         print("No stats yet. Run a search first.")
@@ -108,20 +108,28 @@ def _run_stats() -> None:
 
     buckets, call_type_counts = _parse_stats()
 
-    print("\nSemble stats")
-    print("─" * 48)
-    print(f"  {'Period':<12}  {'Calls':>6}  {'Tokens saved':>14}")
-    print(f"  {'──────':<12}  {'─────':>6}  {'────────────':>14}")
-    for label, b in buckets.items():
-        t = max(0, b["file_chars"] - b["snippet_chars"]) // 4
-        saved = f"~{t / 1000:.0f}k" if t >= 1000 else f"~{t}"
-        print(f"  {label:<12}  {b['calls']:>6}  {saved:>14}")
+    _BAR_WIDTH = 16
     print()
-    if call_type_counts:
-        print("  Call breakdown:")
+    print("─" * 56)
+    print(f"  {'Period':<12}  {'Calls':<6}  Savings")
+    for label, b in buckets.items():
+        saved_chars = max(0, b["file_chars"] - b["snippet_chars"])
+        saved_tokens = saved_chars // 4
+        saved_str = f"~{saved_tokens / 1000:.1f}k" if saved_tokens >= 1000 else f"~{saved_tokens}"
+        if b["file_chars"] > 0:
+            ratio = saved_chars / b["file_chars"]
+            filled = round(ratio * _BAR_WIDTH)
+            bar = "█" * filled + "░" * (_BAR_WIDTH - filled)
+            pct = round(ratio * 100)
+            print(f"  {label:<12}  {b['calls']:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
+        else:
+            print(f"  {label:<12}  {b['calls']:<6}  [{'░' * _BAR_WIDTH}]  {saved_str} tokens")
+    print()
+    if verbose and call_type_counts:
+        print("  Usage breakdown:")
         for ct, n in sorted(call_type_counts.items()):
             print(f"    {ct:<16} {n}")
-    print()
+        print()
 
 
 def _cli_main() -> None:
@@ -145,7 +153,8 @@ def _cli_main() -> None:
     init_p = sub.add_parser("init", help="Write .claude/agents/semble-search.md for Claude Code sub-agent support.")
     init_p.add_argument("--force", action="store_true", help="Overwrite if the file already exists.")
 
-    sub.add_parser("stats", help="Show token savings and usage stats.")
+    savings_p = sub.add_parser("savings", help="Show token savings and usage stats.")
+    savings_p.add_argument("--verbose", action="store_true", help="Also show usage breakdown by call type.")
 
     args = parser.parse_args()
 
@@ -153,8 +162,8 @@ def _cli_main() -> None:
         _run_init(force=args.force)
         return
 
-    if args.command == "stats":
-        _run_stats()
+    if args.command == "savings":
+        _run_stats(verbose=args.verbose)
         return
 
     index = SembleIndex.from_git(args.path) if _is_git_url(args.path) else SembleIndex.from_path(args.path)

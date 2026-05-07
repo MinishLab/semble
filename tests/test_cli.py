@@ -1,11 +1,13 @@
+import json
 import sys
+from datetime import datetime, timezone
 from importlib.resources import files
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from semble.cli import _CLAUDE_FILE_PATH, _cli_main, _run_init, main
+from semble.cli import _CLAUDE_FILE_PATH, _cli_main, _parse_stats, _run_init, _run_stats, main
 from semble.types import SearchMode, SearchResult
 from tests.conftest import make_chunk
 
@@ -193,6 +195,101 @@ def test_mcp_main_exits_with_message_when_extras_missing(
             main()
     assert exc_info.value.code == 1
     assert "pip install 'semble[mcp]'" in capsys.readouterr().err
+
+
+def _make_stats_record(ts: str, call: str = "search", snippet_chars: int = 100, file_chars: int = 500) -> str:
+    return json.dumps({"ts": ts, "call": call, "results": 3, "snippet_chars": snippet_chars, "file_chars": file_chars})
+
+
+def test_stats_no_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_stats prints a friendly message when no stats file exists yet."""
+    monkeypatch.setattr("semble.cli._STATS_FILE", tmp_path / "nonexistent.jsonl")
+    _run_stats()
+    assert "No stats yet" in capsys.readouterr().out
+
+
+def test_stats_valid_records(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """_run_stats displays period buckets and savings header."""
+    stats_file = tmp_path / "stats.jsonl"
+    now = datetime.now(timezone.utc).isoformat()
+    stats_file.write_text(
+        _make_stats_record(now, call="search") + "\n" + _make_stats_record(now, call="find_related") + "\n"
+    )
+    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
+    _run_stats()
+    out = capsys.readouterr().out
+    assert "Savings" in out
+    assert "Savings" in out
+    assert "Today" in out
+
+
+def test_stats_verbose_shows_breakdown(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """_run_stats --verbose adds a usage breakdown by call type."""
+    stats_file = tmp_path / "stats.jsonl"
+    now = datetime.now(timezone.utc).isoformat()
+    stats_file.write_text(
+        _make_stats_record(now, call="search") + "\n" + _make_stats_record(now, call="find_related") + "\n"
+    )
+    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
+    _run_stats(verbose=True)
+    out = capsys.readouterr().out
+    assert "Usage breakdown" in out
+    assert "search" in out
+    assert "find_related" in out
+
+
+@pytest.mark.parametrize(
+    "bad_line",
+    [
+        "not valid json",
+        json.dumps({"ts": "not-a-date", "call": "search", "snippet_chars": 100, "file_chars": 500}),
+    ],
+    ids=["malformed-json", "malformed-timestamp"],
+)
+def test_stats_tolerates_bad_records(
+    bad_line: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """_run_stats skips bad JSON and bad timestamps without crashing."""
+    stats_file = tmp_path / "stats.jsonl"
+    stats_file.write_text(bad_line + "\n")
+    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
+    _run_stats()
+    assert "Savings" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("argv", "expected"),
+    [
+        (["semble", "savings"], "No stats yet"),
+        (["semble", "savings", "--verbose"], "No stats yet"),
+    ],
+    ids=["default", "verbose"],
+)
+def test_stats_cli_dispatch(
+    argv: list[str], expected: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Semble stats subcommand dispatches to _run_stats, with and without --verbose."""
+    monkeypatch.setattr(sys, "argv", argv)
+    monkeypatch.setattr("semble.cli._STATS_FILE", tmp_path / "nonexistent.jsonl")
+    _cli_main()
+    assert expected in capsys.readouterr().out
+
+
+def test_stats_buckets_exclude_old_records(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Records older than 7 days count in All time but not Today or Last 7 days."""
+    stats_file = tmp_path / "stats.jsonl"
+    old_ts = "2020-01-01T00:00:00+00:00"
+    now_ts = datetime.now(timezone.utc).isoformat()
+    stats_file.write_text(_make_stats_record(old_ts) + "\n" + _make_stats_record(now_ts) + "\n")
+    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
+    buckets, _ = _parse_stats()
+    assert buckets["All time"]["calls"] == 2
+    assert buckets["Today"]["calls"] == 1
+    assert buckets["Last 7 days"]["calls"] == 1
 
 
 def test_agent_file_tools_are_bash_only() -> None:
