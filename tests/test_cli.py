@@ -237,7 +237,7 @@ def test_stats_verbose_shows_breakdown(
     monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
     _run_stats(verbose=True)
     out = capsys.readouterr().out
-    assert "Usage breakdown" in out
+    assert "Usage Breakdown" in out
     assert "search" in out
     assert "find_related" in out
 

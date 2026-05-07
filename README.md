@@ -197,16 +197,18 @@ semble savings --verbose # also show breakdown by call type
 ```
 
 ```
-──────────────────────────────────────────────────────
-  Period      Calls   Savings
-  Today          11   [██████████████░░]  ~94.6k tokens (85%)
-  Last 7 days    11   [██████████████░░]  ~94.6k tokens (85%)
-  All time       11   [██████████████░░]  ~94.6k tokens (85%)
+  Semble Token Savings
+  ════════════════════════════════════════════════════════════════
+  Period        Calls   Savings
+  ────────────────────────────────────────────────────────────────
+  Today         19      [█████████████░░░]  ~122.1k tokens (77%)
+  Last 7 days   125     [█████████████░░░]  ~575.0k tokens (83%)
+  All time      125     [█████████████░░░]  ~575.0k tokens (83%)
 ```
 
 **How savings are calculated:** for each search call, semble records the total character count of the source files that contained matching chunks — what an agent would read in full without semble — and the character count of the snippets actually returned. Tokens saved is `(file chars − snippet chars) / 4`, using the standard 4 characters-per-token approximation. The percentage is the reduction versus reading matched files in full; the true savings are higher still, since without semble an agent would also scan files that produced no matches.
 
-Stats are stored in `~/.semble/stats.jsonl`.
+Stats are stored in `~/.semble/savings.jsonl`.
 
 ### Updating
 

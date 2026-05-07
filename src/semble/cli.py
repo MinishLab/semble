@@ -59,7 +59,7 @@ def _run_init(*, force: bool = False) -> None:
 
 
 def _parse_stats() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
-    """Read stats.jsonl and return (period_buckets, call_type_counts)."""
+    """Read savings.jsonl and return (period_buckets, call_type_counts)."""
     now = datetime.now(timezone.utc)
     today = now.date().isoformat()
     seven_days_ago = (now - timedelta(days=7)).date()
@@ -101,7 +101,7 @@ def _parse_stats() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
 
 
 def _run_stats(*, verbose: bool = False) -> None:
-    """Print a summary of semble usage and token savings from ~/.semble/stats.jsonl."""
+    """Print a summary of semble usage and token savings from ~/.semble/savings.jsonl."""
     if not _STATS_FILE.exists():
         print("No stats yet. Run a search first.")
         return
@@ -109,9 +109,12 @@ def _run_stats(*, verbose: bool = False) -> None:
     buckets, call_type_counts = _parse_stats()
 
     _BAR_WIDTH = 16
+    _RULE_WIDTH = 64
     print()
-    print("─" * 56)
+    print("  Semble Token Savings")
+    print("  " + "═" * _RULE_WIDTH)
     print(f"  {'Period':<12}  {'Calls':<6}  Savings")
+    print("  " + "─" * _RULE_WIDTH)
     for label, b in buckets.items():
         saved_chars = max(0, b["file_chars"] - b["snippet_chars"])
         saved_tokens = saved_chars // 4
@@ -124,12 +127,15 @@ def _run_stats(*, verbose: bool = False) -> None:
             print(f"  {label:<12}  {b['calls']:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
         else:
             print(f"  {label:<12}  {b['calls']:<6}  [{'░' * _BAR_WIDTH}]  {saved_str} tokens")
-    print()
     if verbose and call_type_counts:
-        print("  Usage breakdown:")
-        for ct, n in sorted(call_type_counts.items()):
-            print(f"    {ct:<16} {n}")
         print()
+        print("  Usage Breakdown")
+        print("  " + "─" * _RULE_WIDTH)
+        print(f"  {'Call type':<16}  Calls")
+        for ct, n in sorted(call_type_counts.items()):
+            print(f"  {ct:<16}  {n}")
+        print("  " + "═" * _RULE_WIDTH)
+    print()
 
 
 def _cli_main() -> None:

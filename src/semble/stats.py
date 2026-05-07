@@ -6,7 +6,7 @@ from pathlib import Path
 
 from semble.types import SearchResult
 
-_STATS_FILE = Path.home() / ".semble" / "stats.jsonl"
+_STATS_FILE = Path.home() / ".semble" / "savings.jsonl"
 
 
 def log_search_stats(

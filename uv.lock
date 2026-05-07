@@ -32,25 +32,6 @@ wheels = [
 ]
 
 [[package]]
-name = "anthropic"
-version = "0.99.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "anyio" },
-    { name = "distro" },
-    { name = "docstring-parser" },
-    { name = "httpx" },
-    { name = "jiter" },
-    { name = "pydantic" },
-    { name = "sniffio" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/0d/c9/e8a3a1caeab575e80551b30b084096b5a430abc52739a526a1daaadd038c/anthropic-0.99.0.tar.gz", hash = "sha256:16f41e00f215ed2d193b146be3dd567c4319c32ed3af6c8725d68ba875257c1c", size = 727239, upload-time = "2026-05-05T16:03:07.986Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/84/d0917506744e1707cf55659a57f1e3ff952eda5636df0ffffe3e884b7c61/anthropic-0.99.0-py3-none-any.whl", hash = "sha256:c44469b746ab2ef19a4c52dcbdb98e17bc95c60bebdd18ec40d76d2d23592b49", size = 700564, upload-time = "2026-05-05T16:03:06.059Z" },
-]
-
-[[package]]
 name = "anyio"
 version = "4.13.0"
 source = { registry = "https://pypi.org/simple" }
@@ -775,15 +756,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
-]
-
-[[package]]
-name = "docstring-parser"
-version = "0.18.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e0/4d/f332313098c1de1b2d2ff91cf2674415cc7cddab2ca1b01ae29774bd5fdf/docstring_parser-0.18.0.tar.gz", hash = "sha256:292510982205c12b1248696f44959db3cdd1740237a968ea1e2e7a900eeb2015", size = 29341, upload-time = "2026-04-14T04:09:19.867Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/5f/ed01f9a3cdffbd5a008556fc7b2a08ddb1cc6ace7effa7340604b1d16699/docstring_parser-0.18.0-py3-none-any.whl", hash = "sha256:b3fcbed555c47d8479be0796ef7e19c2670d428d72e96da63f3a40122860374b", size = 22484, upload-time = "2026-04-14T04:09:18.638Z" },
 ]
 
 [[package]]
@@ -3372,12 +3344,6 @@ mcp = [
     { name = "watchfiles" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "anthropic" },
-    { name = "openai" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "bm25s", specifier = ">=0.2.0" },
@@ -3402,12 +3368,6 @@ requires-dist = [
     { name = "watchfiles", marker = "extra == 'mcp'", specifier = ">=0.21" },
 ]
 provides-extras = ["mcp", "benchmark", "dev"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "anthropic", specifier = ">=0.99.0" },
-    { name = "openai", specifier = ">=2.34.0" },
-]
 
 [[package]]
 name = "sentence-transformers"
