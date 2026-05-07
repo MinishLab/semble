@@ -13,8 +13,8 @@ from bm25s import BM25
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.search import search_bm25, search_hybrid, search_semantic
-from semble.stats import log_search_stats
-from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
+from semble.stats import save_search_stats
+from semble.types import CallType, Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 
@@ -190,7 +190,7 @@ class SembleIndex:
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         results = [r for r in results if r.chunk != target][:top_k]
-        log_search_stats(results, "find_related", self._file_sizes)
+        save_search_stats(results, CallType.FIND_RELATED, self._file_sizes)
         return results
 
     def _get_selector_vector(
@@ -245,5 +245,5 @@ class SembleIndex:
             )
         else:
             raise ValueError(f"Unknown search mode: {mode!r}")
-        log_search_stats(results, "search", self._file_sizes)
+        save_search_stats(results, CallType.SEARCH, self._file_sizes)
         return results

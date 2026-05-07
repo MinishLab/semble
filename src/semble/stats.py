@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from semble.types import SearchResult
+from semble.types import CallType, SearchResult
 
 _STATS_FILE = Path.home() / ".semble" / "savings.jsonl"
 
@@ -28,12 +28,18 @@ class SavingsSummary:
     call_type_counts: dict[str, int]
 
 
-def log_search_stats(
+def save_search_stats(
     results: list[SearchResult],
-    call_type: str,
+    call_type: CallType,
     file_sizes: dict[str, int] | None = None,
 ) -> None:
-    """Append token-savings stats for one search/find_related call. Failures are silently ignored."""
+    """Save stats about a search or find_related call to the stats file.
+
+    :param results: The search results to summarize.
+    :param call_type: A CallType indicating the type of call ("search" or "find_related").
+    :param file_sizes: Optional mapping of file paths to their character counts, used to calculate file_chars.
+      If not provided, file_chars will be recorded as 0.
+    """
     try:
         snippet_chars = sum(len(result.chunk.content) for result in results)
         if file_sizes:
@@ -55,7 +61,7 @@ def log_search_stats(
         pass
 
 
-def parse_stats(path: Path = _STATS_FILE) -> SavingsSummary:
+def build_savings_summary(path: Path = _STATS_FILE) -> SavingsSummary:
     """Read savings.jsonl and return a SavingsSummary."""
     now = datetime.now(timezone.utc)
     today = now.date()
@@ -100,7 +106,7 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
     if not path.exists():
         return "No stats yet. Run a search first."
 
-    summary = parse_stats(path)
+    summary = build_savings_summary(path)
     bar_width = 16
     heavy_line = "  " + "═" * 64
     light_line = "  " + "─" * 64

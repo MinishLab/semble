@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 import pytest
 
 from semble.cli import _cli_main
-from semble.stats import format_savings_report, log_search_stats, parse_stats
-from semble.types import SearchMode, SearchResult
+from semble.stats import build_savings_summary, format_savings_report, save_search_stats
+from semble.types import CallType, SearchMode, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -27,20 +27,20 @@ def sample_stats_file(tmp_path: Path) -> Path:
     return stats_file
 
 
-def test_log_search_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """log_search_stats deduplicates file paths and silences write errors."""
+def test_save_search_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """save_search_stats deduplicates file paths and silences write errors."""
     chunk = make_chunk("hello", "src/foo.py")
     result = SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)
     stats_file = tmp_path / "stats.jsonl"
     monkeypatch.setattr("semble.stats._STATS_FILE", stats_file)
-    log_search_stats([result, result], "search", {"src/foo.py": 42})
+    save_search_stats([result, result], CallType.SEARCH, {"src/foo.py": 42})
     assert json.loads(stats_file.read_text())["file_chars"] == 42
 
     mock_path = MagicMock()
     mock_path.parent.mkdir.return_value = None
     mock_path.open.side_effect = OSError("no write")
     monkeypatch.setattr("semble.stats._STATS_FILE", mock_path)
-    log_search_stats([], "search")  # must not raise
+    save_search_stats([], CallType.SEARCH)  # must not raise
 
 
 def test_savings_no_file(tmp_path: Path) -> None:
@@ -111,7 +111,7 @@ def test_savings_buckets_exclude_old_records(tmp_path: Path) -> None:
     old_ts = "2020-01-01T00:00:00+00:00"
     now_ts = datetime.now(timezone.utc).isoformat()
     stats_file.write_text(_make_stats_record(old_ts) + "\n" + _make_stats_record(now_ts) + "\n")
-    summary = parse_stats(path=stats_file)
+    summary = build_savings_summary(path=stats_file)
     assert summary.buckets["All time"].calls == 2
     assert summary.buckets["Today"].calls == 1
     assert summary.buckets["Last 7 days"].calls == 1

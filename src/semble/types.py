@@ -17,6 +17,13 @@ class SearchMode(str, Enum):
     BM25 = "bm25"
 
 
+class CallType(str, Enum):
+    """Call type for token-savings tracking."""
+
+    SEARCH = "search"
+    FIND_RELATED = "find_related"
+
+
 class Encoder(Protocol):
     """Protocol for embedding models."""
 
