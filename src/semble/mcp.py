@@ -37,7 +37,8 @@ async def _get_index(
     source = repo or default_source
     if not source:
         raise ValueError(
-            "No repo specified and no default index. Pass an https:// git URL or local directory path as `repo`."
+            "No repo specified and no default index. "
+            "Pass an https:// or http:// git URL or local directory path as `repo`."
         )
     try:
         return await cache.get(source)
@@ -134,7 +135,7 @@ class _IndexCache:
     def __init__(self, model: Encoder) -> None:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
-        self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()
+        self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._watcher_task: asyncio.Task[None] | None = None
 
     def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
