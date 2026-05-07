@@ -34,13 +34,18 @@ def _mcp_main() -> None:
         help="Local directory or git URL to pre-index at startup (optional).",
     )
     parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
+    parser.add_argument(
+        "--include-text-files",
+        action="store_true",
+        help="Also index non-code text files (.md, .yaml, .json, etc.).",
+    )
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
         print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
         raise SystemExit(1)
     from semble.mcp import serve
 
-    asyncio.run(serve(args.path, ref=args.ref))
+    asyncio.run(serve(args.path, ref=args.ref, include_text_files=args.include_text_files))
 
 
 def _run_init(*, force: bool = False) -> None:
