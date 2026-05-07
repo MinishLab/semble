@@ -191,6 +191,7 @@ class SembleIndex:
         results = search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         results = [r for r in results if r.chunk != target][:top_k]
         if self._file_sizes:
+            # Save stats if file sizes are available
             save_search_stats(results, CallType.FIND_RELATED, self._file_sizes)
         return results
 
