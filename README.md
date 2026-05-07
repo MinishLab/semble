@@ -196,6 +196,8 @@ semble savings           # summary by period
 semble savings --verbose # also show breakdown by call type
 ```
 
+> Savings are measured against reading matched files in full. True savings versus grep+read are higher still, since grep+read also scans every file that produces no matches.
+
 ```
   Semble Token Savings
   ════════════════════════════════════════════════════════════════
@@ -206,7 +208,7 @@ semble savings --verbose # also show breakdown by call type
   All time      125     [█████████████░░░]  ~575.0k tokens (83%)
 ```
 
-**How savings are calculated:** for each search call, semble records the total character count of the source files that contained matching chunks — what an agent would read in full without semble — and the character count of the snippets actually returned. Tokens saved is `(file chars − snippet chars) / 4`, using the standard 4 characters-per-token approximation. The percentage is the reduction versus reading matched files in full; the true savings are higher still, since without semble an agent would also scan files that produced no matches.
+**How savings are calculated:** for each call, semble records the total character count of files containing matching chunks and the character count of the snippets actually returned. Tokens saved is `(file chars − snippet chars) / 4`, using the standard 4 characters-per-token approximation.
 
 Stats are stored in `~/.semble/savings.jsonl`.
 
