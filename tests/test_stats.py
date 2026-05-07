@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from semble.cli import _cli_main, _parse_stats, _run_stats
-from semble.stats import log_search_stats
+from semble.cli import _cli_main
+from semble.stats import format_savings_report, log_search_stats, parse_stats
 from semble.types import SearchMode, SearchResult
 from tests.conftest import make_chunk
 
@@ -17,14 +17,13 @@ def _make_stats_record(ts: str, call: str = "search", snippet_chars: int = 100, 
 
 
 @pytest.fixture
-def sample_stats_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Fixture for a stats file with two records."""
+def sample_stats_file(tmp_path: Path) -> Path:
+    """Stats file with one search and one find_related record from today."""
     stats_file = tmp_path / "stats.jsonl"
     now = datetime.now(timezone.utc).isoformat()
     stats_file.write_text(
         _make_stats_record(now, call="search") + "\n" + _make_stats_record(now, call="find_related") + "\n"
     )
-    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
     return stats_file
 
 
@@ -48,11 +47,9 @@ def test_log_search_stats_silences_write_errors(monkeypatch: pytest.MonkeyPatch)
     log_search_stats([], "search")  # must not raise
 
 
-def test_savings_no_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """_run_stats prints a friendly message when no stats file exists yet."""
-    monkeypatch.setattr("semble.cli._STATS_FILE", tmp_path / "nonexistent.jsonl")
-    _run_stats()
-    assert "No stats yet" in capsys.readouterr().out
+def test_savings_no_file(tmp_path: Path) -> None:
+    """format_savings_report returns a friendly message when no stats file exists yet."""
+    assert "No stats yet" in format_savings_report(path=tmp_path / "nonexistent.jsonl")
 
 
 @pytest.mark.parametrize(
@@ -63,14 +60,11 @@ def test_savings_no_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys
     ],
     ids=["default", "verbose"],
 )
-def test_savings_output(
-    sample_stats_file: Path, verbose: bool, expected: list[str], capsys: pytest.CaptureFixture[str]
-) -> None:
-    """_run_stats displays period buckets; --verbose adds call-type breakdown."""
-    _run_stats(verbose=verbose)
-    out = capsys.readouterr().out
+def test_savings_output(sample_stats_file: Path, verbose: bool, expected: list[str]) -> None:
+    """format_savings_report displays period buckets; --verbose adds call-type breakdown."""
+    result = format_savings_report(path=sample_stats_file, verbose=verbose)
     for s in expected:
-        assert s in out
+        assert s in result
 
 
 @pytest.mark.parametrize(
@@ -81,15 +75,11 @@ def test_savings_output(
     ],
     ids=["malformed-json", "malformed-timestamp"],
 )
-def test_savings_tolerates_bad_records(
-    bad_line: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    """_run_stats skips bad JSON and bad timestamps without crashing."""
+def test_savings_tolerates_bad_records(bad_line: str, tmp_path: Path) -> None:
+    """format_savings_report skips bad JSON and bad timestamps without crashing."""
     stats_file = tmp_path / "stats.jsonl"
     stats_file.write_text(bad_line + "\n")
-    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
-    _run_stats()
-    assert "Savings" in capsys.readouterr().out
+    assert "Savings" in format_savings_report(path=stats_file)
 
 
 @pytest.mark.parametrize(
@@ -103,21 +93,20 @@ def test_savings_tolerates_bad_records(
 def test_savings_cli_dispatch(
     argv: list[str], expected: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Savings subcommand dispatches to _run_stats, with and without --verbose."""
+    """Savings subcommand dispatches to format_savings_report, with and without --verbose."""
     monkeypatch.setattr(sys, "argv", argv)
-    monkeypatch.setattr("semble.cli._STATS_FILE", tmp_path / "nonexistent.jsonl")
+    monkeypatch.setattr("semble.stats._STATS_FILE", tmp_path / "nonexistent.jsonl")
     _cli_main()
     assert expected in capsys.readouterr().out
 
 
-def test_savings_buckets_exclude_old_records(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_savings_buckets_exclude_old_records(tmp_path: Path) -> None:
     """Records older than 7 days count in All time but not Today or Last 7 days."""
     stats_file = tmp_path / "stats.jsonl"
     old_ts = "2020-01-01T00:00:00+00:00"
     now_ts = datetime.now(timezone.utc).isoformat()
     stats_file.write_text(_make_stats_record(old_ts) + "\n" + _make_stats_record(now_ts) + "\n")
-    monkeypatch.setattr("semble.cli._STATS_FILE", stats_file)
-    buckets, _ = _parse_stats()
-    assert buckets["All time"]["calls"] == 2
-    assert buckets["Today"]["calls"] == 1
-    assert buckets["Last 7 days"]["calls"] == 1
+    summary = parse_stats(path=stats_file)
+    assert summary.buckets["All time"].calls == 2
+    assert summary.buckets["Today"].calls == 1
+    assert summary.buckets["Last 7 days"].calls == 1
