@@ -51,7 +51,7 @@ def log_search_stats(
         _STATS_FILE.parent.mkdir(parents=True, exist_ok=True)
         with _STATS_FILE.open("a") as f:
             f.write(json.dumps(record) + "\n")
-    except Exception:
+    except OSError:
         pass
 
 
