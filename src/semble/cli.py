@@ -97,7 +97,7 @@ def _cli_main() -> None:
         _run_init(force=args.force)
         return
 
-    include_text = getattr(args, "include_text_files", False)
+    include_text = args.include_text_files
     index = (
         SembleIndex.from_git(args.path, include_text_files=include_text)
         if _is_git_url(args.path)
