@@ -301,6 +301,21 @@ def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
     assert key not in cache._tasks
 
 
+@pytest.mark.anyio
+async def test_serve_passes_include_text_files(tmp_path: Path) -> None:
+    """serve(include_text_files=True) forwards the flag when building the index."""
+    with (
+        patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
+        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()) as mock_from_path,
+        patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock),
+    ):
+        await serve(str(tmp_path), include_text_files=True)
+
+    _, kwargs = mock_from_path.call_args
+    assert kwargs.get("include_text_files") is True
+
+
 def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
     """evict() on an unknown path is a no-op."""
     cache.evict(str(tmp_path))  # should not raise

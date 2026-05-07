@@ -195,6 +195,30 @@ def test_mcp_main_exits_with_message_when_extras_missing(
     assert "pip install 'semble[mcp]'" in capsys.readouterr().err
 
 
+def test_cli_search_passes_include_text_files(monkeypatch: pytest.MonkeyPatch) -> None:
+    """--include-text-files is forwarded to SembleIndex.from_path."""
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", "--include-text-files"])
+    fake_index = MagicMock()
+    fake_index.search.return_value = []
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        _cli_main()
+    mock_from_path.assert_called_once_with("/some/path", include_text_files=True)
+
+
+def test_cli_find_related_passes_include_text_files(monkeypatch: pytest.MonkeyPatch) -> None:
+    """--include-text-files is forwarded to SembleIndex.from_path for find-related."""
+    chunk = make_chunk("def foo(): pass", "src/foo.py")
+    monkeypatch.setattr(
+        sys, "argv", ["semble", "find-related", "src/foo.py", "1", "/some/path", "--include-text-files"]
+    )
+    fake_index = MagicMock()
+    fake_index.chunks = [chunk]
+    fake_index.find_related.return_value = []
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        _cli_main()
+    mock_from_path.assert_called_once_with("/some/path", include_text_files=True)
+
+
 def test_agent_file_tools_are_bash_only() -> None:
     """The agent file must list only Bash and Read — no MCP tools that require schema loading."""
     frontmatter = _CLAUDE_AGENT_FILE.split("---")[1]
