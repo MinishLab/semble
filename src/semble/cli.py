@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import sys
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from importlib.resources import files
 from importlib.util import find_spec
@@ -58,10 +59,16 @@ def _run_init(*, force: bool = False) -> None:
     print(f"Created {dest}")
 
 
+def _add_to_bucket(bucket: dict[str, int], snippet_chars: int, file_chars: int) -> None:
+    bucket["calls"] += 1
+    bucket["snippet_chars"] += snippet_chars
+    bucket["file_chars"] += file_chars
+
+
 def _parse_stats() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
     """Read savings.jsonl and return (period_buckets, call_type_counts)."""
     now = datetime.now(timezone.utc)
-    today = now.date().isoformat()
+    today = now.date()
     seven_days_ago = (now - timedelta(days=7)).date()
 
     buckets: dict[str, dict[str, int]] = {
@@ -69,33 +76,29 @@ def _parse_stats() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
         "Last 7 days": {"calls": 0, "snippet_chars": 0, "file_chars": 0},
         "All time": {"calls": 0, "snippet_chars": 0, "file_chars": 0},
     }
-    call_type_counts: dict[str, int] = {}
+    call_type_counts: defaultdict[str, int] = defaultdict(int)
 
     with _STATS_FILE.open() as f:
         for line in f:
             try:
-                r = json.loads(line)
+                record = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            sc, fc = r.get("snippet_chars", 0), r.get("file_chars", 0)
-            ct = r.get("call", "search")
-            call_type_counts[ct] = call_type_counts.get(ct, 0) + 1
-            for b in buckets.values():
-                b["calls"] += 1
-                b["snippet_chars"] += sc
-                b["file_chars"] += fc
+            snippet_chars = record.get("snippet_chars", 0)
+            file_chars = record.get("file_chars", 0)
+            call_type = record.get("call", "search")
+            call_type_counts[call_type] += 1
             try:
-                dt = datetime.fromisoformat(r.get("ts", ""))
-                if dt.date().isoformat() != today:
-                    buckets["Today"]["calls"] -= 1
-                    buckets["Today"]["snippet_chars"] -= sc
-                    buckets["Today"]["file_chars"] -= fc
-                if dt.date() <= seven_days_ago:
-                    buckets["Last 7 days"]["calls"] -= 1
-                    buckets["Last 7 days"]["snippet_chars"] -= sc
-                    buckets["Last 7 days"]["file_chars"] -= fc
+                record_date = datetime.fromisoformat(record.get("ts", "")).date()
+                in_today = record_date == today
+                in_last_7 = record_date > seven_days_ago
             except ValueError:
-                pass
+                in_today = in_last_7 = True
+            _add_to_bucket(buckets["All time"], snippet_chars, file_chars)
+            if in_last_7:
+                _add_to_bucket(buckets["Last 7 days"], snippet_chars, file_chars)
+            if in_today:
+                _add_to_bucket(buckets["Today"], snippet_chars, file_chars)
 
     return buckets, call_type_counts
 
@@ -108,33 +111,34 @@ def _run_stats(*, verbose: bool = False) -> None:
 
     buckets, call_type_counts = _parse_stats()
 
-    _BAR_WIDTH = 16
-    _RULE_WIDTH = 64
+    bar_width = 16
+    heavy_line = "  " + "═" * 64
+    light_line = "  " + "─" * 64
     print()
     print("  Semble Token Savings")
-    print("  " + "═" * _RULE_WIDTH)
+    print(heavy_line)
     print(f"  {'Period':<12}  {'Calls':<6}  Savings")
-    print("  " + "─" * _RULE_WIDTH)
-    for label, b in buckets.items():
-        saved_chars = max(0, b["file_chars"] - b["snippet_chars"])
+    print(light_line)
+    for label, bucket in buckets.items():
+        saved_chars = max(0, bucket["file_chars"] - bucket["snippet_chars"])
         saved_tokens = saved_chars // 4
         saved_str = f"~{saved_tokens / 1000:.1f}k" if saved_tokens >= 1000 else f"~{saved_tokens}"
-        if b["file_chars"] > 0:
-            ratio = saved_chars / b["file_chars"]
-            filled = round(ratio * _BAR_WIDTH)
-            bar = "█" * filled + "░" * (_BAR_WIDTH - filled)
+        if bucket["file_chars"] > 0:
+            ratio = saved_chars / bucket["file_chars"]
+            filled = round(ratio * bar_width)
+            bar = "█" * filled + "░" * (bar_width - filled)
             pct = round(ratio * 100)
-            print(f"  {label:<12}  {b['calls']:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
+            print(f"  {label:<12}  {bucket['calls']:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
         else:
-            print(f"  {label:<12}  {b['calls']:<6}  [{'░' * _BAR_WIDTH}]  {saved_str} tokens")
+            print(f"  {label:<12}  {bucket['calls']:<6}  [{'░' * bar_width}]  {saved_str} tokens")
     if verbose and call_type_counts:
         print()
         print("  Usage Breakdown")
-        print("  " + "─" * _RULE_WIDTH)
+        print(light_line)
         print(f"  {'Call type':<16}  Calls")
-        for ct, n in sorted(call_type_counts.items()):
-            print(f"  {ct:<16}  {n}")
-        print("  " + "═" * _RULE_WIDTH)
+        for call_type, count in sorted(call_type_counts.items()):
+            print(f"  {call_type:<16}  {count}")
+        print(heavy_line)
     print()
 
 

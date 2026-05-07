@@ -16,17 +16,11 @@ def log_search_stats(
 ) -> None:
     """Append token-savings stats for one search/find_related call. Failures are silently ignored."""
     try:
-        snippet_chars = sum(len(r.chunk.content) for r in results)
-
-        file_chars = 0
+        snippet_chars = sum(len(result.chunk.content) for result in results)
         if file_sizes:
-            seen: set[str] = set()
-            for r in results:
-                fp = r.chunk.file_path
-                if fp in seen:
-                    continue
-                seen.add(fp)
-                file_chars += file_sizes.get(fp, 0)
+            file_chars = sum(file_sizes.get(path, 0) for path in {result.chunk.file_path for result in results})
+        else:
+            file_chars = 0
 
         record = {
             "ts": datetime.now(timezone.utc).isoformat(),

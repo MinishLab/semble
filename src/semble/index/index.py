@@ -60,11 +60,11 @@ class SembleIndex:
         """Return a mapping of repo-relative file path → total character count."""
         sizes: dict[str, int] = {}
         for chunk in chunks:
-            fp = chunk.file_path
-            if fp in sizes:
+            file_path = chunk.file_path
+            if file_path in sizes:
                 continue
             try:
-                sizes[fp] = len((root / fp).read_text(encoding="utf-8", errors="replace"))
+                sizes[file_path] = len((root / file_path).read_text(encoding="utf-8", errors="replace"))
             except OSError:
                 pass
         return sizes
