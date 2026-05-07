@@ -15,7 +15,7 @@ from semble.index.dense import SelectableBasicBackend, load_model
 from semble.search import search_bm25, search_hybrid, search_semantic
 from semble.types import Chunk, Encoder, IndexStats, SearchMode, SearchResult
 
-_GIT_CLONE_TIMEOUT_S = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
+_GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 
 
 class SembleIndex:
@@ -138,12 +138,12 @@ class SembleIndex:
             cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), "--", url, tmp_dir]
             try:
                 result = subprocess.run(
-                    cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=_GIT_CLONE_TIMEOUT_S
+                    cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=_GIT_CLONE_TIMEOUT
                 )
             except FileNotFoundError:
                 raise RuntimeError("git is not installed or not on PATH") from None
             except subprocess.TimeoutExpired:
-                raise RuntimeError(f"git clone timed out for {url!r} (limit: {_GIT_CLONE_TIMEOUT_S} s)") from None
+                raise RuntimeError(f"git clone timed out for {url!r} (limit: {_GIT_CLONE_TIMEOUT} s)") from None
             if result.returncode != 0:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
             model = model or load_model()
