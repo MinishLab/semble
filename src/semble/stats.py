@@ -83,7 +83,7 @@ def parse_stats(path: Path = _STATS_FILE) -> SavingsSummary:
                 in_today = record_date == today
                 in_last_7 = record_date > seven_days_ago
             except ValueError:
-                in_today = in_last_7 = False
+                in_today = in_last_7 = False  # unparseable timestamp: count in All time only
             buckets["All time"].add(snippet_chars, file_chars)
             if in_last_7:
                 buckets["Last 7 days"].add(snippet_chars, file_chars)
@@ -114,7 +114,7 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
     ]
     for label, bucket in summary.buckets.items():
         saved_chars = max(0, bucket.file_chars - bucket.snippet_chars)
-        saved_tokens = saved_chars // 4
+        saved_tokens = saved_chars // 4  # standard ~4 chars/token approximation
         if saved_tokens >= 1_000_000:
             saved_str = f"~{saved_tokens / 1_000_000:.1f}M"
         elif saved_tokens >= 1000:
