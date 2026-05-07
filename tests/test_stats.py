@@ -40,7 +40,7 @@ def test_save_search_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> N
     mock_path.parent.mkdir.return_value = None
     mock_path.open.side_effect = OSError("no write")
     monkeypatch.setattr("semble.stats._STATS_FILE", mock_path)
-    save_search_stats([], CallType.SEARCH)  # must not raise
+    save_search_stats([result], CallType.SEARCH, {"src/foo.py": 42})  # must not raise
 
 
 def test_savings_no_file(tmp_path: Path) -> None:

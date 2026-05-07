@@ -31,21 +31,12 @@ class SavingsSummary:
 def save_search_stats(
     results: list[SearchResult],
     call_type: CallType,
-    file_sizes: dict[str, int] | None = None,
+    file_sizes: dict[str, int],
 ) -> None:
-    """Save stats about a search or find_related call to the stats file.
-
-    :param results: The search results to summarize.
-    :param call_type: A CallType indicating the type of call ("search" or "find_related").
-    :param file_sizes: Optional mapping of file paths to their character counts, used to calculate file_chars.
-      If not provided, file_chars will be recorded as 0.
-    """
+    """Save token-savings stats for one call. Failures are silently ignored."""
     try:
         snippet_chars = sum(len(result.chunk.content) for result in results)
-        if file_sizes:
-            file_chars = sum(file_sizes.get(path, 0) for path in {result.chunk.file_path for result in results})
-        else:
-            file_chars = 0
+        file_chars = sum(file_sizes.get(path, 0) for path in {result.chunk.file_path for result in results})
 
         record = {
             "ts": datetime.now(timezone.utc).isoformat(),
