@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from collections import defaultdict
 from dataclasses import dataclass
@@ -85,7 +83,7 @@ def parse_stats(path: Path = _STATS_FILE) -> SavingsSummary:
                 in_today = record_date == today
                 in_last_7 = record_date > seven_days_ago
             except ValueError:
-                in_today = in_last_7 = True
+                in_today = in_last_7 = False
             buckets["All time"].add(snippet_chars, file_chars)
             if in_last_7:
                 buckets["Last 7 days"].add(snippet_chars, file_chars)

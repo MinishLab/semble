@@ -76,7 +76,7 @@ def test_savings_output(sample_stats_file: Path, verbose: bool, expected: list[s
     ids=["malformed-json", "malformed-timestamp"],
 )
 def test_savings_tolerates_bad_records(bad_line: str, tmp_path: Path) -> None:
-    """format_savings_report skips bad JSON and bad timestamps without crashing."""
+    """Bad JSON lines are skipped; records with bad timestamps count only in All time."""
     stats_file = tmp_path / "stats.jsonl"
     stats_file.write_text(bad_line + "\n")
     assert "Savings" in format_savings_report(path=stats_file)

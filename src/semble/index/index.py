@@ -57,7 +57,7 @@ class SembleIndex:
 
     @staticmethod
     def _compute_file_sizes(root: Path, chunks: list[Chunk]) -> dict[str, int]:
-        """Return a mapping of repo-relative file path → total character count."""
+        """Return a mapping of repo-relative file path to total character count."""
         sizes: dict[str, int] = {}
         for chunk in chunks:
             file_path = chunk.file_path
