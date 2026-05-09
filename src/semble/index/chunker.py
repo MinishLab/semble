@@ -1,8 +1,7 @@
 import logging
 from pathlib import Path
 
-from chonkie.chunker import CodeChunker
-
+from semble.index.chunk_machine import Chunker
 from semble.index.file_walker import language_for_path
 from semble.types import Chunk
 
@@ -62,30 +61,29 @@ def chunk_lines(
 
 def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
     """Chunk source with Chonkie and fall back to line chunks on failure."""
+    as_bytes = source.encode("utf-8")
     try:
-        code_chunker = CodeChunker(language=language, chunk_size=1500)
-        raw_chunks = code_chunker.chunk(source)
+        code_chunker = Chunker(language=language)
+        chunk_boundaries = code_chunker.chunk(source)
     except Exception:
-        logger.debug("Chonkie failed for language %r, falling back to line chunking", language, exc_info=True)
+        logger.error("Chonkie failed for language %r, falling back to line chunking", language, exc_info=True)
         return chunk_lines(source, file_path, language)
 
-    if not raw_chunks:
+    if not chunk_boundaries:
         return chunk_lines(source, file_path, language)
 
     chunks: list[Chunk] = []
-    for raw_chunk in raw_chunks:
-        text = raw_chunk.text
-        if not text.strip():
-            continue
+    for boundary in chunk_boundaries:
         # Clamp to start_index so zero-length chunks don't produce an off-by-one.
-        end_index = max(raw_chunk.end_index - 1, raw_chunk.start_index)
+        end_index = max(boundary.end - 1, boundary.start)
+        text = as_bytes[boundary.start : end_index + 1].decode("utf-8")
         chunks.append(
             Chunk(
                 content=text,
                 file_path=file_path,
-                start_line=source[: raw_chunk.start_index].count("\n") + 1,
+                start_line=source[: boundary.start].count("\n") + 1,
                 end_line=source[:end_index].count("\n") + 1,
                 language=language,
             )
         )
-    return chunks if chunks else chunk_lines(source, file_path, language)
+    return chunks or chunk_lines(source, file_path, language)
