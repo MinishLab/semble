@@ -4,7 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from semble.index.file_walker import walk_files
+from semble.index.file_walker import language_for_path, walk_files
+
+
+def test_languagef_for_path() -> None:
+    """Test language_for_path returns the correct language for a given path."""
+    assert language_for_path(Path("foo.py")) == "python"
+    assert language_for_path(Path("bar.js")) == "javascript"
+    assert language_for_path(Path("dangerous.exe")) is None
 
 
 def _touch(path: Path, content: str = "x = 1\n") -> None:

@@ -1,6 +1,6 @@
 import logging
 
-from semble.chunking.chunk_machine import chunk, chunk_lines, is_supported_language
+from semble.chunking.core import chunk, chunk_lines, is_supported_language
 from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
@@ -13,11 +13,7 @@ def chunk_source(source: str, file_path: str, language: str | None) -> list[Chun
     if not source.strip():
         return []
     if language is not None and is_supported_language(language):
-        try:
-            chunk_boundaries = chunk(source, language, _DESIRED_LENGTH)
-        except Exception:
-            logger.error("Chunking failed for language %r, falling back to line chunking", language, exc_info=True)
-            chunk_boundaries = chunk_lines(source, _DESIRED_LENGTH)
+        chunk_boundaries = chunk(source, language, _DESIRED_LENGTH)
     else:
         chunk_boundaries = chunk_lines(source, _DESIRED_LENGTH)
 
