@@ -5,9 +5,19 @@ from functools import cache
 from logging import getLogger
 
 from tree_sitter import Node, Parser
-from tree_sitter_language_pack import SupportedLanguage, get_parser
+from tree_sitter_language_pack import SupportedLanguage, get_parser, manifest_languages
 
 logger = getLogger(__name__)
+
+
+_TREE_SITTER_LANGUAGES: frozenset[str] = frozenset(manifest_languages())
+
+
+def is_supported_language(language: str | None) -> bool:
+    """Check if the language is supported by tree-sitter."""
+    if language is None:
+        return False
+    return language in _TREE_SITTER_LANGUAGES
 
 
 @dataclass
@@ -114,33 +124,39 @@ def _group_node(node: Node, desired_length: int) -> list[tuple[int, int]]:
     return _merge_adjacent_groups(raw_groups, desired_length)
 
 
-class Chunker:
-    def __init__(
-        self,
-        language: str,
-        desired_size: int,
-    ) -> None:
-        """Initialize the chunker."""
-        self.language = language
-        self.desired_size = desired_size
+def chunk_lines(text: str, desired_length: int) -> list[ChunkBoundary]:
+    """Chunk source code by line."""
+    if not text.strip():
+        return []
+    lines_as_groups = []
+    index = 0
+    for line in text.splitlines(keepends=True):
+        lines_as_groups.append(Group(start=index, end=index + len(line), length=len(line)))
+        index += len(line)
 
-    def chunk(self, text: str) -> list[ChunkBoundary]:
-        """Chunk source code."""
-        if not text.strip():
-            return []
+    out = []
+    for start, end in _merge_adjacent_groups(lines_as_groups, desired_length):
+        out.append(ChunkBoundary(start=start, end=end))
+    return out
 
-        as_bytes = text.encode("utf-8")
-        parser = _cached_get_parser(self.language)
-        root = parser.parse(as_bytes).root_node
 
-        chunks = []
-        for start, end in _group_node(root, self.desired_size):
-            if text.isascii():
-                start_char = start
-                end_char = end
-            else:
-                start_char = len(as_bytes[:start].decode("utf-8"))
-                end_char = len(as_bytes[:end].decode("utf-8"))
-            chunks.append(ChunkBoundary(start=start_char, end=end_char))
+def chunk(text: str, language: str, desired_length: int) -> list[ChunkBoundary]:
+    """Chunk source code."""
+    if not text.strip():
+        return []
 
-        return chunks
+    as_bytes = text.encode("utf-8")
+    parser = _cached_get_parser(language)
+    root = parser.parse(as_bytes).root_node
+
+    chunks = []
+    for start, end in _group_node(root, desired_length):
+        if text.isascii():
+            start_char = start
+            end_char = end
+        else:
+            start_char = len(as_bytes[:start].decode("utf-8"))
+            end_char = len(as_bytes[:end].decode("utf-8"))
+        chunks.append(ChunkBoundary(start=start_char, end=end_char))
+
+    return chunks
