@@ -1,21 +1,9 @@
 import logging
-from pathlib import Path
 
 from semble.index.chunk_machine import Chunker
-from semble.index.file_walker import language_for_path
 from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
-
-
-def chunk_file(file_path: Path) -> list[Chunk]:
-    """Chunk a single file from disk."""
-    try:
-        source = file_path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return []
-
-    return chunk_source(source, str(file_path), language_for_path(file_path))
 
 
 def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
@@ -23,7 +11,7 @@ def chunk_source(source: str, file_path: str, language: str | None) -> list[Chun
     if not source.strip():
         return []
     if language:
-        return _chunk_with_chonkie(source, file_path, language)
+        return _chunk_with_machine(source, file_path, language)
     return chunk_lines(source, file_path, language)
 
 
@@ -59,10 +47,10 @@ def chunk_lines(
     return chunks
 
 
-def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
+def _chunk_with_machine(source: str, file_path: str, language: str) -> list[Chunk]:
     """Chunk source with a chunker and fall back to line chunks on failure."""
     try:
-        code_chunker = Chunker(language=language, desired_size=1024)
+        code_chunker = Chunker(language=language, desired_size=1500)
         chunk_boundaries = code_chunker.chunk(source)
     except Exception:
         logger.error("Chunking failed for language %r, falling back to line chunking", language, exc_info=True)
