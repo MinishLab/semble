@@ -20,15 +20,13 @@ def is_supported_language(language: str) -> bool:
 
 @dataclass
 class ChunkBoundary:
+    """The output of the internal chunking algorithm.
+
+    Chunk boundaries are string, not byte offsets.
+    """
+
     start: int
     end: int
-
-
-@dataclass
-class Group:
-    start: int
-    end: int
-    length: int
 
 
 @cache
@@ -37,23 +35,20 @@ def _cached_get_parser(language: SupportedLanguage) -> Parser:
     return get_parser(language)
 
 
-def _merge_adjacent_groups(
-    groups: list[Group],
+def _merge_adjacent_chunks(
+    chunks: list[ChunkBoundary],
     desired_length: int,
 ) -> list[tuple[int, int]]:
-    """Merge adjacent groups up to desired_length.
-
-    Input groups are (start_byte, end_byte, length).
-    Output groups are (start_byte, end_byte).
-    """
+    """Merge adjacent chunks up to the desired length."""
     merged: list[tuple[int, int]] = []
 
-    current_start = groups[0].start
-    current_end = groups[0].end
-    current_length = groups[0].length
+    current_start = chunks[0].start
+    current_end = chunks[0].end
+    current_length = current_end - current_start
 
-    for group in groups[1:]:
-        start, end, length = group.start, group.end, group.length
+    for group in chunks[1:]:
+        start, end = group.start, group.end
+        length = end - start
 
         if current_length + length > desired_length:
             merged.append((current_start, current_end))
@@ -70,56 +65,51 @@ def _merge_adjacent_groups(
     return merged
 
 
-def _group_node_raw(node: Node, desired_length: int) -> list[Group]:
-    """Recursively split oversized syntax nodes.
-
-    Returns groups as Group(start_byte, end_byte, length).
-    """
+def _merge_node_raw(node: Node, desired_length: int) -> list[ChunkBoundary]:
+    """Recursively merge and split nodes."""
+    # If there are no child nodes, the only thing we can do is return the current node.
     if not node.children:
-        length = node.end_byte - node.start_byte
-        return [Group(node.start_byte, node.end_byte, length)]
+        return [ChunkBoundary(node.start_byte, node.end_byte)]
 
-    groups: list[Group] = []
+    groups: list[ChunkBoundary] = []
     children = node.children
     index = 0
 
     while index < len(children):
         child = children[index]
+        start = child.start_byte
+        end = child.end_byte
         length = child.end_byte - child.start_byte
 
+        # Increment the pointer, as we accessed a child node.
+        index += 1
+        # If this single chunk is longer than the desired length
+        # we try to split it again.
         if length > desired_length:
-            groups.extend(_group_node_raw(child, desired_length))
-            index += 1
+            groups.extend(_merge_node_raw(child, desired_length))
             continue
 
-        current_start = child.start_byte
-        current_end = child.end_byte
-        current_length = length
-        index += 1
-
         while index < len(children):
+            # Extend the current group with or more children, if they fit.
             child = children[index]
-            length = child.end_byte - child.start_byte
+            child_length = child.end_byte - child.start_byte
 
-            if length > desired_length:
+            if length + child_length > desired_length:
                 break
 
-            if current_length + length > desired_length:
-                break
-
-            current_end = child.end_byte
-            current_length += length
+            end = child.end_byte
+            length += child_length
             index += 1
 
-        groups.append(Group(current_start, current_end, current_length))
+        groups.append(ChunkBoundary(start, end))
 
     return groups
 
 
-def _group_node(node: Node, desired_length: int) -> list[tuple[int, int]]:
-    """Recursively group a node, then merge adjacent groups."""
-    raw_groups = _group_node_raw(node, desired_length)
-    return _merge_adjacent_groups(raw_groups, desired_length)
+def _merge_node(node: Node, desired_length: int) -> list[tuple[int, int]]:
+    """Recursively turn nodes into chunks, then merge adjacent chunks."""
+    raw_chunks = _merge_node_raw(node, desired_length)
+    return _merge_adjacent_chunks(raw_chunks, desired_length)
 
 
 def chunk_lines(text: str, desired_length: int) -> list[ChunkBoundary]:
@@ -129,11 +119,11 @@ def chunk_lines(text: str, desired_length: int) -> list[ChunkBoundary]:
     lines_as_groups = []
     index = 0
     for line in text.splitlines(keepends=True):
-        lines_as_groups.append(Group(start=index, end=index + len(line), length=len(line)))
+        lines_as_groups.append(ChunkBoundary(start=index, end=index + len(line)))
         index += len(line)
 
     out = []
-    for start, end in _merge_adjacent_groups(lines_as_groups, desired_length):
+    for start, end in _merge_adjacent_chunks(lines_as_groups, desired_length):
         out.append(ChunkBoundary(start=start, end=end))
     return out
 
@@ -148,13 +138,9 @@ def chunk(text: str, language: str, desired_length: int) -> list[ChunkBoundary]:
     root = parser.parse(as_bytes).root_node
 
     chunks = []
-    for start, end in _group_node(root, desired_length):
-        if text.isascii():
-            start_char = start
-            end_char = end
-        else:
-            start_char = len(as_bytes[:start].decode("utf-8"))
-            end_char = len(as_bytes[:end].decode("utf-8"))
+    for start, end in _merge_node(root, desired_length):
+        start_char = len(as_bytes[:start].decode("utf-8"))
+        end_char = len(as_bytes[:end].decode("utf-8"))
         chunks.append(ChunkBoundary(start=start_char, end=end_char))
 
     return chunks
