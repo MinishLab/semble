@@ -65,7 +65,7 @@ def _merge_adjacent_chunks(
     return merged
 
 
-def _merge_node_raw(node: Node, desired_length: int) -> list[ChunkBoundary]:
+def _merge_node_inner(node: Node, desired_length: int) -> list[ChunkBoundary]:
     """Recursively merge and split nodes."""
     # If there are no child nodes, the only thing we can do is return the current node.
     if not node.children:
@@ -86,7 +86,7 @@ def _merge_node_raw(node: Node, desired_length: int) -> list[ChunkBoundary]:
         # If this single chunk is longer than the desired length
         # we try to split it again.
         if length > desired_length:
-            groups.extend(_merge_node_raw(child, desired_length))
+            groups.extend(_merge_node_inner(child, desired_length))
             continue
 
         while index < len(children):
@@ -108,7 +108,7 @@ def _merge_node_raw(node: Node, desired_length: int) -> list[ChunkBoundary]:
 
 def _merge_node(node: Node, desired_length: int) -> list[tuple[int, int]]:
     """Recursively turn nodes into chunks, then merge adjacent chunks."""
-    raw_chunks = _merge_node_raw(node, desired_length)
+    raw_chunks = _merge_node_inner(node, desired_length)
     return _merge_adjacent_chunks(raw_chunks, desired_length)
 
 
