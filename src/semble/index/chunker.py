@@ -60,13 +60,12 @@ def chunk_lines(
 
 
 def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chunk]:
-    """Chunk source with Chonkie and fall back to line chunks on failure."""
-    as_bytes = source.encode("utf-8")
+    """Chunk source with a chunker and fall back to line chunks on failure."""
     try:
-        code_chunker = Chunker(language=language)
+        code_chunker = Chunker(language=language, desired_size=1024)
         chunk_boundaries = code_chunker.chunk(source)
     except Exception:
-        logger.error("Chonkie failed for language %r, falling back to line chunking", language, exc_info=True)
+        logger.error("Chunking failed for language %r, falling back to line chunking", language, exc_info=True)
         return chunk_lines(source, file_path, language)
 
     if not chunk_boundaries:
@@ -76,7 +75,7 @@ def _chunk_with_chonkie(source: str, file_path: str, language: str) -> list[Chun
     for boundary in chunk_boundaries:
         # Clamp to start_index so zero-length chunks don't produce an off-by-one.
         end_index = max(boundary.end - 1, boundary.start)
-        text = as_bytes[boundary.start : end_index + 1].decode("utf-8")
+        text = source[boundary.start : end_index + 1]
         chunks.append(
             Chunk(
                 content=text,

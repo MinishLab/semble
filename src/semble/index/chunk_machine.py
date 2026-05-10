@@ -26,9 +26,11 @@ class Chunker:
     def __init__(
         self,
         language: str,
+        desired_size: int,
     ) -> None:
         """Initialize the chunker."""
         self.language = language
+        self.desired_size = desired_size
 
     def chunk(self, text: str) -> list[ChunkBoundary]:
         """Chunk source code."""
