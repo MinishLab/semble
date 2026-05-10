@@ -4,7 +4,7 @@ from pathlib import Path
 import bm25s
 from vicinity.backends.basic import BasicArgs
 
-from semble.index.chunker import chunk_source
+from semble.chunking import chunk_source
 from semble.index.dense import SelectableBasicBackend, embed_chunks
 from semble.index.file_walker import filter_extensions, language_for_path, walk_files
 from semble.index.sparse import enrich_for_bm25

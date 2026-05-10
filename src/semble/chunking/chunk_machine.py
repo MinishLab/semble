@@ -13,10 +13,8 @@ logger = getLogger(__name__)
 _TREE_SITTER_LANGUAGES: frozenset[str] = frozenset(manifest_languages())
 
 
-def is_supported_language(language: str | None) -> bool:
+def is_supported_language(language: str) -> bool:
     """Check if the language is supported by tree-sitter."""
-    if language is None:
-        return False
     return language in _TREE_SITTER_LANGUAGES
 
 
