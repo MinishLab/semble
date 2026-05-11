@@ -99,13 +99,21 @@ def filter_extensions(extensions: frozenset[str] | None, *, include_text_files: 
     return frozenset(ext for ext, spec in FILE_TYPES.items() if spec.category in categories_to_include)
 
 
-def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
-    """Load the root-level .gitignore as a spec, if present."""
+def _load_root_gitignore(root: Path) -> tuple[GitIgnoreSpec | None, GitIgnoreSpec | None]:
+    """Load root .gitignore and return (file_spec, dir_spec).
+
+    dir_spec is built only from patterns that explicitly target directories
+    (lines ending with /), which are safe to use for directory pruning.
+    file_spec covers all patterns and is used for per-file filtering.
+    """
     gitignore = root / ".gitignore"
     if not gitignore.is_file():
-        return None
-    with gitignore.open("r", encoding="utf-8", errors="ignore") as f:
-        return GitIgnoreSpec.from_lines(f)
+        return None, None
+    lines = gitignore.read_text(encoding="utf-8", errors="ignore").splitlines()
+    file_spec = GitIgnoreSpec.from_lines(lines)
+    dir_lines = [ln for ln in lines if ln.rstrip().endswith("/")]
+    dir_spec = GitIgnoreSpec.from_lines(dir_lines) if dir_lines else None
+    return file_spec, dir_spec
 
 
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
@@ -121,21 +129,29 @@ def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | 
     :ytype: Path
     """
     ignore_dirs = DEFAULT_IGNORED_DIRS | (ignore or frozenset())
-    gitignore = _load_root_gitignore(root)
+    file_gitignore, dir_gitignore = _load_root_gitignore(root)
     for dirpath, dirnames, filenames in os.walk(root):
         rel_dir = Path(dirpath).relative_to(root)
-        # Prune in-place so os.walk skips known build/tool dirs.
-        # We do not use gitignore here as pathspec misreports directories as matched
-        # under allowlist-style patterns (e.g. `*` + `!*/`), which would prune
-        # subdirectories whose contents should still be indexed. File-level
-        # filtering below is always correct.
-        dirnames[:] = [d for d in dirnames if d not in ignore_dirs]
+        # Prune in-place so os.walk doesn't descend into ignored trees.
+        # Only use dir_gitignore (patterns ending with /) for directory pruning:
+        # pathspec misreports directories as matched under allowlist-style patterns
+        # like `*` + `!*/`, so we restrict to unambiguous directory-only patterns.
+        kept: list[str] = []
+        for dirname in dirnames:
+            if dirname in ignore_dirs:
+                continue
+            if dir_gitignore is not None:
+                rel = (rel_dir / dirname).as_posix() + "/"
+                if dir_gitignore.match_file(rel):
+                    continue
+            kept.append(dirname)
+        dirnames[:] = kept
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename
             if file_path.suffix.lower() not in extensions:
                 continue
-            if gitignore is not None:
+            if file_gitignore is not None:
                 rel_file = (rel_dir / filename).as_posix()
-                if gitignore.match_file(rel_file):
+                if file_gitignore.match_file(rel_file):
                     continue
             yield file_path
