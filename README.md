@@ -16,7 +16,6 @@
     </a>
   </h2>
 
-[Why Semble?](#why-semble) •
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
 [Bash / AGENTS.md](#bash-integration) •
@@ -25,19 +24,7 @@
 
 </div>
 
-Semble is a code search tool built for agents. Instead of grepping for keywords and reading full files, agents query in natural language and get back only the relevant snippets — using ~98% fewer tokens, with indexing in ~250 ms and queries in ~1.5 ms on CPU. No API keys, GPU, or external services. Works via MCP or shell instructions in AGENTS.md / CLAUDE.md, with any agent (Claude Code, Cursor, Codex, OpenCode, etc.).
-
-## Why Semble?
-
-Agents are bad at code search when they rely on `grep`, `rg`, and full-file reads. They often miss semantic matches, over-read irrelevant files, and burn context on code that does not answer the query.
-
-Semble gives agents a dedicated retrieval layer for code:
-
-- **Token-efficient:** returns focused snippets instead of full files, using ~98% fewer tokens than grep+read.
-- **Semantic + lexical:** combines Model2Vec embeddings, BM25, reciprocal rank fusion, and code-aware reranking.
-- **Fast on CPU:** indexes an average repository in ~250 ms and answers queries in ~1.5 ms.
-- **Local-first:** no API keys, GPUs, hosted vector database, or external service required.
-- **Agent-native:** works through MCP or shell instructions in AGENTS.md / CLAUDE.md.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-integration) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
 ## Quickstart
 
