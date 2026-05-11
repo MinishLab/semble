@@ -5,7 +5,9 @@ from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
 
-_DESIRED_LENGTH = 1500
+# The desired length of chunks in chars.
+# TODO: makes this configurable
+_DESIRED_CHUNK_LENGTH_CHARS = 1500
 
 
 def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
@@ -13,9 +15,9 @@ def chunk_source(source: str, file_path: str, language: str | None) -> list[Chun
     if not source.strip():
         return []
     if language is not None and is_supported_language(language):
-        chunk_boundaries = chunk(source, language, _DESIRED_LENGTH)
+        chunk_boundaries = chunk(source, language, _DESIRED_CHUNK_LENGTH_CHARS)
     else:
-        chunk_boundaries = chunk_lines(source, _DESIRED_LENGTH)
+        chunk_boundaries = chunk_lines(source, _DESIRED_CHUNK_LENGTH_CHARS)
 
     chunks: list[Chunk] = []
     for boundary in chunk_boundaries:
