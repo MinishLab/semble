@@ -72,6 +72,7 @@ DEFAULT_IGNORED_DIRS: frozenset[str] = frozenset(
         ".ruff_cache",
         ".cache",
         ".semble",
+        ".next",
         "dist",
         "build",
         ".eggs",
