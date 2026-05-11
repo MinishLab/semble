@@ -99,25 +99,21 @@ def filter_extensions(extensions: frozenset[str] | None, *, include_text_files: 
     return frozenset(ext for ext, spec in FILE_TYPES.items() if spec.category in categories_to_include)
 
 
-def _load_root_gitignore(root: Path) -> tuple[list[tuple[bool, GitIgnoreSpec]], GitIgnoreSpec | None]:
-    """Load root .gitignore, returning (dir_patterns, file_spec).
-
-    dir_patterns enables last-match-wins directory pruning that correctly handles
-    allowlist-style gitignores (e.g. `*` + `!*/`). file_spec is used for per-file
-    filtering where pathspec's combined match_file is correct.
-    """
+def _load_root_gitignore(root: Path) -> GitIgnoreSpec | None:
+    """Load the root-level .gitignore as a spec, if present."""
     gitignore = root / ".gitignore"
     if not gitignore.is_file():
-        return [], None
-    lines = gitignore.read_text(encoding="utf-8", errors="ignore").splitlines()
-    patterns: list[tuple[bool, GitIgnoreSpec]] = []
-    for line in lines:
-        s = line.rstrip()
-        if not s or s.startswith("#"):
-            continue
-        neg = s.startswith("!")
-        patterns.append((neg, GitIgnoreSpec.from_lines([s[1:] if neg else s])))
-    return patterns, GitIgnoreSpec.from_lines(lines)
+        return None
+    return GitIgnoreSpec.from_lines(gitignore.read_text(encoding="utf-8", errors="ignore").splitlines())
+
+
+def _dir_is_gitignored(gitignore: GitIgnoreSpec, rel: str) -> bool:
+    """Return True if rel (a POSIX path relative to the gitignore root) matches a gitignore pattern for directories."""
+    ignored = False
+    for pattern in gitignore.patterns:
+        if pattern.include is not None and pattern.match_file(rel):
+            ignored = pattern.include
+    return ignored
 
 
 def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | None = None) -> Iterator[Path]:
@@ -133,25 +129,21 @@ def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | 
     :ytype: Path
     """
     ignore_dirs = DEFAULT_IGNORED_DIRS | (ignore or frozenset())
-    dir_patterns, file_spec = _load_root_gitignore(root)
+    gitignore = _load_root_gitignore(root)
     for dirpath, dirnames, filenames in os.walk(root):
         rel_dir = Path(dirpath).relative_to(root)
         kept: list[str] = []
         for dirname in dirnames:
             if dirname in ignore_dirs:
                 continue
-            rel = (rel_dir / dirname).as_posix() + "/"
-            ignored = False
-            for neg, spec in dir_patterns:
-                if spec.match_file(rel):
-                    ignored = not neg
-            if not ignored:
-                kept.append(dirname)
+            if gitignore is not None and _dir_is_gitignored(gitignore, (rel_dir / dirname).as_posix() + "/"):
+                continue
+            kept.append(dirname)
         dirnames[:] = kept
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename
             if file_path.suffix.lower() not in extensions:
                 continue
-            if file_spec is not None and file_spec.match_file((rel_dir / filename).as_posix()):
+            if gitignore is not None and gitignore.match_file((rel_dir / filename).as_posix()):
                 continue
             yield file_path
