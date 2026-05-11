@@ -30,7 +30,7 @@ class SembleIndex:
         chunks: list[Chunk],
         root: Path | None = None,
     ) -> None:
-        """Internal constructor — use :meth:`from_path` or :meth:`from_git`.
+        """Initialize a SembleIndex. Should be created with from_path or from_git.
 
         :param model: Embedding model to use.
         :param bm25_index: The bm25 index.
