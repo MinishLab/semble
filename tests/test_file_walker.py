@@ -41,6 +41,12 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
             "out/*\n!out/keep.py\n",
             {"out/keep.py"},
         ),
+        # Allow-list style gitignore (`*` + `!*/` + `!*.py`) must not prune subdirs.
+        (
+            ["main.py", "internal/pkg/foo.py", "internal/pkg/bar.py"],
+            "*\n!*/\n!*.py\n",
+            {"main.py", "internal/pkg/foo.py", "internal/pkg/bar.py"},
+        ),
     ],
 )
 def test_walk_files_filtering(tmp_path: Path, files: list[str], gitignore: str | None, expected: set[str]) -> None:

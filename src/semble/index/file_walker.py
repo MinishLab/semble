@@ -124,16 +124,12 @@ def walk_files(root: Path, extensions: frozenset[str], ignore: frozenset[str] | 
     gitignore = _load_root_gitignore(root)
     for dirpath, dirnames, filenames in os.walk(root):
         rel_dir = Path(dirpath).relative_to(root)
-        # Prune in-place so os.walk doesn't descend into ignored trees.
-        kept: list[str] = []
-        for dirname in dirnames:
-            if dirname in ignore_dirs:
-                continue
-            rel = (rel_dir / dirname).as_posix() + "/"
-            if gitignore is not None and gitignore.match_file(rel):
-                continue
-            kept.append(dirname)
-        dirnames[:] = kept
+        # Prune in-place so os.walk skips known build/tool dirs.
+        # We do not use gitignore here as pathspec misreports directories as matched
+        # under allowlist-style patterns (e.g. `*` + `!*/`), which would prune
+        # subdirectories whose contents should still be indexed. File-level
+        # filtering below is always correct.
+        dirnames[:] = [d for d in dirnames if d not in ignore_dirs]
         for filename in sorted(filenames):
             file_path = Path(dirpath) / filename
             if file_path.suffix.lower() not in extensions:
