@@ -102,8 +102,9 @@ def test_compute_file_sizes(
     """_compute_file_sizes deduplicates paths and silently skips missing files."""
     for name, content in disk_files.items():
         (tmp_path / name).write_text(content)
-    chunks = [make_chunk("c", p) for p in chunk_paths]
-    assert SembleIndex._compute_file_sizes(tmp_path, chunks) == expected
+    index = SembleIndex.__new__(SembleIndex)
+    index.chunks = [make_chunk("c", p) for p in chunk_paths]
+    assert index._compute_file_sizes(tmp_path) == expected
 
 
 def test_find_related(indexed_index: SembleIndex) -> None:

@@ -1,10 +1,13 @@
 import json
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from semble.types import CallType, SearchResult
+
+logger = logging.getLogger(__name__)
 
 _STATS_FILE = Path.home() / ".semble" / "savings.jsonl"
 
@@ -36,10 +39,12 @@ def save_search_stats(
     """Save stats about a search or find_related call to the stats file."""
     try:
         snippet_chars = sum(len(result.chunk.content) for result in results)
-        file_chars = sum(file_sizes.get(path, 0) for path in {result.chunk.file_path for result in results})
+        file_chars = sum(
+            file_sizes[path] for path in {result.chunk.file_path for result in results} if path in file_sizes
+        )
 
         record = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(timezone.utc).timestamp(),
             "call": call_type,
             "results": len(results),
             "snippet_chars": snippet_chars,
@@ -70,17 +75,15 @@ def build_savings_summary(path: Path = _STATS_FILE) -> SavingsSummary:
             try:
                 record = json.loads(line)
             except json.JSONDecodeError:
+                logger.warning("Skipping malformed JSON line in stats file")
                 continue
-            snippet_chars = record.get("snippet_chars", 0)
-            file_chars = record.get("file_chars", 0)
-            call_type = record.get("call", "search")
+            snippet_chars = record["snippet_chars"]
+            file_chars = record["file_chars"]
+            call_type = record["call"]
             call_type_counts[call_type] += 1
-            try:
-                record_date = datetime.fromisoformat(record.get("ts", "")).date()
-                in_today = record_date == today
-                in_last_7 = record_date > seven_days_ago
-            except ValueError:
-                in_today = in_last_7 = False  # unparseable timestamp: count in All time only
+            dt = datetime.fromtimestamp(record["ts"], tz=timezone.utc)
+            in_today = dt.date() == today
+            in_last_7 = dt.date() > seven_days_ago
             buckets["All time"].add(snippet_chars, file_chars)
             if in_last_7:
                 buckets["Last 7 days"].add(snippet_chars, file_chars)

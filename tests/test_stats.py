@@ -12,7 +12,7 @@ from semble.types import CallType, SearchMode, SearchResult
 from tests.conftest import make_chunk
 
 
-def _make_stats_record(ts: str, call: str = "search", snippet_chars: int = 1_000, file_chars: int = 20_000) -> str:
+def _make_stats_record(ts: float, call: str = "search", snippet_chars: int = 1_000, file_chars: int = 20_000) -> str:
     return json.dumps({"ts": ts, "call": call, "results": 3, "snippet_chars": snippet_chars, "file_chars": file_chars})
 
 
@@ -20,7 +20,7 @@ def _make_stats_record(ts: str, call: str = "search", snippet_chars: int = 1_000
 def sample_stats_file(tmp_path: Path) -> Path:
     """Stats file with one search and one find_related record from today."""
     stats_file = tmp_path / "stats.jsonl"
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc).timestamp()
     stats_file.write_text(
         _make_stats_record(now, call="search") + "\n" + _make_stats_record(now, call="find_related") + "\n"
     )
@@ -67,23 +67,15 @@ def test_savings_output_millions(tmp_path: Path) -> None:
     """Token counts >= 1M are formatted as M, not k."""
     stats_file = tmp_path / "stats.jsonl"
     stats_file.write_text(
-        _make_stats_record(datetime.now(timezone.utc).isoformat(), snippet_chars=0, file_chars=4_000_000) + "\n"
+        _make_stats_record(datetime.now(timezone.utc).timestamp(), snippet_chars=0, file_chars=4_000_000) + "\n"
     )
     assert "M tokens" in format_savings_report(path=stats_file)
 
 
-@pytest.mark.parametrize(
-    "bad_line",
-    [
-        "not valid json",
-        json.dumps({"ts": "not-a-date", "call": "search", "snippet_chars": 100, "file_chars": 500}),
-    ],
-    ids=["malformed-json", "malformed-timestamp"],
-)
-def test_savings_tolerates_bad_records(bad_line: str, tmp_path: Path) -> None:
-    """Bad JSON lines are skipped; records with bad timestamps count only in All time."""
+def test_savings_tolerates_bad_json(tmp_path: Path) -> None:
+    """Malformed JSON lines are skipped with a warning."""
     stats_file = tmp_path / "stats.jsonl"
-    stats_file.write_text(bad_line + "\n")
+    stats_file.write_text("not valid json\n")
     assert "Savings" in format_savings_report(path=stats_file)
 
 
@@ -108,8 +100,8 @@ def test_savings_cli_dispatch(
 def test_savings_buckets_exclude_old_records(tmp_path: Path) -> None:
     """Records older than 7 days count in All time but not Today or Last 7 days."""
     stats_file = tmp_path / "stats.jsonl"
-    old_ts = "2020-01-01T00:00:00+00:00"
-    now_ts = datetime.now(timezone.utc).isoformat()
+    old_ts = datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp()
+    now_ts = datetime.now(timezone.utc).timestamp()
     stats_file.write_text(_make_stats_record(old_ts) + "\n" + _make_stats_record(now_ts) + "\n")
     summary = build_savings_summary(path=stats_file)
     assert summary.buckets["All time"].calls == 2
