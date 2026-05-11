@@ -11,11 +11,11 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-05-07T14:45:29.536086Z"
-exclude-newer-span = "P3D"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P1W"
 
 [manifest]
-constraints = [{ name = "tree-sitter-language-pack", specifier = "!=1.6.3" }]
+constraints = [{ name = "tree-sitter-language-pack", specifier = ">=1.0,!=1.6.3,<1.8.0" }]
 
 [[package]]
 name = "annotated-doc"
@@ -3148,7 +3148,7 @@ requires-dist = [
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
     { name = "tiktoken", marker = "extra == 'benchmark'", specifier = ">=0.7" },
     { name = "tree-sitter", specifier = ">=0.25" },
-    { name = "tree-sitter-language-pack", specifier = "!=1.6.3" },
+    { name = "tree-sitter-language-pack", specifier = ">=1.0,!=1.6.3,<1.8.0" },
     { name = "vicinity", specifier = ">=0.4.4" },
     { name = "watchfiles", marker = "extra == 'mcp'", specifier = ">=0.21" },
 ]

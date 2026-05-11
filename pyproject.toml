@@ -32,7 +32,7 @@ dependencies = [
     "bm25s>=0.2.0",
     "pathspec>=0.12",
     "tree-sitter>=0.25",
-    "tree-sitter-language-pack!=1.6.3"
+    "tree-sitter-language-pack>=1.0,<1.8.0,!=1.6.3"
 ]
 
 [project.optional-dependencies]
@@ -144,4 +144,3 @@ exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
 
 [tool.uv]
 exclude-newer = "1 week"
-constraint-dependencies = ["tree-sitter-language-pack!=1.6.3"] # no MacOS wheels
