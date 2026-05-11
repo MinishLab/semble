@@ -1,8 +1,8 @@
 
 <h2 align="center">
   <img width="30%" alt="semble logo" src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/semble_logo.png"><br/>
-  Fast and Accurate Code Search for Agents<br/>
-  <sub>Uses ~98% fewer tokens than grep+read</sub>
+  Fast, Token-Efficient Code Search for AI Agents<br/>
+  <sub>~98% fewer tokens than grep+read &nbsp;•&nbsp; 250 ms indexing &nbsp;•&nbsp; 1.5 ms queries &nbsp;•&nbsp; no API keys</sub>
 </h2>
 
 <div align="center">
@@ -16,22 +16,34 @@
     </a>
   </h2>
 
+[Why Semble?](#why-semble) •
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
 [Bash / AGENTS.md](#bash-integration) •
 [CLI](#cli) •
-[Python API](#python-api) •
 [Benchmarks](#benchmarks)
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-integration) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search tool built for agents. Instead of grepping for keywords and reading full files, agents query in natural language and get back only the relevant snippets — using ~98% fewer tokens, with indexing in ~250 ms and queries in ~1.5 ms on CPU. No API keys, GPU, or external services. Works via MCP or shell instructions in AGENTS.md / CLAUDE.md, with any agent (Claude Code, Cursor, Codex, OpenCode, etc.).
+
+## Why Semble?
+
+Agents are bad at code search when they rely on `grep`, `rg`, and full-file reads. They often miss semantic matches, over-read irrelevant files, and burn context on code that does not answer the query.
+
+Semble gives agents a dedicated retrieval layer for code:
+
+- **Token-efficient:** returns focused snippets instead of full files, using ~98% fewer tokens than grep+read.
+- **Semantic + lexical:** combines Model2Vec embeddings, BM25, reciprocal rank fusion, and code-aware reranking.
+- **Fast on CPU:** indexes an average repository in ~250 ms and answers queries in ~1.5 ms.
+- **Local-first:** no API keys, GPUs, hosted vector database, or external service required.
+- **Agent-native:** works through MCP or shell instructions in AGENTS.md / CLAUDE.md.
 
 ## Quickstart
 
-Your agent will automatically use Semble whenever it needs to find code. Instead of grepping with a keyword and reading full files, it queries in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant context. Semble can be set up as an MCP server or as a bash tool:
+Your agent will automatically use Semble whenever it needs to find code. Instead of grepping with a keyword and reading full files, it queries in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant context.
 
-### MCP
+### MCP (Claude Code)
 
 Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
@@ -39,31 +51,54 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Using another agent harness? See [MCP Server](#mcp-server) for setup instructions for Codex, OpenCode, Cursor, and other MCP clients.
+Using Codex, OpenCode, or Cursor? See [MCP Server](#mcp-server) for setup instructions.
 
 ### Bash / AGENTS.md
 
-Install Semble first, then add the [code search snippet](#bash-integration) to your `AGENTS.md` or `CLAUDE.md`:
+Install Semble, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 pip install semble       # Install with pip
 uv tool install semble   # Or install with uv
 ```
 
+<details>
+<summary>AGENTS.md / CLAUDE.md snippet</summary>
+
+```markdown
+## Code Search
+
+Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
+
+​```bash
+semble search "authentication flow" ./my-project
+semble search "save_pretrained" ./my-project
+semble search "save model to disk" ./my-project --top-k 10
+​```
+
+Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
+
+​```bash
+semble find-related src/auth.py 42 ./my-project
+​```
+
+`path` defaults to the current directory when omitted; git URLs are accepted.
+
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
+### Workflow
+
+1. Start with `semble search` to find relevant chunks.
+2. Inspect full files only when the returned chunk is not enough context.
+3. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+```
+
+</details>
+
 > Note: for Claude Code or Codex CLI sub-agents, use the [bash integration](#bash-integration) instead of, or alongside, MCP.
 
-To update Semble, see [Updating](#updating).
-
-Curious how many tokens Semble has saved you? Run `semble savings` to see. See [Savings](#savings) for details.
-
-## Main Features
-
-- **Fast**: indexes an average repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
-- **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
-- **Token-efficient**: returns only the relevant chunks, using [~98% fewer tokens than grep+read](#token-efficiency).
-- **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
-- **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
-- **Local and remote**: pass a local path or a git URL.
+Curious how many tokens Semble has saved you? Run `semble savings` to see.
 
 ## MCP Server
 
@@ -173,21 +208,30 @@ Semble also ships as a standalone CLI for use outside of MCP. This is useful in 
 # Search a local repo
 semble search "authentication flow" ./my-project
 
+# Find code similar to a known location
+semble find-related src/auth.py 42 ./my-project
+```
+
+`path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+
+<details>
+<summary>More CLI examples</summary>
+
+```bash
 # Search for a symbol or identifier
 semble search "save_pretrained" ./my-project
 
 # Search a remote repo (cloned on demand)
 semble search "save model to disk" https://github.com/MinishLab/model2vec
 
-# Find code similar to a known location (file_path and line from a prior search result)
-semble find-related src/auth.py 42 ./my-project
+# Limit results
+semble search "save model to disk" ./my-project --top-k 10
 ```
 
-`path` defaults to the current directory when omitted; git URLs are accepted.
+</details>
 
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
-
-### Savings
+<details>
+<summary>Savings</summary>
 
 `semble savings` shows how many tokens semble has saved across all your searches:
 
@@ -210,17 +254,10 @@ semble savings --verbose # also show breakdown by call type
 
 Stats are stored in `~/.semble/savings.jsonl`.
 
-### Updating
+</details>
 
-To update/upgrade Semble to the latest version:
-
-```bash
-pip install --upgrade semble   # with pip
-uv tool upgrade semble         # with uv
-uv cache clean semble          # for MCP users (restart your MCP client after)
-```
-
-## Python API
+<details>
+<summary>Library usage</summary>
 
 Semble can also be used as a Python library for programmatic access, useful when building custom tooling or integrating search directly into your own code.
 
@@ -247,24 +284,20 @@ result.chunk.end_line    # 150
 result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 ```
 
-## How it works
-
-Semble splits each file into code-aware chunks using [Chonkie](https://github.com/chonkie-inc/chonkie), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) model for semantic similarity, and [BM25](https://github.com/xhluca/bm25s) for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
-
-After fusing, results are reranked with a set of code-aware signals:
-
-<details>
-<summary><b>Ranking signals</b></summary>
-
-- **Adaptive weighting.** Symbol-like queries (`Foo::bar`, `_private`, `getUserById`) get more lexical weight, while natural-language queries stay balanced between semantic and lexical retrievers.
-- **Definition boosts.** A chunk that defines the queried symbol (a `class`, `def`, `func`, etc.) is ranked above chunks that merely reference it.
-- **Identifier stems.** Query tokens are stemmed and matched against identifier stems in a chunk, giving an additional weight to chunks that contain them. For example, querying `parse config` boosts chunks containing `parseConfig`, `ConfigParser`, or `config_parser`.
-- **File coherence.** When multiple chunks from the same file match the query, the file is boosted so the top result reflects broad file-level relevance rather than a single out-of-context chunk.
-- **Noise penalties.** Test files, `compat/`/`legacy/` shims, example code, and `.d.ts` declaration stubs are down-ranked so canonical implementations surface first.
-
 </details>
 
-Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
+<details>
+<summary>Updating</summary>
+
+To update/upgrade Semble to the latest version:
+
+```bash
+pip install --upgrade semble   # with pip
+uv tool upgrade semble         # with uv
+uv cache clean semble          # for MCP users (restart your MCP client after)
+```
+
+</details>
 
 ## Benchmarks
 
@@ -292,6 +325,25 @@ Agents using grep+read spend most of their context budget on irrelevant code. Se
 ![Token efficiency: recall vs. retrieved tokens](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/token_efficiency.png)
 
 Semble uses **98% fewer tokens** on average, and reaches 94% recall at a budget of only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md#token-efficiency) for details.
+
+## How it works
+
+Semble splits each file into code-aware chunks using [Chonkie](https://github.com/chonkie-inc/chonkie), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) model for semantic similarity, and [BM25](https://github.com/xhluca/bm25s) for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
+
+After fusing, results are reranked with a set of code-aware signals:
+
+<details>
+<summary><b>Ranking signals</b></summary>
+
+- **Adaptive weighting.** Symbol-like queries (`Foo::bar`, `_private`, `getUserById`) get more lexical weight, while natural-language queries stay balanced between semantic and lexical retrievers.
+- **Definition boosts.** A chunk that defines the queried symbol (a `class`, `def`, `func`, etc.) is ranked above chunks that merely reference it.
+- **Identifier stems.** Query tokens are stemmed and matched against identifier stems in a chunk, giving an additional weight to chunks that contain them. For example, querying `parse config` boosts chunks containing `parseConfig`, `ConfigParser`, or `config_parser`.
+- **File coherence.** When multiple chunks from the same file match the query, the file is boosted so the top result reflects broad file-level relevance rather than a single out-of-context chunk.
+- **Noise penalties.** Test files, `compat/`/`legacy/` shims, example code, and `.d.ts` declaration stubs are down-ranked so canonical implementations surface first.
+
+</details>
+
+Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
 
 ## License
 
