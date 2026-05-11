@@ -47,6 +47,12 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
             "*\n!*/\n!*.py\n",
             {"main.py", "internal/pkg/foo.py", "internal/pkg/bar.py"},
         ),
+        # Ignored-parent negation: out/* prunes out/deep/, so out/deep/keep.py must not leak.
+        (
+            ["out/deep/keep.py"],
+            "out/*\n!out/deep/keep.py\n",
+            set(),
+        ),
     ],
 )
 def test_walk_files_filtering(tmp_path: Path, files: list[str], gitignore: str | None, expected: set[str]) -> None:
