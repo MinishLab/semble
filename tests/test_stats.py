@@ -72,6 +72,22 @@ def test_savings_output_millions(tmp_path: Path) -> None:
     assert "M tokens" in format_savings_report(path=stats_file)
 
 
+def test_savings_do_not_subtract_unknown_baselines(tmp_path: Path) -> None:
+    """Rows without a full-file baseline must not cancel out real savings."""
+    stats_file = tmp_path / "stats.jsonl"
+    now = datetime.now(timezone.utc).timestamp()
+    stats_file.write_text(
+        _make_stats_record(now, snippet_chars=100, file_chars=500)
+        + "\n"
+        + _make_stats_record(now, snippet_chars=1_000, file_chars=0)
+        + "\n"
+    )
+
+    summary = build_savings_summary(path=stats_file)
+    assert summary.buckets["All time"].saved_chars == 400
+    assert "~100 tokens" in format_savings_report(path=stats_file)
+
+
 def test_savings_tolerates_bad_json(tmp_path: Path) -> None:
     """Malformed JSON lines are skipped with a warning."""
     stats_file = tmp_path / "stats.jsonl"
