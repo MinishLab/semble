@@ -120,6 +120,30 @@ async def test_index_cache_builds_and_caches(
     assert first is fake_index
     assert second is fake_index
     mock_build.assert_called_once()
+    _, kwargs = mock_build.call_args
+    assert kwargs.get("extensions") is None
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("source", "patch_target"),
+    [
+        ("local_tmp_path", "from_path"),
+        ("https://github.com/org/repo", "from_git"),
+    ],
+    ids=["local_path", "git_url"],
+)
+async def test_index_cache_forwards_extensions(tmp_path: Path, source: str, patch_target: str) -> None:
+    """_IndexCache passes custom extensions through to the index builder."""
+    resolved_source = str(tmp_path) if source == "local_tmp_path" else source
+    extensions = frozenset({".ext", ".lua"})
+    cache = _IndexCache(model=MagicMock(spec=Encoder), extensions=extensions)
+    fake_index = MagicMock()
+    with patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=fake_index) as mock_build:
+        result = await cache.get(resolved_source)
+    assert result is fake_index
+    _, kwargs = mock_build.call_args
+    assert kwargs.get("extensions") == extensions
 
 
 @pytest.mark.anyio
@@ -243,17 +267,28 @@ async def test_tool_output(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("with_path", [True, False], ids=["pre_index", "no_path"])
-async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
+@pytest.mark.parametrize("extensions", [None, frozenset({".ext"})], ids=["default", "custom"])
+async def test_serve_runs_stdio(
+    tmp_path: Path, with_path: bool, extensions: frozenset[str] | None
+) -> None:
     """serve() loads the model, runs stdio, and optionally pre-indexes when a path is given."""
+    original_init = _IndexCache.__init__
     with (
         patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
         patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
         patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
+        patch.object(_IndexCache, "__init__", side_effect=original_init, autospec=True) as mock_init,
         patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
     ):
-        await (serve(str(tmp_path)) if with_path else serve())
+        await (
+            serve(str(tmp_path), extensions=extensions)
+            if with_path
+            else serve(extensions=extensions)
+        )
 
     mock_run.assert_called_once()
+    _, kwargs = mock_init.call_args
+    assert kwargs.get("extensions") == extensions
 
 
 @pytest.mark.anyio

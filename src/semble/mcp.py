@@ -116,10 +116,15 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     return server
 
 
-async def serve(path: str | None = None, ref: str | None = None, include_text_files: bool = False) -> None:
+async def serve(
+    path: str | None = None,
+    ref: str | None = None,
+    include_text_files: bool = False,
+    extensions: frozenset[str] | None = None,
+) -> None:
     """Start an MCP stdio server, optionally pre-indexing a default source."""
     model = await asyncio.to_thread(load_model)
-    cache = _IndexCache(model=model, include_text_files=include_text_files)
+    cache = _IndexCache(model=model, include_text_files=include_text_files, extensions=extensions)
     if path:
         await cache.get(path, ref=ref)
         if not _is_git_url(path):
@@ -132,10 +137,13 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, model: Encoder, include_text_files: bool = False) -> None:
+    def __init__(
+        self, model: Encoder, include_text_files: bool = False, extensions: frozenset[str] | None = None
+    ) -> None:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
         self._include_text_files = include_text_files
+        self._extensions = extensions
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._watcher_task: asyncio.Task[None] | None = None
 
@@ -180,12 +188,17 @@ class _IndexCache:
                         ref=ref,
                         model=self._model,
                         include_text_files=self._include_text_files,
+                        extensions=self._extensions,
                     )
                 )
             else:
                 self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(
-                        SembleIndex.from_path, cache_key, model=self._model, include_text_files=self._include_text_files
+                        SembleIndex.from_path,
+                        cache_key,
+                        model=self._model,
+                        include_text_files=self._include_text_files,
+                        extensions=self._extensions,
                     )
                 )
         task = self._tasks[cache_key]

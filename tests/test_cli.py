@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semble.cli import _CLAUDE_FILE_PATH, _cli_main, _run_init, main
+from semble.index.file_walker import FILE_TYPES
 from semble.types import SearchMode, SearchResult
 from tests.conftest import make_chunk
 
@@ -202,3 +203,41 @@ def test_agent_file_tools_are_bash_only() -> None:
     tools = [t.strip() for t in tools_line.removeprefix("tools:").split(",")]
     assert set(tools) == {"Bash", "Read"}, f"Unexpected tools in agent file: {tools}"
     assert not any("mcp__" in t for t in tools)
+
+
+@pytest.mark.parametrize(
+    "flag,value,expected",
+    [
+        ("--extensions", ".ext", frozenset({".ext"})),
+        ("--add-extensions", ".ext", frozenset(FILE_TYPES.keys()) | {".ext"}),
+    ],
+)
+def test_cli_search_extensions(
+    flag: str,
+    value: str,
+    expected: frozenset[str],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """_cli_main forwards --extensions and --add-extensions to from_path."""
+    chunk = make_chunk("def foo(): pass", "src/foo.py")
+    fake_index = MagicMock()
+    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)]
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", flag, value])
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        _cli_main()
+    mock_from_path.assert_called_once_with("/some/path", include_text_files=False, extensions=expected)
+
+
+def test_cli_extensions_mutual_exclusion(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Providing both --extensions and --add-extensions causes argparse to exit with an error."""
+    monkeypatch.setattr(
+        sys, "argv", ["semble", "search", "query", "/some/path", "--extensions", ".ext", "--add-extensions", ".lua"]
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        _cli_main()
+    assert exc_info.value.code == 2
+    assert "not allowed with argument" in capsys.readouterr().err
