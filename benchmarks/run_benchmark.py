@@ -18,7 +18,7 @@ from benchmarks.data import (
 from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
-from semble.types import SearchResult
+from semble.types import SearchMode, SearchResult
 
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
@@ -30,7 +30,9 @@ class RepoResult:
 
     repo: str
     language: str
+    mode: str
     chunks: int
+    tokens: int
     ndcg5: float
     ndcg10: float
     p50_ms: float
@@ -41,23 +43,30 @@ class RepoResult:
     by_category: dict[str, float] = field(default_factory=dict)
 
 
-def _evaluate(
-    index: SembleIndex, tasks: list[Task], *, verbose: bool = False
-) -> tuple[float, float, list[float], dict[str, float]]:
+def evaluate(
+    index: SembleIndex,
+    tasks: list[Task],
+    *,
+    verbose: bool = False,
+    mode: SearchMode = SearchMode.HYBRID,
+    alpha: float | None = None,
+) -> tuple[float, float, list[float], dict[str, float], int]:
     """Return mean NDCG@5, NDCG@10, median query latency (ms), and per-category NDCG@10."""
     ndcg5_sum = 0.0
     ndcg10_sum = 0.0
     latencies: list[float] = []
     category_ndcg10: dict[str, list[float]] = defaultdict(list)
+    tokens = 0
 
     for task in tasks:
         query_latencies: list[float] = []
         results: list[SearchResult] = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
-            results = index.search(task.query, top_k=_DIRECT_TOP_K)
+            results = index.search(task.query, top_k=_DIRECT_TOP_K, mode=mode, alpha=alpha)
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
+        tokens += sum(len(r.chunk.content) // 4 for r in results)
 
         relevant_ranks = [rank for t in task.all_relevant if (rank := target_rank(results, t)) is not None]
         n_relevant = len(task.all_relevant)
@@ -83,7 +92,7 @@ def _evaluate(
 
     total = len(tasks)
     by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(category_ndcg10.items())}
-    return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
+    return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category, tokens // total
 
 
 def _print_summary(results: list[RepoResult]) -> None:
@@ -94,6 +103,9 @@ def _print_summary(results: list[RepoResult]) -> None:
 
     language_ndcg10 = [
         sum(r.ndcg10 for r in language_results) / len(language_results) for language_results in by_language.values()
+    ]
+    language_tokens = [
+        sum(r.tokens for r in language_results) / len(language_results) for language_results in by_language.values()
     ]
     language_p50 = [
         sum(r.p50_ms for r in language_results) / len(language_results) for language_results in by_language.values()
@@ -111,6 +123,7 @@ def _print_summary(results: list[RepoResult]) -> None:
         sum(r.index_ms for r in language_results) / len(language_results) for language_results in by_language.values()
     ]
     avg_ndcg10 = sum(language_ndcg10) / len(language_ndcg10)
+    avg_tokens = sum(language_tokens) / len(language_tokens)
     avg_p50 = sum(language_p50) / len(language_p50)
     avg_p90 = sum(language_p90) / len(language_p90)
     avg_p95 = sum(language_p95) / len(language_p95)
@@ -123,6 +136,7 @@ def _print_summary(results: list[RepoResult]) -> None:
         print(
             f"  {language}: repos={len(grouped)}"
             + f"  ndcg@5={sum(r.ndcg5 for r in grouped) / len(grouped):.3f}"
+            + f"  tokens={sum(r.tokens for r in grouped) / len(grouped):.0f}"
             + f"  ndcg@10={sum(r.ndcg10 for r in grouped) / len(grouped):.3f}"
             + f"  p50={sum(r.p50_ms for r in grouped) / len(grouped):.2f}ms"
             + f"  p90={sum(r.p90_ms for r in grouped) / len(grouped):.2f}ms"
@@ -140,6 +154,7 @@ def _print_summary(results: list[RepoResult]) -> None:
     print(f"  {'-' * 28}  " + "  ".join(f"{'-' * 9:>9}" for _ in columns), file=sys.stderr)
 
     ndcg_row = [f"{avg_ndcg10:>9.3f}"]
+    tokens_row = [f"{avg_tokens:>9.0f}"]
     p50_row = [f"{avg_p50:>8.2f}ms"]
     p90_row = [f"{avg_p90:>8.2f}ms"]
     p95_row = [f"{avg_p95:>8.2f}ms"]
@@ -147,6 +162,7 @@ def _print_summary(results: list[RepoResult]) -> None:
     index_row = [f"{avg_index:>7.0f}ms"]
     for language, language_results in by_language.items():
         ndcg_row.append(f"{sum(r.ndcg10 for r in language_results) / len(language_results):>9.3f}")
+        tokens_row.append(f"{sum(r.tokens for r in language_results) / len(language_results):>9.0f}")
         p50_row.append(f"{sum(r.p50_ms for r in language_results) / len(language_results):>8.2f}ms")
         p90_row.append(f"{sum(r.p90_ms for r in language_results) / len(language_results):>8.2f}ms")
         p95_row.append(f"{sum(r.p95_ms for r in language_results) / len(language_results):>8.2f}ms")
@@ -154,6 +170,7 @@ def _print_summary(results: list[RepoResult]) -> None:
         index_row.append(f"{sum(r.index_ms for r in language_results) / len(language_results):>7.0f}ms")
 
     print(f"  {'NDCG@10':<28}  " + "  ".join(ndcg_row), file=sys.stderr)
+    print(f"  {'tokens':<28}  " + "  ".join(tokens_row), file=sys.stderr)
     print(f"  {'q-p50':<28}  " + "  ".join(p50_row), file=sys.stderr)
     print(f"  {'q-p90':<28}  " + "  ".join(p90_row), file=sys.stderr)
     print(f"  {'q-p95':<28}  " + "  ".join(p95_row), file=sys.stderr)
@@ -175,12 +192,12 @@ def _bench_quality(
 ) -> list[RepoResult]:
     """Run quality benchmarks (NDCG@5, NDCG@10, latency) for each repo."""
     print(
-        f"{'Repo':<12} {'Language':<12} {'Chunks':>6} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8} {'p90':>8}"
-        f" {'p95':>8} {'p99':>8}",
+        f"{'Repo':<12} {'Language':<12} {'Chunks':>6} {'Tokens':>8} {'index':>9} {'NDCG@5':>8} {'NDCG@10':>8} "
+        f"{'p50':>8} {'p90':>8} {'p95':>8} {'p99':>8}",
         file=sys.stderr,
     )
     print(
-        f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 10} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}",
+        f"{'-' * 12} {'-' * 12} {'-' * 6} {'-' * 8} {'-' * 9} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}",
         file=sys.stderr,
     )
     results: list[RepoResult] = []
@@ -189,12 +206,14 @@ def _bench_quality(
         started = time.perf_counter()
         index = SembleIndex.from_path(spec.benchmark_dir, model=model)
         index_ms = (time.perf_counter() - started) * 1000
-        ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, verbose=verbose)
+        ndcg5, ndcg10, latencies, by_category, tokens = evaluate(index, tasks, verbose=verbose)
         p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
         result = RepoResult(
             repo=repo,
+            mode=SearchMode.HYBRID.value,
             language=spec.language,
             chunks=len(index.chunks),
+            tokens=tokens,
             ndcg5=ndcg5,
             ndcg10=ndcg10,
             p50_ms=p50,
@@ -206,7 +225,7 @@ def _bench_quality(
         )
         results.append(result)
         print(
-            f"{repo:<12} {spec.language:<12} {len(index.chunks):>6} "
+            f"{repo:<12} {spec.language:<12} {len(index.chunks):>6} {tokens:>8}"
             f"{index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50:>7.2f}ms {p90:>7.2f}ms {p95:>7.2f}ms {p99:>7.2f}ms",
             file=sys.stderr,
         )
@@ -221,6 +240,7 @@ def _save_results(results: list[RepoResult]) -> None:
     lang_means = {
         lang: {
             "ndcg10": sum(r.ndcg10 for r in grouped) / len(grouped),
+            "tokens": sum(r.tokens for r in grouped) / len(grouped),
             "p50_ms": sum(r.p50_ms for r in grouped) / len(grouped),
             "p90_ms": sum(r.p90_ms for r in grouped) / len(grouped),
             "p95_ms": sum(r.p95_ms for r in grouped) / len(grouped),
@@ -243,6 +263,7 @@ def _save_results(results: list[RepoResult]) -> None:
         "model": _DEFAULT_MODEL_NAME,
         "summary": {
             "ndcg10": round(sum(r.ndcg10 for r in results) / n_repos, 4),
+            "tokens": round(sum(r.tokens for r in results) / n_repos, 0),
             "p50_ms": round(sum(r.p50_ms for r in results) / n_repos, 3),
             "p90_ms": round(sum(r.p90_ms for r in results) / n_repos, 3),
             "p95_ms": round(sum(r.p95_ms for r in results) / n_repos, 3),
@@ -253,6 +274,7 @@ def _save_results(results: list[RepoResult]) -> None:
         "by_language": {
             lang: {
                 "repos": len(by_language[lang]),
+                "tokens": round(sum(r.tokens for r in by_language[lang]) / len(by_language[lang]), 0),
                 "ndcg10": round(v["ndcg10"], 4),
                 "p50_ms": round(v["p50_ms"], 3),
                 "p90_ms": round(v["p90_ms"], 3),

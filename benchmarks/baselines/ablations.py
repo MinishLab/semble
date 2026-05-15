@@ -2,8 +2,7 @@ import argparse
 import json
 import sys
 import time
-from collections import defaultdict
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict
 
 import numpy as np
 from model2vec import StaticModel
@@ -17,13 +16,10 @@ from benchmarks.data import (
     save_results,
     summarize_modes,
 )
-from benchmarks.metrics import ndcg_at_k, target_rank
+from benchmarks.run_benchmark import RepoResult, evaluate
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
-from semble.types import SearchResult
-
-_TOP_K = 10
-_LATENCY_RUNS = 5
+from semble.types import SearchMode
 
 _MODES = ["bm25", "semantic", "semble-bm25", "semble-semantic"]
 
@@ -31,78 +27,12 @@ _MODES = ["bm25", "semantic", "semble-bm25", "semble-semantic"]
 # alpha=None  → raw mode, no ranking pipeline
 # alpha=0.0   → hybrid pipeline, BM25-only input
 # alpha=1.0   → hybrid pipeline, semantic-only input
-_MODE_PARAMS: dict[str, tuple[str, float | None]] = {
-    "bm25": ("bm25", None),
-    "semantic": ("semantic", None),
-    "semble-bm25": ("hybrid", 0.0),
-    "semble-semantic": ("hybrid", 1.0),
+_MODE_PARAMS: dict[str, tuple[SearchMode, float | None]] = {
+    "bm25": (SearchMode.BM25, None),
+    "semantic": (SearchMode.SEMANTIC, None),
+    "semble-bm25": (SearchMode.HYBRID, 0.0),
+    "semble-semantic": (SearchMode.HYBRID, 1.0),
 }
-
-
-@dataclass(frozen=True)
-class RepoResult:
-    """Per-repo benchmark result for one search mode."""
-
-    repo: str
-    language: str
-    mode: str
-    chunks: int
-    ndcg5: float
-    ndcg10: float
-    p50_ms: float
-    p90_ms: float
-    index_ms: float
-    by_category: dict[str, float] = field(default_factory=dict)
-
-
-def _evaluate(
-    index: SembleIndex,
-    tasks: list[Task],
-    mode: str,
-    alpha: float | None,
-    *,
-    verbose: bool = False,
-) -> tuple[float, float, list[float], dict[str, float]]:
-    """Return (mean NDCG@5, NDCG@10, latency list ms, per-category NDCG@10)."""
-    ndcg5_sum = 0.0
-    ndcg10_sum = 0.0
-    latencies: list[float] = []
-    category_ndcg10: dict[str, list[float]] = defaultdict(list)
-
-    for task in tasks:
-        query_latencies: list[float] = []
-        results: list[SearchResult] = []
-        for _ in range(_LATENCY_RUNS):
-            started = time.perf_counter()
-            results = index.search(task.query, top_k=_TOP_K, mode=mode, alpha=alpha)
-            query_latencies.append((time.perf_counter() - started) * 1000)
-        latencies.append(float(np.median(query_latencies)))
-
-        relevant_ranks = [rank for t in task.all_relevant if (rank := target_rank(results, t)) is not None]
-        n_relevant = len(task.all_relevant)
-        q_ndcg5 = ndcg_at_k(relevant_ranks, n_relevant, 5)
-        q_ndcg10 = ndcg_at_k(relevant_ranks, n_relevant, _TOP_K)
-        ndcg5_sum += q_ndcg5
-        ndcg10_sum += q_ndcg10
-        category_ndcg10[task.category or "unknown"].append(q_ndcg10)
-
-        if verbose:
-            category = task.category or "?"
-            targets_str = ", ".join(
-                t.path if not t.start_line else f"{t.path}:{t.start_line}-{t.end_line}" for t in task.all_relevant
-            )
-            top_files = [r.chunk.file_path for r in results[:5]]
-            print(
-                f"  [{category:<12}] ndcg@10={q_ndcg10:.3f}  ranks={relevant_ranks}"
-                f"  n_rel={n_relevant}  q={task.query!r}",
-                file=sys.stderr,
-            )
-            print(f"               targets: {targets_str}", file=sys.stderr)
-            print(f"               top-5:   {top_files}", file=sys.stderr)
-
-    total = len(tasks)
-    by_category = {cat: sum(vals) / len(vals) for cat, vals in sorted(category_ndcg10.items())}
-    return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
 
 
 def _bench(
@@ -117,12 +47,12 @@ def _bench(
     results: list[RepoResult] = []
 
     header = (
-        f"{'Repo':<12} {'Language':<12} {'Mode':<16} {'Chunks':>6}"
+        f"{'Repo':<12} {'Language':<12} {'Mode':<16} {'Chunks':>6} {'Tokens':>8}"
         f" {'Index':>9} {'NDCG@5':>8} {'NDCG@10':>8} {'p50':>8} {'p90':>8}"
     )
     print(header, file=sys.stderr)
     print(
-        f"{'-' * 12} {'-' * 12} {'-' * 16} {'-' * 6} {'-' * 10} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}",
+        f"{'-' * 12} {'-' * 12} {'-' * 16} {'-' * 6} {'-' * 8} {'-' * 10} {'-' * 8} {'-' * 8} {'-' * 8} {'-' * 8}",
         file=sys.stderr,
     )
 
@@ -137,23 +67,28 @@ def _bench(
 
         for mode in modes:
             search_mode, alpha = _MODE_PARAMS[mode]
-            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, search_mode, alpha, verbose=verbose)
-            p50, p90 = np.percentile(latencies, [50, 90]).tolist()
+            ndcg5, ndcg10, latencies, by_category, tokens = evaluate(
+                index, tasks, mode=search_mode, alpha=alpha, verbose=verbose
+            )
+            p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
             result = RepoResult(
                 repo=repo,
                 language=spec.language,
                 mode=mode,
                 chunks=len(index.chunks),
+                tokens=tokens,
                 ndcg5=ndcg5,
                 ndcg10=ndcg10,
                 p50_ms=p50,
                 p90_ms=p90,
+                p95_ms=p95,
+                p99_ms=p99,
                 index_ms=index_ms,
                 by_category=by_category,
             )
             results.append(result)
             print(
-                f"{repo:<12} {spec.language:<12} {mode:<16} {len(index.chunks):>6}"
+                f"{repo:<12} {spec.language:<12} {mode:<16} {len(index.chunks):>6} {tokens:>8}"
                 f" {index_ms:>8.0f}ms {ndcg5:>8.3f} {ndcg10:>8.3f} {p50:>7.2f}ms {p90:>7.2f}ms",
                 file=sys.stderr,
             )
