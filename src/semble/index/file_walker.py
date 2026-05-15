@@ -21,6 +21,10 @@ class FileType:
 
 
 FILE_TYPES: dict[str, FileType] = {
+    ".f": FileType("fortran", FileCategory.CODE),
+    ".f90": FileType("fortran", FileCategory.CODE),
+    ".for": FileType("fortran", FileCategory.CODE),
+    ".ftn": FileType("fortran", FileCategory.CODE),
     ".py": FileType("python", FileCategory.CODE),
     ".js": FileType("javascript", FileCategory.CODE),
     ".jsx": FileType("javascript", FileCategory.CODE),
