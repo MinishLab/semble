@@ -437,8 +437,8 @@ def _inv_mapping(mapping: dict[str, str]) -> dict[str, list[str]]:
     return dict(inv)
 
 
-_ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
-_WITHOUT_DOC = _ALL_LANGUAGES - _DOC_LANGUAGES
+ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
+_WITHOUT_DOC = ALL_LANGUAGES - _DOC_LANGUAGES
 _LANGUAGE_TO_EXTENSION = _inv_mapping(_EXTENSION_TO_LANGUAGE)
 
 
@@ -450,7 +450,7 @@ def detect_language(file_name: Path) -> str | None:
 def get_extensions(include_text_files: bool, extensions: Sequence[str] | None) -> list[str]:
     """Returns a list of supported file extensions."""
     if include_text_files:
-        languages = _ALL_LANGUAGES
+        languages = ALL_LANGUAGES
     else:
         languages = _WITHOUT_DOC
     all_extensions: set[str] = set()
