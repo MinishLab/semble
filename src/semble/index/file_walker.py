@@ -120,6 +120,9 @@ def _walk(
         ]
 
     for item in dir.iterdir():
+        # Don't follow symlinks
+        if item.is_symlink():
+            continue
         if _is_ignored(item, active_specs):
             continue
 
