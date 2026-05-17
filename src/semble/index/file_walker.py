@@ -62,13 +62,13 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     :ytype: Path
     """
     # This should be a list. Traversal is done in order, so the order matters.
-    ignore = []
+    ignored = []
     extensions_as_patterns = [f"!*{ext}" for ext in extensions]
-    ignore.extend(extensions_as_patterns)
-    ignore.extend(_DEFAULT_IGNORED_DIRS)
+    ignored.extend(extensions_as_patterns)
+    ignored.extend(_DEFAULT_IGNORED_DIRS)
     # Always give user patterns preference
-    ignore.extend(ignore or [])
-    base_spec = GitIgnoreSpec.from_lines(ignore, backend="simple")
+    ignored.extend(ignore or [])
+    base_spec = GitIgnoreSpec.from_lines(ignored, backend="simple")
     s = IgnoreSpec(base=root, spec=base_spec)
     yield from _walk(root, [s])
 
@@ -105,20 +105,20 @@ def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> bool:
 
 
 def _walk(
-    dir: Path,
+    directory: Path,
     inherited_specs: list[IgnoreSpec],
 ) -> Iterator[Path]:
     """Recursive function for walking files under a directory."""
     active_specs = inherited_specs
 
-    spec = _load_ignore_for_dir(dir)
+    spec = _load_ignore_for_dir(directory)
     if spec is not None:
         active_specs = [
             *inherited_specs,
-            IgnoreSpec(base=dir, spec=spec),
+            IgnoreSpec(base=directory, spec=spec),
         ]
 
-    for item in dir.iterdir():
+    for item in directory.iterdir():
         # Don't follow symlinks
         if item.is_symlink():
             continue
