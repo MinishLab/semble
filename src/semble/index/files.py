@@ -325,7 +325,8 @@ _EXTENSION_TO_LANGUAGE = {
     ".tsx": "tsx",
     ".ttl": "turtle",
     ".twig": "twig",
-    ".txt": "vimdoc",
+    # Overly broad
+    # ".txt": "vimdoc",
     ".typoscript": "typoscript",
     ".typst": "typst",
     ".v": "v",

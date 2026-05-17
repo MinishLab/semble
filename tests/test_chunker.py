@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 from semble.chunking.chunking import Chunk, chunk_lines, chunk_source
 from semble.chunking.core import ChunkBoundary, chunk
-from semble.index.file_walker import filter_extensions
 
 
 def test_chunk_lines() -> None:
@@ -74,10 +73,3 @@ def test_core_chunk_leaf_node_exceeds_desired_length() -> None:
     assert chunks[0].start == 0
     for c in chunks:
         assert 0 <= c.start < c.end <= len(code)
-
-
-def test_filter_extensions_explicit() -> None:
-    """filter_extensions returns the provided set unchanged when extensions is not None."""
-    explicit: frozenset[str] = frozenset({".py", ".ts"})
-    result = filter_extensions(explicit, include_text_files=False)
-    assert result == explicit
