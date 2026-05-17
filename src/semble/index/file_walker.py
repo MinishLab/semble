@@ -116,8 +116,7 @@ def _walk(
             IgnoreSpec(base=directory, spec=spec),
         ]
 
-    x = sorted(directory.iterdir())
-    for item in x:
+    for item in sorted(directory.iterdir()):
         # Don't follow symlinks
         if item.is_symlink():
             continue
