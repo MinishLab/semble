@@ -69,7 +69,6 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     # Always give user patterns preference
     ignore.extend(ignore or [])
     base_spec = GitIgnoreSpec.from_lines(ignore, backend="simple")
-    # Patch the incorrect pattern
     s = IgnoreSpec(base=root, spec=base_spec)
     yield from _walk(root, [s])
 
