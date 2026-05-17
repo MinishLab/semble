@@ -65,7 +65,7 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     ignored = []
     extensions_as_patterns = [f"!*{ext}" for ext in extensions]
     ignored.extend(extensions_as_patterns)
-    ignored.extend(_DEFAULT_IGNORED_DIRS)
+    ignored.extend(sorted(_DEFAULT_IGNORED_DIRS))
     # Always give user patterns preference
     ignored.extend(ignore or [])
     base_spec = GitIgnoreSpec.from_lines(ignored, backend="simple")
@@ -109,23 +109,22 @@ def _walk(
     inherited_specs: list[IgnoreSpec],
 ) -> Iterator[Path]:
     """Recursive function for walking files under a directory."""
-    active_specs = inherited_specs
-
     spec = _load_ignore_for_dir(directory)
     if spec is not None:
-        active_specs = [
+        inherited_specs = [
             *inherited_specs,
             IgnoreSpec(base=directory, spec=spec),
         ]
 
-    for item in directory.iterdir():
+    x = sorted(directory.iterdir())
+    for item in x:
         # Don't follow symlinks
         if item.is_symlink():
             continue
-        if _is_ignored(item, active_specs):
+        if _is_ignored(item, inherited_specs):
             continue
 
         if item.is_dir():
-            yield from _walk(item, active_specs)
+            yield from _walk(item, inherited_specs)
         elif item.is_file():
             yield item
