@@ -1,10 +1,8 @@
-import re
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 from pathspec import GitIgnoreSpec
-from pathspec.pattern import RegexPattern
 
 
 @dataclass(frozen=True)
@@ -51,16 +49,6 @@ def _load_ignore_for_dir(directory: Path) -> GitIgnoreSpec | None:
     return None
 
 
-def _patch_incorrect_pattern(patterns: Sequence[RegexPattern]) -> None:
-    """Fix the regex pattern."""
-    for pattern in patterns:
-        if not pattern.regex:
-            continue
-        if pattern.regex.pattern == "(?P<ps_d>/)":
-            pattern.regex = re.compile(r"(?P<ps_d>/$)", re.UNICODE)
-            break
-
-
 def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | None = None) -> Iterator[Path]:
     """Yield files under root matching extensions, skipping ignored paths.
 
@@ -74,15 +62,14 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     :ytype: Path
     """
     # This should be a list. Traversal is done in order, so the order matters.
-    ignore_dirs = ["*", "!*/"]
+    ignore = []
     extensions_as_patterns = [f"!*{ext}" for ext in extensions]
-    ignore_dirs.extend(extensions_as_patterns)
-    ignore_dirs.extend(_DEFAULT_IGNORED_DIRS)
+    ignore.extend(extensions_as_patterns)
+    ignore.extend(_DEFAULT_IGNORED_DIRS)
     # Always give user patterns preference
-    ignore_dirs.extend(ignore or [])
-    base_spec = GitIgnoreSpec.from_lines(ignore_dirs, backend="simple")
+    ignore.extend(ignore or [])
+    base_spec = GitIgnoreSpec.from_lines(ignore, backend="simple")
     # Patch the incorrect pattern
-    _patch_incorrect_pattern(base_spec.patterns)
     s = IgnoreSpec(base=root, spec=base_spec)
     yield from _walk(root, [s])
 
@@ -91,7 +78,7 @@ def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> bool:
     """Check if a path is ignored by any of the provided ignore specs."""
     is_dir = path.is_dir()
     # Everything starts off as unignored
-    ignored = False
+    ignored = not is_dir
 
     for ignore_spec in specs:
         try:
