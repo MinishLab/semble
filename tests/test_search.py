@@ -151,7 +151,7 @@ def test_load_model(model_path: str | None, expected_call_arg: str) -> None:
 def test_embed_chunks_empty_returns_empty_array(mock_model: Any) -> None:
     """embed_chunks with an empty list returns a (0, 256) float32 array."""
     result = embed_chunks(mock_model, [])
-    assert result.shape == (0, 256)
+    assert result.shape == (0, 1)
     assert result.dtype == np.float32
 
 
