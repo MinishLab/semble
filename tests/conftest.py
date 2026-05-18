@@ -1,5 +1,6 @@
 import textwrap
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -76,12 +77,14 @@ def mock_model() -> MagicMock:
     """A model stub that returns deterministic random embeddings."""
     model = MagicMock()
     rng = np.random.default_rng(42)
+    _dim = 256
 
-    def _encode(texts: list[str]) -> npt.NDArray[np.float32]:
-        embs = rng.standard_normal((len(texts), 256)).astype(np.float32)
+    def _encode(texts: list[str], **kwargs: Any) -> npt.NDArray[np.float32]:
+        embs = rng.standard_normal((len(texts), _dim)).astype(np.float32)
         norms = np.linalg.norm(embs, axis=1, keepdims=True)
         normalized: npt.NDArray[np.float32] = embs / (norms + 1e-8)
         return normalized
 
     model.encode.side_effect = _encode
+    model.dim = _dim
     return model

@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Protocol, TypeAlias
+from typing import Any, Protocol, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -27,7 +27,12 @@ class CallType(str, Enum):
 class Encoder(Protocol):
     """Protocol for embedding models."""
 
-    def encode(self, texts: Sequence[str], /) -> EmbeddingMatrix:
+    @property
+    def dim(self) -> int:
+        """The dimensionality of the embedding."""
+        ...
+
+    def encode(self, texts: Sequence[str], /, **kwargs: Any) -> EmbeddingMatrix:
         """Encode texts into embeddings as a 2D float32 array."""
         ...  # pragma: no cover
 
