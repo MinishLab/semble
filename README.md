@@ -28,6 +28,8 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 ## Quickstart
 
+Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files. Set it up as an MCP server or via AGENTS.md:
+
 ### MCP (Claude Code)
 
 Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
