@@ -61,23 +61,17 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     :yield: Path to each file under root matching the criteria.
     :ytype: Path
     """
-    # This should be a list. Traversal is done in order, so the order matters.
-    ignored = []
-    extensions_as_patterns = [f"!*{ext}" for ext in extensions]
-    ignored.extend(extensions_as_patterns)
-    ignored.extend(sorted(_DEFAULT_IGNORED_DIRS))
-    # Always give user patterns preference
-    ignored.extend(ignore or [])
-    base_spec = GitIgnoreSpec.from_lines(ignored, backend="simple")
+    extensions_set = frozenset(extensions)
+    dir_patterns = list(sorted(_DEFAULT_IGNORED_DIRS)) + list(ignore or [])
+    base_spec = GitIgnoreSpec.from_lines(dir_patterns, backend="simple")
     s = IgnoreSpec(base=root, spec=base_spec)
-    yield from _walk(root, [s])
+    yield from _walk(root, [s], extensions_set)
 
 
 def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> bool:
     """Check if a path is ignored by any of the provided ignore specs."""
     is_dir = path.is_dir()
-    # Everything starts off as unignored
-    ignored = not is_dir
+    ignored = False
 
     for ignore_spec in specs:
         try:
@@ -107,6 +101,7 @@ def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> bool:
 def _walk(
     directory: Path,
     inherited_specs: list[IgnoreSpec],
+    extensions: frozenset[str],
 ) -> Iterator[Path]:
     """Recursive function for walking files under a directory."""
     spec = _load_ignore_for_dir(directory)
@@ -124,6 +119,6 @@ def _walk(
             continue
 
         if item.is_dir():
-            yield from _walk(item, inherited_specs)
-        elif item.is_file():
+            yield from _walk(item, inherited_specs, extensions)
+        elif item.is_file() and item.suffix.lower() in extensions:
             yield item
