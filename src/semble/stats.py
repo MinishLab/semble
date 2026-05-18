@@ -17,12 +17,14 @@ class BucketStats:
     calls: int = 0
     snippet_chars: int = 0
     file_chars: int = 0
+    saved_chars: int = 0
 
     def add(self, snippet_chars: int, file_chars: int) -> None:
         """Update stats with a call and its character counts."""
         self.calls += 1
         self.snippet_chars += snippet_chars
         self.file_chars += file_chars
+        self.saved_chars += max(0, file_chars - snippet_chars)
 
 
 @dataclass
@@ -113,8 +115,7 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
         light_line,
     ]
     for label, bucket in summary.buckets.items():
-        saved_chars = max(0, bucket.file_chars - bucket.snippet_chars)
-        saved_tokens = saved_chars // 4  # standard ~4 chars/token approximation
+        saved_tokens = bucket.saved_chars // 4  # standard ~4 chars/token approximation
         if saved_tokens >= 1_000_000:
             saved_str = f"~{saved_tokens / 1_000_000:.1f}M"
         elif saved_tokens >= 1000:
@@ -123,7 +124,7 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
             saved_str = f"~{saved_tokens}"
         calls_str = f"{bucket.calls / 1000:.1f}k" if bucket.calls >= 1000 else str(bucket.calls)
         if bucket.file_chars > 0:
-            ratio = saved_chars / bucket.file_chars
+            ratio = bucket.saved_chars / bucket.file_chars
             filled = round(ratio * bar_width)
             bar = "█" * filled + "░" * (bar_width - filled)
             pct = round(ratio * 100)

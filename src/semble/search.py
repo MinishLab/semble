@@ -107,10 +107,16 @@ def search_hybrid(
     normalized_semantic = _rrf_scores(semantic_scores)
     normalized_bm25 = _rrf_scores(bm25_scores)
 
+    # Sort by the file path and start line to
+    # counteract randomness introduces by hashing.
+    all_candidates = sorted(
+        {*normalized_semantic, *normalized_bm25},
+        key=lambda c: c.start_line,
+    )
     combined_scores: dict[Chunk, float] = {
         chunk: alpha_weight * normalized_semantic.get(chunk, 0.0)
         + (1.0 - alpha_weight) * normalized_bm25.get(chunk, 0.0)
-        for chunk in set(normalized_semantic) | set(normalized_bm25)
+        for chunk in all_candidates
     }
 
     # Boost files with multiple relevant chunks.

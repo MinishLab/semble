@@ -171,6 +171,7 @@ def summarize_modes(results: Sequence[Any], modes: Sequence[str]) -> dict[str, d
         summary[mode] = {
             "avg_ndcg10": round(sum(r.ndcg10 for r in mode_results) / n, 4) if n else 0.0,
             "avg_p50_ms": round(sum(r.p50_ms for r in mode_results) / n, 1) if n else 0.0,
+            "avg_tokens": round(sum(r.tokens for r in mode_results) / n, 1) if n else 0.0,
         }
     return summary
 

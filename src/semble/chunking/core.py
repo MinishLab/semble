@@ -5,17 +5,16 @@ from functools import cache
 from logging import getLogger
 
 from tree_sitter import Node, Parser
-from tree_sitter_language_pack import SupportedLanguage, get_parser, manifest_languages
+from tree_sitter_language_pack import SupportedLanguage, get_parser
+
+from semble.index.files import ALL_LANGUAGES
 
 logger = getLogger(__name__)
 
 
-_TREE_SITTER_LANGUAGES: frozenset[str] = frozenset(manifest_languages())
-
-
 def is_supported_language(language: str) -> bool:
     """Check if the language is supported by tree-sitter."""
-    return language in _TREE_SITTER_LANGUAGES
+    return language in ALL_LANGUAGES
 
 
 @dataclass
