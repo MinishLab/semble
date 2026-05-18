@@ -18,13 +18,13 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
-[Bash / AGENTS.md](#bash-agentsmd-1) •
+[Bash / AGENTS.md](#bash-agentsmd) •
 [CLI](#cli) •
 [Benchmarks](#benchmarks)
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-agentsmd-1) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-agentsmd) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
 ## Quickstart
 
@@ -81,7 +81,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 </details>
 
-Once installed, run `semble savings` to see how many tokens Semble has saved you. Note that for sub-agent support in Claude Code or Codex, you need the full [Bash / AGENTS.md](#bash-agentsmd-1) setup below.
+Once installed, run `semble savings` to see how many tokens Semble has saved you. Note that for sub-agent support in Claude Code or Codex, you need the full [Bash / AGENTS.md](#bash-agentsmd) setup below.
 
 <details>
 <summary>Updating Semble</summary>
@@ -157,6 +157,8 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local directory path or an https:// git URL. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
+
+<a id="bash-agentsmd"></a>
 
 ## Bash / AGENTS.md
 
