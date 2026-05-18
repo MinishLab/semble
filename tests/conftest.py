@@ -86,5 +86,5 @@ def mock_model() -> MagicMock:
         return normalized
 
     model.encode.side_effect = _encode
-    model.dim.side_effect = lambda: _dim
+    model.dim = _dim
     return model
