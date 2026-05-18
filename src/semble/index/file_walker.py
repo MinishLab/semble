@@ -98,8 +98,8 @@ def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
                 # extension suffix (e.g. !special.kjs, !*.py). Patterns without
                 # a suffix (e.g. !vendor/, !.github/*) target directories or
                 # broad globs and should not bypass extension filtering.
-                pat = pattern.pattern or ""
-                found = not ignored and bool(Path(pat.rstrip("/")).suffix)
+                pat = pattern.pattern
+                found = not ignored and isinstance(pat, str) and bool(Path(pat.rstrip("/")).suffix)
 
     return ignored, found
 

@@ -1,3 +1,5 @@
+from typing import cast
+
 import numpy as np
 import numpy.typing as npt
 from huggingface_hub.utils.tqdm import disable_progress_bars
@@ -21,7 +23,7 @@ def load_model(model_path: str | None = None) -> Encoder:
         model = StaticModel.from_pretrained(model_path)
     finally:
         disable_progress_bars()
-    return model
+    return cast(Encoder, model)
 
 
 def embed_chunks(model: Encoder, chunks: list[Chunk]) -> npt.NDArray[np.float32]:
