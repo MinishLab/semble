@@ -110,7 +110,8 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
 
     # With only the unrelated spec the file is not ignored (spec is skipped),
     # and, crucially, no exception is raised.
-    assert _is_ignored(target_file, [unrelated_spec]) is False
+    ignored, _ = _is_ignored(target_file, [unrelated_spec])
+    assert ignored is False
 
     # Spec rooted at project_a that ignores .py files
     matching_spec = IgnoreSpec(
@@ -119,7 +120,29 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
     )
 
     # The unrelated spec is safely skipped; the matching spec ignores the file.
-    assert _is_ignored(target_file, [unrelated_spec, matching_spec]) is True
+    ignored, _ = _is_ignored(target_file, [unrelated_spec, matching_spec])
+    assert ignored is True
+
+
+def test_walk_files_explicit_include_bypasses_extension_filter(tmp_path: Path) -> None:
+    """A file explicitly un-ignored via a negation pattern is yielded even if its extension is not in the list."""
+    _touch(tmp_path / "special.kjs")
+    _touch(tmp_path / "other.kjs")
+    _touch(tmp_path / "main.py")
+    (tmp_path / ".sembleignore").write_text("*.kjs\n!special.kjs\n")
+
+    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
+    assert found == {"main.py", "special.kjs"}
+
+
+def test_walk_files_directory_include_keeps_extension_filter(tmp_path: Path) -> None:
+    """A directory negation allows traversal but does not include unsupported files."""
+    _touch(tmp_path / "vendor" / "special.kjs")
+    _touch(tmp_path / "vendor" / "main.py")
+    (tmp_path / ".sembleignore").write_text("*\n!vendor/\n")
+
+    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
+    assert found == {"vendor/main.py"}
 
 
 def test_walk_files_skips_symlinks(tmp_path: Path) -> None:

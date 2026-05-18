@@ -68,11 +68,11 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     yield from _walk(root, [s], extensions_set)
 
 
-def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> bool:
+def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
     """Check if a path is ignored by any of the provided ignore specs."""
     is_dir = path.is_dir()
     ignored = False
-
+    found = False
     for ignore_spec in specs:
         try:
             # If there is no relative path, this is invalid.
@@ -94,8 +94,13 @@ def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> bool:
 
             if pattern.match_file(relative_str) is not None:
                 ignored = pattern.include
+                # Only set found for file-specific negation patterns. Directory
+                # patterns (e.g. !vendor/) un-ignore the directory but should not
+                # bypass extension filtering for individual files inside it.
+                pat = pattern.pattern
+                found = not ignored and not (isinstance(pat, str) and pat.rstrip().endswith("/"))
 
-    return ignored
+    return ignored, found
 
 
 def _walk(
@@ -115,10 +120,11 @@ def _walk(
         # Don't follow symlinks
         if item.is_symlink():
             continue
-        if _is_ignored(item, inherited_specs):
+        is_ignored, found = _is_ignored(item, inherited_specs)
+        if is_ignored:
             continue
 
         if item.is_dir():
             yield from _walk(item, inherited_specs, extensions)
-        elif item.is_file() and item.suffix.lower() in extensions:
+        elif item.is_file() and (found or item.suffix.lower() in extensions):
             yield item
