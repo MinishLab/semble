@@ -209,7 +209,7 @@ This writes [`.claude/agents/semble-search.md`](src/semble/agents/semble-search.
 
 ## CLI
 
-Semble also ships as a standalone CLI for use outside of MCP. This is useful in scripts or anywhere you want search results without an MCP session.
+Semble also ships as a standalone CLI. This is useful in scripts or anywhere you want search results without an MCP session.
 
 ```bash
 # Search a local repo
