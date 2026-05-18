@@ -56,6 +56,20 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
             "out/*\n!out/deep/keep.py\n",
             set(),
         ),
+        # Explicit file negation bypasses extension filter: !special.kjs is yielded even if .kjs is not in extensions.
+        (
+            ["special.kjs", "other.kjs", "main.py"],
+            None,
+            "*.kjs\n!special.kjs\n",
+            {"main.py", "special.kjs"},
+        ),
+        # Directory negation does NOT bypass extension filter: files inside vendor/ still need a matching extension.
+        (
+            ["vendor/special.kjs", "vendor/main.py"],
+            None,
+            "*\n!vendor/\n",
+            {"vendor/main.py"},
+        ),
     ],
 )
 def test_walk_files_filtering(
@@ -122,27 +136,6 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
     # The unrelated spec is safely skipped; the matching spec ignores the file.
     ignored, _ = _is_ignored(target_file, [unrelated_spec, matching_spec])
     assert ignored is True
-
-
-def test_walk_files_explicit_include_bypasses_extension_filter(tmp_path: Path) -> None:
-    """A file explicitly un-ignored via a negation pattern is yielded even if its extension is not in the list."""
-    _touch(tmp_path / "special.kjs")
-    _touch(tmp_path / "other.kjs")
-    _touch(tmp_path / "main.py")
-    (tmp_path / ".sembleignore").write_text("*.kjs\n!special.kjs\n")
-
-    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
-    assert found == {"main.py", "special.kjs"}
-
-
-def test_walk_files_directory_include_keeps_extension_filter(tmp_path: Path) -> None:
-    """A directory negation allows traversal but does not include unsupported files."""
-    _touch(tmp_path / "vendor" / "special.kjs")
-    _touch(tmp_path / "vendor" / "main.py")
-    (tmp_path / ".sembleignore").write_text("*\n!vendor/\n")
-
-    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
-    assert found == {"vendor/main.py"}
 
 
 def test_walk_files_skips_symlinks(tmp_path: Path) -> None:
