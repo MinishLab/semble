@@ -26,6 +26,15 @@
 
 Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-integration) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
+## Main Features
+
+- **Fast**: indexes an average repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
+- **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
+- **Token-efficient**: returns only the relevant chunks, using [~98% fewer tokens than grep+read](#token-efficiency).
+- **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
+- **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
+- **Local and remote**: pass a local path or a git URL.
+
 ## Quickstart
 
 Your agent will automatically use Semble whenever it needs to find code. Instead of grepping with a keyword and reading full files, it queries in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant context.
@@ -243,35 +252,7 @@ Stats are stored in `~/.semble/savings.jsonl`.
 
 </details>
 
-<details>
-<summary>Library usage</summary>
-
-Semble can also be used as a Python library for programmatic access, useful when building custom tooling or integrating search directly into your own code.
-
-```python
-from semble import SembleIndex
-
-# Index a local directory
-index = SembleIndex.from_path("./my-project")
-
-# Index a remote git repository
-index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
-
-# Search the index with a natural-language or code query
-results = index.search("save model to disk", top_k=3)
-
-# Find code similar to a specific result
-related = index.find_related(results[0], top_k=3)
-
-# Each result exposes the matched chunk
-result = results[0]
-result.chunk.file_path   # "model2vec/model.py"
-result.chunk.start_line  # 127
-result.chunk.end_line    # 150
-result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
-```
-
-</details>
+Need programmatic access? See [Python API](docs/python-api.md).
 
 <details>
 <summary>Updating</summary>
