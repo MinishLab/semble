@@ -63,6 +63,13 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
             "*.kjs\n!special.kjs\n",
             {"main.py", "special.kjs"},
         ),
+        # Glob negation without suffix does NOT bypass extension filter.
+        (
+            [".github/workflows/ci.yaml", "src/main.py"],
+            None,
+            "!.github/*\n",
+            {"src/main.py"},
+        ),
         # Directory negation does NOT bypass extension filter: files inside vendor/ still need a matching extension.
         (
             ["vendor/special.kjs", "vendor/main.py"],

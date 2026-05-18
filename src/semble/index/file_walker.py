@@ -94,11 +94,12 @@ def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
 
             if pattern.match_file(relative_str) is not None:
                 ignored = pattern.include
-                # Only set found for file-specific negation patterns. Directory
-                # patterns (e.g. !vendor/) un-ignore the directory but should not
-                # bypass extension filtering for individual files inside it.
-                pat = pattern.pattern
-                found = not ignored and not (isinstance(pat, str) and pat.rstrip().endswith("/"))
+                # Bypass extension filter only for negation patterns with a file
+                # extension suffix (e.g. !special.kjs, !*.py). Patterns without
+                # a suffix (e.g. !vendor/, !.github/*) target directories or
+                # broad globs and should not bypass extension filtering.
+                pat = pattern.pattern or ""
+                found = not ignored and bool(Path(pat.rstrip("/")).suffix)
 
     return ignored, found
 
