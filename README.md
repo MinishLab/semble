@@ -83,6 +83,16 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 Once installed, run `semble savings` to see how many tokens Semble has saved you. Note that for sub-agent support in Claude Code or Codex, you need the full [Bash / AGENTS.md](#bash-integration) setup below.
 
+<details>
+<summary>Updating Semble</summary>
+
+```bash
+pip install --upgrade semble   # with pip
+uv tool upgrade semble         # with uv
+uv cache clean semble          # for MCP users (restart your MCP client after)
+```
+
+</details>
 
 ## Main Features
 
@@ -201,16 +211,6 @@ Semble also ships as a standalone CLI for use outside of MCP. This is useful in 
 # Search a local repo
 semble search "authentication flow" ./my-project
 
-# Find code similar to a known location
-semble find-related src/auth.py 42 ./my-project
-```
-
-`path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
-
-<details>
-<summary>More CLI examples</summary>
-
-```bash
 # Search for a symbol or identifier
 semble search "save_pretrained" ./my-project
 
@@ -219,9 +219,12 @@ semble search "save model to disk" https://github.com/MinishLab/model2vec
 
 # Limit results
 semble search "save model to disk" ./my-project --top-k 10
+
+# Find code similar to a known location
+semble find-related src/auth.py 42 ./my-project
 ```
 
-</details>
+`path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 <details>
 <summary>Savings</summary>
@@ -275,19 +278,6 @@ result.chunk.file_path   # "model2vec/model.py"
 result.chunk.start_line  # 127
 result.chunk.end_line    # 150
 result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
-```
-
-</details>
-
-<details>
-<summary>Updating</summary>
-
-To update/upgrade Semble to the latest version:
-
-```bash
-pip install --upgrade semble   # with pip
-uv tool upgrade semble         # with uv
-uv cache clean semble          # for MCP users (restart your MCP client after)
 ```
 
 </details>
