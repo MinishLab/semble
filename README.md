@@ -1,8 +1,8 @@
 
 <h2 align="center">
   <img width="30%" alt="semble logo" src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/semble_logo.png"><br/>
-  Fast, Token-Efficient Code Search for AI Agents<br/>
-  <sub>~98% fewer tokens than grep+read &nbsp;•&nbsp; 250 ms indexing &nbsp;•&nbsp; 1.5 ms queries &nbsp;•&nbsp; no API keys</sub>
+  Fast and Accurate Code Search for Agents<br/>
+  <sub>Uses ~98% fewer tokens than grep+read</sub>
 </h2>
 
 <div align="center">
