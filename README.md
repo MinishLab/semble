@@ -26,15 +26,6 @@
 
 Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read and cutting latency on every step. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-integration) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
-## Main Features
-
-- **Fast**: indexes an average repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
-- **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
-- **Token-efficient**: returns only the relevant chunks, using [~98% fewer tokens than grep+read](#token-efficiency).
-- **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
-- **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
-- **Local and remote**: pass a local path or a git URL.
-
 ## Quickstart
 
 Your agent will automatically use Semble whenever it needs to find code. Instead of grepping with a keyword and reading full files, it queries in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant context.
@@ -95,6 +86,15 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 > Note: for Claude Code or Codex CLI sub-agents, use the [bash integration](#bash-integration) instead of, or alongside, MCP.
 
 Curious how many tokens Semble has saved you? Run `semble savings` to see.
+
+## Main Features
+
+- **Fast**: indexes an average repo in ~250 ms and answers queries in ~1.5 ms, all on CPU.
+- **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
+- **Token-efficient**: returns only the relevant chunks, using [~98% fewer tokens than grep+read](#token-efficiency).
+- **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
+- **MCP server**: drop-in tool for Claude Code, Cursor, Codex, OpenCode, and any other MCP-compatible agent.
+- **Local and remote**: pass a local path or a git URL.
 
 ## MCP Server
 
@@ -252,7 +252,35 @@ Stats are stored in `~/.semble/savings.jsonl`.
 
 </details>
 
-Need programmatic access? See [Python API](docs/python-api.md).
+<details>
+<summary>Library usage</summary>
+
+Semble can also be used as a Python library for programmatic access, useful when building custom tooling or integrating search directly into your own code.
+
+```python
+from semble import SembleIndex
+
+# Index a local directory
+index = SembleIndex.from_path("./my-project")
+
+# Index a remote git repository
+index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
+
+# Search the index with a natural-language or code query
+results = index.search("save model to disk", top_k=3)
+
+# Find code similar to a specific result
+related = index.find_related(results[0], top_k=3)
+
+# Each result exposes the matched chunk
+result = results[0]
+result.chunk.file_path   # "model2vec/model.py"
+result.chunk.start_line  # 127
+result.chunk.end_line    # 150
+result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
+```
+
+</details>
 
 <details>
 <summary>Updating</summary>
@@ -269,30 +297,16 @@ uv cache clean semble          # for MCP users (restart your MCP client after)
 
 ## Benchmarks
 
-We benchmark quality and speed across all methods on ~1,250 queries over 63 repositories in 19 languages. The x-axis is total latency (index + first query); the y-axis is NDCG@10. Marker size reflects model parameter count.
+We benchmark quality and speed across ~1,250 queries over 63 repositories in 19 languages (left), and token efficiency against grep+read at equivalent recall levels (right).
 
-![Speed vs quality](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/speed_vs_ndcg_cold.png)
+<table>
+<tr>
+<td><img src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/speed_vs_ndcg_cold.png" alt="Speed vs quality"></td>
+<td><img src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/token_efficiency.png" alt="Token efficiency: recall vs. retrieved tokens"></td>
+</tr>
+</table>
 
-| Method | NDCG@10 | Index time | Query p50 |
-|--------|--------:|-----------:|----------:|
-| CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
-| **semble** | **0.854** | **263 ms** | **1.5 ms** |
-| CodeRankEmbed | 0.765 | 57 s | 16 ms |
-| ColGREP | 0.693 | 5.8 s | 124 ms |
-| BM25 | 0.673 | 263 ms | 0.02 ms |
-| grepai | 0.561 | 35 s | 48 ms |
-| probe | 0.387 | — | 207 ms |
-| ripgrep | 0.126 | — | 12 ms |
-
-Semble achieves 99% of the performance of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid, while indexing 218x faster and answering queries 11x faster. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and methodology.
-
-### Token efficiency
-
-Agents using grep+read spend most of their context budget on irrelevant code. Semble returns only the chunks that match, keeping token usage low even at high recall.
-
-![Token efficiency: recall vs. retrieved tokens](https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/token_efficiency.png)
-
-Semble uses **98% fewer tokens** on average, and reaches 94% recall at a budget of only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md#token-efficiency) for details.
+The quality benchmark (left) scores retrieval quality (NDCG@10) against total latency across methods on ~1,250 natural-language and code queries; semble achieves 99% of the quality of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) Hybrid while indexing 218x faster. The token efficiency benchmark (right) measures how many tokens each method needs to reach a given recall level; semble uses 98% fewer tokens on average and hits 94% recall at only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and full methodology.
 
 ## How it works
 
