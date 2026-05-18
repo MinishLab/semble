@@ -28,8 +28,6 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 ## Quickstart
 
-Your agent will automatically use Semble whenever it needs to find code. Instead of grepping with a keyword and reading full files, it queries in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant context.
-
 ### MCP (Claude Code)
 
 Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
@@ -48,6 +46,8 @@ Install Semble, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 pip install semble       # Install with pip
 uv tool install semble   # Or install with uv
 ```
+
+Note that for sub-agent support in Claude Code or Codex, you need the bash integration. Once installed, run `semble savings` to see how many tokens Semble has saved you. See [Bash / AGENTS.md](#bash-integration) for more info.
 
 <details>
 <summary>AGENTS.md / CLAUDE.md snippet</summary>
@@ -83,9 +83,6 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 </details>
 
-> Note: for Claude Code or Codex CLI sub-agents, use the [bash integration](#bash-integration) instead of, or alongside, MCP.
-
-Curious how many tokens Semble has saved you? Run `semble savings` to see.
 
 ## Main Features
 
@@ -153,7 +150,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 ## Bash integration
 
-An alternative to MCP is to invoke Semble via Bash. For Claude Code and Codex CLI, this is the only option for sub-agents, which cannot call MCP tools directly (both lazy-load MCP schemas at the top-level agent only).
+An alternative to MCP is to invoke Semble via Bash. For Claude Code and Codex CLI, this is the only option for sub-agents, which cannot call MCP tools directly, though it can also be used alongside MCP for the top-level agent.
 
 To add Bash support, append the following to your `AGENTS.md` or `CLAUDE.md`:
 
