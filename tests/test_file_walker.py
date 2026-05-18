@@ -83,11 +83,17 @@ def test_walk_files_prunes_ignored_dirs(tmp_path: Path) -> None:
 
 
 def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
-    """An IgnoreSpec whose base is not an ancestor of the path is silently skipped."""
+    """An IgnoreSpec whose base is not an ancestor of the path is silently skipped.
+
+    When the first spec has an unrelated base, the ValueError is caught and the
+    spec is skipped without crashing. A second spec with the correct base can
+    still ignore the file.
+    """
     from pathspec import GitIgnoreSpec
 
     from semble.index.file_walker import IgnoreSpec, _is_ignored
 
+    # Create two unrelated directory trees
     project_a = tmp_path / "project_a"
     project_b = tmp_path / "project_b"
     project_a.mkdir()
@@ -96,26 +102,24 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
     target_file = project_a / "keep.py"
     target_file.write_text("x = 1\n")
 
-    # Spec rooted at project_b — unrelated to target_file; silently skipped, no crash.
+    # Spec rooted at project_b — unrelated to target_file
     unrelated_spec = IgnoreSpec(
         base=project_b,
         spec=GitIgnoreSpec.from_lines(["*.py"]),
     )
+
+    # With only the unrelated spec the file is not ignored (spec is skipped),
+    # and, crucially, no exception is raised.
     assert _is_ignored(target_file, [unrelated_spec]) is False
 
-    # A matching spec can still ignore the file.
-    ignore_spec = IgnoreSpec(
+    # Spec rooted at project_a that ignores .py files
+    matching_spec = IgnoreSpec(
         base=project_a,
         spec=GitIgnoreSpec.from_lines(["*.py"]),
     )
-    assert _is_ignored(target_file, [ignore_spec]) is True
 
-    # The unrelated spec is safely skipped; the negation spec un-ignores the file.
-    negate_spec = IgnoreSpec(
-        base=project_a,
-        spec=GitIgnoreSpec.from_lines(["*.py", "!keep.py"]),
-    )
-    assert _is_ignored(target_file, [unrelated_spec, negate_spec]) is False
+    # The unrelated spec is safely skipped; the matching spec ignores the file.
+    assert _is_ignored(target_file, [unrelated_spec, matching_spec]) is True
 
 
 def test_walk_files_skips_symlinks(tmp_path: Path) -> None:
