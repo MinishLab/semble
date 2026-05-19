@@ -293,71 +293,14 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
 
-<details>
-<summary>Claude Code</summary>
-
 ```bash
-semble init
+semble init                      # Claude Code  → .claude/agents/semble-search.md
+semble init --agent gemini       # Gemini CLI   → .gemini/agents/semble-search.md
+semble init --agent cursor       # Cursor       → .cursor/agents/semble-search.md
+semble init --agent opencode     # OpenCode     → .opencode/agents/semble-search.md
+semble init --agent copilot      # Copilot CLI  → .github/agents/semble-search.md
+semble init --agent kiro         # Kiro         → .kiro/agents/semble-search.md
 ```
-
-Writes `.claude/agents/semble-search.md`.
-
-</details>
-
-<details>
-<summary>Gemini CLI</summary>
-
-```bash
-semble init --agent gemini
-```
-
-Writes `.gemini/agents/semble-search.md`.
-
-</details>
-
-<details>
-<summary>Cursor</summary>
-
-```bash
-semble init --agent cursor
-```
-
-Writes `.cursor/agents/semble-search.md`.
-
-</details>
-
-<details>
-<summary>OpenCode</summary>
-
-```bash
-semble init --agent opencode
-```
-
-Writes `.opencode/agents/semble-search.md`.
-
-</details>
-
-<details>
-<summary>GitHub Copilot CLI</summary>
-
-```bash
-semble init --agent copilot
-```
-
-Writes `.github/agents/semble-search.md`.
-
-</details>
-
-<details>
-<summary>Kiro</summary>
-
-```bash
-semble init --agent kiro
-```
-
-Writes `.kiro/agents/semble-search.md`.
-
-</details>
 
 If semble is not on `$PATH`, prefix any command with `uvx --from "semble[mcp]"`.
 
