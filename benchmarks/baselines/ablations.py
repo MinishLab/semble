@@ -19,19 +19,14 @@ from benchmarks.data import (
 from benchmarks.run_benchmark import RepoResult, evaluate
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
-from semble.types import SearchMode
 
-_MODES = ["bm25", "semantic", "semble-bm25", "semble-semantic"]
-
-# Maps mode name -> (search_mode, alpha) for index.search()
-# alpha=None  → raw mode, no ranking pipeline
+# alpha=None  → raw mode, input depends on query
 # alpha=0.0   → hybrid pipeline, BM25-only input
 # alpha=1.0   → hybrid pipeline, semantic-only input
-_MODE_PARAMS: dict[str, tuple[SearchMode, float | None]] = {
-    "bm25": (SearchMode.BM25, None),
-    "semantic": (SearchMode.SEMANTIC, None),
-    "semble-bm25": (SearchMode.HYBRID, 0.0),
-    "semble-semantic": (SearchMode.HYBRID, 1.0),
+_MODE_PARAMS: dict[str, float | None] = {
+    "semble-bm25": 0.0,
+    "semble-semantic": 1.0,
+    "semble-auto": None,
 }
 
 
@@ -65,11 +60,8 @@ def _bench(
         index = SembleIndex.from_path(spec.benchmark_dir, model=model)
         index_ms = (time.perf_counter() - started) * 1000
 
-        for mode in modes:
-            search_mode, alpha = _MODE_PARAMS[mode]
-            ndcg5, ndcg10, latencies, by_category, tokens = evaluate(
-                index, tasks, mode=search_mode, alpha=alpha, verbose=verbose
-            )
+        for mode, alpha in sorted(_MODE_PARAMS.items()):
+            ndcg5, ndcg10, latencies, by_category, tokens = evaluate(index, tasks, alpha=alpha, verbose=verbose)
             p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
             result = RepoResult(
                 repo=repo,
@@ -100,7 +92,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="semble ablation benchmarks.")
     add_filter_args(parser, verbose=True)
     parser.add_argument(
-        "--mode", action="append", default=[], choices=_MODES, help="Mode(s) to evaluate (default: all)."
+        "--mode", action="append", default=[], choices=sorted(_MODE_PARAMS), help="Mode(s) to evaluate (default: all)."
     )
     return parser.parse_args()
 
@@ -108,7 +100,7 @@ def _parse_args() -> argparse.Namespace:
 def main() -> None:
     """Run the semble ablation benchmarks."""
     args = _parse_args()
-    modes = args.mode or _MODES
+    modes = args.mode or sorted(_MODE_PARAMS)
 
     repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None)
 

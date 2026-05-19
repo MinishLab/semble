@@ -18,7 +18,7 @@ from benchmarks.data import (
 from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
-from semble.types import SearchMode, SearchResult
+from semble.types import SearchResult
 
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10
@@ -48,7 +48,6 @@ def evaluate(
     tasks: list[Task],
     *,
     verbose: bool = False,
-    mode: SearchMode = SearchMode.HYBRID,
     alpha: float | None = None,
 ) -> tuple[float, float, list[float], dict[str, float], int]:
     """Return mean NDCG@5, NDCG@10, median query latency (ms), and per-category NDCG@10."""
@@ -63,7 +62,7 @@ def evaluate(
         results: list[SearchResult] = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
-            results = index.search(task.query, top_k=_DIRECT_TOP_K, mode=mode, alpha=alpha)
+            results = index.search(task.query, top_k=_DIRECT_TOP_K, alpha=alpha)
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
         tokens += sum(len(r.chunk.content) // 4 for r in results)
@@ -210,7 +209,7 @@ def _bench_quality(
         p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
         result = RepoResult(
             repo=repo,
-            mode=SearchMode.HYBRID.value,
+            mode="auto",
             language=spec.language,
             chunks=len(index.chunks),
             tokens=tokens,
