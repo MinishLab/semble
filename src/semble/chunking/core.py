@@ -5,7 +5,7 @@ from functools import cache
 from logging import getLogger
 
 from tree_sitter import Node, Parser
-from tree_sitter_language_pack import LanguageNotFoundError, SupportedLanguage, get_parser
+from tree_sitter_language_pack import DownloadError, LanguageNotFoundError, SupportedLanguage, get_parser
 
 from semble.index.files import ALL_LANGUAGES
 
@@ -32,6 +32,10 @@ def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
         return get_parser(language)
     except LanguageNotFoundError:
         logger.warning("Language %s not found, falling back to line chunking", language)
+    except DownloadError:
+        logger.warning("Failed to download language %s, falling back to line chunking", language)
+    except Exception:
+        logger.error("Uncaught exception in _cached_get_parser", exc_info=True)
     return None
 
 
