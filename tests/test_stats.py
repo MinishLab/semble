@@ -8,7 +8,7 @@ import pytest
 
 from semble.cli import _cli_main
 from semble.stats import build_savings_summary, format_savings_report, save_search_stats
-from semble.types import CallType, SearchMode, SearchResult
+from semble.types import CallType, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -30,7 +30,7 @@ def sample_stats_file(tmp_path: Path) -> Path:
 def test_save_search_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """save_search_stats deduplicates file paths and silences write errors."""
     chunk = make_chunk("hello", "src/foo.py")
-    result = SearchResult(chunk=chunk, score=0.9, source=SearchMode.HYBRID)
+    result = SearchResult(chunk=chunk, score=0.9)
     stats_file = tmp_path / "stats.jsonl"
     monkeypatch.setattr("semble.stats._STATS_FILE", stats_file)
     save_search_stats([result, result], CallType.SEARCH, {"src/foo.py": 42})

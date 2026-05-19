@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections import OrderedDict
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import Annotated
 
 import watchfiles
 from mcp.server.fastmcp import FastMCP
@@ -63,10 +63,6 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     async def search(
         query: Annotated[str, Field(description="Natural language or code query.")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
-        mode: Annotated[
-            Literal["hybrid", "semantic", "bm25"],
-            Field(description="Search mode. 'hybrid' is best for most queries."),
-        ] = "hybrid",
         top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
     ) -> str:
         """Search a codebase with a natural-language or code query.
@@ -78,10 +74,10 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             index = await _get_index(repo, default_source, cache)
         except ValueError as exc:
             return str(exc)
-        results = index.search(query, top_k=top_k, mode=mode)
+        results = index.search(query, top_k=top_k)
         if not results:
             return "No results found."
-        return _format_results(f"Search results for: {query!r} (mode={mode})", results)
+        return _format_results(f"Search results for: {query!r}", results)
 
     @server.tool()
     async def find_related(

@@ -87,9 +87,6 @@ def _cli_main() -> None:
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     search_p.add_argument(
-        "-m", "--mode", default="hybrid", choices=["hybrid", "semantic", "bm25"], help="Search mode (default: hybrid)."
-    )
-    search_p.add_argument(
         "--include-text-files",
         action="store_true",
         help="Also index non-code text files (.md, .yaml, .json, etc.).",
@@ -137,11 +134,11 @@ def _cli_main() -> None:
     )
 
     if args.command == "search":
-        results = index.search(args.query, top_k=args.top_k, mode=args.mode)
+        results = index.search(args.query, top_k=args.top_k)
         if not results:
             print("No results found.")
         else:
-            print(_format_results(f"Search results for: {args.query!r} (mode={args.mode})", results))
+            print(_format_results(f"Search results for: {args.query!r}", results))
 
     elif args.command == "find-related":
         chunk = _resolve_chunk(index.chunks, args.file_path, args.line)

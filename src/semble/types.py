@@ -9,14 +9,6 @@ import numpy.typing as npt
 EmbeddingMatrix: TypeAlias = npt.NDArray[np.float32]
 
 
-class SearchMode(str, Enum):
-    """Search mode for SembleIndex.search()."""
-
-    HYBRID = "hybrid"
-    SEMANTIC = "semantic"
-    BM25 = "bm25"
-
-
 class CallType(str, Enum):
     """Call type for token-savings tracking."""
 
@@ -59,7 +51,6 @@ class SearchResult:
 
     chunk: Chunk
     score: float
-    source: SearchMode
 
 
 @dataclass(frozen=True, slots=True)

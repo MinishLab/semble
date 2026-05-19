@@ -49,43 +49,35 @@ def test_index_language_counts(indexed_index: SembleIndex) -> None:
 
 
 @pytest.mark.parametrize(
-    "query, mode",
-    [("authenticate token", "hybrid"), ("authenticate", "bm25"), ("authentication", "semantic")],
+    "query",
+    [("authenticate token"), ("authenticate"), ("authentication")],
 )
-def test_search_modes(indexed_index: SembleIndex, query: str, mode: str) -> None:
+def test_search_modes(indexed_index: SembleIndex, query: str) -> None:
     """Each search mode returns a valid list of at most top_k results."""
-    results = indexed_index.search(query, top_k=3, mode=mode)
+    results = indexed_index.search(query, top_k=3)
     assert isinstance(results, list)
     assert len(results) <= 3
 
 
-def test_search_invalid_mode(indexed_index: SembleIndex) -> None:
-    """An unrecognised mode string raises ValueError."""
-    with pytest.raises(ValueError):
-        indexed_index.search("query", mode="invalid")
-
-
 def test_search_constraints(indexed_index: SembleIndex) -> None:
     """search: top_k is respected; no duplicate chunks are returned."""
-    assert len(indexed_index.search("function", top_k=1, mode="bm25")) <= 1
+    assert len(indexed_index.search("function", top_k=1)) <= 1
 
     results = indexed_index.search("authenticate", top_k=5)
     assert len(results) == len(set(r.chunk for r in results))
 
 
-@pytest.mark.parametrize("mode", ["bm25", "hybrid", "semantic"])
-def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex, mode: str) -> None:
+def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex) -> None:
     """Filtered search works regardless of where the selected chunk lives in the corpus."""
     target_path = indexed_index.chunks[-1].file_path
-    results = indexed_index.search("function", top_k=3, mode=mode, filter_paths=[target_path])
+    results = indexed_index.search("function", top_k=3, filter_paths=[target_path])
     assert all(r.chunk.file_path == target_path for r in results)
 
 
-@pytest.mark.parametrize("mode", ["bm25", "hybrid", "semantic"])
 @pytest.mark.parametrize("query", ["", "   ", "\n\n"])
-def test_search_empty_query_returns_empty(indexed_index: SembleIndex, mode: str, query: str) -> None:
+def test_search_empty_query_returns_empty(indexed_index: SembleIndex, query: str) -> None:
     """Empty / whitespace-only queries return [] across all modes."""
-    assert indexed_index.search(query, mode=mode) == []
+    assert indexed_index.search(query) == []
 
 
 @pytest.mark.parametrize(

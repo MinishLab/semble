@@ -8,9 +8,9 @@ import pytest
 from vicinity.backends.basic import BasicArgs
 
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
-from semble.search import _sort_top_k, search_bm25, search_hybrid, search_semantic
+from semble.search import _search_bm25, _search_semantic, _sort_top_k, search_hybrid
 from semble.tokens import tokenize
-from semble.types import Chunk, Encoder, SearchMode
+from semble.types import Chunk, Encoder
 from tests.conftest import make_chunk
 
 
@@ -51,24 +51,24 @@ def semantic(embeddings: npt.NDArray[np.float32]) -> SelectableBasicBackend:
 
 def test_search_bm25(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
     """search_bm25: returns most relevant chunk first; selector restricts to given indices."""
-    results = search_bm25("authenticate token", bm25, chunks, top_k=4, selector=None)
+    results = _search_bm25("authenticate token", bm25, chunks, top_k=4, selector=None)
     assert len(results) > 0
     assert "authenticate" in results[0].chunk.content
 
     selector = np.array([len(chunks) - 1], dtype=np.int_)
-    filtered = search_bm25("format", bm25, chunks, top_k=4, selector=selector)
+    filtered = _search_bm25("format", bm25, chunks, top_k=4, selector=selector)
     assert all(r.chunk is chunks[len(chunks) - 1] for r in filtered)
 
 
 @pytest.mark.parametrize("query", ["", "   ", "\n\n", "zzzznonexistentterm"])
 def test_bm25_returns_empty_for_no_match(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
     """Empty / whitespace-only / token-less queries return [] instead of crashing bm25s."""
-    assert search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
+    assert _search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
 
 
 def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any) -> None:
     """Semantic search returns results with scores in [-1, 1]."""
-    results = search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
+    results = _search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
     assert len(results) > 0
     assert all(-1.0 <= r.score <= 1.0 for r in results)
 
@@ -100,16 +100,15 @@ def test_search_hybrid(
 
 
 @pytest.mark.parametrize(
-    ("search_fn", "mode", "query", "top_k"),
+    ("search_fn", "query", "top_k"),
     [
-        (lambda q, m, s, b, c, k: search_bm25(q, b, c, k, selector=None), SearchMode.BM25, "authenticate", 3),
-        (lambda q, m, s, b, c, k: search_semantic(q, m, s, c, k, selector=None), SearchMode.SEMANTIC, "query", 4),
-        (lambda q, m, s, b, c, k: search_hybrid(q, m, s, b, c, k), SearchMode.HYBRID, "login", 4),
+        (lambda q, m, s, b, c, k: _search_bm25(q, b, c, k, selector=None), "authenticate", 3),
+        (lambda q, m, s, b, c, k: _search_semantic(q, m, s, c, k, selector=None), "query", 4),
+        (lambda q, m, s, b, c, k: search_hybrid(q, m, s, b, c, k), "login", 4),
     ],
 )
 def test_search_source_labels(
     search_fn: Any,
-    mode: SearchMode,
     query: str,
     top_k: int,
     chunks: list[Chunk],
@@ -120,7 +119,6 @@ def test_search_source_labels(
     """Each result carries a source label matching the search mode used."""
     results = search_fn(query, mock_model, semantic, bm25, chunks, top_k)
     assert len(results) > 0
-    assert all(result.source is mode for result in results)
 
 
 def test_sort_top_k() -> None:

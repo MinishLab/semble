@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
-from semble.types import Chunk, Encoder, SearchMode, SearchResult
+from semble.types import Chunk, Encoder, SearchResult
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 from tests.conftest import make_chunk
 
@@ -87,9 +87,7 @@ def test_format_results() -> None:
     assert "```" not in empty_out
 
     chunks = [make_chunk(f"def fn_{i}(): pass", f"f{i}.py") for i in range(3)]
-    results = [
-        SearchResult(chunk=c, score=round(0.1 * (i + 1), 3), source=SearchMode.HYBRID) for i, c in enumerate(chunks)
-    ]
+    results = [SearchResult(chunk=c, score=round(0.1 * (i + 1), 3)) for i, c in enumerate(chunks)]
     out = _format_results("Results for: 'foo'", results)
     assert "Results for: 'foo'" in out
     assert out.count("```") >= len(results) * 2  # opening + closing fence each
@@ -183,7 +181,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
             "search",
             {"query": "bar"},
             "search",
-            [SearchResult(chunk=make_chunk("def bar(): pass", "src/bar.py"), score=0.9, source=SearchMode.HYBRID)],
+            [SearchResult(chunk=make_chunk("def bar(): pass", "src/bar.py"), score=0.9)],
             None,
             ["bar", "0.900"],
             id="search_with_results",
@@ -201,7 +199,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
             "find_related",
             {"file_path": "src/foo.py", "line": 1},
             "find_related",
-            [SearchResult(chunk=make_chunk("class Foo: pass", "src/foo.py"), score=0.8, source=SearchMode.SEMANTIC)],
+            [SearchResult(chunk=make_chunk("class Foo: pass", "src/foo.py"), score=0.8)],
             [make_chunk("class Foo: pass", "src/foo.py")],
             ["src/foo.py:1", "0.800"],
             id="find_related_with_results",
