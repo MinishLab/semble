@@ -114,12 +114,137 @@ Semble can run as an MCP server so agents can search any codebase directly. Repo
 
 > Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
 
-#### Claude Code
+<details>
+<summary>Claude Code</summary>
+
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-For Gemini CLI, Cursor, Codex, OpenCode, Zed, and others, see the [installation guide](docs/installation.md).
+</details>
+
+<details>
+<summary>Gemini CLI</summary>
+
+Add to `~/.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Codex</summary>
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.semble]
+command = "uvx"
+args = ["--from", "semble[mcp]", "semble"]
+```
+
+</details>
+
+<details>
+<summary>OpenCode</summary>
+
+Add to `~/.opencode/config.json`:
+
+```json
+{
+  "mcp": {
+    "semble": {
+      "type": "local",
+      "command": ["uvx", "--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>GitHub Copilot CLI</summary>
+
+Add to `~/.copilot/mcp-config.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Kiro</summary>
+
+Add to `~/.kiro/settings/mcp.json` (or `.kiro/settings/mcp.json` in your project):
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Zed</summary>
+
+Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
+
+```json
+{
+  "context_servers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+For more detail see the [installation guide](docs/installation.md).
 
 ### Tools
 
@@ -166,20 +291,75 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
 ```
 
-**Sub-agent support**: Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run once in your project root:
+**Sub-agent support**: Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
+
+<details>
+<summary>Claude Code</summary>
 
 ```bash
-semble init                    # Claude Code (default)
-semble init --agent gemini
-semble init --agent cursor
-semble init --agent opencode
-semble init --agent copilot
-semble init --agent kiro
-# or, if semble is not on $PATH:
-uvx --from "semble[mcp]" semble init --agent copilot
+semble init
 ```
 
-See the [installation guide](docs/installation.md) for all supported agents and options.
+Writes `.claude/agents/semble-search.md`.
+
+</details>
+
+<details>
+<summary>Gemini CLI</summary>
+
+```bash
+semble init --agent gemini
+```
+
+Writes `.gemini/agents/semble-search.md`.
+
+</details>
+
+<details>
+<summary>Cursor</summary>
+
+```bash
+semble init --agent cursor
+```
+
+Writes `.cursor/agents/semble-search.md`.
+
+</details>
+
+<details>
+<summary>OpenCode</summary>
+
+```bash
+semble init --agent opencode
+```
+
+Writes `.opencode/agents/semble-search.md`.
+
+</details>
+
+<details>
+<summary>GitHub Copilot CLI</summary>
+
+```bash
+semble init --agent copilot
+```
+
+Writes `.github/agents/semble-search.md`.
+
+</details>
+
+<details>
+<summary>Kiro</summary>
+
+```bash
+semble init --agent kiro
+```
+
+Writes `.kiro/agents/semble-search.md`.
+
+</details>
+
+If semble is not on `$PATH`, prefix any command with `uvx --from "semble[mcp]"`. See the [installation guide](docs/installation.md) for the full agent table with sources.
 
 ## CLI
 
