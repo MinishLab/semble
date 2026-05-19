@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from semble.cli import _AGENT_PATHS, _cli_main, _run_init, main
+from semble.cli import Agent, _agent_path, _cli_main, _run_init, main
 from semble.types import SearchMode, SearchResult
 from tests.conftest import make_chunk
 
-_CLAUDE_FILE_PATH = _AGENT_PATHS["claude"]
+_CLAUDE_FILE_PATH = _agent_path(Agent.CLAUDE)
 
 _CLAUDE_AGENT_FILE = files("semble").joinpath("agents/semble-search.md").read_text(encoding="utf-8")
 

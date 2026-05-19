@@ -338,7 +338,7 @@ semble init --agent copilot      # Copilot CLI  → .github/agents/semble-search
 semble init --agent kiro         # Kiro         → .kiro/agents/semble-search.md
 ```
 
-If semble is not on `$PATH`, prefix any command with `uvx --from "semble[mcp]"`.
+If semble is not on `$PATH`, prefix the command with `uvx --from "semble[mcp]"`.
 
 ## CLI
 
