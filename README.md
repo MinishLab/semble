@@ -38,7 +38,7 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Using Gemini CLI, Cursor, Codex, OpenCode, Zed, or another agent? See [MCP Server](#mcp-server) below for per-agent setup.
+Using another agent harness? See [MCP Server](#mcp-server) below for per-agent setup.
 
 ### Bash / AGENTS.md
 
@@ -83,7 +83,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 </details>
 
-Once installed, run `semble savings` to see how many tokens Semble has saved you. Note that sub-agents cannot call MCP tools directly — see [Bash / AGENTS.md](#bash-agentsmd) and `semble init` below.
+Once installed, run `semble savings` to see how many tokens Semble has saved you. Note that sub-agents cannot call MCP tools directly, see [Bash / AGENTS.md](#bash-agentsmd) and [sub-agent setup](#sub-agent-setup) below for details.
 
 <details>
 <summary>Updating Semble</summary>
@@ -102,7 +102,7 @@ uv cache clean semble          # for MCP users (restart your MCP client after)
 - **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Token-efficient**: returns only the relevant chunks, using [~98% fewer tokens than grep+read](#benchmarks).
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
-- **MCP server**: works with Claude Code, Cursor, Codex, OpenCode, VS Code, Windsurf, and any other MCP-compatible agent.
+- **MCP server**: works with Claude Code, Cursor, Codex, OpenCode, VS Code, and any other MCP-compatible agent.
 - **Local and remote**: pass a local path or a git URL.
 
 ## MCP Server
