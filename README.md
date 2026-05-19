@@ -102,7 +102,7 @@ uv cache clean semble          # for MCP users (restart your MCP client after)
 - **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Token-efficient**: returns only the relevant chunks, using [~98% fewer tokens than grep+read](#benchmarks).
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
-- **MCP server**: works with Claude Code, Gemini CLI, Cursor, Codex, OpenCode, Zed, and any other MCP-compatible agent.
+- **MCP server**: works with Claude Code, Cursor, Codex, OpenCode, VS Code, Windsurf, and any other MCP-compatible agent.
 - **Local and remote**: pass a local path or a git URL.
 
 ## MCP Server
@@ -118,24 +118,6 @@ Semble can run as an MCP server so agents can search any codebase directly. Repo
 
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
-```
-
-</details>
-
-<details>
-<summary>Gemini CLI</summary>
-
-Add to `~/.gemini/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
 ```
 
 </details>
@@ -190,9 +172,63 @@ Add to `~/.opencode/config.json`:
 </details>
 
 <details>
+<summary>VS Code</summary>
+
+Add to `.vscode/mcp.json` in your project (or your user profile's `mcp.json`):
+
+```json
+{
+  "servers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
 <summary>GitHub Copilot CLI</summary>
 
 Add to `~/.copilot/mcp-config.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Windsurf</summary>
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Gemini CLI</summary>
+
+Add to `~/.gemini/settings.json`:
 
 ```json
 {
