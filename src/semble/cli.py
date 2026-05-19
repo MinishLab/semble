@@ -22,14 +22,14 @@ class Agent(str, Enum):
     OPENCODE = "opencode"
 
 
+_DEFAULT_AGENT = Agent.CLAUDE
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help"})
+
+
 def _agent_path(agent: Agent) -> Path:
     """Return the project-relative path where the semble sub-agent file should be written."""
     base_dir = ".github" if agent is Agent.COPILOT else f".{agent.value}"
     return Path(base_dir) / "agents" / "semble-search.md"
-
-
-_DEFAULT_AGENT = Agent.CLAUDE
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help"})
 
 
 def main() -> None:
