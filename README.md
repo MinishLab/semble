@@ -289,7 +289,9 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
 ```
 
-**Sub-agent support**: Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
+### Sub-agent setup
+
+Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
 
 <details>
 <summary>Claude Code</summary>
