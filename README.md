@@ -20,8 +20,7 @@
 [MCP Server](#mcp-server) •
 [Bash / AGENTS.md](#bash-agentsmd) •
 [CLI](#cli) •
-[Benchmarks](#benchmarks) •
-[Installation guide](docs/installation.md)
+[Benchmarks](#benchmarks)
 
 </div>
 
@@ -39,7 +38,7 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Using Gemini CLI, Cursor, Codex, OpenCode, Zed, or another agent? See the [installation guide](docs/installation.md) for per-agent setup.
+Using Gemini CLI, Cursor, Codex, OpenCode, Zed, or another agent? See [MCP Server](#mcp-server) below for per-agent setup.
 
 ### Bash / AGENTS.md
 
@@ -244,7 +243,6 @@ Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
 
 </details>
 
-For more detail see the [installation guide](docs/installation.md).
 
 ### Tools
 
@@ -359,7 +357,7 @@ Writes `.kiro/agents/semble-search.md`.
 
 </details>
 
-If semble is not on `$PATH`, prefix any command with `uvx --from "semble[mcp]"`. See the [installation guide](docs/installation.md) for the full agent table with sources.
+If semble is not on `$PATH`, prefix any command with `uvx --from "semble[mcp]"`.
 
 ## CLI
 
