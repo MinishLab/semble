@@ -1,7 +1,10 @@
+import logging
 from unittest.mock import patch
 
+import pytest
+
 from semble.chunking.chunking import Chunk, chunk_lines, chunk_source
-from semble.chunking.core import ChunkBoundary, chunk
+from semble.chunking.core import ChunkBoundary, _cached_get_parser, chunk
 
 
 def test_chunk_lines() -> None:
@@ -53,6 +56,7 @@ def test_core_chunk_recursive_split_and_break() -> None:
     """core.chunk recursively splits large nodes and breaks when siblings exceed the limit."""
     code = "x = 1\ndef foo():\n    a = 1\n    b = 2\n    c = 3\ny = 2\n"
     chunks = chunk(code, "python", 10)
+    assert chunks is not None
     assert len(chunks) >= 3
     assert chunks[0].start == 0
     # Non-overlapping and within bounds
@@ -69,7 +73,28 @@ def test_core_chunk_leaf_node_exceeds_desired_length() -> None:
     long_var = "x" * 100
     code = f"{long_var} = 1\n"
     chunks = chunk(code, "python", 50)
+    assert chunks is not None
     assert len(chunks) >= 1
     assert chunks[0].start == 0
     for c in chunks:
         assert 0 <= c.start < c.end <= len(code)
+
+
+def test_get_parser(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that get parser only logs the first time."""
+    _cached_get_parser.cache_clear()
+    with caplog.at_level(logging.WARNING, logger="semble.chunking.core"):
+        _cached_get_parser("hello")
+        assert len(caplog.records) == 1
+        assert "hello" in caplog.records[0].message
+
+        caplog.clear()
+        _cached_get_parser("hello")
+        assert len(caplog.records) == 0
+
+
+def test_chunks_is_none() -> None:
+    """Test that chunk returns None when parser is not available."""
+    with patch("semble.chunking.core._cached_get_parser", lambda x: None):
+        chunks = chunk("x = 1", "python", 10)
+        assert chunks is None

@@ -14,9 +14,12 @@ def chunk_source(source: str, file_path: str, language: str | None) -> list[Chun
     """Chunk pre-read source text."""
     if not source.strip():
         return []
+    chunk_boundaries = None
     if language is not None and is_supported_language(language):
         chunk_boundaries = chunk(source, language, _DESIRED_CHUNK_LENGTH_CHARS)
-    else:
+    # This is an if because the error state of the parser above
+    # is a None.
+    if chunk_boundaries is None:
         chunk_boundaries = chunk_lines(source, _DESIRED_CHUNK_LENGTH_CHARS)
 
     chunks: list[Chunk] = []
