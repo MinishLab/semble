@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import sys
+import warnings
 from enum import Enum
 from importlib.resources import files
 from importlib.util import find_spec
@@ -10,7 +11,10 @@ from model2vec.utils import get_package_extras
 
 from semble.index import SembleIndex
 from semble.stats import format_savings_report
+from semble.types import ContentType
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
+
+_CONTENT_CHOICES = [ct.value for ct in ContentType]
 
 
 class Agent(str, Enum):
@@ -30,6 +34,23 @@ def _agent_path(agent: Agent) -> Path:
     """Return the project-relative path where the semble sub-agent file should be written."""
     base_dir = ".github" if agent is Agent.COPILOT else f".{agent.value}"
     return Path(base_dir) / "agents" / "semble-search.md"
+
+
+def _add_content_args(p: argparse.ArgumentParser) -> None:
+    """Add --content and deprecated --include-text-files to a subparser."""
+    p.add_argument(
+        "--content",
+        action="append",
+        default=None,
+        choices=_CONTENT_CHOICES,
+        metavar="TYPE",
+        help="Content type(s) to index: 'code' (default), 'docs', 'all'. Repeatable: --content code --content docs.",
+    )
+    p.add_argument(
+        "--include-text-files",
+        action="store_true",
+        help="Deprecated. Use --content all instead.",
+    )
 
 
 def main() -> None:
@@ -52,18 +73,15 @@ def _mcp_main() -> None:
         help="Local directory or git URL to pre-index at startup (optional).",
     )
     parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
-    parser.add_argument(
-        "--include-text-files",
-        action="store_true",
-        help="Also index non-code text files (.md, .yaml, .json, etc.).",
-    )
+    _add_content_args(parser)
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
         print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
         raise SystemExit(1)
     from semble.mcp import serve
 
-    asyncio.run(serve(args.path, ref=args.ref, include_text_files=args.include_text_files))
+    content = _resolve_content(args.content, args.include_text_files)
+    asyncio.run(serve(args.path, ref=args.ref, content=content))
 
 
 def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
@@ -78,6 +96,18 @@ def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
     print(f"Created {dest}")
 
 
+def _resolve_content(content_args: list[str] | None, include_text_files: bool) -> list[ContentType]:
+    """Resolve --content values and the deprecated --include-text-files into a list of ContentType."""
+    if include_text_files:
+        warnings.warn(
+            "--include-text-files is deprecated and will be removed in a future version. Use --content all instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+        return [ContentType.ALL]
+    return [ContentType(v) for v in content_args] if content_args else [ContentType.CODE]
+
+
 def _cli_main() -> None:
     parser = argparse.ArgumentParser(prog="semble")
     sub = parser.add_subparsers(dest="command")
@@ -86,22 +116,14 @@ def _cli_main() -> None:
     search_p.add_argument("query", help="Natural language or code query.")
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    search_p.add_argument(
-        "--include-text-files",
-        action="store_true",
-        help="Also index non-code text files (.md, .yaml, .json, etc.).",
-    )
+    _add_content_args(search_p)
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
     related_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    related_p.add_argument(
-        "--include-text-files",
-        action="store_true",
-        help="Also index non-code text files (.md, .yaml, .json, etc.).",
-    )
+    _add_content_args(related_p)
 
     init_p = sub.add_parser("init", help="Write a semble sub-agent file for your coding agent.")
     init_p.add_argument(
@@ -126,11 +148,11 @@ def _cli_main() -> None:
         print(format_savings_report(verbose=args.verbose), end="")
         return
 
-    include_text = args.include_text_files
+    content = _resolve_content(args.content, args.include_text_files)
     index = (
-        SembleIndex.from_git(args.path, include_text_files=include_text)
+        SembleIndex.from_git(args.path, content=content)
         if _is_git_url(args.path)
-        else SembleIndex.from_path(args.path, include_text_files=include_text)
+        else SembleIndex.from_path(args.path, content=content)
     )
 
     if args.command == "search":

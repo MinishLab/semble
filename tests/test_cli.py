@@ -193,6 +193,26 @@ def test_mcp_main_exits_with_message_when_extras_missing(
     assert "pip install 'semble[mcp]'" in capsys.readouterr().err
 
 
+def test_include_text_files_cli_deprecated(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--include-text-files on CLI raises DeprecationWarning."""
+    import warnings
+
+    chunk = make_chunk("def foo(): pass", "src/foo.py")
+    fake_index = MagicMock()
+    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", "--include-text-files"])
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            _cli_main()
+    assert any(
+        "include-text-files" in str(w.message).lower() for w in caught if issubclass(w.category, DeprecationWarning)
+    )
+
+
 def test_agent_file_tools_are_bash_only() -> None:
     """The agent file must list only Bash and Read — no MCP tools that require schema loading."""
     frontmatter = _CLAUDE_AGENT_FILE.split("---")[1]

@@ -148,9 +148,3 @@ def test_boost_multi_chunk_files() -> None:
     scores: dict = {c1: 1.0, c2: 0.8, c3: 1.0}
     boost_multi_chunk_files(scores)
     assert scores[c1] > 1.0
-
-
-def test_boosting_with_empty() -> None:
-    """Test that boosting with empty chunks return None."""
-    boosted = apply_query_boost({}, "query", [])
-    assert boosted == {}

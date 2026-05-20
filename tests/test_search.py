@@ -8,9 +8,9 @@ import pytest
 from vicinity.backends.basic import BasicArgs
 
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
-from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
+from semble.search import DEFAULT_DOCS_DIVERSITY, _diversify, _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
-from semble.types import Chunk, Encoder
+from semble.types import Chunk, ContentType, Encoder, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -107,7 +107,7 @@ def test_search_hybrid(
         (lambda q, m, s, b, c, k: search(q, m, s, b, c, k), "login", 4),
     ],
 )
-def test_search_source_labels(
+def test_search_returns_results(
     search_fn: Any,
     query: str,
     top_k: int,
@@ -116,14 +116,14 @@ def test_search_source_labels(
     bm25: bm25s.BM25,
     mock_model: Any,
 ) -> None:
-    """Each result carries a source label matching the search mode used."""
+    """BM25, semantic, and hybrid search all return at least one result for a matching query."""
     results = search_fn(query, mock_model, semantic, bm25, chunks, top_k)
     assert len(results) > 0
 
 
 def test_sort_top_k() -> None:
     """_sort_top_k returns the same indices as np.argsort(-x)[:top_k]."""
-    gen = np.random.default_rng()
+    gen = np.random.default_rng(42)
     x = gen.standard_normal(size=(10000,))
     top_k = 100
     indices = _sort_top_k(x, top_k)
@@ -159,3 +159,40 @@ def test_selectable_basic_backend_rejects_k_below_one(
     """SelectableBasicBackend.query guards against k < 1."""
     with pytest.raises(ValueError, match="k should be >= 1"):
         semantic.query(embeddings[:1], k=0)
+
+
+def test_search_with_diversity(
+    chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: bm25s.BM25, mock_model: Any
+) -> None:
+    """Search with diversity set runs DPP and returns top_k results."""
+    results = search("authenticate", mock_model, semantic, bm25, chunks, top_k=2, diversity=DEFAULT_DOCS_DIVERSITY)
+    assert len(results) == 2
+    assert all(r.score >= 0 for r in results)
+
+
+def test_diversify_fewer_results_than_top_k(chunks: list[Chunk], semantic: SelectableBasicBackend) -> None:
+    """_diversify returns early when results are already within top_k."""
+    results = [SearchResult(chunk=c, score=1.0 - i * 0.1) for i, c in enumerate(chunks[:2])]
+    out = _diversify(results, top_k=10, diversity_weight=DEFAULT_DOCS_DIVERSITY, semantic_index=semantic, chunks=chunks)
+    assert len(out) == 2
+
+
+def test_diversify_filters_unknown_chunks(chunks: list[Chunk], semantic: SelectableBasicBackend) -> None:
+    """_diversify returns early when valid results (chunks in index) fall within top_k."""
+    # 4 results but 3 reference unknown chunks not in the index → valid=1 ≤ top_k=3
+    unknown = [make_chunk(f"x = {i}", f"unknown_{i}.py") for i in range(3)]
+    results = [SearchResult(chunk=c, score=1.0 - i * 0.1) for i, c in enumerate([chunks[0]] + unknown)]
+    out = _diversify(results, top_k=3, diversity_weight=DEFAULT_DOCS_DIVERSITY, semantic_index=semantic, chunks=chunks)
+    assert len(out) == 1  # only the known chunk survives
+
+
+def test_search_content_all_uses_both_pipelines(
+    chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: bm25s.BM25, mock_model: Any
+) -> None:
+    """ContentType.ALL activates both rerank and diversity defaults."""
+    from semble import SembleIndex
+
+    index = SembleIndex(mock_model, bm25, semantic, chunks, content=frozenset({ContentType.ALL}))
+    # rerank and diversity both resolve to True/set — results should come back without error
+    results = index.search("authenticate", top_k=2)
+    assert len(results) > 0

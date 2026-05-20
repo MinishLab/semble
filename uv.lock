@@ -10,7 +10,7 @@ resolution-markers = [
 
 [options]
 exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
-exclude-newer-span = "P3D"
+exclude-newer-span = "P1W"
 
 [[package]]
 name = "annotated-doc"
@@ -2457,6 +2457,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pyversity"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d5/dc/a5a835b57ce06e21b4355d9e37ebb717455d55645014f1f5bde2fd948615/pyversity-0.2.0.tar.gz", hash = "sha256:48be2735b2471da1fa7497ea045aff25aa071f1176b86a011d4a49c01327ab6d", size = 28000, upload-time = "2026-02-02T08:06:38.563Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/e2/7e928734b14944f164cb243cee7fb14229e208d25df022506aa5a2390bcc/pyversity-0.2.0-py3-none-any.whl", hash = "sha256:c28f6a1a3ccfb97a9439d345e80ba0e60ffd14aa7680f2db0af7a70e90aae3f9", size = 21229, upload-time = "2026-02-02T08:06:37.125Z" },
+]
+
+[[package]]
 name = "pywin32"
 version = "311"
 source = { registry = "https://pypi.org/simple" }
@@ -3124,6 +3137,7 @@ dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pathspec" },
+    { name = "pyversity" },
     { name = "tree-sitter" },
     { name = "tree-sitter-language-pack" },
     { name = "vicinity" },
@@ -3168,6 +3182,7 @@ requires-dist = [
     { name = "pydoclint", marker = "extra == 'dev'", specifier = ">=0.5.3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
+    { name = "pyversity", specifier = ">=0.1.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
     { name = "tiktoken", marker = "extra == 'benchmark'", specifier = ">=0.7" },

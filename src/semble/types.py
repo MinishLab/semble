@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol, TypeAlias
@@ -14,6 +14,24 @@ class CallType(str, Enum):
 
     SEARCH = "search"
     FIND_RELATED = "find_related"
+
+
+class ContentType(str, Enum):
+    """Content type for indexing and search pipeline selection."""
+
+    CODE = "code"
+    DOCS = "docs"
+    ALL = "all"
+
+
+ContentSelection: TypeAlias = "ContentType | Iterable[ContentType]"
+
+
+def normalize_content(content: ContentSelection) -> frozenset[ContentType]:
+    """Normalize a single ContentType or iterable of ContentType into a frozenset."""
+    if isinstance(content, ContentType):
+        return frozenset({content})
+    return frozenset(content)
 
 
 class Encoder(Protocol):

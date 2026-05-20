@@ -2,6 +2,8 @@ from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
 
+from semble.types import ContentType
+
 _EXTENSION_TO_LANGUAGE = {
     ".4th": "forth",
     ".ada": "ada",
@@ -357,8 +359,30 @@ _EXTENSION_TO_LANGUAGE = {
 
 _DOC_LANGUAGES = {
     "asciidoc",
-    "beancount",
     "bibtex",
+    "djot",
+    "doxygen",
+    "html",
+    "javadoc",
+    "jsdoc",
+    "latex",
+    "luadoc",
+    "markdown",
+    "markdown_inline",
+    "mermaid",
+    "norg",
+    "norg_meta",
+    "org",
+    "phpdoc",
+    "po",
+    "rst",
+    "rtf",
+    "vimdoc",
+}
+
+# Everything that is not a programming language — used to derive _CODE_LANGUAGES.
+_NON_CODE_LANGUAGES = _DOC_LANGUAGES | {
+    "beancount",
     "capnp",
     "cedarschema",
     "comment",
@@ -368,8 +392,6 @@ _DOC_LANGUAGES = {
     "desktop",
     "devicetree",
     "diff",
-    "djot",
-    "doxygen",
     "dtd",
     "editorconfig",
     "ebnf",
@@ -384,33 +406,18 @@ _DOC_LANGUAGES = {
     "gpg",
     "hjson",
     "hocon",
-    "html",
     "ini",
-    "javadoc",
-    "jsdoc",
     "json",
     "json5",
     "kdl",
-    "latex",
     "ledger",
-    "luadoc",
-    "markdown",
-    "markdown_inline",
-    "mermaid",
-    "norg",
-    "norg_meta",
-    "org",
     "pem",
     "pgn",
-    "phpdoc",
-    "po",
     "properties",
     "proto",
     "psv",
     "requirements",
     "ron",
-    "rst",
-    "rtf",
     "smithy",
     "ssh_config",
     "textproto",
@@ -420,7 +427,6 @@ _DOC_LANGUAGES = {
     "tsv",
     "turtle",
     "typespec",
-    "vimdoc",
     "wit",
     "xcompose",
     "xml",
@@ -438,7 +444,7 @@ def _inv_mapping(mapping: dict[str, str]) -> dict[str, list[str]]:
 
 
 ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
-_WITHOUT_DOC = ALL_LANGUAGES - _DOC_LANGUAGES
+_CODE_LANGUAGES = ALL_LANGUAGES - _NON_CODE_LANGUAGES
 _LANGUAGE_TO_EXTENSION = _inv_mapping(_EXTENSION_TO_LANGUAGE)
 
 
@@ -447,12 +453,16 @@ def detect_language(file_name: Path) -> str | None:
     return _EXTENSION_TO_LANGUAGE.get(file_name.suffix.lower())
 
 
-def get_extensions(include_text_files: bool, extensions: Sequence[str] | None) -> list[str]:
+def get_extensions(content: frozenset[ContentType], extensions: Sequence[str] | None) -> list[str]:
     """Returns a list of supported file extensions."""
-    if include_text_files:
-        languages = ALL_LANGUAGES
+    if ContentType.ALL in content:
+        languages: frozenset[str] = ALL_LANGUAGES
     else:
-        languages = _WITHOUT_DOC
+        languages = frozenset()
+        if ContentType.CODE in content:
+            languages |= _CODE_LANGUAGES
+        if ContentType.DOCS in content:
+            languages |= _DOC_LANGUAGES
     all_extensions: set[str] = set()
     for language in languages:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))

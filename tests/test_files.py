@@ -1,6 +1,9 @@
 from pathlib import Path
 
-from semble.index.files import _DOC_LANGUAGES, _EXTENSION_TO_LANGUAGE, detect_language, get_extensions
+import pytest
+
+from semble.index.files import _CODE_LANGUAGES, _DOC_LANGUAGES, _NON_CODE_LANGUAGES, detect_language, get_extensions
+from semble.types import ContentType
 
 
 def test_detect_language() -> None:
@@ -10,32 +13,44 @@ def test_detect_language() -> None:
     assert detect_language(Path("c.txt")) is None
 
 
-def test_get_extensions() -> None:
-    """Test the get_extensions function."""
-    all_extensions = get_extensions(True, None)
-    without_doc_extensions = get_extensions(False, None)
+def test_language_sets_are_consistent() -> None:
+    """Code, doc, and non-code language sets satisfy their mutual invariants."""
+    assert _CODE_LANGUAGES.isdisjoint(_DOC_LANGUAGES)
+    assert _CODE_LANGUAGES.isdisjoint(_NON_CODE_LANGUAGES)
+    assert _DOC_LANGUAGES <= _NON_CODE_LANGUAGES
 
-    doc_extensions = set(all_extensions) - set(without_doc_extensions)
 
-    for extension in doc_extensions:
-        assert _EXTENSION_TO_LANGUAGE[extension] in _DOC_LANGUAGES
-    for extension in without_doc_extensions:
-        assert _EXTENSION_TO_LANGUAGE[extension] not in _DOC_LANGUAGES
+@pytest.mark.parametrize(
+    ("content", "includes", "excludes"),
+    [
+        (frozenset({ContentType.CODE}), [".py"], [".md"]),
+        (frozenset({ContentType.DOCS}), [".md"], [".py"]),
+        (frozenset({ContentType.ALL}), [".py", ".md"], []),
+    ],
+)
+def test_get_extensions(content: frozenset[ContentType], includes: list[str], excludes: list[str]) -> None:
+    """get_extensions returns the right extensions for each content type."""
+    exts = set(get_extensions(content, None))
+    for ext in includes:
+        assert ext in exts
+    for ext in excludes:
+        assert ext not in exts
+
+
+def test_get_extensions_code_and_docs() -> None:
+    """Code + docs is the union of each individual set."""
+    code = set(get_extensions(frozenset({ContentType.CODE}), None))
+    docs = set(get_extensions(frozenset({ContentType.DOCS}), None))
+    combined = set(get_extensions(frozenset({ContentType.CODE, ContentType.DOCS}), None))
+    assert combined == code | docs
 
 
 def test_get_extensions_additional() -> None:
-    """Test the get_extensions function."""
-    all_extensions = get_extensions(True, None)
-    all_extensions_extra = get_extensions(True, [".kjs"])
+    """Extra extensions are appended and existing ones are not duplicated."""
+    base = get_extensions(frozenset({ContentType.ALL}), None)
+    with_extra = get_extensions(frozenset({ContentType.ALL}), [".kjs"])
+    assert set(with_extra) == set(base) | {".kjs"}
 
-    assert set(all_extensions_extra) == set(all_extensions) | {".kjs"}
-
-    all_extensions = get_extensions(False, None)
-    all_extensions_extra = get_extensions(False, [".kjs"])
-
-    assert set(all_extensions_extra) == set(all_extensions) | {".kjs"}
-
-    all_extensions = get_extensions(False, None)
-    all_extensions_extra = get_extensions(False, [".py"])
-
-    assert set(all_extensions_extra) == set(all_extensions)
+    base_code = get_extensions(frozenset({ContentType.CODE}), None)
+    with_existing = get_extensions(frozenset({ContentType.CODE}), [".py"])
+    assert set(with_existing) == set(base_code)

@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from semble import SembleIndex
 from semble.index.create import _MAX_FILE_BYTES, create_index_from_path
-from semble.types import Encoder
+from semble.types import ContentType, Encoder
 from tests.conftest import make_chunk
 
 
@@ -17,16 +17,43 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
 
 
 @pytest.mark.parametrize(
-    ("include_text_files", "md_in_results"),
-    [(False, False), (True, True)],
+    ("content", "md_in_results"),
+    [
+        (ContentType.CODE, False),
+        (ContentType.DOCS, True),
+        (ContentType.ALL, True),
+        ([ContentType.CODE, ContentType.DOCS], True),
+    ],
 )
 def test_index_markdown_inclusion(
-    mock_model: Encoder, tmp_project: Path, include_text_files: bool, md_in_results: bool
+    mock_model: Encoder, tmp_project: Path, content: ContentType | list[ContentType], md_in_results: bool
 ) -> None:
-    """Markdown files are excluded by default and included when include_text_files=True."""
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, include_text_files=include_text_files)
+    """Markdown files are excluded for code and included for docs/all/code+docs."""
+    from semble.types import normalize_content
+
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=normalize_content(content))
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
+
+
+@pytest.mark.parametrize("include_text_files", [True, False])
+def test_include_text_files_deprecated(mock_model: Encoder, tmp_project: Path, include_text_files: bool) -> None:
+    """include_text_files raises DeprecationWarning on create_index_from_path and from_path."""
+    with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+        create_index_from_path(tmp_project, mock_model, include_text_files=include_text_files)
+    with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+        SembleIndex.from_path(tmp_project, model=mock_model, include_text_files=include_text_files)
+
+
+def test_from_git_include_text_files_deprecated(mock_model: Encoder, tmp_project: Path) -> None:
+    """from_git raises DeprecationWarning when include_text_files is passed."""
+    fake_result = MagicMock()
+    fake_result.returncode = 0
+    with patch("subprocess.run", return_value=fake_result):
+        with patch("semble.index.index.create_index_from_path") as mock_create:
+            mock_create.return_value = (MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")])
+            with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+                SembleIndex.from_git("https://example.com/repo", model=mock_model, include_text_files=True)
 
 
 def test_index_empty_returns_zero_chunks(mock_model: Encoder, tmp_path: Path) -> None:
