@@ -78,6 +78,7 @@ def _merge_node_inner(node: Node, desired_length: int, i: int) -> list[ChunkBoun
     length = node.end_byte - node.start_byte
     # Prevent recursion issues. A depth of > 500 is unlikely
     if i > 500:
+        logger.warning("Recursion depth exceeded in chunk.")
         return [ChunkBoundary(node.start_byte, node.end_byte)]
     # Prevent recursing into short chunks.
     if length < 50:

@@ -136,3 +136,15 @@ def test_download_error() -> None:
     with patch("semble.chunking.core.get_parser", side_effect=DownloadError):
         chunks = chunk("x = 1", "python", 10)
         assert chunks is None
+
+
+def test_chunker_deep_string(caplog: pytest.LogCaptureFixture) -> None:
+    """Test that chunking works with a very deep string."""
+    deep_string = "abs(0)\n"
+    for _ in range(10000):
+        deep_string = f"abs({deep_string})\n"
+    with caplog.at_level(logging.WARNING, logger="semble.chunking.core"):
+        chunks = chunk_source(deep_string, "deep_string.py", "python")
+        assert chunks is not None
+        assert len(caplog.records) == 1
+        assert "Recursion depth exceeded in chunk." in caplog.records[0].message
