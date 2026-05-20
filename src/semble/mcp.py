@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import OrderedDict
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated
 
@@ -116,7 +115,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
 async def serve(
     path: str | None = None,
     ref: str | None = None,
-    content: ContentType | Sequence[ContentType] = ContentType.CODE,
+    content: ContentType = ContentType.CODE,
 ) -> None:
     """Start an MCP stdio server, optionally pre-indexing a default source."""
     model = await asyncio.to_thread(load_model)
@@ -133,7 +132,7 @@ async def serve(
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, model: Encoder, content: ContentType | Sequence[ContentType] = ContentType.CODE) -> None:
+    def __init__(self, model: Encoder, content: ContentType = ContentType.CODE) -> None:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
         self._content = content

@@ -40,11 +40,9 @@ def _add_content_args(p: argparse.ArgumentParser) -> None:
     """Add --content and deprecated --include-text-files to a subparser."""
     p.add_argument(
         "--content",
-        action="append",
-        default=None,
+        default=ContentType.CODE.value,
         choices=_CONTENT_CHOICES,
-        metavar="TYPE",
-        help="Content type(s) to index: 'code' (default), 'docs', 'all'. Repeatable: --content code --content docs.",
+        help="Content type to index: 'code' (default), 'docs', or 'all'.",
     )
     p.add_argument(
         "--include-text-files",
@@ -96,16 +94,16 @@ def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
     print(f"Created {dest}")
 
 
-def _resolve_content(content_args: list[str] | None, include_text_files: bool) -> list[ContentType]:
-    """Resolve --content values and the deprecated --include-text-files into a list of ContentType."""
+def _resolve_content(content_arg: str, include_text_files: bool) -> ContentType:
+    """Resolve --content and the deprecated --include-text-files into a ContentType."""
     if include_text_files:
         warnings.warn(
             "--include-text-files is deprecated and will be removed in a future version. Use --content all instead.",
             DeprecationWarning,
             stacklevel=3,
         )
-        return [ContentType.ALL]
-    return [ContentType(v) for v in content_args] if content_args else [ContentType.CODE]
+        return ContentType.ALL
+    return ContentType(content_arg)
 
 
 def _cli_main() -> None:

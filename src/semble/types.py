@@ -24,13 +24,6 @@ class ContentType(str, Enum):
     ALL = "all"
 
 
-def _normalize_content(content: "ContentType | Sequence[ContentType]") -> frozenset[ContentType]:
-    """Normalize a single ContentType or sequence into a frozenset."""
-    if isinstance(content, ContentType):
-        return frozenset({content})
-    return frozenset(content)
-
-
 class Encoder(Protocol):
     """Protocol for embedding models."""
 

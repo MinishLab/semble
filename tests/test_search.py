@@ -192,7 +192,7 @@ def test_search_content_all_uses_both_pipelines(
     """ContentType.ALL activates both rerank and diversity defaults."""
     from semble import SembleIndex
 
-    index = SembleIndex(mock_model, bm25, semantic, chunks, content=frozenset({ContentType.ALL}))
+    index = SembleIndex(mock_model, bm25, semantic, chunks, content=ContentType.ALL)
     # rerank and diversity both resolve to True/set — results should come back without error
     results = index.search("authenticate", top_k=2)
     assert len(results) > 0

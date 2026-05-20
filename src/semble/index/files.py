@@ -453,16 +453,15 @@ def detect_language(file_name: Path) -> str | None:
     return _EXTENSION_TO_LANGUAGE.get(file_name.suffix.lower())
 
 
-def get_extensions(content: frozenset[ContentType], extensions: Sequence[str] | None) -> list[str]:
+def get_extensions(content: ContentType, extensions: Sequence[str] | None) -> list[str]:
     """Returns a list of supported file extensions."""
-    if ContentType.ALL in content:
-        languages: frozenset[str] = ALL_LANGUAGES
+    languages: set[str] | frozenset[str]
+    if content == ContentType.ALL:
+        languages = ALL_LANGUAGES
+    elif content == ContentType.DOCS:
+        languages = _DOC_LANGUAGES
     else:
-        languages = frozenset()
-        if ContentType.CODE in content:
-            languages |= _CODE_LANGUAGES
-        if ContentType.DOCS in content:
-            languages |= _DOC_LANGUAGES
+        languages = _CODE_LANGUAGES
     all_extensions: set[str] = set()
     for language in languages:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))

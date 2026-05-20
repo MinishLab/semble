@@ -22,16 +22,13 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
         (ContentType.CODE, False),
         (ContentType.DOCS, True),
         (ContentType.ALL, True),
-        ([ContentType.CODE, ContentType.DOCS], True),
     ],
 )
 def test_index_markdown_inclusion(
-    mock_model: Encoder, tmp_project: Path, content: ContentType | list[ContentType], md_in_results: bool
+    mock_model: Encoder, tmp_project: Path, content: ContentType, md_in_results: bool
 ) -> None:
-    """Markdown files are excluded for code and included for docs/all/code+docs."""
-    from semble.types import _normalize_content
-
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=_normalize_content(content))
+    """Markdown files are excluded for code and included for docs/all."""
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=content)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 

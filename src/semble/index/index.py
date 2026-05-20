@@ -11,11 +11,11 @@ import numpy as np
 import numpy.typing as npt
 from bm25s import BM25
 
-from semble.index.create import _DEFAULT_CONTENT, _apply_include_text_files, create_index_from_path
+from semble.index.create import _apply_include_text_files, create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.search import DEFAULT_DOCS_DIVERSITY, _search_semantic, search
 from semble.stats import save_search_stats
-from semble.types import CallType, Chunk, ContentType, Encoder, IndexStats, SearchResult, _normalize_content
+from semble.types import CallType, Chunk, ContentType, Encoder, IndexStats, SearchResult
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 
@@ -30,7 +30,7 @@ class SembleIndex:
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
         root: Path | None = None,
-        content: frozenset[ContentType] = _DEFAULT_CONTENT,
+        content: ContentType = ContentType.CODE,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -46,7 +46,7 @@ class SembleIndex:
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
         self._root: Path | None = root
-        self._content: frozenset[ContentType] = content
+        self._content: ContentType = content
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
 
@@ -94,7 +94,7 @@ class SembleIndex:
         path: str | Path,
         model: Encoder | None = None,
         extensions: Sequence[str] | None = None,
-        content: ContentType | Sequence[ContentType] = ContentType.CODE,
+        content: ContentType = ContentType.CODE,
         include_text_files: bool | None = None,
     ) -> SembleIndex:
         """Create and index a SembleIndex from a directory.
@@ -109,7 +109,7 @@ class SembleIndex:
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
         """
-        normalized = _apply_include_text_files(_normalize_content(content), include_text_files)
+        normalized = _apply_include_text_files(content, include_text_files)
         model = model or load_model()
         path = Path(path)
         if not path.exists():
@@ -134,7 +134,7 @@ class SembleIndex:
         ref: str | None = None,
         model: Encoder | None = None,
         extensions: Sequence[str] | None = None,
-        content: ContentType | Sequence[ContentType] = ContentType.CODE,
+        content: ContentType = ContentType.CODE,
         include_text_files: bool | None = None,
     ) -> SembleIndex:
         """Clone a git repository and index it.
@@ -154,7 +154,7 @@ class SembleIndex:
         :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
-        normalized = _apply_include_text_files(_normalize_content(content), include_text_files)
+        normalized = _apply_include_text_files(content, include_text_files)
         with tempfile.TemporaryDirectory() as tmp_dir:
             # `--` prevents `url` from being interpreted as a git option (e.g. `--upload-pack=...`).
             cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), "--", url, tmp_dir]
@@ -236,8 +236,8 @@ class SembleIndex:
         if not self.chunks or not query.strip():
             return []
 
-        has_code = ContentType.CODE in self._content or ContentType.ALL in self._content
-        has_docs = ContentType.DOCS in self._content or ContentType.ALL in self._content
+        has_code = self._content in (ContentType.CODE, ContentType.ALL)
+        has_docs = self._content in (ContentType.DOCS, ContentType.ALL)
         resolved_rerank = has_code if rerank is None else rerank
         if diversity is None:
             resolved_diversity = DEFAULT_DOCS_DIVERSITY if has_docs else None

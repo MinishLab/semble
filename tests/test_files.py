@@ -23,12 +23,12 @@ def test_language_sets_are_consistent() -> None:
 @pytest.mark.parametrize(
     ("content", "includes", "excludes"),
     [
-        (frozenset({ContentType.CODE}), [".py"], [".md"]),
-        (frozenset({ContentType.DOCS}), [".md"], [".py"]),
-        (frozenset({ContentType.ALL}), [".py", ".md"], []),
+        (ContentType.CODE, [".py"], [".md"]),
+        (ContentType.DOCS, [".md"], [".py"]),
+        (ContentType.ALL, [".py", ".md"], []),
     ],
 )
-def test_get_extensions(content: frozenset[ContentType], includes: list[str], excludes: list[str]) -> None:
+def test_get_extensions(content: ContentType, includes: list[str], excludes: list[str]) -> None:
     """get_extensions returns the right extensions for each content type."""
     exts = set(get_extensions(content, None))
     for ext in includes:
@@ -37,20 +37,12 @@ def test_get_extensions(content: frozenset[ContentType], includes: list[str], ex
         assert ext not in exts
 
 
-def test_get_extensions_code_and_docs() -> None:
-    """Code + docs is the union of each individual set."""
-    code = set(get_extensions(frozenset({ContentType.CODE}), None))
-    docs = set(get_extensions(frozenset({ContentType.DOCS}), None))
-    combined = set(get_extensions(frozenset({ContentType.CODE, ContentType.DOCS}), None))
-    assert combined == code | docs
-
-
 def test_get_extensions_additional() -> None:
     """Extra extensions are appended and existing ones are not duplicated."""
-    base = get_extensions(frozenset({ContentType.ALL}), None)
-    with_extra = get_extensions(frozenset({ContentType.ALL}), [".kjs"])
+    base = get_extensions(ContentType.ALL, None)
+    with_extra = get_extensions(ContentType.ALL, [".kjs"])
     assert set(with_extra) == set(base) | {".kjs"}
 
-    base_code = get_extensions(frozenset({ContentType.CODE}), None)
-    with_existing = get_extensions(frozenset({ContentType.CODE}), [".py"])
+    base_code = get_extensions(ContentType.CODE, None)
+    with_existing = get_extensions(ContentType.CODE, [".py"])
     assert set(with_existing) == set(base_code)

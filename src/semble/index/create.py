@@ -15,27 +15,24 @@ from semble.tokens import tokenize
 from semble.types import Chunk, ContentType, Encoder
 
 _MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
-_DEFAULT_CONTENT: frozenset[ContentType] = frozenset({ContentType.CODE})
 _DEPRECATION_MSG = (
     "include_text_files is deprecated and will be removed in a future version. Use content=ContentType.ALL instead."
 )
 
 
-def _apply_include_text_files(
-    normalized: frozenset[ContentType], include_text_files: bool | None
-) -> frozenset[ContentType]:
+def _apply_include_text_files(content: ContentType, include_text_files: bool | None) -> ContentType:
     """Apply the deprecated include_text_files override, emitting a DeprecationWarning."""
     if include_text_files is None:
-        return normalized
+        return content
     warnings.warn(_DEPRECATION_MSG, DeprecationWarning, stacklevel=3)
-    return frozenset({ContentType.ALL}) if include_text_files else _DEFAULT_CONTENT
+    return ContentType.ALL if include_text_files else ContentType.CODE
 
 
 def create_index_from_path(
     path: Path,
     model: Encoder,
     extensions: Sequence[str] | None = None,
-    content: frozenset[ContentType] = _DEFAULT_CONTENT,
+    content: ContentType = ContentType.CODE,
     display_root: Path | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
     """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
@@ -43,7 +40,7 @@ def create_index_from_path(
     :param path: Resolved absolute path to index.
     :param model: The model to use for indexing.
     :param extensions: File extensions to include.
-    :param content: Content types to index.
+    :param content: Content type to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
     :raises ValueError: if no items were found, no index can be created.
     :return: A bm25 index, vicinity index and list of chunks
