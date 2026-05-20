@@ -11,6 +11,9 @@ from semble.index.files import ALL_LANGUAGES
 
 logger = getLogger(__name__)
 
+_RECURSION_DEPTH = 500
+_MIN_CHUNK_SIZE = 50
+
 
 def is_supported_language(language: str) -> bool:
     """Check if the language is supported by tree-sitter."""
@@ -77,11 +80,11 @@ def _merge_node_inner(node: Node, desired_length: int, i: int) -> list[ChunkBoun
 
     length = node.end_byte - node.start_byte
     # Prevent recursion issues. A depth of > 500 is unlikely
-    if i > 500:
+    if i > _RECURSION_DEPTH:
         logger.warning("Recursion depth exceeded in chunk.")
         return [ChunkBoundary(node.start_byte, node.end_byte)]
     # Prevent recursing into short chunks.
-    if length < 50:
+    if length < _MIN_CHUNK_SIZE:
         return [ChunkBoundary(node.start_byte, node.end_byte)]
 
     groups: list[ChunkBoundary] = []
