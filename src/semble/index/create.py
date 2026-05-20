@@ -1,5 +1,4 @@
 import contextlib
-import warnings
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -15,17 +14,6 @@ from semble.tokens import tokenize
 from semble.types import Chunk, ContentType, Encoder
 
 _MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
-_DEPRECATION_MSG = (
-    "include_text_files is deprecated and will be removed in a future version. Use content=ContentType.ALL instead."
-)
-
-
-def _apply_include_text_files(content: ContentType, include_text_files: bool | None) -> ContentType:
-    """Apply the deprecated include_text_files override, emitting a DeprecationWarning."""
-    if include_text_files is None:
-        return content
-    warnings.warn(_DEPRECATION_MSG, DeprecationWarning, stacklevel=3)
-    return ContentType.ALL if include_text_files else ContentType.CODE
 
 
 def create_index_from_path(
