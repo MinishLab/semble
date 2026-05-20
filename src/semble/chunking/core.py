@@ -80,7 +80,7 @@ def _merge_node_inner(node: Node, desired_length: int, i: int) -> list[ChunkBoun
     if i > 500:
         return [ChunkBoundary(node.start_byte, node.end_byte)]
     # Prevent recursing into short chunks.
-    if length < 250:
+    if length < 50:
         return [ChunkBoundary(node.start_byte, node.end_byte)]
 
     groups: list[ChunkBoundary] = []
