@@ -13,7 +13,7 @@ from bm25s import BM25
 
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
-from semble.search import _search_semantic, search_hybrid
+from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, Encoder, IndexStats, SearchResult
 
@@ -202,6 +202,7 @@ class SembleIndex:
         alpha: float | None = None,
         filter_languages: list[str] | None = None,
         filter_paths: list[str] | None = None,
+        rerank: bool = True,
     ) -> list[SearchResult]:
         """Search the index and return the top-k most relevant chunks.
 
@@ -214,6 +215,7 @@ class SembleIndex:
             these languages are returned.
         :param filter_paths: Optional list of repo-relative file paths; if set, only
             chunks from these files are returned.
+        :param rerank: Whether to rerank the top-k results using custom reranking logic.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         """
         bm25_index, semantic_index = self._bm25_index, self._semantic_index
@@ -222,8 +224,16 @@ class SembleIndex:
 
         selector = self._get_selector_vector(filter_languages, filter_paths)
 
-        results = search_hybrid(
-            query, self.model, semantic_index, bm25_index, self.chunks, top_k, alpha=alpha, selector=selector
+        results = search(
+            query,
+            self.model,
+            semantic_index,
+            bm25_index,
+            self.chunks,
+            top_k,
+            alpha=alpha,
+            selector=selector,
+            rerank=rerank,
         )
         save_search_stats(results, CallType.SEARCH, self._file_sizes)
         return results

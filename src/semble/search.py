@@ -62,7 +62,7 @@ def _search_bm25(
     return [SearchResult(chunk=chunks[i], score=float(scores[i])) for i in indices if scores[i] > 0]
 
 
-def search_hybrid(
+def search(
     query: str,
     model: Encoder,
     semantic_index: SelectableBasicBackend,
@@ -71,6 +71,7 @@ def search_hybrid(
     top_k: int,
     alpha: float | None = None,
     selector: npt.NDArray[np.int_] | None = None,
+    rerank: bool = True,
 ) -> list[SearchResult]:
     """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
 
@@ -85,6 +86,7 @@ def search_hybrid(
     :param top_k: Number of results to return.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :param selector: Optional array of chunk indices to filter results by.
+    :param rerank: Whether to perform reranking. This should be done, and is mainly here for benchmarking.
     :return: List of search results sorted by combined score descending.
     """
     alpha_weight = resolve_alpha(query, alpha)
@@ -114,10 +116,14 @@ def search_hybrid(
         for chunk in all_candidates
     }
 
-    # Boost files with multiple relevant chunks.
-    boost_multi_chunk_files(combined_scores)
-    # Boost queries with specific identifiers in them.
-    combined_scores = apply_query_boost(combined_scores, query, chunks)
-    # Rerank the top-k results by applying path-based penalties.
-    ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
+    if rerank:
+        # Boost files with multiple relevant chunks.
+        boost_multi_chunk_files(combined_scores)
+        # Boost queries with specific identifiers in them.
+        combined_scores = apply_query_boost(combined_scores, query, chunks)
+        # Rerank the top-k results by applying path-based penalties.
+        ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
+    else:
+        sorted_by_score = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
+        ranked = sorted_by_score[:top_k]
     return [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]

@@ -23,10 +23,15 @@ from semble.index.dense import _DEFAULT_MODEL_NAME
 # alpha=None  → raw mode, input depends on query
 # alpha=0.0   → hybrid pipeline, BM25-only input
 # alpha=1.0   → hybrid pipeline, semantic-only input
-_MODE_PARAMS: dict[str, float | None] = {
-    "semble-bm25": 0.0,
-    "semble-semantic": 1.0,
-    "semble-auto": None,
+_MODE_PARAMS: dict[str, tuple[float | None, bool]] = {
+    "semble-bm25": (0.0, True),
+    "semble-semantic": (1.0, True),
+    "semble-auto": (None, True),
+    "semble-balanced": (0.5, True),
+    "unranked-bm25": (0.0, False),
+    "unranked-semantic": (1.0, False),
+    "unranked-auto": (None, False),
+    "unranked-balanced": (0.5, False),
 }
 
 
@@ -60,8 +65,10 @@ def _bench(
         index = SembleIndex.from_path(spec.benchmark_dir, model=model)
         index_ms = (time.perf_counter() - started) * 1000
 
-        for mode, alpha in sorted(_MODE_PARAMS.items()):
-            ndcg5, ndcg10, latencies, by_category, tokens = evaluate(index, tasks, alpha=alpha, verbose=verbose)
+        for mode, (alpha, rerank) in sorted(_MODE_PARAMS.items()):
+            ndcg5, ndcg10, latencies, by_category, tokens = evaluate(
+                index, tasks, alpha=alpha, verbose=verbose, rerank=rerank
+            )
             p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
             result = RepoResult(
                 repo=repo,

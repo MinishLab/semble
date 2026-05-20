@@ -49,6 +49,7 @@ def evaluate(
     *,
     verbose: bool = False,
     alpha: float | None = None,
+    rerank: bool = True,
 ) -> tuple[float, float, list[float], dict[str, float], int]:
     """Return mean NDCG@5, NDCG@10, median query latency (ms), and per-category NDCG@10."""
     ndcg5_sum = 0.0
@@ -62,7 +63,7 @@ def evaluate(
         results: list[SearchResult] = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
-            results = index.search(task.query, top_k=_DIRECT_TOP_K, alpha=alpha)
+            results = index.search(task.query, top_k=_DIRECT_TOP_K, alpha=alpha, rerank=rerank)
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
         tokens += sum(len(r.chunk.content) // 4 for r in results)

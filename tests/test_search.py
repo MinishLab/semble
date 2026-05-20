@@ -8,7 +8,7 @@ import pytest
 from vicinity.backends.basic import BasicArgs
 
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
-from semble.search import _search_bm25, _search_semantic, _sort_top_k, search_hybrid
+from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
 from semble.types import Chunk, Encoder
 from tests.conftest import make_chunk
@@ -77,7 +77,7 @@ def test_search_hybrid(
     chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: bm25s.BM25, mock_model: Any
 ) -> None:
     """search_hybrid: returns combined results; identical content in different files produces separate results."""
-    results = search_hybrid("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
+    results = search("authenticate token", mock_model, semantic, bm25, chunks, top_k=3)
     assert len(results) > 0
 
     shared_content = "def helper():\n    pass"
@@ -93,7 +93,7 @@ def test_search_hybrid(
     bm25_index = bm25s.BM25()
     bm25_index.index([tokenize(c.content) for c in all_chunks], show_progress=False)
 
-    deduped = search_hybrid("helper", mock_model, sem_index, bm25_index, all_chunks, top_k=5)
+    deduped = search("helper", mock_model, sem_index, bm25_index, all_chunks, top_k=5)
     result_locations = {r.chunk.file_path for r in deduped}
     assert "module_a.py" in result_locations
     assert "module_b.py" in result_locations
@@ -104,7 +104,7 @@ def test_search_hybrid(
     [
         (lambda q, m, s, b, c, k: _search_bm25(q, b, c, k, selector=None), "authenticate", 3),
         (lambda q, m, s, b, c, k: _search_semantic(q, m, s, c, k, selector=None), "query", 4),
-        (lambda q, m, s, b, c, k: search_hybrid(q, m, s, b, c, k), "login", 4),
+        (lambda q, m, s, b, c, k: search(q, m, s, b, c, k), "login", 4),
     ],
 )
 def test_search_source_labels(
