@@ -327,7 +327,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 ### Sub-agent setup
 
-Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
+Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, Kiro, Windsurf, and Zed all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
 
 ```bash
 semble init                      # Claude Code  → .claude/agents/semble-search.md
@@ -336,6 +336,8 @@ semble init --agent cursor       # Cursor       → .cursor/agents/semble-search
 semble init --agent opencode     # OpenCode     → .opencode/agents/semble-search.md
 semble init --agent copilot      # Copilot CLI  → .github/agents/semble-search.md
 semble init --agent kiro         # Kiro         → .kiro/agents/semble-search.md
+semble init --agent windsurf     # Windsurf     → .codeium/windsurf/agents/semble-search.md
+semble init --agent zed          # Zed          → .config/zed/agents/semble-search.md
 ```
 
 If semble is not on `$PATH`, prefix the command with `uvx --from "semble[mcp]"`.

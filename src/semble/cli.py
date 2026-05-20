@@ -20,6 +20,8 @@ class Agent(str, Enum):
     GEMINI = "gemini"
     KIRO = "kiro"
     OPENCODE = "opencode"
+    WINDSURF = "windsurf"
+    ZED = "zed"
 
 
 _DEFAULT_AGENT = Agent.CLAUDE
@@ -28,7 +30,14 @@ _CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h
 
 def _agent_path(agent: Agent) -> Path:
     """Return the project-relative path where the semble sub-agent file should be written."""
-    base_dir = ".github" if agent is Agent.COPILOT else f".{agent.value}"
+    if agent is Agent.COPILOT:
+        base_dir = ".github"
+    elif agent is Agent.WINDSURF:
+        base_dir = ".codeium/windsurf"
+    elif agent is Agent.ZED:
+        base_dir = ".config/zed"
+    else:
+        base_dir = f".{agent.value}"
     return Path(base_dir) / "agents" / "semble-search.md"
 
 

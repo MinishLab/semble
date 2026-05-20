@@ -129,6 +129,24 @@ def test_init_overwrites_with_force(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert dest.read_text(encoding="utf-8") == _CLAUDE_AGENT_FILE
 
 
+@pytest.mark.parametrize(
+    ("agent", "expected_relpath"),
+    [
+        (Agent.WINDSURF, Path('.codeium/windsurf/agents/semble-search.md')),
+        (Agent.ZED, Path('.config/zed/agents/semble-search.md')),
+    ],
+)
+def test_agent_specific_init_paths(
+    agent: Agent, expected_relpath: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """_run_init writes agent files to the documented per-agent paths."""
+    monkeypatch.chdir(tmp_path)
+    _run_init(agent=agent)
+    dest = tmp_path / expected_relpath
+    assert dest.exists()
+    assert str(expected_relpath) in capsys.readouterr().out
+
+
 def test_init_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """Semble init creates the Claude agent file via _cli_main."""
     monkeypatch.chdir(tmp_path)
