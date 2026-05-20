@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import OrderedDict
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated
 
@@ -12,7 +13,7 @@ from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
-from semble.types import ContentSelection, ContentType, Encoder, normalize_content
+from semble.types import ContentType, Encoder
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
 logger = logging.getLogger(__name__)
@@ -115,11 +116,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
 async def serve(
     path: str | None = None,
     ref: str | None = None,
-    content: ContentSelection = ContentType.CODE,
+    content: ContentType | Sequence[ContentType] = ContentType.CODE,
 ) -> None:
     """Start an MCP stdio server, optionally pre-indexing a default source."""
     model = await asyncio.to_thread(load_model)
-    cache = _IndexCache(model=model, content=normalize_content(content))
+    cache = _IndexCache(model=model, content=content)
     if path:
         await cache.get(path, ref=ref)
         if not _is_git_url(path):
@@ -132,7 +133,7 @@ async def serve(
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, model: Encoder, content: frozenset[ContentType] = frozenset({ContentType.CODE})) -> None:
+    def __init__(self, model: Encoder, content: ContentType | Sequence[ContentType] = ContentType.CODE) -> None:
         """Initialise an empty cache with a shared embedding model."""
         self._model = model
         self._content = content

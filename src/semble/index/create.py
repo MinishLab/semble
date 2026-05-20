@@ -37,7 +37,6 @@ def create_index_from_path(
     extensions: Sequence[str] | None = None,
     content: frozenset[ContentType] = _DEFAULT_CONTENT,
     display_root: Path | None = None,
-    include_text_files: bool | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
     """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
 
@@ -46,11 +45,9 @@ def create_index_from_path(
     :param extensions: File extensions to include.
     :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
-    :param include_text_files: Deprecated. Use ``content=ContentType.ALL`` instead.
     :raises ValueError: if no items were found, no index can be created.
     :return: A bm25 index, vicinity index and list of chunks
     """
-    content = _apply_include_text_files(content, include_text_files)
     chunks: list[Chunk] = []
     resolved_extensions = get_extensions(content, extensions)
     for file_path in walk_files(path, resolved_extensions):

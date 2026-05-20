@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Protocol, TypeAlias
@@ -24,11 +24,8 @@ class ContentType(str, Enum):
     ALL = "all"
 
 
-ContentSelection: TypeAlias = "ContentType | Iterable[ContentType]"
-
-
-def normalize_content(content: ContentSelection) -> frozenset[ContentType]:
-    """Normalize a single ContentType or iterable of ContentType into a frozenset."""
+def _normalize_content(content: "ContentType | Sequence[ContentType]") -> frozenset[ContentType]:
+    """Normalize a single ContentType or sequence into a frozenset."""
     if isinstance(content, ContentType):
         return frozenset({content})
     return frozenset(content)

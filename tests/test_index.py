@@ -29,18 +29,16 @@ def test_index_markdown_inclusion(
     mock_model: Encoder, tmp_project: Path, content: ContentType | list[ContentType], md_in_results: bool
 ) -> None:
     """Markdown files are excluded for code and included for docs/all/code+docs."""
-    from semble.types import normalize_content
+    from semble.types import _normalize_content
 
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=normalize_content(content))
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=_normalize_content(content))
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 
 
 @pytest.mark.parametrize("include_text_files", [True, False])
 def test_include_text_files_deprecated(mock_model: Encoder, tmp_project: Path, include_text_files: bool) -> None:
-    """include_text_files raises DeprecationWarning on create_index_from_path and from_path."""
-    with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
-        create_index_from_path(tmp_project, mock_model, include_text_files=include_text_files)
+    """include_text_files raises DeprecationWarning on from_path."""
     with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
         SembleIndex.from_path(tmp_project, model=mock_model, include_text_files=include_text_files)
 
@@ -100,6 +98,12 @@ def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex) -> 
     target_path = indexed_index.chunks[-1].file_path
     results = indexed_index.search("function", top_k=3, filter_paths=[target_path])
     assert all(r.chunk.file_path == target_path for r in results)
+
+
+def test_search_explicit_diversity(indexed_index: SembleIndex) -> None:
+    """Explicit diversity values are accepted; 0.0 disables diversity without error."""
+    assert len(indexed_index.search("authenticate", top_k=3, diversity=0.5)) > 0
+    assert len(indexed_index.search("authenticate", top_k=3, diversity=0.0)) > 0
 
 
 def test_search_without_reranking(indexed_index: SembleIndex) -> None:
