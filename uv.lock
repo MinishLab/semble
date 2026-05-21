@@ -3171,7 +3171,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
     { name = "tiktoken", marker = "extra == 'benchmark'", specifier = ">=0.7" },
-    { name = "tree-sitter", specifier = ">=0.25" },
+    { name = "tree-sitter", specifier = ">=0.25,<0.26" },
     { name = "tree-sitter-language-pack", specifier = ">=1.0,!=1.6.3,<1.8.0" },
     { name = "vicinity", specifier = ">=0.4.4" },
     { name = "watchfiles", marker = "extra == 'mcp'", specifier = ">=0.21" },

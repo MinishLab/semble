@@ -113,22 +113,19 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
 
 
 async def serve(path: str | None = None, ref: str | None = None, include_text_files: bool = False) -> None:
-    """Start an MCP stdio server, optionally pre-indexing a default source.
-
-    The MCP transport opens before the embedding model finishes loading, so the
-    ``initialize`` / ``tools/list`` handshake responds even on a cold HF cache.
-    Tool calls await the model implicitly via :class:`_IndexCache`.
-    """
+    """Start an MCP stdio server, optionally pre-indexing a default source."""
     cache = _IndexCache(include_text_files=include_text_files)
 
+    # Pre-load the model and optionally pre-index the default source in parallel with starting the server.
     async def _load_and_prewarm() -> None:
         try:
-            model = await asyncio.to_thread(load_model)
+            cache._model = await asyncio.to_thread(load_model)
         except Exception as exc:
             logger.exception("Failed to load embedding model")
-            cache.set_model_error(exc)
+            cache._model_error = exc
             return
-        cache.set_model(model)
+        finally:
+            cache._model_ready.set()
         if path:
             try:
                 await cache.get(path, ref=ref)
@@ -150,7 +147,7 @@ class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
     def __init__(self, model: Encoder | None = None, include_text_files: bool = False) -> None:
-        """Initialise an empty cache; ``model`` may be supplied later via :meth:`set_model`."""
+        """Initialise an empty cache."""
         self._model: Encoder | None = model
         self._model_error: BaseException | None = None
         self._model_ready = asyncio.Event()
@@ -159,16 +156,6 @@ class _IndexCache:
         self._include_text_files = include_text_files
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._watcher_task: asyncio.Task[None] | None = None
-
-    def set_model(self, model: Encoder) -> None:
-        """Install the embedding model and unblock any tool calls awaiting it."""
-        self._model = model
-        self._model_ready.set()
-
-    def set_model_error(self, exc: BaseException) -> None:
-        """Mark model loading as failed; awaiting tool calls will raise ``exc``."""
-        self._model_error = exc
-        self._model_ready.set()
 
     async def _await_model(self) -> Encoder:
         """Block until the model is installed; re-raise the load error if it failed."""
