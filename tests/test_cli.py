@@ -93,14 +93,18 @@ def test_cli_find_related(
         assert expected_stderr in captured.err
 
 
-def test_init_creates_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """_run_init writes the agent file and prints its path."""
+@pytest.mark.parametrize("agent", list(Agent))
+def test_init_creates_file(
+    agent: Agent, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """_run_init writes the correct agent file for every supported agent."""
     monkeypatch.chdir(tmp_path)
-    _run_init()
-    dest = tmp_path / _CLAUDE_FILE_PATH
+    _run_init(agent=agent)
+    dest = tmp_path / _agent_path(agent)
+    expected = files("semble").joinpath(f"agents/{agent.value}.md").read_text(encoding="utf-8")
     assert dest.exists()
-    assert dest.read_text(encoding="utf-8") == _CLAUDE_AGENT_FILE
-    assert str(_CLAUDE_FILE_PATH) in capsys.readouterr().out
+    assert dest.read_text(encoding="utf-8") == expected
+    assert str(_agent_path(agent)) in capsys.readouterr().out
 
 
 def test_init_refuses_overwrite_without_force(
