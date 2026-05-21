@@ -148,3 +148,8 @@ def test_boost_multi_chunk_files() -> None:
     scores: dict = {c1: 1.0, c2: 0.8, c3: 1.0}
     boost_multi_chunk_files(scores)
     assert scores[c1] > 1.0
+
+
+def test_boosting_with_empty() -> None:
+    """apply_query_boost with empty inputs returns an empty dict."""
+    assert apply_query_boost({}, "query", []) == {}

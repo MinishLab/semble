@@ -107,6 +107,27 @@ def test_search_without_reranking(indexed_index: SembleIndex) -> None:
         mock.assert_called()
 
 
+@pytest.mark.parametrize(
+    ("content", "expect_rerank"),
+    [
+        (ContentType.CODE, True),
+        (ContentType.ALL, True),
+        (ContentType.DOCS, False),
+    ],
+)
+def test_search_rerank_default_by_content_type(
+    mock_model: Encoder, tmp_project: Path, content: ContentType, expect_rerank: bool
+) -> None:
+    """Reranking is on by default for code/all content, off for docs-only."""
+    index = SembleIndex.from_path(tmp_project, model=mock_model, content=content)
+    with patch("semble.search.rerank_topk") as mock:
+        index.search("function", top_k=3)
+        if expect_rerank:
+            mock.assert_called()
+        else:
+            mock.assert_not_called()
+
+
 @pytest.mark.parametrize("query", ["", "   ", "\n\n"])
 def test_search_empty_query_returns_empty(indexed_index: SembleIndex, query: str) -> None:
     """Empty / whitespace-only queries return [] across all modes."""

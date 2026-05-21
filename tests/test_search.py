@@ -10,7 +10,7 @@ from vicinity.backends.basic import BasicArgs
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
-from semble.types import Chunk, ContentType, Encoder
+from semble.types import Chunk, Encoder
 from tests.conftest import make_chunk
 
 
@@ -159,14 +159,3 @@ def test_selectable_basic_backend_rejects_k_below_one(
     """SelectableBasicBackend.query guards against k < 1."""
     with pytest.raises(ValueError, match="k should be >= 1"):
         semantic.query(embeddings[:1], k=0)
-
-
-def test_search_content_all_uses_code_reranking(
-    chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: bm25s.BM25, mock_model: Any
-) -> None:
-    """ContentType.ALL activates code reranking (has_code=True)."""
-    from semble import SembleIndex
-
-    index = SembleIndex(mock_model, bm25, semantic, chunks, content=ContentType.ALL)
-    results = index.search("authenticate", top_k=2)
-    assert len(results) > 0
