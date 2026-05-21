@@ -1,3 +1,5 @@
+import asyncio
+import threading
 from pathlib import Path
 from typing import Any, AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -240,18 +242,89 @@ async def test_tool_output(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("with_path", [True, False], ids=["pre_index", "no_path"])
-async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
-    """serve() loads the model, runs stdio, and optionally pre-indexes when a path is given."""
+@pytest.mark.parametrize(
+    ("with_path", "load_err", "from_path_err", "stdio_yields"),
+    [
+        (True, None, None, True),
+        (False, None, None, True),
+        (False, RuntimeError("boom"), None, True),
+        (True, None, RuntimeError("boom"), True),
+        (False, None, None, False),
+    ],
+    ids=["pre_index", "no_path", "model_load_fails", "prewarm_fails", "cancel_pending_init"],
+)
+async def test_serve_runs_stdio(
+    tmp_path: Path,
+    with_path: bool,
+    load_err: Exception | None,
+    from_path_err: Exception | None,
+    stdio_yields: bool,
+) -> None:
+    """serve() runs stdio and handles all background init outcomes without raising."""
+
+    async def fake_stdio() -> None:
+        if stdio_yields:
+            await asyncio.sleep(0.05)  # let the background init task run
+
+    load_kwargs = {"side_effect": load_err} if load_err else {"return_value": MagicMock(spec=Encoder)}
+    fp_kwargs = {"side_effect": from_path_err} if from_path_err else {"return_value": MagicMock()}
     with (
-        patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
-        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch("semble.mcp.load_model", **load_kwargs),
+        patch("semble.mcp.SembleIndex.from_path", **fp_kwargs),
         patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
-        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_stdio) as mock_run,
     ):
         await (serve(str(tmp_path)) if with_path else serve())
 
     mock_run.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_serve_opens_stdio_before_model_loads() -> None:
+    """Stdio must open before load_model() finishes."""
+    stdio_opened = threading.Event()
+
+    def blocking_load_model() -> Encoder:
+        assert stdio_opened.wait(timeout=1.0), "stdio did not open"
+        return MagicMock(spec=Encoder)
+
+    async def fake_run_stdio() -> None:
+        stdio_opened.set()
+        await asyncio.sleep(0.05)
+
+    with (
+        patch("semble.mcp.load_model", side_effect=blocking_load_model),
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_run_stdio),
+    ):
+        await serve()
+
+
+@pytest.mark.anyio
+async def test_index_cache_awaits_model(tmp_path: Path) -> None:
+    """get() blocks until the model is installed, then proceeds."""
+    cache = _IndexCache()  # no model yet
+    fake_index = MagicMock()
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
+        get_task = asyncio.create_task(cache.get(str(tmp_path)))
+        await asyncio.sleep(0.01)
+        assert not get_task.done(), "get() must block until the model is installed"
+        cache._model = MagicMock(spec=Encoder)
+        cache._model_ready.set()
+        result = await asyncio.wait_for(get_task, timeout=1.0)
+    assert result is fake_index
+
+
+@pytest.mark.anyio
+async def test_index_cache_propagates_model_error(tmp_path: Path) -> None:
+    """If model load fails, awaiting tool calls re-raise the original exception."""
+    cache = _IndexCache()
+    get_task = asyncio.create_task(cache.get(str(tmp_path)))
+    await asyncio.sleep(0.01)
+    assert not get_task.done()
+    cache._model_error = RuntimeError("HF download failed")
+    cache._model_ready.set()
+    with pytest.raises(RuntimeError, match="HF download failed"):
+        await asyncio.wait_for(get_task, timeout=1.0)
 
 
 @pytest.mark.anyio
