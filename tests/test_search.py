@@ -107,7 +107,7 @@ def test_search_hybrid(
         (lambda q, m, s, b, c, k: search(q, m, s, b, c, k), "login", 4),
     ],
 )
-def test_search_returns_results(
+def test_search_source_labels(
     search_fn: Any,
     query: str,
     top_k: int,
@@ -116,14 +116,14 @@ def test_search_returns_results(
     bm25: bm25s.BM25,
     mock_model: Any,
 ) -> None:
-    """BM25, semantic, and hybrid search all return at least one result for a matching query."""
+    """Each result carries a source label matching the search mode used."""
     results = search_fn(query, mock_model, semantic, bm25, chunks, top_k)
     assert len(results) > 0
 
 
 def test_sort_top_k() -> None:
     """_sort_top_k returns the same indices as np.argsort(-x)[:top_k]."""
-    gen = np.random.default_rng(42)
+    gen = np.random.default_rng()
     x = gen.standard_normal(size=(10000,))
     top_k = 100
     indices = _sort_top_k(x, top_k)

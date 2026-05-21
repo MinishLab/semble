@@ -151,5 +151,6 @@ def test_boost_multi_chunk_files() -> None:
 
 
 def test_boosting_with_empty() -> None:
-    """apply_query_boost with empty inputs returns an empty dict."""
-    assert apply_query_boost({}, "query", []) == {}
+    """Test that boosting with empty chunks return None."""
+    boosted = apply_query_boost({}, "query", [])
+    assert boosted == {}
