@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import Any, AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -252,6 +253,69 @@ async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
         await (serve(str(tmp_path)) if with_path else serve())
 
     mock_run.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_serve_opens_stdio_before_model_loads() -> None:
+    """The MCP transport must open before load_model() completes.
+
+    Regression test for slow-network startup: stdio is what carries the
+    initialize/tools/list handshake, so blocking on a cold HF model download
+    causes the MCP client to time out before tools are registered.
+    """
+    import time
+
+    stdio_opened = asyncio.Event()
+
+    def blocking_load_model() -> Encoder:
+        # Spin until stdio has opened. If serve() blocks on us first, this never
+        # observes the event and the test fails fast.
+        deadline = time.monotonic() + 1.0
+        while time.monotonic() < deadline:
+            if stdio_opened.is_set():
+                return MagicMock(spec=Encoder)
+            time.sleep(0.005)
+        raise AssertionError("stdio did not open while load_model was in flight")
+
+    async def fake_run_stdio() -> None:
+        stdio_opened.set()
+        # Yield briefly so the background init task can complete.
+        await asyncio.sleep(0.05)
+
+    with (
+        patch("semble.mcp.load_model", side_effect=blocking_load_model),
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_run_stdio),
+    ):
+        await serve()
+
+    assert stdio_opened.is_set()
+
+
+@pytest.mark.anyio
+async def test_index_cache_awaits_model(tmp_path: Path) -> None:
+    """get() blocks until set_model() is called, then proceeds."""
+    cache = _IndexCache()  # no model yet
+    fake_index = MagicMock()
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
+        get_task = asyncio.create_task(cache.get(str(tmp_path)))
+        # Yield so get_task runs up to the _await_model() point.
+        await asyncio.sleep(0.01)
+        assert not get_task.done(), "get() must block until the model is installed"
+        cache.set_model(MagicMock(spec=Encoder))
+        result = await asyncio.wait_for(get_task, timeout=1.0)
+    assert result is fake_index
+
+
+@pytest.mark.anyio
+async def test_index_cache_propagates_model_error(tmp_path: Path) -> None:
+    """If model load fails, awaiting tool calls re-raise the original exception."""
+    cache = _IndexCache()
+    get_task = asyncio.create_task(cache.get(str(tmp_path)))
+    await asyncio.sleep(0.01)
+    assert not get_task.done()
+    cache.set_model_error(RuntimeError("HF download failed"))
+    with pytest.raises(RuntimeError, match="HF download failed"):
+        await asyncio.wait_for(get_task, timeout=1.0)
 
 
 @pytest.mark.anyio
