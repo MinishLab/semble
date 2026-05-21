@@ -242,14 +242,37 @@ async def test_tool_output(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("with_path", [True, False], ids=["pre_index", "no_path"])
-async def test_serve_runs_stdio(tmp_path: Path, with_path: bool) -> None:
-    """serve() loads the model, runs stdio, and optionally pre-indexes when a path is given."""
+@pytest.mark.parametrize(
+    ("with_path", "load_err", "from_path_err", "stdio_yields"),
+    [
+        (True, None, None, True),
+        (False, None, None, True),
+        (False, RuntimeError("boom"), None, True),
+        (True, None, RuntimeError("boom"), True),
+        (False, None, None, False),
+    ],
+    ids=["pre_index", "no_path", "model_load_fails", "prewarm_fails", "cancel_pending_init"],
+)
+async def test_serve_runs_stdio(
+    tmp_path: Path,
+    with_path: bool,
+    load_err: Exception | None,
+    from_path_err: Exception | None,
+    stdio_yields: bool,
+) -> None:
+    """serve() runs stdio and handles all background init outcomes without raising."""
+
+    async def fake_stdio() -> None:
+        if stdio_yields:
+            await asyncio.sleep(0.05)  # let the background init task run
+
+    load_kwargs = {"side_effect": load_err} if load_err else {"return_value": MagicMock(spec=Encoder)}
+    fp_kwargs = {"side_effect": from_path_err} if from_path_err else {"return_value": MagicMock()}
     with (
-        patch("semble.mcp.load_model", return_value=MagicMock(spec=Encoder)),
-        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch("semble.mcp.load_model", **load_kwargs),
+        patch("semble.mcp.SembleIndex.from_path", **fp_kwargs),
         patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
-        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", new_callable=AsyncMock) as mock_run,
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_stdio) as mock_run,
     ):
         await (serve(str(tmp_path)) if with_path else serve())
 
