@@ -148,3 +148,21 @@ def test_chunker_deep_string(caplog: pytest.LogCaptureFixture) -> None:
         assert chunks is not None
         assert len(caplog.records) == 1
         assert "Recursion depth exceeded in chunk." in caplog.records[0].message
+
+
+def test_core_chunk_passes_str_to_parser() -> None:
+    """Regression test: chunk() must pass str (not bytes) to tree-sitter Parser.parse().
+
+    tree-sitter >= 0.24 requires str input.  Passing bytes causes:
+        TypeError: argument 'source': 'bytes' object is not an instance of 'str'
+
+    Refs: bug-20260521-26ea06
+    """
+    code = "def hello():\n    return 'world'\n"
+    # Should not raise TypeError
+    chunks = chunk(code, "python", 100)
+    assert chunks is not None
+    assert len(chunks) >= 1
+    # Chunks must cover the full source text
+    reconstructed = "".join(code[c.start : c.end] for c in chunks)
+    assert reconstructed == code

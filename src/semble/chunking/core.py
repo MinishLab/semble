@@ -5,7 +5,7 @@ from functools import cache
 from logging import getLogger
 
 from tree_sitter import Node, Parser
-from tree_sitter_language_pack import DownloadError, LanguageNotFoundError, SupportedLanguage, get_parser
+from tree_sitter_language_pack import LanguageNotFoundError, SupportedLanguage, get_parser
 
 from semble.index.files import ALL_LANGUAGES
 
@@ -35,8 +35,6 @@ def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
         return get_parser(language)
     except LanguageNotFoundError:
         logger.warning("Language %s not found, falling back to line chunking", language)
-    except DownloadError:
-        logger.warning("Failed to download language %s, falling back to line chunking", language)
     except Exception:
         logger.error("Uncaught exception in _cached_get_parser", exc_info=True)
     return None
@@ -72,30 +70,74 @@ def _merge_adjacent_chunks(
     return merged
 
 
+def _node_start_byte(node: Node) -> int:
+    """Get the start byte offset of a node, compatible with tree-sitter 0.25+."""
+    val = node.start_byte
+    return val() if callable(val) else val
+
+
+def _node_end_byte(node: Node) -> int:
+    """Get the end byte offset of a node, compatible with tree-sitter 0.25+."""
+    val = node.end_byte
+    return val() if callable(val) else val
+
+
+def _node_child_count(node: Node) -> int:
+    """Get the number of children of a node, compatible with tree-sitter 0.25+."""
+    # tree-sitter <0.24: node.children is a list
+    if hasattr(node, "children") and isinstance(node.children, list):
+        return len(node.children)
+    # tree-sitter >=0.25: node.child_count() is a method
+    val = node.child_count
+    return val() if callable(val) else val
+
+
+def _node_child(node: Node, index: int) -> Node:
+    """Get the i-th child of a node, compatible with tree-sitter 0.25+."""
+    # tree-sitter <0.24: node.children is a list
+    if hasattr(node, "children") and isinstance(node.children, list):
+        return node.children[index]
+    # tree-sitter >=0.25: node.child(i) is a method
+    return node.child(index)
+
+
+def _node_children(node: Node) -> list[Node]:
+    """Get all children of a node as a list, compatible with tree-sitter 0.25+."""
+    # tree-sitter <0.24: node.children is a list
+    if hasattr(node, "children") and isinstance(node.children, list):
+        return node.children
+    # tree-sitter >=0.25: use child(i) + child_count()
+    count = _node_child_count(node)
+    return [node.child(i) for i in range(count)]
+
+
 def _merge_node_inner(node: Node, desired_length: int, i: int) -> list[ChunkBoundary]:
     """Recursively merge and split nodes."""
+    child_count = _node_child_count(node)
     # If there are no child nodes, the only thing we can do is return the current node.
-    if not node.children:
-        return [ChunkBoundary(node.start_byte, node.end_byte)]
+    if child_count == 0:
+        return [ChunkBoundary(_node_start_byte(node), _node_end_byte(node))]
 
-    length = node.end_byte - node.start_byte
+    start_byte = _node_start_byte(node)
+    end_byte = _node_end_byte(node)
+    length = end_byte - start_byte
     # Prevent recursion issues. A depth of > 500 is unlikely
     if i > _RECURSION_DEPTH:
         logger.warning("Recursion depth exceeded in chunk.")
-        return [ChunkBoundary(node.start_byte, node.end_byte)]
+        return [ChunkBoundary(start_byte, end_byte)]
     # Prevent recursing into short chunks.
     if length < _MIN_CHUNK_SIZE:
-        return [ChunkBoundary(node.start_byte, node.end_byte)]
+        return [ChunkBoundary(start_byte, end_byte)]
 
     groups: list[ChunkBoundary] = []
-    children = node.children
+    children = _node_children(node)
     index = 0
 
     while index < len(children):
         child = children[index]
-        start = child.start_byte
-        end = child.end_byte
-        length = child.end_byte - child.start_byte
+        start = _node_start_byte(child)
+        end = _node_end_byte(child)
+        length = end - start
 
         # Increment the pointer, as we accessed a child node.
         index += 1
@@ -108,12 +150,14 @@ def _merge_node_inner(node: Node, desired_length: int, i: int) -> list[ChunkBoun
         while index < len(children):
             # Extend the current group with or more children, if they fit.
             child = children[index]
-            child_length = child.end_byte - child.start_byte
+            child_start = _node_start_byte(child)
+            child_end = _node_end_byte(child)
+            child_length = child_end - child_start
 
             if length + child_length > desired_length:
                 break
 
-            end = child.end_byte
+            end = child_end
             length += child_length
             index += 1
 
@@ -150,7 +194,9 @@ def chunk(text: str, language: str, desired_length: int) -> list[ChunkBoundary] 
     parser = _cached_get_parser(language)
     if parser is None:
         return None
-    root = parser.parse(as_bytes).root_node
+    tree = parser.parse(text)
+    # tree-sitter >=0.25: root_node is a method; <0.24: it is a property.
+    root = tree.root_node() if callable(tree.root_node) else tree.root_node
 
     chunks = []
     for chunk_boundary in _merge_node(root, desired_length):
