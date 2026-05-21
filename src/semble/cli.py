@@ -73,13 +73,7 @@ def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
         print(f"{dest} already exists. Run with --force to overwrite.", file=sys.stderr)
         sys.exit(1)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    agent_template = f"agents/{agent.value}.md"
-    default_template = "agents/semble-search.md"
-    pkg = files("semble")
-    try:
-        content = pkg.joinpath(agent_template).read_text(encoding="utf-8")
-    except (FileNotFoundError, TypeError):
-        content = pkg.joinpath(default_template).read_text(encoding="utf-8")
+    content = files("semble").joinpath(f"agents/{agent.value}.md").read_text(encoding="utf-8")
     dest.write_text(content, encoding="utf-8")
     print(f"Created {dest}")
 

@@ -11,7 +11,7 @@ from tests.conftest import make_chunk
 
 _CLAUDE_FILE_PATH = _agent_path(Agent.CLAUDE)
 
-_CLAUDE_AGENT_FILE = files("semble").joinpath("agents/semble-search.md").read_text(encoding="utf-8")
+_CLAUDE_AGENT_FILE = files("semble").joinpath("agents/claude.md").read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(
