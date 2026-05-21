@@ -281,7 +281,7 @@ async def test_serve_runs_stdio(
 
 @pytest.mark.anyio
 async def test_serve_opens_stdio_before_model_loads() -> None:
-    """Stdio must open before load_model() finishes — regression for #133."""
+    """Stdio must open before load_model() finishes."""
     stdio_opened = threading.Event()
 
     def blocking_load_model() -> Encoder:
