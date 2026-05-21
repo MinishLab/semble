@@ -165,7 +165,7 @@ class SembleIndex:
         :param content: Content type to index: ContentType.CODE (default), ContentType.DOCS,
             or ContentType.ALL.
         :param include_text_files: Deprecated. Use content=ContentType.ALL instead.
-        :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
+        :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. src/foo.py).
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
         normalized = _apply_include_text_files(content, include_text_files)
@@ -234,14 +234,14 @@ class SembleIndex:
         :param query: Natural-language or keyword query string.
         :param top_k: Maximum number of results to return.
         :param alpha: Blend weight for hybrid score combination; 1.0 = full semantic
-            weight, 0.0 = full BM25 weight. ``None`` auto-detects from query type.
+            weight, 0.0 = full BM25 weight. None auto-detects from query type.
         :param filter_languages: Optional list of language codes; if set, only chunks in
             these languages are returned.
         :param filter_paths: Optional list of repo-relative file paths; if set, only
             chunks from these files are returned.
         :param rerank: Apply code-tuned reranking (file boost, identifier boost, path penalties).
-            Defaults to ``True`` when ContentType.CODE was indexed.
-        :return: Ranked list of :class:`SearchResult` objects, best match first.
+            Defaults to True when ContentType.CODE was indexed.
+        :return: Ranked list of SearchResult objects, best match first.
         """
         if not self.chunks or not query.strip():
             return []
