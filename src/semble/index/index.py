@@ -246,8 +246,7 @@ class SembleIndex:
         if not self.chunks or not query.strip():
             return []
 
-        has_code = self._content in (ContentType.CODE, ContentType.ALL)
-        resolved_rerank = has_code if rerank is None else rerank
+        resolved_rerank = (self._content != ContentType.DOCS) if rerank is None else rerank
 
         selector = self._get_selector_vector(filter_languages, filter_paths)
         results = search(
