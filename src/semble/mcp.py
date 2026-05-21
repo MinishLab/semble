@@ -26,9 +26,24 @@ _REPO_DESCRIPTION = (
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
 
 
+def _resolve_ref(
+    repo: str | None,
+    source: str,
+    default_source: str | None,
+    default_ref: str | None,
+) -> str | None:
+    """Return the git ref to use when indexing *source*."""
+    if not _is_git_url(source):
+        return None
+    if repo is None or source == default_source:
+        return default_ref
+    return None
+
+
 async def _get_index(
     repo: str | None,
     default_source: str | None,
+    default_ref: str | None,
     cache: _IndexCache,
 ) -> SembleIndex:
     """Return a cached index for a repo, rejecting unsafe git transport schemes."""
@@ -40,13 +55,18 @@ async def _get_index(
             "No repo specified and no default index. "
             "Pass an https:// or http:// git URL or local directory path as `repo`."
         )
+    ref = _resolve_ref(repo, source, default_source, default_ref)
     try:
-        return await cache.get(source)
+        return await cache.get(source, ref=ref)
     except Exception as exc:
         raise ValueError(f"Failed to index {source!r}: {exc}") from exc
 
 
-def create_server(cache: _IndexCache, default_source: str | None = None) -> FastMCP:
+def create_server(
+    cache: _IndexCache,
+    default_source: str | None = None,
+    default_ref: str | None = None,
+) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
         "semble",
@@ -71,7 +91,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Use this to find where something is implemented, understand a library, or locate related code.
         """
         try:
-            index = await _get_index(repo, default_source, cache)
+            index = await _get_index(repo, default_source, default_ref, cache)
         except ValueError as exc:
             return str(exc)
         results = index.search(query, top_k=top_k)
@@ -95,7 +115,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         Pass file_path and line from a prior search result.
         """
         try:
-            index = await _get_index(repo, default_source, cache)
+            index = await _get_index(repo, default_source, default_ref, cache)
         except ValueError as exc:
             return str(exc)
         chunk = _resolve_chunk(index.chunks, file_path, line)
@@ -135,7 +155,7 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
                 await cache.start_watcher(path)
 
     init_task = asyncio.create_task(_load_and_prewarm())
-    server = create_server(cache, default_source=path)
+    server = create_server(cache, default_source=path, default_ref=ref)
     try:
         await server.run_stdio_async()
     finally:
@@ -170,8 +190,8 @@ class _IndexCache:
         is_git = _is_git_url(source)
         return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
-    def evict(self, source: str) -> None:
-        self._tasks.pop(self._compute_cache_key(source), None)
+    def evict(self, source: str, ref: str | None = None) -> None:
+        self._tasks.pop(self._compute_cache_key(source, ref), None)
 
     async def start_watcher(self, path: str) -> None:
         """Start a background task that re-indexes the path whenever files change."""
@@ -224,10 +244,10 @@ class _IndexCache:
             return await asyncio.shield(task)
         except asyncio.CancelledError:  # pragma: no cover
             if task.done():
-                self.evict(source)
+                self.evict(source, ref=ref)
             raise
         except Exception:
             # Only evict if this task hasn't already been replaced by evict()+get().
             if self._tasks.get(cache_key) is task:
-                self.evict(source)
+                self.evict(source, ref=ref)
             raise

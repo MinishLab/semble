@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
+from semble.mcp import _CACHE_MAX_SIZE, _get_index, _IndexCache, create_server, serve
 from semble.types import Chunk, Encoder, SearchResult
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 from tests.conftest import make_chunk
@@ -120,6 +120,49 @@ async def test_index_cache_builds_and_caches(
     assert first is fake_index
     assert second is fake_index
     mock_build.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_index_cache_git_ref_key(cache: _IndexCache) -> None:
+    """Git URLs with a ref use a distinct cache key and reuse the same build."""
+    url = "https://github.com/org/repo"
+    fake_index = MagicMock()
+    with patch("semble.mcp.SembleIndex.from_git", return_value=fake_index) as mock_build:
+        first = await cache.get(url, ref="v1.0")
+        second = await cache.get(url, ref="v1.0")
+    assert first is fake_index
+    assert second is fake_index
+    mock_build.assert_called_once()
+    assert mock_build.call_args.kwargs["ref"] == "v1.0"
+
+
+@pytest.mark.anyio
+async def test_get_index_reuses_default_ref(cache: _IndexCache) -> None:
+    """Tool lookups without repo reuse the startup --ref cache entry."""
+    url = "https://github.com/org/repo"
+    fake_index = MagicMock()
+    with patch("semble.mcp.SembleIndex.from_git", return_value=fake_index) as mock_build:
+        await cache.get(url, ref="main")
+        index = await _get_index(None, url, "main", cache)
+        await _get_index(url, url, "main", cache)
+    assert index is fake_index
+    assert mock_build.call_count == 1
+
+
+@pytest.mark.anyio
+async def test_tool_search_reuses_default_ref_cache(cache: _IndexCache) -> None:
+    """Search without repo hits the pre-indexed default git ref."""
+    url = "https://github.com/org/repo"
+    chunk = make_chunk("def bar(): pass", "src/bar.py")
+    fake_index = MagicMock()
+    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
+    with patch("semble.mcp.SembleIndex.from_git", return_value=fake_index) as mock_build:
+        await cache.get(url, ref="main")
+        mock_build.reset_mock()
+        server = create_server(cache, default_source=url, default_ref="main")
+        result = await server.call_tool("search", {"query": "bar"})
+    assert "bar" in _tool_text(result)
+    mock_build.assert_not_called()
 
 
 @pytest.mark.anyio
@@ -375,6 +418,15 @@ def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
 def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
     """evict() on an unknown path is a no-op."""
     cache.evict(str(tmp_path))  # should not raise
+
+
+def test_cache_evict_with_ref(cache: _IndexCache) -> None:
+    """evict() removes git cache entries that include a ref in the key."""
+    url = "https://github.com/org/repo"
+    key = f"{url}@main"
+    cache._tasks[key] = MagicMock()
+    cache.evict(url, ref="main")
+    assert key not in cache._tasks
 
 
 @pytest.mark.anyio
