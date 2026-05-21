@@ -20,7 +20,7 @@ def load_model(model_path: str | None = None) -> Encoder:
     # Disable HF progress bars since the model is loaded silently in the background during indexing.
     disable_progress_bars()
     try:
-        model = StaticModel.from_pretrained(model_path)
+        model = StaticModel.from_pretrained(model_path, force_download=False)
     finally:
         disable_progress_bars()
     return cast(Encoder, model)

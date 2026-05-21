@@ -142,7 +142,7 @@ def test_load_model(model_path: str | None, expected_call_arg: str) -> None:
     fake_model = MagicMock(spec=Encoder)
     with patch("semble.index.dense.StaticModel.from_pretrained", return_value=fake_model) as mock_fp:
         result = load_model(model_path)
-    mock_fp.assert_called_once_with(expected_call_arg)
+    mock_fp.assert_called_once_with(expected_call_arg, force_download=False)
     assert result is fake_model
 
 
