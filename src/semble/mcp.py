@@ -116,8 +116,8 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
     """Start an MCP stdio server, optionally pre-indexing a default source."""
     cache = _IndexCache(include_text_files=include_text_files)
 
-    # Pre-load the model and optionally pre-index the default source in parallel with starting the server.
     async def _load_and_prewarm() -> None:
+        """Pre-load the model and optionally pre-index the default source in parallel with starting the server."""
         try:
             cache._model = await asyncio.to_thread(load_model)
         except Exception as exc:
