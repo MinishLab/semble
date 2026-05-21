@@ -19,16 +19,18 @@ from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, ContentType, Encoder, IndexStats, SearchResult
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
-_INCLUDE_TEXT_FILES_DEPRECATION_MSG = (
-    "include_text_files is deprecated and will be removed in a future version. Use content=ContentType.ALL instead."
-)
 
 
 def _apply_include_text_files(content: ContentType, include_text_files: bool | None) -> ContentType:
     """Apply the deprecated include_text_files override, emitting a DeprecationWarning."""
     if include_text_files is None:
         return content
-    warnings.warn(_INCLUDE_TEXT_FILES_DEPRECATION_MSG, DeprecationWarning, stacklevel=2)
+    warnings.warn(
+        "include_text_files is deprecated and will be removed in a future version."
+        " Use content=ContentType.ALL instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return ContentType.ALL if include_text_files else ContentType.CODE
 
 

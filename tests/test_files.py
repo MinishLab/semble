@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from semble.index.files import _CODE_LANGUAGES, _DOC_LANGUAGES, _NON_CODE_LANGUAGES, detect_language, get_extensions
+from semble.index.files import _CODE_LANGUAGES, _CONFIG_LANGUAGES, _DOC_LANGUAGES, detect_language, get_extensions
 from semble.types import ContentType
 
 
@@ -14,10 +14,10 @@ def test_detect_language() -> None:
 
 
 def test_language_sets_are_consistent() -> None:
-    """Code, doc, and non-code language sets satisfy their mutual invariants."""
+    """Code, doc, and config language sets are mutually disjoint."""
     assert _CODE_LANGUAGES.isdisjoint(_DOC_LANGUAGES)
-    assert _CODE_LANGUAGES.isdisjoint(_NON_CODE_LANGUAGES)
-    assert _DOC_LANGUAGES <= _NON_CODE_LANGUAGES
+    assert _CODE_LANGUAGES.isdisjoint(_CONFIG_LANGUAGES)
+    assert _DOC_LANGUAGES.isdisjoint(_CONFIG_LANGUAGES)
 
 
 @pytest.mark.parametrize(

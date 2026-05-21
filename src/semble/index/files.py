@@ -380,8 +380,7 @@ _DOC_LANGUAGES = {
     "vimdoc",
 }
 
-# Everything that is not a programming language — used to derive _CODE_LANGUAGES.
-_NON_CODE_LANGUAGES = _DOC_LANGUAGES | {
+_CONFIG_LANGUAGES = {
     "beancount",
     "capnp",
     "cedarschema",
@@ -444,7 +443,7 @@ def _inv_mapping(mapping: dict[str, str]) -> dict[str, list[str]]:
 
 
 ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
-_CODE_LANGUAGES = ALL_LANGUAGES - _NON_CODE_LANGUAGES
+_CODE_LANGUAGES = ALL_LANGUAGES - _DOC_LANGUAGES - _CONFIG_LANGUAGES
 _LANGUAGE_TO_EXTENSION = _inv_mapping(_EXTENSION_TO_LANGUAGE)
 
 
