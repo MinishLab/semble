@@ -3,17 +3,18 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from model2vec import StaticModel
 
 from semble import SembleIndex
 from semble.index.create import _MAX_FILE_BYTES, create_index_from_path
-from semble.types import Encoder
 from tests.conftest import make_chunk
 
 
 @pytest.fixture
 def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
     """SembleIndex built from tmp_project."""
-    return SembleIndex.from_path(tmp_project, model=mock_model)
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        return SembleIndex.from_path(tmp_project)
 
 
 @pytest.mark.parametrize(
@@ -21,7 +22,7 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
     [(False, False), (True, True)],
 )
 def test_index_markdown_inclusion(
-    mock_model: Encoder, tmp_project: Path, include_text_files: bool, md_in_results: bool
+    mock_model: StaticModel, tmp_project: Path, include_text_files: bool, md_in_results: bool
 ) -> None:
     """Markdown files are excluded by default and included when include_text_files=True."""
     _, _, chunks = create_index_from_path(tmp_project, mock_model, include_text_files=include_text_files)
@@ -29,13 +30,13 @@ def test_index_markdown_inclusion(
     assert has_md is md_in_results
 
 
-def test_index_empty_returns_zero_chunks(mock_model: Encoder, tmp_path: Path) -> None:
+def test_index_empty_returns_zero_chunks(mock_model: StaticModel, tmp_path: Path) -> None:
     """Indexing an empty directory yields zero files and chunks."""
     with pytest.raises(ValueError):
         create_index_from_path(tmp_path, mock_model)
 
 
-def test_oversized_file_is_skipped(mock_model: Encoder, tmp_path: Path) -> None:
+def test_oversized_file_is_skipped(mock_model: StaticModel, tmp_path: Path) -> None:
     """Files exceeding _MAX_FILE_BYTES are silently skipped during indexing."""
     (tmp_path / "big.py").write_bytes(b"x" * (_MAX_FILE_BYTES + 1))
     with pytest.raises(ValueError):  # no indexable content remains
@@ -123,3 +124,18 @@ def test_find_related(indexed_index: SembleIndex) -> None:
     assert [r.chunk for r in indexed_index.find_related(result, top_k=3)] == [
         r.chunk for r in indexed_index.find_related(result.chunk, top_k=3)
     ]
+
+
+def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
+    """Test that saving and loading a folder leads to the same data."""
+    indexed_index.save(tmp_path)
+    with patch.object(StaticModel, "from_pretrained"):
+        index_2 = SembleIndex.load_from_disk(tmp_path)
+    assert index_2.chunks == indexed_index.chunks
+    assert index_2._root == indexed_index._root
+
+
+def test_load_non_existent(tmp_path: Path, indexed_index: SembleIndex) -> None:
+    """Test that saving and loading a folder leads to the same data."""
+    with pytest.raises(FileNotFoundError):
+        SembleIndex.load_from_disk(tmp_path / "temp")

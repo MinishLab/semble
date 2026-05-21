@@ -32,7 +32,8 @@ dependencies = [
     "bm25s>=0.2.0",
     "pathspec>=0.12",
     "tree-sitter>=0.25,<0.26",
-    "tree-sitter-language-pack>=1.0,<1.8.0,!=1.6.3"
+    "tree-sitter-language-pack>=1.0,<1.8.0,!=1.6.3",
+    "orjson"
 ]
 
 [project.optional-dependencies]

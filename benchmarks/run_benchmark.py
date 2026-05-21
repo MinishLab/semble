@@ -5,7 +5,6 @@ from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 
 import numpy as np
-from model2vec import StaticModel
 
 from benchmarks.data import (
     RepoSpec,
@@ -188,7 +187,7 @@ def _print_summary(results: list[RepoResult]) -> None:
 
 
 def _bench_quality(
-    repo_tasks: dict[str, list[Task]], model: StaticModel, specs: dict[str, RepoSpec], *, verbose: bool = False
+    repo_tasks: dict[str, list[Task]], specs: dict[str, RepoSpec], *, verbose: bool = False
 ) -> list[RepoResult]:
     """Run quality benchmarks (NDCG@5, NDCG@10, latency) for each repo."""
     print(
@@ -204,7 +203,7 @@ def _bench_quality(
     for repo, tasks in sorted(repo_tasks.items()):
         spec = specs[repo]
         started = time.perf_counter()
-        index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+        index = SembleIndex.from_path(spec.benchmark_dir)
         index_ms = (time.perf_counter() - started) * 1000
         ndcg5, ndcg10, latencies, by_category, tokens = evaluate(index, tasks, verbose=verbose)
         p50, p90, p95, p99 = np.percentile(latencies, [50, 90, 95, 99]).tolist()
@@ -299,11 +298,10 @@ def main() -> None:
     repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None)
     print("Loading model...", file=sys.stderr)
     started = time.perf_counter()
-    model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f} ms", file=sys.stderr)
     print(file=sys.stderr)
     repo_tasks = grouped_tasks(tasks)
-    results = _bench_quality(repo_tasks, model, repo_specs, verbose=args.verbose)
+    results = _bench_quality(repo_tasks, repo_specs, verbose=args.verbose)
     _print_summary(results)
     if not args.repo and not args.language:
         _save_results(results)

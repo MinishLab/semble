@@ -10,7 +10,7 @@ resolution-markers = [
 
 [options]
 exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
-exclude-newer-span = "P1W"
+exclude-newer-span = "P3D"
 
 [[package]]
 name = "annotated-doc"
@@ -3123,6 +3123,7 @@ dependencies = [
     { name = "model2vec" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "orjson" },
     { name = "pathspec" },
     { name = "tree-sitter" },
     { name = "tree-sitter-language-pack" },
@@ -3163,6 +3164,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "numpy", marker = "extra == 'benchmark'", specifier = ">=1.24.0" },
     { name = "openai", marker = "extra == 'benchmark'", specifier = ">=1.50" },
+    { name = "orjson" },
     { name = "pathspec", specifier = ">=0.12" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0" },
     { name = "pydoclint", marker = "extra == 'dev'", specifier = ">=0.5.3" },

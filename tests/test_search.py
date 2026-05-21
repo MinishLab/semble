@@ -5,12 +5,13 @@ import bm25s
 import numpy as np
 import numpy.typing as npt
 import pytest
+from model2vec import StaticModel
 from vicinity.backends.basic import BasicArgs
 
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
-from semble.types import Chunk, Encoder
+from semble.types import Chunk
 from tests.conftest import make_chunk
 
 
@@ -139,9 +140,9 @@ def test_sort_top_k() -> None:
 )
 def test_load_model(model_path: str | None, expected_call_arg: str) -> None:
     """load_model calls from_pretrained with default or custom model path."""
-    fake_model = MagicMock(spec=Encoder)
+    fake_model = MagicMock(spec=StaticModel)
     with patch("semble.index.dense.StaticModel.from_pretrained", return_value=fake_model) as mock_fp:
-        result = load_model(model_path)
+        result, _ = load_model(model_path)
     mock_fp.assert_called_once_with(expected_call_arg, force_download=False)
     assert result is fake_model
 

@@ -5,9 +5,10 @@ from typing import Any, AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from model2vec import StaticModel
 
 from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
-from semble.types import Chunk, Encoder, SearchResult
+from semble.types import Chunk, SearchResult
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 from tests.conftest import make_chunk
 
@@ -41,7 +42,10 @@ async def _call_tool(
 @pytest.fixture()
 def cache() -> _IndexCache:
     """An _IndexCache backed by a stub model."""
-    return _IndexCache(model=MagicMock(spec=Encoder))
+    c = _IndexCache()
+    c._model_path = "/fake/model"
+    c._model_ready.set()
+    return c
 
 
 def test_resolve_chunk() -> None:
@@ -266,7 +270,9 @@ async def test_serve_runs_stdio(
         if stdio_yields:
             await asyncio.sleep(0.05)  # let the background init task run
 
-    load_kwargs = {"side_effect": load_err} if load_err else {"return_value": MagicMock(spec=Encoder)}
+    load_kwargs = (
+        {"side_effect": load_err} if load_err else {"return_value": (MagicMock(spec=StaticModel), "/fake/model")}
+    )
     fp_kwargs = {"side_effect": from_path_err} if from_path_err else {"return_value": MagicMock()}
     with (
         patch("semble.mcp.load_model", **load_kwargs),
@@ -284,9 +290,9 @@ async def test_serve_opens_stdio_before_model_loads() -> None:
     """Stdio must open before load_model() finishes."""
     stdio_opened = threading.Event()
 
-    def blocking_load_model() -> Encoder:
+    def blocking_load_model() -> StaticModel:
         assert stdio_opened.wait(timeout=1.0), "stdio did not open"
-        return MagicMock(spec=Encoder)
+        return MagicMock(spec=StaticModel)
 
     async def fake_run_stdio() -> None:
         stdio_opened.set()
@@ -308,7 +314,7 @@ async def test_index_cache_awaits_model(tmp_path: Path) -> None:
         get_task = asyncio.create_task(cache.get(str(tmp_path)))
         await asyncio.sleep(0.01)
         assert not get_task.done(), "get() must block until the model is installed"
-        cache._model = MagicMock(spec=Encoder)
+        cache._model_path = "/fake/model"
         cache._model_ready.set()
         result = await asyncio.wait_for(get_task, timeout=1.0)
     assert result is fake_index

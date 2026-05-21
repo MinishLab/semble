@@ -62,7 +62,7 @@ def _bench(
             print(f"\n--- {repo} ---", file=sys.stderr)
 
         started = time.perf_counter()
-        index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+        index = SembleIndex.from_path(spec.benchmark_dir)
         index_ms = (time.perf_counter() - started) * 1000
 
         for mode, (alpha, rerank) in sorted(_MODE_PARAMS.items()):

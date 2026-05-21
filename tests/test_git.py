@@ -39,7 +39,8 @@ def git_repo(tmp_path: Path) -> Path:
 
 def test_from_git_indexes_local_repo_with_relative_paths(mock_model: Any, git_repo: Path) -> None:
     """from_git clones a local repo, indexes it, and keeps chunk paths repo-relative."""
-    idx = SembleIndex.from_git(str(git_repo), model=mock_model)
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        idx = SembleIndex.from_git(str(git_repo))
     assert idx.stats.indexed_files >= 1
     assert idx.stats.total_chunks > 0
     assert any("main.py" in c.file_path for c in idx.chunks)
@@ -54,8 +55,8 @@ def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
     _commit_file(repo, "main.py", "def on_main(): pass\n", "main")
     subprocess.run(["git", "-C", str(repo), "checkout", "-b", "feature"], check=True, capture_output=True)
     _commit_file(repo, "feature.py", "def on_feature(): pass\n", "feature")
-
-    idx = SembleIndex.from_git(str(repo), ref="feature", model=mock_model)
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        idx = SembleIndex.from_git(str(repo), ref="feature")
     file_names = {Path(c.file_path).name for c in idx.chunks}
     assert "feature.py" in file_names
 
@@ -73,22 +74,24 @@ def test_from_path_rejects_invalid_paths(
     else:
         target = tmp_path / "not_a_dir.py"
         target.write_text("x = 1\n")
-    with pytest.raises(expected_exc):
-        SembleIndex.from_path(target, model=mock_model)
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        with pytest.raises(expected_exc):
+            SembleIndex.from_path(target)
 
 
 def test_from_git_raises_on_failure(mock_model: Any) -> None:
     """from_git raises RuntimeError when the clone fails, git is not installed, or times out."""
-    with pytest.raises(RuntimeError, match="git clone failed"):
-        SembleIndex.from_git("/nonexistent/path/that/does/not/exist", model=mock_model)
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        with pytest.raises(RuntimeError, match="git clone failed"):
+            SembleIndex.from_git("/nonexistent/path/that/does/not/exist")
 
-    with patch("semble.index.index.subprocess.run", side_effect=FileNotFoundError):
-        with pytest.raises(RuntimeError, match="git is not installed"):
-            SembleIndex.from_git("https://github.com/x/y", model=mock_model)
+        with patch("semble.index.index.subprocess.run", side_effect=FileNotFoundError):
+            with pytest.raises(RuntimeError, match="git is not installed"):
+                SembleIndex.from_git("https://github.com/x/y")
 
-    with patch(
-        "semble.index.index.subprocess.run",
-        side_effect=subprocess.TimeoutExpired(cmd=["git"], timeout=60),
-    ):
-        with pytest.raises(RuntimeError, match="timed out"):
-            SembleIndex.from_git("https://github.com/x/y", model=mock_model)
+        with patch(
+            "semble.index.index.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd=["git"], timeout=60),
+        ):
+            with pytest.raises(RuntimeError, match="timed out"):
+                SembleIndex.from_git("https://github.com/x/y")

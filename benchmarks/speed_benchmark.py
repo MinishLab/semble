@@ -12,7 +12,7 @@ from benchmarks.data import RepoSpec, Task, available_repo_specs, load_tasks, sa
 from benchmarks.tools import run_colgrep_files, run_ripgrep_count
 from semble import SembleIndex
 from semble.index.dense import _DEFAULT_MODEL_NAME
-from semble.types import EmbeddingMatrix, Encoder
+from semble.types import EmbeddingMatrix
 
 # One representative repo per language (medium size, healthy NDCG on the main benchmark).
 _REPOS: list[str] = [
@@ -89,7 +89,7 @@ class _CREWrapper:
 
 
 def _bench_semble(
-    spec: RepoSpec, tasks: list[Task], model: Encoder | None
+    spec: RepoSpec, tasks: list[Task], model: StaticModel | None
 ) -> tuple[float, SembleIndex, tuple[float, ...]]:
     """Index a repo with semble and measure query latency; return (index_ms, index, latencies_ms)."""
     started = time.perf_counter()

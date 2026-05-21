@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import bm25s
+from model2vec.model import StaticModel
 from vicinity.backends.basic import BasicArgs
 
 from semble.chunking import chunk_source
@@ -11,14 +12,14 @@ from semble.index.file_walker import walk_files
 from semble.index.files import detect_language, get_extensions
 from semble.index.sparse import enrich_for_bm25
 from semble.tokens import tokenize
-from semble.types import Chunk, Encoder
+from semble.types import Chunk
 
 _MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
 
 
 def create_index_from_path(
     path: Path,
-    model: Encoder,
+    model: StaticModel,
     extensions: Sequence[str] | None = None,
     include_text_files: bool = False,
     display_root: Path | None = None,

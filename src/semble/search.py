@@ -1,12 +1,13 @@
 import bm25s
 import numpy as np
 import numpy.typing as npt
+from model2vec import StaticModel
 
 from semble.index.dense import SelectableBasicBackend
 from semble.index.sparse import selector_to_mask
 from semble.ranking import apply_query_boost, boost_multi_chunk_files, rerank_topk, resolve_alpha
 from semble.tokens import tokenize
-from semble.types import Chunk, Encoder, SearchResult
+from semble.types import Chunk, SearchResult
 
 _RRF_K = 60
 
@@ -21,7 +22,7 @@ def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:
 
 def _search_semantic(
     query: str,
-    model: Encoder,
+    model: StaticModel,
     semantic_index: SelectableBasicBackend,
     chunks: list[Chunk],
     top_k: int,
@@ -64,7 +65,7 @@ def _search_bm25(
 
 def search(
     query: str,
-    model: Encoder,
+    model: StaticModel,
     semantic_index: SelectableBasicBackend,
     bm25_index: bm25s.BM25,
     chunks: list[Chunk],

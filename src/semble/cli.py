@@ -23,7 +23,7 @@ class Agent(str, Enum):
 
 
 _DEFAULT_AGENT = Agent.CLAUDE
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help"})
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help", "index"})
 
 
 def _agent_path(agent: Agent) -> Path:
@@ -66,6 +66,13 @@ def _mcp_main() -> None:
     asyncio.run(serve(args.path, ref=args.ref, include_text_files=args.include_text_files))
 
 
+def _run_index(*, path: str, include_text_files: bool = False, out: str) -> None:
+    """Index and store a codebase."""
+    index = SembleIndex.from_path(path, include_text_files=include_text_files)
+    Path(out).mkdir(parents=True, exist_ok=True)
+    index.save(out)
+
+
 def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
     """Write the semble sub-agent file for the given coding agent into the current project."""
     dest = _agent_path(agent)
@@ -82,6 +89,15 @@ def _cli_main() -> None:
     parser = argparse.ArgumentParser(prog="semble")
     sub = parser.add_subparsers(dest="command")
 
+    index_p = sub.add_parser("index", help="Index and store a codebase.")
+    index_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
+    index_p.add_argument(
+        "--include-text-files",
+        action="store_true",
+        help="Also index non-code text files (.md, .yaml, .json, etc.).",
+    )
+    index_p.add_argument("-o", "--out", type=str, required=True, help="The path to write the pre-built index to.")
+
     search_p = sub.add_parser("search", help="Search a codebase.")
     search_p.add_argument("query", help="Natural language or code query.")
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
@@ -91,6 +107,7 @@ def _cli_main() -> None:
         action="store_true",
         help="Also index non-code text files (.md, .yaml, .json, etc.).",
     )
+    search_p.add_argument("--index", type=str, default=None, help="A path pointing to a pre-built index.")
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")
@@ -102,6 +119,7 @@ def _cli_main() -> None:
         action="store_true",
         help="Also index non-code text files (.md, .yaml, .json, etc.).",
     )
+    related_p.add_argument("--index", type=str, default=None, help="A path pointing to a pre-built index.")
 
     init_p = sub.add_parser("init", help="Write a semble sub-agent file for your coding agent.")
     init_p.add_argument(
@@ -122,16 +140,24 @@ def _cli_main() -> None:
         _run_init(agent=Agent(args.agent), force=args.force)
         return
 
+    if args.command == "index":
+        _run_index(path=args.path, include_text_files=args.include_text_files, out=args.out)
+        return
+
     if args.command == "savings":
         print(format_savings_report(verbose=args.verbose), end="")
         return
 
     include_text = args.include_text_files
-    index = (
-        SembleIndex.from_git(args.path, include_text_files=include_text)
-        if _is_git_url(args.path)
-        else SembleIndex.from_path(args.path, include_text_files=include_text)
-    )
+
+    if args.index:
+        index = SembleIndex.load_from_disk(args.index)
+    else:
+        index = (
+            SembleIndex.from_git(args.path, include_text_files=include_text)
+            if _is_git_url(args.path)
+            else SembleIndex.from_path(args.path, include_text_files=include_text)
+        )
 
     if args.command == "search":
         results = index.search(args.query, top_k=args.top_k)

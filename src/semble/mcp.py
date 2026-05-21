@@ -12,7 +12,6 @@ from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
-from semble.types import Encoder
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
 logger = logging.getLogger(__name__)
@@ -119,7 +118,7 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
     async def _load_and_prewarm() -> None:
         """Pre-load the model and optionally pre-index the default source in parallel with starting the server."""
         try:
-            cache._model = await asyncio.to_thread(load_model)
+            _, cache._model_path = await asyncio.to_thread(load_model)
         except Exception as exc:
             logger.exception("Failed to load embedding model")
             cache._model_error = exc
@@ -146,24 +145,22 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, model: Encoder | None = None, include_text_files: bool = False) -> None:
+    def __init__(self, include_text_files: bool = False) -> None:
         """Initialise an empty cache."""
-        self._model: Encoder | None = model
+        self._model_path: str | None = None
         self._model_error: BaseException | None = None
         self._model_ready = asyncio.Event()
-        if model is not None:
-            self._model_ready.set()
         self._include_text_files = include_text_files
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._watcher_task: asyncio.Task[None] | None = None
 
-    async def _await_model(self) -> Encoder:
+    async def _await_model(self) -> str:
         """Block until the model is installed; re-raise the load error if it failed."""
         await self._model_ready.wait()
         if self._model_error is not None:
             raise self._model_error
-        assert self._model is not None
-        return self._model
+        assert self._model_path is not None
+        return self._model_path
 
     def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
         """Compute the canonical cache key for a source."""
@@ -194,7 +191,7 @@ class _IndexCache:
         cache_key = self._compute_cache_key(source, ref)
 
         if cache_key not in self._tasks:
-            model = await self._await_model()
+            model_path = await self._await_model()
             # Re-check after the await: another caller may have populated the entry.
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
@@ -205,8 +202,8 @@ class _IndexCache:
                             SembleIndex.from_git,
                             source,
                             ref=ref,
-                            model=model,
                             include_text_files=self._include_text_files,
+                            model_path=model_path,
                         )
                     )
                 else:
@@ -214,8 +211,8 @@ class _IndexCache:
                         asyncio.to_thread(
                             SembleIndex.from_path,
                             cache_key,
-                            model=model,
                             include_text_files=self._include_text_files,
+                            model_path=model_path,
                         )
                     )
         self._tasks.move_to_end(cache_key)

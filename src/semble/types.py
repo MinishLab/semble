@@ -1,7 +1,8 @@
-from collections.abc import Sequence
-from dataclasses import dataclass, field
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Protocol, TypeAlias
+from typing import Any, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
@@ -14,19 +15,6 @@ class CallType(str, Enum):
 
     SEARCH = "search"
     FIND_RELATED = "find_related"
-
-
-class Encoder(Protocol):
-    """Protocol for embedding models."""
-
-    @property
-    def dim(self) -> int:
-        """The dimensionality of the embedding."""
-        ...
-
-    def encode(self, texts: Sequence[str], /, **kwargs: Any) -> EmbeddingMatrix:
-        """Encode texts into embeddings as a 2D float32 array."""
-        ...  # pragma: no cover
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +31,15 @@ class Chunk:
     def location(self) -> str:
         """File path and line range as a string."""
         return f"{self.file_path}:{self.start_line}-{self.end_line}"
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the dataclass to a dict."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls: type[Chunk], data: dict[str, Any]) -> Chunk:
+        """Create a Chunk from a dict."""
+        return cls(**data)
 
 
 @dataclass(frozen=True, slots=True)
