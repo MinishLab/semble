@@ -11,8 +11,6 @@ from tests.conftest import make_chunk
 
 _CLAUDE_FILE_PATH = _agent_path(Agent.CLAUDE)
 
-_CLAUDE_AGENT_FILE = files("semble").joinpath("agents/claude.md").read_text(encoding="utf-8")
-
 
 @pytest.mark.parametrize(
     "argv",
@@ -126,7 +124,7 @@ def test_init_overwrites_with_force(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text("old content", encoding="utf-8")
     _run_init(force=True)
-    assert dest.read_text(encoding="utf-8") == _CLAUDE_AGENT_FILE
+    assert dest.read_text(encoding="utf-8") == files("semble").joinpath("agents/claude.md").read_text(encoding="utf-8")
 
 
 def test_init_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
@@ -199,7 +197,7 @@ def test_mcp_main_exits_with_message_when_extras_missing(
 
 def test_agent_file_tools_are_bash_only() -> None:
     """The agent file must list only Bash and Read — no MCP tools that require schema loading."""
-    frontmatter = _CLAUDE_AGENT_FILE.split("---")[1]
+    frontmatter = files("semble").joinpath("agents/claude.md").read_text(encoding="utf-8").split("---")[1]
     tools_line = next(line for line in frontmatter.splitlines() if line.startswith("tools:"))
     tools = [t.strip() for t in tools_line.removeprefix("tools:").split(",")]
     assert set(tools) == {"Bash", "Read"}, f"Unexpected tools in agent file: {tools}"
