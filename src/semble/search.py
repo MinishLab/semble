@@ -86,7 +86,7 @@ def search(
     :param top_k: Number of results to return.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :param selector: Optional array of chunk indices to filter results by.
-    :param rerank: Whether to apply code-tuned reranking (file boost, identifier boost, path penalties).
+    :param rerank: Whether to perform code-tuned reranking. On by default for code search, off for docs search.
     :return: List of search results sorted by combined score descending.
     """
     alpha_weight = resolve_alpha(query, alpha)
@@ -104,7 +104,8 @@ def search(
     normalized_semantic = _rrf_scores(semantic_scores)
     normalized_bm25 = _rrf_scores(bm25_scores)
 
-    # Sort by the file path and start line to counteract randomness from hashing.
+    # Sort by the file path and start line to
+    # counteract randomness introduces by hashing.
     all_candidates = sorted(
         {*normalized_semantic, *normalized_bm25},
         key=lambda c: c.start_line,
@@ -116,10 +117,13 @@ def search(
     }
 
     if rerank:
+        # Boost files with multiple relevant chunks.
         boost_multi_chunk_files(combined_scores)
+        # Boost queries with specific identifiers in them.
         combined_scores = apply_query_boost(combined_scores, query, chunks)
+        # Rerank the top-k results by applying path-based penalties.
         ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
     else:
-        ranked = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
-
+        sorted_by_score = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
+        ranked = sorted_by_score[:top_k]
     return [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]
