@@ -264,7 +264,7 @@ Add to `~/.kiro/settings/mcp.json` (or `.kiro/settings/mcp.json` in your project
 <details>
 <summary>Zed</summary>
 
-Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
+**Via settings** — add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
 
 ```json
 {
@@ -273,6 +273,20 @@ Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
       "command": "uvx",
       "args": ["--from", "semble[mcp]", "semble"]
     }
+  }
+}
+```
+
+**Via UI** — in the Agent Panel:
+
+1. Open **MCP Servers** → **Add Custom Server...** → **Local**
+2. Paste:
+
+```json
+{
+  "semble": {
+    "command": "uvx",
+    "args": ["--from", "semble[mcp]", "semble", "mcp"]
   }
 }
 ```
