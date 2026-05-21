@@ -1,7 +1,6 @@
 import bm25s
 import numpy as np
 import numpy.typing as npt
-from pyversity import Strategy, diversify
 
 from semble.index.dense import SelectableBasicBackend
 from semble.index.sparse import selector_to_mask
@@ -10,7 +9,6 @@ from semble.tokens import tokenize
 from semble.types import Chunk, Encoder, SearchResult
 
 _RRF_K = 60
-DEFAULT_DOCS_DIVERSITY = 0.3
 
 
 def _rrf_scores(scores: dict[Chunk, float]) -> dict[Chunk, float]:
@@ -74,7 +72,6 @@ def search(
     alpha: float | None = None,
     selector: npt.NDArray[np.int_] | None = None,
     rerank: bool = True,
-    diversity: float | None = None,
 ) -> list[SearchResult]:
     """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
 
@@ -90,8 +87,6 @@ def search(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :param selector: Optional array of chunk indices to filter results by.
     :param rerank: Whether to apply code-tuned reranking (file boost, identifier boost, path penalties).
-    :param diversity: DPP diversity weight in [0, 1]. When set, fetches 2× candidates, reranks,
-        then re-selects with pyversity DPP. None disables diversity.
     :return: List of search results sorted by combined score descending.
     """
     alpha_weight = resolve_alpha(query, alpha)
@@ -120,44 +115,11 @@ def search(
         for chunk in all_candidates
     }
 
-    # Over-fetch before reranking so diversity has candidates to choose from.
-    fetch_k = top_k * 2 if diversity is not None else top_k
-
     if rerank:
         boost_multi_chunk_files(combined_scores)
         combined_scores = apply_query_boost(combined_scores, query, chunks)
-        ranked = rerank_topk(combined_scores, fetch_k, penalise_paths=alpha_weight < 1.0)
+        ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
     else:
-        ranked = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:fetch_k]
+        ranked = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
 
-    results = [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]
-
-    if diversity is not None:
-        return _diversify(results, top_k, diversity, semantic_index, chunks)
-    return results
-
-
-def _diversify(
-    results: list[SearchResult],
-    top_k: int,
-    diversity_weight: float,
-    semantic_index: SelectableBasicBackend,
-    chunks: list[Chunk],
-) -> list[SearchResult]:
-    """Re-rank results with DPP to improve embedding-space diversity."""
-    if len(results) <= top_k:
-        return results
-    chunk_index = {c: i for i, c in enumerate(chunks)}
-    valid = [r for r in results if r.chunk in chunk_index]
-    if len(valid) <= top_k:
-        return valid
-    indices = np.array([chunk_index[r.chunk] for r in valid])
-    scores = np.array([r.score for r in valid], dtype=np.float32)
-    result = diversify(
-        embeddings=semantic_index.vectors[indices],
-        scores=scores,
-        k=top_k,
-        strategy=Strategy.DPP,
-        diversity=diversity_weight,
-    )
-    return sorted((valid[i] for i in result.indices), key=lambda r: -r.score)
+    return [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]

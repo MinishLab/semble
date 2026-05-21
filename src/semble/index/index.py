@@ -14,7 +14,7 @@ from bm25s import BM25
 
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
-from semble.search import DEFAULT_DOCS_DIVERSITY, _search_semantic, search
+from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, ContentType, Encoder, IndexStats, SearchResult
 
@@ -28,7 +28,7 @@ def _apply_include_text_files(content: ContentType, include_text_files: bool | N
     """Apply the deprecated include_text_files override, emitting a DeprecationWarning."""
     if include_text_files is None:
         return content
-    warnings.warn(_INCLUDE_TEXT_FILES_DEPRECATION_MSG, DeprecationWarning, stacklevel=3)
+    warnings.warn(_INCLUDE_TEXT_FILES_DEPRECATION_MSG, DeprecationWarning, stacklevel=2)
     return ContentType.ALL if include_text_files else ContentType.CODE
 
 
@@ -226,7 +226,6 @@ class SembleIndex:
         filter_languages: list[str] | None = None,
         filter_paths: list[str] | None = None,
         rerank: bool | None = None,
-        diversity: float | None = None,
     ) -> list[SearchResult]:
         """Search the index and return the top-k most relevant chunks.
 
@@ -240,21 +239,13 @@ class SembleIndex:
             chunks from these files are returned.
         :param rerank: Apply code-tuned reranking (file boost, identifier boost, path penalties).
             Defaults to ``True`` when ContentType.CODE was indexed.
-        :param diversity: DPP diversity weight in [0, 1]; re-ranks with pyversity after reranking.
-            ``None`` (default) auto-detects: uses ``DEFAULT_DOCS_DIVERSITY`` when docs were indexed.
-            Pass ``0.0`` to disable diversity even on a docs index.
         :return: Ranked list of :class:`SearchResult` objects, best match first.
         """
         if not self.chunks or not query.strip():
             return []
 
         has_code = self._content in (ContentType.CODE, ContentType.ALL)
-        has_docs = self._content in (ContentType.DOCS, ContentType.ALL)
         resolved_rerank = has_code if rerank is None else rerank
-        if diversity is None:
-            resolved_diversity = DEFAULT_DOCS_DIVERSITY if has_docs else None
-        else:
-            resolved_diversity = diversity if diversity > 0 else None
 
         selector = self._get_selector_vector(filter_languages, filter_paths)
         results = search(
@@ -267,7 +258,6 @@ class SembleIndex:
             alpha=alpha,
             selector=selector,
             rerank=resolved_rerank,
-            diversity=resolved_diversity,
         )
         save_search_stats(results, CallType.SEARCH, self._file_sizes)
         return results

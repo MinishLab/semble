@@ -100,7 +100,7 @@ def _resolve_content(content_arg: str, include_text_files: bool) -> ContentType:
         warnings.warn(
             "--include-text-files is deprecated and will be removed in a future version. Use --content all instead.",
             DeprecationWarning,
-            stacklevel=3,
+            stacklevel=2,
         )
         return ContentType.ALL
     return ContentType(content_arg)

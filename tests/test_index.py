@@ -97,12 +97,6 @@ def test_search_with_filter_paths_does_not_crash(indexed_index: SembleIndex) -> 
     assert all(r.chunk.file_path == target_path for r in results)
 
 
-def test_search_explicit_diversity(indexed_index: SembleIndex) -> None:
-    """Explicit diversity values are accepted; 0.0 disables diversity without error."""
-    assert len(indexed_index.search("authenticate", top_k=3, diversity=0.5)) > 0
-    assert len(indexed_index.search("authenticate", top_k=3, diversity=0.0)) > 0
-
-
 def test_search_without_reranking(indexed_index: SembleIndex) -> None:
     """Filtered search works regardless of where the selected chunk lives in the corpus."""
     with patch("semble.search.rerank_topk") as mock:
