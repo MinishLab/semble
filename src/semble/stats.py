@@ -6,10 +6,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from semble.types import CallType, SearchResult
+from semble.utils import resolve_cache_folder
 
 logger = logging.getLogger(__name__)
 
-_STATS_FILE = Path.home() / ".semble" / "savings.jsonl"
+_STATS_FILE = resolve_cache_folder() / "savings.jsonl"
 
 
 @dataclass

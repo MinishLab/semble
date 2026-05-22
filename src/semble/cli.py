@@ -6,13 +6,14 @@ from enum import Enum
 from importlib.resources import files
 from importlib.util import find_spec
 from pathlib import Path
+from typing import Sequence
 
 from model2vec.utils import get_package_extras
 
 from semble.index import SembleIndex
 from semble.stats import format_savings_report
 from semble.types import ContentType
-from semble.utils import format_results, is_git_url, resolve_chunk
+from semble.utils import find_index_from_cache_folder, format_results, is_git_url, resolve_chunk
 
 
 class Agent(str, Enum):
@@ -82,14 +83,15 @@ def _mcp_main() -> None:
     asyncio.run(serve(args.path, ref=args.ref, content=content))
 
 
-def _run_index(*, path: str, include_text_files: bool = False, out: str) -> None:
+def _run_index(*, path: str, content: Sequence[ContentType], include_text_files: bool | None) -> None:
     """Index and store a codebase."""
     if is_git_url(path):
-        index = SembleIndex.from_git(path, include_text_files=include_text_files)
+        index = SembleIndex.from_git(path, content=content, include_text_files=include_text_files)
     else:
-        index = SembleIndex.from_path(path, include_text_files=include_text_files)
-    Path(out).mkdir(parents=True, exist_ok=True)
-    index.save(out)
+        index = SembleIndex.from_path(path, content=content, include_text_files=include_text_files)
+    index_path = find_index_from_cache_folder(Path(path))
+    print(f"Wrote index to `{index_path}`.")
+    index.save(index_path)
 
 
 def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
@@ -123,18 +125,13 @@ def _cli_main() -> None:
 
     index_p = sub.add_parser("index", help="Index and store a codebase.")
     index_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
-    index_p.add_argument(
-        "--include-text-files",
-        action="store_true",
-        help="Also index non-code text files (.md, .yaml, .json, etc.).",
-    )
-    index_p.add_argument("-o", "--out", type=str, required=True, help="The path to write the pre-built index to.")
+    _add_content_args(index_p)
 
     search_p = sub.add_parser("search", help="Search a codebase.")
     search_p.add_argument("query", help="Natural language or code query.")
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    search_p.add_argument("--index", type=str, default=None, help="A path pointing to a pre-built index.")
+    search_p.add_argument("--index", action="store_true", help="Use an index at the default path.")
     _add_content_args(search_p)
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
@@ -165,15 +162,16 @@ def _cli_main() -> None:
         return
 
     if args.command == "index":
-        _run_index(path=args.path, include_text_files=args.include_text_files, out=args.out)
+        _run_index(path=args.path, content=args.content, include_text_files=args.include_text_files)
         return
 
     if args.command == "savings":
-        print(format_savings_report(verbose=args.verbose), end="")
+        print(format_savings_report(verbose=args.verbose))
         return
 
     if args.index:
-        index = SembleIndex.load_from_disk(args.index)
+        path = find_index_from_cache_folder(Path(args.path))
+        index = SembleIndex.load_from_disk(path)
     else:
         content = _resolve_content(args.content, args.include_text_files)
         index = (
