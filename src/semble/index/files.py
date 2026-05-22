@@ -405,8 +405,6 @@ _CONFIG_LANGUAGES = {
     "hjson",
     "hocon",
     "ini",
-    "json",
-    "json5",
     "kdl",
     "ledger",
     "pem",
@@ -432,6 +430,8 @@ _CONFIG_LANGUAGES = {
 
 _DATA_LANGUAGES = {
     "csv",
+    "json",
+    "json5",
     "psv",
     "tsv",
 }

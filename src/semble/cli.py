@@ -42,7 +42,7 @@ def _add_content_args(p: argparse.ArgumentParser) -> None:
         default=["code"],
         choices=[ct.value for ct in ContentType] + ["all"],
         metavar="TYPE",
-        help="Content types to index (space-separated, e.g. --content code docs). Choices: code, docs, config, data, all. Default: code.",
+        help="Content types to index (space-separated, e.g. --content code docs). Choices: code, docs, config, all. Default: code.",
     )
     p.add_argument(
         "--include-text-files",

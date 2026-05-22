@@ -20,7 +20,7 @@ def create_index_from_path(
     path: Path,
     model: Encoder,
     extensions: Sequence[str] | None = None,
-    content: Sequence[ContentType] = (ContentType.CODE,),
+    content: ContentType | Sequence[ContentType] = (ContentType.CODE,),
     display_root: Path | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
     """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
@@ -34,7 +34,8 @@ def create_index_from_path(
     :return: A bm25 index, vicinity index and list of chunks
     """
     chunks: list[Chunk] = []
-    resolved_extensions = get_extensions(content, extensions)
+    normalized = (content,) if isinstance(content, ContentType) else content
+    resolved_extensions = get_extensions(normalized, extensions)
     for file_path in walk_files(path, resolved_extensions):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):

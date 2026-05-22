@@ -23,7 +23,7 @@ _DEFAULT_CONTENT: tuple[ContentType, ...] = (ContentType.CODE,)
 _ALL_CONTENT: tuple[ContentType, ...] = (ContentType.CODE, ContentType.DOCS, ContentType.CONFIG)
 _INCLUDE_TEXT_FILES_DEPRECATION_MSG = (
     "include_text_files is deprecated and will be removed in a future version. "
-    "Use content=(ContentType.CODE, ContentType.DOCS, ContentType.CONFIG, ContentType.DATA) instead."
+    "Use content=(ContentType.CODE, ContentType.DOCS, ContentType.CONFIG) instead."
 )
 
 
@@ -123,9 +123,8 @@ class SembleIndex:
         :param path: Root directory to index.
         :param model: Embedding model to use. Defaults to potion-code-16M.
         :param extensions: File extensions to include. Defaults to a standard set of code extensions.
-        :param content: Content types to index, e.g. (ContentType.CODE,) or (ContentType.CODE, ContentType.DOCS).
-            or ContentType.ALL.
-        :param include_text_files: Deprecated. Use content=ContentType.ALL instead.
+        :param content: Content types to index, e.g. ContentType.CODE or [ContentType.CODE, ContentType.DOCS].
+        :param include_text_files: Deprecated. Pass a content sequence directly instead.
         :return: An indexed SembleIndex. Chunk file paths are relative to path.
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.

@@ -48,6 +48,13 @@ def test_get_extensions(types: list[ContentType], includes: list[str], excludes:
         assert ext not in exts
 
 
+def test_all_excludes_data_extensions() -> None:
+    """--content all does not include data file extensions (csv, json, tsv, psv)."""
+    all_exts = set(get_extensions(list(ContentType), None))
+    for ext in (".csv", ".tsv", ".psv", ".json", ".json5"):
+        assert ext not in all_exts, f"{ext} should not be indexed by 'all'"
+
+
 def test_get_extensions_additional() -> None:
     """Extra extensions are appended and existing ones are not duplicated."""
     base = get_extensions(list(ContentType), None)

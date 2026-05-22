@@ -296,7 +296,7 @@ Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local directory path or an https:// git URL. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
-By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command, or a combination, e.g. `--content code, docs`. For example, in Claude Code: `claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all`.
+By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command, or a combination, e.g. `--content code docs`. For example, in Claude Code: `claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all`.
 
 
 <a id="bash-agentsmd"></a>
