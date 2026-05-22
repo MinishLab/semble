@@ -303,7 +303,7 @@ class SembleIndex:
         if root_path:
             root_path = Path(root_path)
 
-        model = StaticModel.from_pretrained(model_path)
+        model, model_path = load_model(model_path)
 
         return cls(model, bm_25_index, semantic_index, chunks, model_path, root=root_path)
 
