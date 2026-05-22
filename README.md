@@ -63,6 +63,20 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
+If you anticipate doing more than one search, use `semble index` to create an index.
+
+​```bash
+semble index ./my-project -o my_index
+​```
+
+You can then reuse this index later on:
+
+​```bash
+semble search "save_pretrained" --index my_index
+​```
+
+An index is not automatically updated, so if the code changes significantly, reindex. If you notice stale results while resolving searches to files, reindex.
+
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 
 ​```bash
@@ -77,17 +91,20 @@ Use `semble find-related` to discover code similar to a known location (pass `fi
 semble find-related src/auth.py 42 ./my-project
 ​```
 
+Like search, `find-related` also accepts an `--index` argument.
+
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 ### Workflow
 
-1. Start with `semble search` to find relevant chunks.
-2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Inspect full files only when the returned chunk is not enough context.
-4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+1. Index the repo using `semble index -o cached_index`.
+2. Start with `semble search` to find relevant chunks. Pass the index to achieve results faster.
+3. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+4. Inspect full files only when the returned chunk does not give enough context.
+5. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+6. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
 ```
 
 </details>
@@ -318,6 +335,20 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
+If you anticipate doing more than one search, use `semble index` to create an index.
+
+​```bash
+semble index ./my-project -o my_index
+​```
+
+You can then reuse this index later on:
+
+​```bash
+semble search "save_pretrained" --index my_index
+​```
+
+An index is not automatically updated, so if the code changes significantly, reindex. If you notice stale results while resolving searches to files, reindex.
+
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 
 ​```bash
@@ -332,17 +363,20 @@ Use `semble find-related` to discover code similar to a known location (pass `fi
 semble find-related src/auth.py 42 ./my-project
 ​```
 
+Like search, `find-related` also accepts an `--index` argument.
+
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
-## Workflow
+### Workflow
 
-1. Start with `semble search` to find relevant chunks.
-2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Inspect full files only when the returned chunk is not enough context.
-4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+1. Index the repo using `semble index -o cached_index`.
+2. Start with `semble search` to find relevant chunks. Pass the index to achieve results faster.
+3. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+4. Inspect full files only when the returned chunk does not give enough context.
+5. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+6. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
 ```
 
 ### Sub-agent setup
@@ -365,8 +399,14 @@ If semble is not on `$PATH`, prefix the command with `uvx --from "semble[mcp]"`.
 Semble also ships as a standalone CLI. This is useful in scripts or anywhere you want search results without an MCP session.
 
 ```bash
+# Index a local repository
+semble index ./my-project -o my-index
+
 # Search a local repo
 semble search "authentication flow" ./my-project
+# Or with index (significantly faster)
+# the index flag applies to all commands below.
+semble search "authentication flow" --index my-index
 
 # Search for a symbol or identifier
 semble search "save_pretrained" ./my-project
