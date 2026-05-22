@@ -109,8 +109,7 @@ def _resolve_content(content: list[str], include_text_files: bool) -> list[Conte
             DeprecationWarning,
             stacklevel=2,
         )
-        return list(ContentType)
-    if _ALL_KEYWORD in content:
+    if include_text_files or _ALL_KEYWORD in content:
         return list(ContentType)
     return [ContentType(c) for c in content]
 

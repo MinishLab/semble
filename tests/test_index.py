@@ -33,11 +33,17 @@ def test_index_markdown_inclusion(
     assert has_md is md_in_results
 
 
-@pytest.mark.parametrize("include_text_files", [True, False])
-def test_include_text_files_deprecated(mock_model: Encoder, tmp_project: Path, include_text_files: bool) -> None:
-    """include_text_files raises DeprecationWarning on from_path."""
+def test_include_text_files_deprecated(mock_model: Encoder, tmp_project: Path) -> None:
+    """include_text_files=True warns and expands to all content types; False warns and resets to code-only."""
+    from semble.index.index import _ALL_CONTENT, _DEFAULT_CONTENT
+
     with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
-        SembleIndex.from_path(tmp_project, model=mock_model, include_text_files=include_text_files)
+        idx = SembleIndex.from_path(tmp_project, model=mock_model, include_text_files=True)
+    assert idx._content == _ALL_CONTENT
+
+    with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+        idx = SembleIndex.from_path(tmp_project, model=mock_model, include_text_files=False)
+    assert idx._content == _DEFAULT_CONTENT
 
 
 def test_from_git_include_text_files_deprecated(mock_model: Encoder, tmp_project: Path) -> None:
@@ -113,19 +119,18 @@ def test_search_without_reranking(indexed_index: SembleIndex) -> None:
         ([ContentType.CODE], True),
         ([ContentType.CODE, ContentType.DOCS], True),
         ([ContentType.DOCS], False),
+        ([ContentType.CONFIG], False),
+        ([ContentType.DATA], False),
     ],
 )
 def test_search_rerank_default_by_content_type(
-    mock_model: Encoder, tmp_project: Path, content: list[ContentType], expect_rerank: bool
+    mock_model: Encoder, content: list[ContentType], expect_rerank: bool
 ) -> None:
-    """Reranking is on by default for code/all content, off for docs-only."""
-    index = SembleIndex.from_path(tmp_project, model=mock_model, content=content)
-    with patch("semble.search.rerank_topk") as mock:
+    """Reranking is on by default when code is indexed, off for non-code-only content."""
+    index = SembleIndex(mock_model, MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")], content=content)
+    with patch("semble.index.index.search", return_value=[]) as mock_search:
         index.search("function", top_k=3)
-        if expect_rerank:
-            mock.assert_called()
-        else:
-            mock.assert_not_called()
+    assert mock_search.call_args.kwargs["rerank"] == expect_rerank
 
 
 @pytest.mark.parametrize("query", ["", "   ", "\n\n"])
