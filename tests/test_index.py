@@ -19,15 +19,15 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
 @pytest.mark.parametrize(
     ("content", "md_in_results"),
     [
-        (ContentType.CODE, False),
-        (ContentType.DOCS, True),
-        (ContentType.ALL, True),
+        ([ContentType.CODE], False),
+        ([ContentType.DOCS], True),
+        ([ContentType.CODE, ContentType.DOCS], True),
     ],
 )
 def test_index_markdown_inclusion(
-    mock_model: Encoder, tmp_project: Path, content: ContentType, md_in_results: bool
+    mock_model: Encoder, tmp_project: Path, content: list[ContentType], md_in_results: bool
 ) -> None:
-    """Markdown files are excluded for code and included for docs/all."""
+    """Markdown files are excluded for code-only and included when docs is requested."""
     _, _, chunks = create_index_from_path(tmp_project, mock_model, content=content)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
@@ -110,13 +110,13 @@ def test_search_without_reranking(indexed_index: SembleIndex) -> None:
 @pytest.mark.parametrize(
     ("content", "expect_rerank"),
     [
-        (ContentType.CODE, True),
-        (ContentType.ALL, True),
-        (ContentType.DOCS, False),
+        ([ContentType.CODE], True),
+        ([ContentType.CODE, ContentType.DOCS], True),
+        ([ContentType.DOCS], False),
     ],
 )
 def test_search_rerank_default_by_content_type(
-    mock_model: Encoder, tmp_project: Path, content: ContentType, expect_rerank: bool
+    mock_model: Encoder, tmp_project: Path, content: list[ContentType], expect_rerank: bool
 ) -> None:
     """Reranking is on by default for code/all content, off for docs-only."""
     index = SembleIndex.from_path(tmp_project, model=mock_model, content=content)

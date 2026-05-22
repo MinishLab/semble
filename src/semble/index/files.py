@@ -387,7 +387,6 @@ _CONFIG_LANGUAGES = {
     "comment",
     "cooklang",
     "cpon",
-    "csv",
     "desktop",
     "devicetree",
     "diff",
@@ -414,7 +413,6 @@ _CONFIG_LANGUAGES = {
     "pgn",
     "properties",
     "proto",
-    "psv",
     "requirements",
     "ron",
     "smithy",
@@ -423,7 +421,6 @@ _CONFIG_LANGUAGES = {
     "thrift",
     "todotxt",
     "toml",
-    "tsv",
     "turtle",
     "typespec",
     "wit",
@@ -431,6 +428,12 @@ _CONFIG_LANGUAGES = {
     "xml",
     "yaml",
     "ziggy_schema",
+}
+
+_DATA_LANGUAGES = {
+    "csv",
+    "psv",
+    "tsv",
 }
 
 
@@ -443,8 +446,15 @@ def _inv_mapping(mapping: dict[str, str]) -> dict[str, list[str]]:
 
 
 ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
-_CODE_LANGUAGES = ALL_LANGUAGES - _DOC_LANGUAGES - _CONFIG_LANGUAGES
+_CODE_LANGUAGES = ALL_LANGUAGES - _DOC_LANGUAGES - _CONFIG_LANGUAGES - _DATA_LANGUAGES
 _LANGUAGE_TO_EXTENSION = _inv_mapping(_EXTENSION_TO_LANGUAGE)
+
+_TYPES: dict[ContentType, frozenset[str]] = {
+    ContentType.CODE: frozenset(_CODE_LANGUAGES),
+    ContentType.DOCS: frozenset(_DOC_LANGUAGES),
+    ContentType.CONFIG: frozenset(_CONFIG_LANGUAGES),
+    ContentType.DATA: frozenset(_DATA_LANGUAGES),
+}
 
 
 def detect_language(file_name: Path) -> str | None:
@@ -452,15 +462,11 @@ def detect_language(file_name: Path) -> str | None:
     return _EXTENSION_TO_LANGUAGE.get(file_name.suffix.lower())
 
 
-def get_extensions(content: ContentType, extensions: Sequence[str] | None) -> list[str]:
-    """Returns a list of supported file extensions."""
-    languages: set[str] | frozenset[str]
-    if content == ContentType.ALL:
-        languages = ALL_LANGUAGES
-    elif content == ContentType.DOCS:
-        languages = _DOC_LANGUAGES
-    else:
-        languages = _CODE_LANGUAGES
+def get_extensions(types: Sequence[ContentType], extensions: Sequence[str] | None) -> list[str]:
+    """Returns a list of supported file extensions for the given content types."""
+    languages: set[str] = set()
+    for content_type in types:
+        languages.update(_TYPES[content_type])
     all_extensions: set[str] = set()
     for language in languages:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))

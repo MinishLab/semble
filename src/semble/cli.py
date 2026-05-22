@@ -14,7 +14,9 @@ from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
-_CONTENT_CHOICES = [ct.value for ct in ContentType]
+_ALL_KEYWORD = "all"
+_CONTENT_CHOICES = [ct.value for ct in ContentType] + [_ALL_KEYWORD]
+_DEFAULT_CONTENT = [ContentType.CODE.value]
 
 
 class Agent(str, Enum):
@@ -40,9 +42,14 @@ def _add_content_args(p: argparse.ArgumentParser) -> None:
     """Add --content and deprecated --include-text-files to a subparser."""
     p.add_argument(
         "--content",
-        default=ContentType.CODE.value,
+        nargs="+",
+        default=_DEFAULT_CONTENT,
         choices=_CONTENT_CHOICES,
-        help="Content type to index: 'code' (default), 'docs', or 'all'.",
+        metavar="TYPE",
+        help=(
+            f"Content types to index (space-separated, e.g. --content code docs). "
+            f"Use '{_ALL_KEYWORD}' to index every type. Default: {' '.join(_DEFAULT_CONTENT)}."
+        ),
     )
     p.add_argument(
         "--include-text-files",
@@ -94,16 +101,18 @@ def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
     print(f"Created {dest}")
 
 
-def _resolve_content(content_arg: str, include_text_files: bool) -> ContentType:
-    """Resolve --content and the deprecated --include-text-files into a ContentType."""
+def _resolve_content(content: list[str], include_text_files: bool) -> list[ContentType]:
+    """Resolve --content and the deprecated --include-text-files into a list of ContentType values."""
     if include_text_files:
         warnings.warn(
             "--include-text-files is deprecated and will be removed in a future version. Use --content all instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        return ContentType.ALL
-    return ContentType(content_arg)
+        return list(ContentType)
+    if _ALL_KEYWORD in content:
+        return list(ContentType)
+    return [ContentType(c) for c in content]
 
 
 def _cli_main() -> None:

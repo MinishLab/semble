@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semble.cli import Agent, _agent_path, _cli_main, _run_init, main
-from semble.types import SearchResult
+from semble.types import ContentType, SearchResult
 from tests.conftest import make_chunk
 
 _CLAUDE_FILE_PATH = _agent_path(Agent.CLAUDE)
@@ -213,6 +213,30 @@ def test_include_text_files_cli_deprecated(
     assert any(
         "include-text-files" in str(w.message).lower() for w in caught if issubclass(w.category, DeprecationWarning)
     )
+
+
+@pytest.mark.parametrize(
+    ("argv_content", "expected"),
+    [
+        (["--content", "code"], [ContentType.CODE]),
+        (["--content", "code", "docs"], [ContentType.CODE, ContentType.DOCS]),
+        (["--content", "all"], list(ContentType)),
+        ([], [ContentType.CODE]),
+    ],
+)
+def test_cli_content_argument(
+    argv_content: list[str],
+    expected: list[ContentType],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """--content parses into the right ContentType list (including the 'all' shorthand and default)."""
+    chunk = make_chunk("def foo(): pass", "src/foo.py")
+    fake_index = MagicMock()
+    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", *argv_content])
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        _cli_main()
+    assert list(mock_from_path.call_args.kwargs["content"]) == expected
 
 
 def test_agent_file_tools_are_bash_only() -> None:

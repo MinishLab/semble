@@ -2,7 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from semble.index.files import _CODE_LANGUAGES, _CONFIG_LANGUAGES, _DOC_LANGUAGES, detect_language, get_extensions
+from semble.index.files import (
+    _CODE_LANGUAGES,
+    _CONFIG_LANGUAGES,
+    _DATA_LANGUAGES,
+    _DOC_LANGUAGES,
+    detect_language,
+    get_extensions,
+)
 from semble.types import ContentType
 
 
@@ -14,23 +21,28 @@ def test_detect_language() -> None:
 
 
 def test_language_sets_are_consistent() -> None:
-    """Code, doc, and config language sets are mutually disjoint."""
-    assert _CODE_LANGUAGES.isdisjoint(_DOC_LANGUAGES)
-    assert _CODE_LANGUAGES.isdisjoint(_CONFIG_LANGUAGES)
-    assert _DOC_LANGUAGES.isdisjoint(_CONFIG_LANGUAGES)
+    """Code, doc, config, and data language sets are mutually disjoint."""
+    sets = {"code": _CODE_LANGUAGES, "docs": _DOC_LANGUAGES, "config": _CONFIG_LANGUAGES, "data": _DATA_LANGUAGES}
+    for a, set_a in sets.items():
+        for b, set_b in sets.items():
+            if a < b:
+                assert set_a.isdisjoint(set_b), f"{a} and {b} overlap: {set_a & set_b}"
 
 
 @pytest.mark.parametrize(
-    ("content", "includes", "excludes"),
+    ("types", "includes", "excludes"),
     [
-        (ContentType.CODE, [".py"], [".md"]),
-        (ContentType.DOCS, [".md"], [".py"]),
-        (ContentType.ALL, [".py", ".md"], []),
+        ([ContentType.CODE], [".py"], [".md", ".csv", ".toml"]),
+        ([ContentType.DOCS], [".md"], [".py", ".csv", ".toml"]),
+        ([ContentType.CONFIG], [".toml"], [".py", ".md", ".csv"]),
+        ([ContentType.DATA], [".csv"], [".py", ".md", ".toml"]),
+        ([ContentType.CODE, ContentType.DOCS], [".py", ".md"], [".csv", ".toml"]),
+        (list(ContentType), [".py", ".md", ".csv", ".toml"], []),
     ],
 )
-def test_get_extensions(content: ContentType, includes: list[str], excludes: list[str]) -> None:
-    """get_extensions returns the right extensions for each content type."""
-    exts = set(get_extensions(content, None))
+def test_get_extensions(types: list[ContentType], includes: list[str], excludes: list[str]) -> None:
+    """get_extensions returns the right extensions for each combination of content types."""
+    exts = set(get_extensions(types, None))
     for ext in includes:
         assert ext in exts
     for ext in excludes:
@@ -39,10 +51,10 @@ def test_get_extensions(content: ContentType, includes: list[str], excludes: lis
 
 def test_get_extensions_additional() -> None:
     """Extra extensions are appended and existing ones are not duplicated."""
-    base = get_extensions(ContentType.ALL, None)
-    with_extra = get_extensions(ContentType.ALL, [".kjs"])
+    base = get_extensions(list(ContentType), None)
+    with_extra = get_extensions(list(ContentType), [".kjs"])
     assert set(with_extra) == set(base) | {".kjs"}
 
-    base_code = get_extensions(ContentType.CODE, None)
-    with_existing = get_extensions(ContentType.CODE, [".py"])
+    base_code = get_extensions([ContentType.CODE], None)
+    with_existing = get_extensions([ContentType.CODE], [".py"])
     assert set(with_existing) == set(base_code)

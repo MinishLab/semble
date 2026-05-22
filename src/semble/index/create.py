@@ -20,7 +20,7 @@ def create_index_from_path(
     path: Path,
     model: Encoder,
     extensions: Sequence[str] | None = None,
-    content: ContentType = ContentType.CODE,
+    content: Sequence[ContentType] = (ContentType.CODE,),
     display_root: Path | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
     """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
@@ -28,7 +28,7 @@ def create_index_from_path(
     :param path: Resolved absolute path to index.
     :param model: The model to use for indexing.
     :param extensions: File extensions to include.
-    :param content: Content type to index.
+    :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
     :raises ValueError: if no items were found, no index can be created.
     :return: A bm25 index, vicinity index and list of chunks
