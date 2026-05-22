@@ -14,6 +14,14 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ```
 
+Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
+
+```bash
+semble search "deployment guide" ./my-project --content docs
+semble search "database host port" ./my-project --content config
+semble search "authentication" ./my-project --content all
+```
+
 Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
 
 ```bash
@@ -27,6 +35,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ## Workflow
 
 1. Start with `semble search` to find relevant chunks.
-2. Inspect full files only when the returned chunk is not enough context.
-3. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+3. Inspect full files only when the returned chunk is not enough context.
+4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.

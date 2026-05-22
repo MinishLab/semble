@@ -1,12 +1,13 @@
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from model2vec import StaticModel
 
 from semble import SembleIndex
 from semble.index.create import _MAX_FILE_BYTES, create_index_from_path
+from semble.types import ContentType
 from tests.conftest import make_chunk
 
 
@@ -18,16 +19,46 @@ def indexed_index(mock_model: Any, tmp_project: Path) -> SembleIndex:
 
 
 @pytest.mark.parametrize(
-    ("include_text_files", "md_in_results"),
-    [(False, False), (True, True)],
+    ("content", "md_in_results"),
+    [
+        ([ContentType.CODE], False),
+        ([ContentType.DOCS], True),
+        ([ContentType.CODE, ContentType.DOCS], True),
+    ],
 )
 def test_index_markdown_inclusion(
-    mock_model: StaticModel, tmp_project: Path, include_text_files: bool, md_in_results: bool
+    mock_model: StaticModel, tmp_project: Path, content: list[ContentType], md_in_results: bool
 ) -> None:
-    """Markdown files are excluded by default and included when include_text_files=True."""
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, include_text_files=include_text_files)
+    """Markdown files are excluded for code-only and included when docs is requested."""
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=content)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
+
+
+def test_include_text_files_deprecated(mock_model: Any, tmp_project: Path) -> None:
+    """include_text_files=True warns and expands to all content types; False warns and resets to code-only."""
+    from semble.index.index import _ALL_CONTENT, _DEFAULT_CONTENT
+
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+            idx = SembleIndex.from_path(tmp_project, include_text_files=True)
+        assert idx._content == _ALL_CONTENT
+
+        with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+            idx = SembleIndex.from_path(tmp_project, include_text_files=False)
+        assert idx._content == _DEFAULT_CONTENT
+
+
+def test_from_git_include_text_files_deprecated(mock_model: Any, tmp_project: Path) -> None:
+    """from_git raises DeprecationWarning when include_text_files is passed."""
+    fake_result = MagicMock()
+    fake_result.returncode = 0
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        with patch("subprocess.run", return_value=fake_result):
+            with patch("semble.index.index.create_index_from_path") as mock_create:
+                mock_create.return_value = (MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")])
+                with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
+                    SembleIndex.from_git("https://example.com/repo", include_text_files=True)
 
 
 def test_index_empty_returns_zero_chunks(mock_model: StaticModel, tmp_path: Path) -> None:
@@ -84,6 +115,25 @@ def test_search_without_reranking(indexed_index: SembleIndex) -> None:
     with patch("semble.search.rerank_topk") as mock:
         indexed_index.search("function", top_k=3, rerank=True)
         mock.assert_called()
+
+
+@pytest.mark.parametrize(
+    ("content", "expect_rerank"),
+    [
+        ([ContentType.CODE], True),
+        ([ContentType.CODE, ContentType.DOCS], True),
+        ([ContentType.DOCS], False),
+        ([ContentType.CONFIG], False),
+    ],
+)
+def test_search_rerank_default_by_content_type(
+    mock_model: Any, content: list[ContentType], expect_rerank: bool
+) -> None:
+    """Reranking is on by default when code is indexed, off for non-code-only content."""
+    index = SembleIndex(mock_model, MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")], "", content=content)
+    with patch("semble.index.index.search", return_value=[]) as mock_search:
+        index.search("function", top_k=3)
+    assert mock_search.call_args.kwargs["rerank"] == expect_rerank
 
 
 @pytest.mark.parametrize("query", ["", "   ", "\n\n"])

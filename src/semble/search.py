@@ -87,7 +87,7 @@ def search(
     :param top_k: Number of results to return.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :param selector: Optional array of chunk indices to filter results by.
-    :param rerank: Whether to perform reranking. This should be done, and is mainly here for benchmarking.
+    :param rerank: Whether to perform code-tuned reranking. On by default for code search, off for docs search.
     :return: List of search results sorted by combined score descending.
     """
     alpha_weight = resolve_alpha(query, alpha)

@@ -17,6 +17,14 @@ class CallType(str, Enum):
     FIND_RELATED = "find_related"
 
 
+class ContentType(str, Enum):
+    """Content type for indexing and search pipeline selection."""
+
+    CODE = "code"
+    DOCS = "docs"
+    CONFIG = "config"
+
+
 @dataclass(frozen=True, slots=True)
 class Chunk:
     """A single indexable unit of code."""

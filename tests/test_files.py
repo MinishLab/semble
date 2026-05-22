@@ -1,6 +1,16 @@
 from pathlib import Path
 
-from semble.index.files import _DOC_LANGUAGES, _EXTENSION_TO_LANGUAGE, detect_language, get_extensions
+import pytest
+
+from semble.index.files import (
+    _CODE_LANGUAGES,
+    _CONFIG_LANGUAGES,
+    _DATA_LANGUAGES,
+    _DOC_LANGUAGES,
+    detect_language,
+    get_extensions,
+)
+from semble.types import ContentType
 
 
 def test_detect_language() -> None:
@@ -10,32 +20,47 @@ def test_detect_language() -> None:
     assert detect_language(Path("c.txt")) is None
 
 
-def test_get_extensions() -> None:
-    """Test the get_extensions function."""
-    all_extensions = get_extensions(True, None)
-    without_doc_extensions = get_extensions(False, None)
+def test_language_sets_are_consistent() -> None:
+    """Code, doc, config, and data language sets are mutually disjoint."""
+    sets = {"code": _CODE_LANGUAGES, "docs": _DOC_LANGUAGES, "config": _CONFIG_LANGUAGES, "data": _DATA_LANGUAGES}
+    for a, set_a in sets.items():
+        for b, set_b in sets.items():
+            if a < b:
+                assert set_a.isdisjoint(set_b), f"{a} and {b} overlap: {set_a & set_b}"
 
-    doc_extensions = set(all_extensions) - set(without_doc_extensions)
 
-    for extension in doc_extensions:
-        assert _EXTENSION_TO_LANGUAGE[extension] in _DOC_LANGUAGES
-    for extension in without_doc_extensions:
-        assert _EXTENSION_TO_LANGUAGE[extension] not in _DOC_LANGUAGES
+@pytest.mark.parametrize(
+    ("types", "includes", "excludes"),
+    [
+        ([ContentType.CODE], [".py"], [".md", ".csv", ".toml"]),
+        ([ContentType.DOCS], [".md"], [".py", ".csv", ".toml"]),
+        ([ContentType.CONFIG], [".toml"], [".py", ".md", ".csv"]),
+        ([ContentType.CODE, ContentType.DOCS], [".py", ".md"], [".csv", ".toml"]),
+        (list(ContentType), [".py", ".md", ".toml"], []),
+    ],
+)
+def test_get_extensions(types: list[ContentType], includes: list[str], excludes: list[str]) -> None:
+    """get_extensions returns the right extensions for each combination of content types."""
+    exts = set(get_extensions(types, None))
+    for ext in includes:
+        assert ext in exts
+    for ext in excludes:
+        assert ext not in exts
+
+
+def test_all_excludes_data_extensions() -> None:
+    """--content all does not include data file extensions (csv, json, tsv, psv)."""
+    all_exts = set(get_extensions(list(ContentType), None))
+    for ext in (".csv", ".tsv", ".psv", ".json", ".json5"):
+        assert ext not in all_exts, f"{ext} should not be indexed by 'all'"
 
 
 def test_get_extensions_additional() -> None:
-    """Test the get_extensions function."""
-    all_extensions = get_extensions(True, None)
-    all_extensions_extra = get_extensions(True, [".kjs"])
+    """Extra extensions are appended and existing ones are not duplicated."""
+    base = get_extensions(list(ContentType), None)
+    with_extra = get_extensions(list(ContentType), [".kjs"])
+    assert set(with_extra) == set(base) | {".kjs"}
 
-    assert set(all_extensions_extra) == set(all_extensions) | {".kjs"}
-
-    all_extensions = get_extensions(False, None)
-    all_extensions_extra = get_extensions(False, [".kjs"])
-
-    assert set(all_extensions_extra) == set(all_extensions) | {".kjs"}
-
-    all_extensions = get_extensions(False, None)
-    all_extensions_extra = get_extensions(False, [".py"])
-
-    assert set(all_extensions_extra) == set(all_extensions)
+    base_code = get_extensions([ContentType.CODE], None)
+    with_existing = get_extensions([ContentType.CODE], [".py"])
+    assert set(with_existing) == set(base_code)

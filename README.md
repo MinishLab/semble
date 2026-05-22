@@ -63,6 +63,14 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
+Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
+
+​```bash
+semble search "deployment guide" ./my-project --content docs
+semble search "database host port" ./my-project --content config
+semble search "authentication" ./my-project --content all
+​```
+
 Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
 
 ​```bash
@@ -76,9 +84,10 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ### Workflow
 
 1. Start with `semble search` to find relevant chunks.
-2. Inspect full files only when the returned chunk is not enough context.
-3. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+3. Inspect full files only when the returned chunk is not enough context.
+4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
 ```
 
 </details>
@@ -287,6 +296,8 @@ Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local directory path or an https:// git URL. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
+By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command, or a combination, e.g. `--content code docs`. For example, in Claude Code: `claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all`.
+
 
 <a id="bash-agentsmd"></a>
 
@@ -307,6 +318,14 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
+Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
+
+​```bash
+semble search "deployment guide" ./my-project --content docs
+semble search "database host port" ./my-project --content config
+semble search "authentication" ./my-project --content all
+​```
+
 Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
 
 ​```bash
@@ -320,9 +339,10 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ## Workflow
 
 1. Start with `semble search` to find relevant chunks.
-2. Inspect full files only when the returned chunk is not enough context.
-3. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-4. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+3. Inspect full files only when the returned chunk is not enough context.
+4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
+5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
 ```
 
 ### Sub-agent setup
@@ -357,11 +377,20 @@ semble search "save model to disk" https://github.com/MinishLab/model2vec
 # Limit results
 semble search "save model to disk" ./my-project --top-k 10
 
+# Search docs and prose (markdown, rst, etc.) instead of code
+semble search "deployment guide" ./my-project --content docs
+
+# Search config files (yaml, toml, terraform, etc.)
+semble search "database host port" ./my-project --content config
+
+# Search everything (code, docs, and config)
+semble search "authentication" ./my-project --content all
+
 # Find code similar to a known location
 semble find-related src/auth.py 42 ./my-project
 ```
 
-`path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+`--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 <details>
 <summary>Savings</summary>
@@ -395,10 +424,19 @@ Stats are stored in `~/.semble/savings.jsonl`.
 Semble can also be used as a Python library for programmatic access, useful when building custom tooling or integrating search directly into your own code.
 
 ```python
-from semble import SembleIndex
+from semble import ContentType, SembleIndex
 
-# Index a local directory
+# Index a local directory (code only, the default)
 index = SembleIndex.from_path("./my-project")
+
+# Index docs and prose (markdown, rst, etc.)
+index = SembleIndex.from_path("./my-project", content=ContentType.DOCS)
+
+# Index everything (code, docs, and config)
+index = SembleIndex.from_path("./my-project", content=[ContentType.CODE, ContentType.DOCS, ContentType.CONFIG])
+
+# Index code and docs together
+index = SembleIndex.from_path("./my-project", content=[ContentType.CODE, ContentType.DOCS])
 
 # Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")

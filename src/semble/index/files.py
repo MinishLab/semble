@@ -2,6 +2,8 @@ from collections import defaultdict
 from collections.abc import Sequence
 from pathlib import Path
 
+from semble.types import ContentType
+
 _EXTENSION_TO_LANGUAGE = {
     ".4th": "forth",
     ".ada": "ada",
@@ -357,19 +359,37 @@ _EXTENSION_TO_LANGUAGE = {
 
 _DOC_LANGUAGES = {
     "asciidoc",
-    "beancount",
     "bibtex",
+    "djot",
+    "doxygen",
+    "html",
+    "javadoc",
+    "jsdoc",
+    "latex",
+    "luadoc",
+    "markdown",
+    "markdown_inline",
+    "mermaid",
+    "norg",
+    "norg_meta",
+    "org",
+    "phpdoc",
+    "po",
+    "rst",
+    "rtf",
+    "vimdoc",
+}
+
+_CONFIG_LANGUAGES = {
+    "beancount",
     "capnp",
     "cedarschema",
     "comment",
     "cooklang",
     "cpon",
-    "csv",
     "desktop",
     "devicetree",
     "diff",
-    "djot",
-    "doxygen",
     "dtd",
     "editorconfig",
     "ebnf",
@@ -384,48 +404,36 @@ _DOC_LANGUAGES = {
     "gpg",
     "hjson",
     "hocon",
-    "html",
     "ini",
-    "javadoc",
-    "jsdoc",
-    "json",
-    "json5",
     "kdl",
-    "latex",
     "ledger",
-    "luadoc",
-    "markdown",
-    "markdown_inline",
-    "mermaid",
-    "norg",
-    "norg_meta",
-    "org",
     "pem",
     "pgn",
-    "phpdoc",
-    "po",
     "properties",
     "proto",
-    "psv",
     "requirements",
     "ron",
-    "rst",
-    "rtf",
     "smithy",
     "ssh_config",
     "textproto",
     "thrift",
     "todotxt",
     "toml",
-    "tsv",
     "turtle",
     "typespec",
-    "vimdoc",
     "wit",
     "xcompose",
     "xml",
     "yaml",
     "ziggy_schema",
+}
+
+_DATA_LANGUAGES = {
+    "csv",
+    "json",
+    "json5",
+    "psv",
+    "tsv",
 }
 
 
@@ -438,8 +446,14 @@ def _inv_mapping(mapping: dict[str, str]) -> dict[str, list[str]]:
 
 
 ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
-_WITHOUT_DOC = ALL_LANGUAGES - _DOC_LANGUAGES
+_CODE_LANGUAGES = ALL_LANGUAGES - _DOC_LANGUAGES - _CONFIG_LANGUAGES - _DATA_LANGUAGES
 _LANGUAGE_TO_EXTENSION = _inv_mapping(_EXTENSION_TO_LANGUAGE)
+
+_CONTENT_TYPE_LANGUAGES: dict[ContentType, frozenset[str]] = {
+    ContentType.CODE: frozenset(_CODE_LANGUAGES),
+    ContentType.DOCS: frozenset(_DOC_LANGUAGES),
+    ContentType.CONFIG: frozenset(_CONFIG_LANGUAGES),
+}
 
 
 def detect_language(file_name: Path) -> str | None:
@@ -447,12 +461,11 @@ def detect_language(file_name: Path) -> str | None:
     return _EXTENSION_TO_LANGUAGE.get(file_name.suffix.lower())
 
 
-def get_extensions(include_text_files: bool, extensions: Sequence[str] | None) -> list[str]:
-    """Returns a list of supported file extensions."""
-    if include_text_files:
-        languages = ALL_LANGUAGES
-    else:
-        languages = _WITHOUT_DOC
+def get_extensions(types: Sequence[ContentType], extensions: Sequence[str] | None) -> list[str]:
+    """Returns a list of supported file extensions for the given content types."""
+    languages: set[str] = set()
+    for content_type in types:
+        languages.update(_CONTENT_TYPE_LANGUAGES[content_type])
     all_extensions: set[str] = set()
     for language in languages:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))

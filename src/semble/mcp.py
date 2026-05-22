@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import OrderedDict
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated
 
@@ -12,6 +13,7 @@ from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
+from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
 
 logger = logging.getLogger(__name__)
@@ -111,9 +113,13 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     return server
 
 
-async def serve(path: str | None = None, ref: str | None = None, include_text_files: bool = False) -> None:
+async def serve(
+    path: str | None = None,
+    ref: str | None = None,
+    content: Sequence[ContentType] = (ContentType.CODE,),
+) -> None:
     """Start an MCP stdio server, optionally pre-indexing a default source."""
-    cache = _IndexCache(include_text_files=include_text_files)
+    cache = _IndexCache(content=content)
 
     async def _load_and_prewarm() -> None:
         """Pre-load the model and optionally pre-index the default source in parallel with starting the server."""
@@ -145,12 +151,12 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, include_text_files: bool = False) -> None:
+    def __init__(self, content: Sequence[ContentType] = (ContentType.CODE,)) -> None:
         """Initialise an empty cache."""
         self._model_path: str | None = None
         self._model_error: BaseException | None = None
         self._model_ready = asyncio.Event()
-        self._include_text_files = include_text_files
+        self._content = content
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._watcher_task: asyncio.Task[None] | None = None
 
@@ -202,8 +208,8 @@ class _IndexCache:
                             SembleIndex.from_git,
                             source,
                             ref=ref,
-                            include_text_files=self._include_text_files,
                             model_path=model_path,
+                            content=self._content,
                         )
                     )
                 else:
@@ -211,8 +217,8 @@ class _IndexCache:
                         asyncio.to_thread(
                             SembleIndex.from_path,
                             cache_key,
-                            include_text_files=self._include_text_files,
                             model_path=model_path,
+                            content=self._content,
                         )
                     )
         self._tasks.move_to_end(cache_key)
