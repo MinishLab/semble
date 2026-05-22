@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import json
 import sys
 import warnings
 from enum import Enum
@@ -185,9 +186,10 @@ def _cli_main() -> None:
     if args.command == "search":
         results = index.search(args.query, top_k=args.top_k)
         if not results:
-            print("No results found.")
+            out = {"error": "No results found."}
         else:
-            print(format_results(f"Search results for: {args.query!r}", results))
+            out = format_results(args.query, results)
+        print(json.dumps(out, indent=4))
 
     elif args.command == "find-related":
         chunk = resolve_chunk(index.chunks, args.file_path, args.line)
@@ -196,6 +198,7 @@ def _cli_main() -> None:
             sys.exit(1)
         results = index.find_related(chunk, top_k=args.top_k)
         if not results:
-            print(f"No related chunks found for {args.file_path}:{args.line}.")
+            out = {"error": "No related chunks found."}
         else:
-            print(format_results(f"Chunks related to {args.file_path}:{args.line}", results))
+            out = format_results(f"Chunks related to {args.file_path}:{args.line}", results)
+        print(json.dumps(out, indent=4))

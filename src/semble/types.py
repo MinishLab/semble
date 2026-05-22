@@ -42,11 +42,14 @@ class Chunk:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the dataclass to a dict."""
-        return asdict(self)
+        d = asdict(self)
+        d["location"] = self.location
+        return d
 
     @classmethod
     def from_dict(cls: type[Chunk], data: dict[str, Any]) -> Chunk:
         """Create a Chunk from a dict."""
+        data.pop("location", None)
         return cls(**data)
 
 
@@ -56,6 +59,13 @@ class SearchResult:
 
     chunk: Chunk
     score: float
+
+    def to_dict(self) -> dict[str, Any]:
+        """Dump a search result to a dict."""
+        return {
+            "chunk": self.chunk.to_dict(),
+            "score": self.score,
+        }
 
 
 @dataclass(frozen=True, slots=True)

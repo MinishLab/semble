@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from semble.types import Chunk, SearchResult
 
@@ -29,13 +30,6 @@ def resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | Non
     return fallback
 
 
-def format_results(header: str, results: list[SearchResult]) -> str:
-    """Render SearchResult objects as numbered, fenced code blocks."""
-    lines: list[str] = [header, ""]
-    for i, r in enumerate(results, 1):
-        lines.append(f"## {i}. {r.chunk.location}  [score={r.score:.3f}]")
-        lines.append("```")
-        lines.append(r.chunk.content.strip())
-        lines.append("```")
-        lines.append("")
-    return "\n".join(lines)
+def format_results(query: str, results: list[SearchResult]) -> dict[str, Any]:
+    """Render SearchResult objects as a JSONable object."""
+    return {"query": query, "results": [r.to_dict() for r in results]}
