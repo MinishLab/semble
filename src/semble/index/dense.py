@@ -17,16 +17,23 @@ _DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
 
 
 @cache
-def load_model(model_path: str | None = None) -> tuple[StaticModel, str]:
-    """Return the current model, loading the default if none was provided."""
-    if model_path is None:
-        model_path = _DEFAULT_MODEL_NAME
+def _load_cached(model_path: str) -> StaticModel:
+    """Load a model and cache it, but only after the path resolves."""
     # Disable HF progress bars since the model is loaded silently in the background during indexing.
     disable_progress_bars()
     try:
         model = StaticModel.from_pretrained(model_path, force_download=False)
     finally:
         disable_progress_bars()
+
+    return model
+
+
+def load_model(model_path: str | None = None) -> tuple[StaticModel, str]:
+    """Return the current model, loading the default if none was provided."""
+    if model_path is None:
+        model_path = _DEFAULT_MODEL_NAME
+    model = _load_cached(model_path)
     return model, model_path
 
 

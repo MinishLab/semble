@@ -139,3 +139,22 @@ def test_load_non_existent(tmp_path: Path, indexed_index: SembleIndex) -> None:
     """Test that saving and loading a folder leads to the same data."""
     with pytest.raises(FileNotFoundError):
         SembleIndex.load_from_disk(tmp_path / "temp")
+
+
+def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:
+    """When the directory exists but required index files are missing, the error lists them."""
+    index_dir = tmp_path / "incomplete_index"
+    index_dir.mkdir()
+    # Create only one of the four expected files so the rest are reported as missing.
+    (index_dir / "chunks.json").write_text("[]")
+
+    with pytest.raises(FileNotFoundError, match="Missing:") as exc_info:
+        SembleIndex.load_from_disk(index_dir)
+
+    error_msg = str(exc_info.value)
+    # The three missing files should all appear in the error message.
+    assert "bm25_index" in error_msg
+    assert "semantic_index" in error_msg
+    assert "metadata.json" in error_msg
+    # The file we did create should NOT be listed as missing.
+    assert "chunks.json" not in error_msg

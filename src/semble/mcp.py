@@ -12,7 +12,7 @@ from pydantic import Field
 
 from semble.index import SembleIndex
 from semble.index.dense import load_model
-from semble.utils import _format_results, _is_git_url, _resolve_chunk
+from semble.utils import format_results, is_git_url, resolve_chunk
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ async def _get_index(
     cache: _IndexCache,
 ) -> SembleIndex:
     """Return a cached index for a repo, rejecting unsafe git transport schemes."""
-    if repo is not None and _is_git_url(repo) and not repo.startswith(("https://", "http://")):
+    if repo is not None and is_git_url(repo) and not repo.startswith(("https://", "http://")):
         raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
     source = repo or default_source
     if not source:
@@ -76,7 +76,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.search(query, top_k=top_k)
         if not results:
             return "No results found."
-        return _format_results(f"Search results for: {query!r}", results)
+        return format_results(f"Search results for: {query!r}", results)
 
     @server.tool()
     async def find_related(
@@ -97,7 +97,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             index = await _get_index(repo, default_source, cache)
         except ValueError as exc:
             return str(exc)
-        chunk = _resolve_chunk(index.chunks, file_path, line)
+        chunk = resolve_chunk(index.chunks, file_path, line)
         if chunk is None:
             return (
                 f"No chunk found at {file_path}:{line}. "
@@ -106,7 +106,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.find_related(chunk, top_k=top_k)
         if not results:
             return f"No related chunks found for {file_path}:{line}."
-        return _format_results(f"Chunks related to {file_path}:{line}", results)
+        return format_results(f"Chunks related to {file_path}:{line}", results)
 
     return server
 
@@ -130,7 +130,7 @@ async def serve(path: str | None = None, ref: str | None = None, include_text_fi
                 await cache.get(path, ref=ref)
             except Exception:
                 logger.warning("Failed to pre-index %r at startup", path, exc_info=True)
-            if not _is_git_url(path):
+            if not is_git_url(path):
                 await cache.start_watcher(path)
 
     init_task = asyncio.create_task(_load_and_prewarm())
@@ -164,7 +164,7 @@ class _IndexCache:
 
     def _compute_cache_key(self, source: str, ref: str | None = None) -> str:
         """Compute the canonical cache key for a source."""
-        is_git = _is_git_url(source)
+        is_git = is_git_url(source)
         return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
     def evict(self, source: str) -> None:
@@ -196,7 +196,7 @@ class _IndexCache:
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
                     self._tasks.popitem(last=False)
-                if _is_git_url(source):
+                if is_git_url(source):
                     self._tasks[cache_key] = asyncio.create_task(
                         asyncio.to_thread(
                             SembleIndex.from_git,

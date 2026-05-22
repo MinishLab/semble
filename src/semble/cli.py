@@ -10,7 +10,7 @@ from model2vec.utils import get_package_extras
 
 from semble.index import SembleIndex
 from semble.stats import format_savings_report
-from semble.utils import _format_results, _is_git_url, _resolve_chunk
+from semble.utils import format_results, is_git_url, resolve_chunk
 
 
 class Agent(str, Enum):
@@ -68,7 +68,10 @@ def _mcp_main() -> None:
 
 def _run_index(*, path: str, include_text_files: bool = False, out: str) -> None:
     """Index and store a codebase."""
-    index = SembleIndex.from_path(path, include_text_files=include_text_files)
+    if is_git_url(path):
+        index = SembleIndex.from_git(path, include_text_files=include_text_files)
+    else:
+        index = SembleIndex.from_path(path, include_text_files=include_text_files)
     Path(out).mkdir(parents=True, exist_ok=True)
     index.save(out)
 
@@ -155,7 +158,7 @@ def _cli_main() -> None:
     else:
         index = (
             SembleIndex.from_git(args.path, include_text_files=include_text)
-            if _is_git_url(args.path)
+            if is_git_url(args.path)
             else SembleIndex.from_path(args.path, include_text_files=include_text)
         )
 
@@ -164,10 +167,10 @@ def _cli_main() -> None:
         if not results:
             print("No results found.")
         else:
-            print(_format_results(f"Search results for: {args.query!r}", results))
+            print(format_results(f"Search results for: {args.query!r}", results))
 
     elif args.command == "find-related":
-        chunk = _resolve_chunk(index.chunks, args.file_path, args.line)
+        chunk = resolve_chunk(index.chunks, args.file_path, args.line)
         if chunk is None:
             print(f"No chunk found at {args.file_path}:{args.line}.", file=sys.stderr)
             sys.exit(1)
@@ -175,4 +178,4 @@ def _cli_main() -> None:
         if not results:
             print(f"No related chunks found for {args.file_path}:{args.line}.")
         else:
-            print(_format_results(f"Chunks related to {args.file_path}:{args.line}", results))
+            print(format_results(f"Chunks related to {args.file_path}:{args.line}", results))

@@ -253,10 +253,17 @@ class SembleIndex:
         if not path.exists():
             raise FileNotFoundError(f"Index not found at {path}")
         persistence_paths = PersistencePath.from_path(path)
+        non_existent = persistence_paths.non_existing()
+        if non_existent:
+            missing = ", ".join(str(p) for p in non_existent)
+            raise FileNotFoundError(f"Index not found at {path}. Missing: {missing}")
+
         bm_25_index = BM25.load(persistence_paths.bm25_index)
         semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
-        metadata = orjson.loads(open(persistence_paths.metadata).read())
-        chunk_data = orjson.loads(open(persistence_paths.chunks).read())
+        with open(persistence_paths.metadata, "r") as f:
+            metadata = orjson.loads(f.read())
+        with open(persistence_paths.chunks, "r") as f:
+            chunk_data = orjson.loads(f.read())
 
         chunks = []
         for chunk_item in chunk_data:

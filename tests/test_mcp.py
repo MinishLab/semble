@@ -9,7 +9,7 @@ from model2vec import StaticModel
 
 from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
 from semble.types import Chunk, SearchResult
-from semble.utils import _format_results, _is_git_url, _resolve_chunk
+from semble.utils import format_results, is_git_url, resolve_chunk
 from tests.conftest import make_chunk
 
 
@@ -54,16 +54,16 @@ def test_resolve_chunk() -> None:
     boundary = make_chunk("last line", "src/a.py")  # start=1, end=1 (single-line)
 
     # Line strictly inside a multi-line chunk hits the early-return path.
-    assert _resolve_chunk([interior], "src/a.py", 2) is interior
+    assert resolve_chunk([interior], "src/a.py", 2) is interior
 
     # Line equal to end_line of a single-line chunk hits the fallback path.
-    assert _resolve_chunk([boundary], "src/a.py", 1) is boundary
+    assert resolve_chunk([boundary], "src/a.py", 1) is boundary
 
     # Unknown file returns None.
-    assert _resolve_chunk([interior], "src/other.py", 1) is None
+    assert resolve_chunk([interior], "src/other.py", 1) is None
 
     # Line out of range returns None.
-    assert _resolve_chunk([interior], "src/a.py", 99) is None
+    assert resolve_chunk([interior], "src/a.py", 99) is None
 
 
 @pytest.mark.parametrize(
@@ -83,18 +83,18 @@ def test_resolve_chunk() -> None:
 )
 def test_is_git_url(path: str, expected: bool) -> None:
     """Remote git URLs are detected; local paths are not."""
-    assert _is_git_url(path) is expected
+    assert is_git_url(path) is expected
 
 
 def test_format_results() -> None:
     """_format_results: empty list → header only; with results → numbered fenced blocks with scores."""
-    empty_out = _format_results("My header", [])
+    empty_out = format_results("My header", [])
     assert "My header" in empty_out
     assert "```" not in empty_out
 
     chunks = [make_chunk(f"def fn_{i}(): pass", f"f{i}.py") for i in range(3)]
     results = [SearchResult(chunk=c, score=round(0.1 * (i + 1), 3)) for i, c in enumerate(chunks)]
-    out = _format_results("Results for: 'foo'", results)
+    out = format_results("Results for: 'foo'", results)
     assert "Results for: 'foo'" in out
     assert out.count("```") >= len(results) * 2  # opening + closing fence each
     for i, c in enumerate(chunks, start=1):

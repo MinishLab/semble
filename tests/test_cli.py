@@ -217,6 +217,17 @@ def test_index_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     fake_index.save.assert_called_once_with(str(out_dir))
 
 
+def test_index_git_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """_cli_main index subcommand calls _run_index with the correct arguments."""
+    out_dir = tmp_path / "built_index"
+    fake_index = MagicMock()
+    monkeypatch.setattr(sys, "argv", ["semble", "index", "git://xyz.git", "-o", str(out_dir)])
+    with patch("semble.cli.SembleIndex.from_git", return_value=fake_index):
+        _cli_main()
+    assert out_dir.exists()
+    fake_index.save.assert_called_once_with(str(out_dir))
+
+
 def test_cli_search_with_prebuilt_index(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     """_cli_main search with --index loads the pre-built index from disk."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")

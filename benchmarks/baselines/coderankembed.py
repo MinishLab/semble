@@ -63,7 +63,6 @@ class RepoResult:
 def _evaluate(
     index: SembleIndex,
     tasks: list[Task],
-    mode: str,
     *,
     verbose: bool = False,
 ) -> tuple[float, float, list[float], dict[str, float]]:
@@ -78,7 +77,7 @@ def _evaluate(
         results: list[SearchResult] = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
-            results = index.search(task.query, top_k=_TOP_K, mode=mode)
+            results = index.search(task.query, top_k=_TOP_K)
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
 
@@ -176,12 +175,12 @@ def _bench(
             print(f"\n--- {repo} ---", file=sys.stderr)
 
         started = time.perf_counter()
-        index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+        index = SembleIndex.from_path(spec.benchmark_dir)
         index_ms = (time.perf_counter() - started) * 1000
 
         repo_results: list[RepoResult] = []
         for mode in modes:
-            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, mode, verbose=verbose)
+            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, verbose=verbose)
             p50, p90 = np.percentile(latencies, [50, 90]).tolist()
             result = RepoResult(
                 repo=repo,

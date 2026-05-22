@@ -8,12 +8,12 @@ _GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "fi
 _SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
 
 
-def _is_git_url(path: str) -> bool:
+def is_git_url(path: str) -> bool:
     """Return True if path looks like a remote git URL rather than a local path."""
     return path.startswith(_GIT_URL_SCHEMES) or _SCP_GIT_URL_RE.match(path) is not None
 
 
-def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
+def resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
     """Return the chunk containing *line* in *file_path*, or None.
 
     Reconstructs a Chunk from its JSON-primitive MCP tool arguments (file_path + line)
@@ -29,7 +29,7 @@ def _resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | No
     return fallback
 
 
-def _format_results(header: str, results: list[SearchResult]) -> str:
+def format_results(header: str, results: list[SearchResult]) -> str:
     """Render SearchResult objects as numbered, fenced code blocks."""
     lines: list[str] = [header, ""]
     for i, r in enumerate(results, 1):

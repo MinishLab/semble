@@ -13,6 +13,12 @@ class PersistencePath:
     semantic_index: Path
     metadata: Path
 
+    def non_existing(self) -> list[Path]:
+        """Return all resolved that do not exist."""
+        return [
+            path for path in [self.chunks, self.bm25_index, self.semantic_index, self.metadata] if not path.exists()
+        ]
+
     @classmethod
     def from_path(cls: type[PersistencePath], path: Path) -> PersistencePath:
         """Create a PersistencePath from a base path."""

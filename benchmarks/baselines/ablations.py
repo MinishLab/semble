@@ -5,7 +5,6 @@ import time
 from dataclasses import asdict
 
 import numpy as np
-from model2vec import StaticModel
 
 from benchmarks.data import (
     RepoSpec,
@@ -38,8 +37,6 @@ _MODE_PARAMS: dict[str, tuple[float | None, bool]] = {
 def _bench(
     repo_tasks: dict[str, list[Task]],
     specs: dict[str, RepoSpec],
-    model: StaticModel,
-    modes: list[str],
     *,
     verbose: bool = False,
 ) -> list[RepoResult]:
@@ -98,30 +95,26 @@ def _bench(
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="semble ablation benchmarks.")
     add_filter_args(parser, verbose=True)
-    parser.add_argument(
-        "--mode", action="append", default=[], choices=sorted(_MODE_PARAMS), help="Mode(s) to evaluate (default: all)."
-    )
     return parser.parse_args()
 
 
 def main() -> None:
     """Run the semble ablation benchmarks."""
     args = _parse_args()
-    modes = args.mode or sorted(_MODE_PARAMS)
 
     repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None)
 
     print("Loading model...", file=sys.stderr)
     started = time.perf_counter()
-    model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
     print(file=sys.stderr)
 
-    results = _bench(grouped_tasks(tasks), repo_specs, model, modes, verbose=args.verbose)
+    results = _bench(grouped_tasks(tasks), repo_specs, verbose=args.verbose)
 
     if not results:
         return
 
+    modes = sorted(_MODE_PARAMS)
     print(file=sys.stderr)
     for mode in modes:
         mode_results = [r for r in results if r.mode == mode]
