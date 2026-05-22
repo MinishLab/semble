@@ -20,17 +20,19 @@ from semble.types import CallType, Chunk, ContentType, Encoder, IndexStats, Sear
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 _DEFAULT_CONTENT: tuple[ContentType, ...] = (ContentType.CODE,)
-_ALL_CONTENT: tuple[ContentType, ...] = tuple(ContentType)
+_ALL_CONTENT: tuple[ContentType, ...] = (ContentType.CODE, ContentType.DOCS, ContentType.CONFIG)
 _INCLUDE_TEXT_FILES_DEPRECATION_MSG = (
     "include_text_files is deprecated and will be removed in a future version. "
     "Use content=(ContentType.CODE, ContentType.DOCS, ContentType.CONFIG, ContentType.DATA) instead."
 )
 
 
-def _apply_include_text_files(content: Sequence[ContentType], include_text_files: bool | None) -> Sequence[ContentType]:
+def _apply_include_text_files(
+    content: ContentType | Sequence[ContentType], include_text_files: bool | None
+) -> Sequence[ContentType]:
     """Apply the deprecated include_text_files override, emitting a DeprecationWarning."""
     if include_text_files is None:
-        return content
+        return (content,) if isinstance(content, ContentType) else content
     warnings.warn(
         _INCLUDE_TEXT_FILES_DEPRECATION_MSG,
         DeprecationWarning,
@@ -49,7 +51,7 @@ class SembleIndex:
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
         root: Path | None = None,
-        content: Sequence[ContentType] = _DEFAULT_CONTENT,
+        content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -65,7 +67,7 @@ class SembleIndex:
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
         self._root: Path | None = root
-        self._content: tuple[ContentType, ...] = tuple(content)
+        self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
 
@@ -113,7 +115,7 @@ class SembleIndex:
         path: str | Path,
         model: Encoder | None = None,
         extensions: Sequence[str] | None = None,
-        content: Sequence[ContentType] = _DEFAULT_CONTENT,
+        content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
     ) -> SembleIndex:
         """Create and index a SembleIndex from a directory.
@@ -153,7 +155,7 @@ class SembleIndex:
         ref: str | None = None,
         model: Encoder | None = None,
         extensions: Sequence[str] | None = None,
-        content: Sequence[ContentType] = _DEFAULT_CONTENT,
+        content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
     ) -> SembleIndex:
         """Clone a git repository and index it.

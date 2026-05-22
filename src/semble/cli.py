@@ -14,10 +14,6 @@ from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import _format_results, _is_git_url, _resolve_chunk
 
-_ALL_KEYWORD = "all"
-_CONTENT_CHOICES = [ct.value for ct in ContentType] + [_ALL_KEYWORD]
-_DEFAULT_CONTENT = [ContentType.CODE.value]
-
 
 class Agent(str, Enum):
     CLAUDE = "claude"
@@ -43,13 +39,10 @@ def _add_content_args(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--content",
         nargs="+",
-        default=_DEFAULT_CONTENT,
-        choices=_CONTENT_CHOICES,
+        default=["code"],
+        choices=[ct.value for ct in ContentType] + ["all"],
         metavar="TYPE",
-        help=(
-            f"Content types to index (space-separated, e.g. --content code docs). "
-            f"Use '{_ALL_KEYWORD}' to index every type. Default: {' '.join(_DEFAULT_CONTENT)}."
-        ),
+        help="Content types to index (space-separated, e.g. --content code docs). Choices: code, docs, config, data, all. Default: code.",
     )
     p.add_argument(
         "--include-text-files",
@@ -109,8 +102,8 @@ def _resolve_content(content: list[str], include_text_files: bool) -> list[Conte
             DeprecationWarning,
             stacklevel=2,
         )
-    if include_text_files or _ALL_KEYWORD in content:
-        return list(ContentType)
+    if include_text_files or "all" in content:
+        return [ContentType.CODE, ContentType.DOCS, ContentType.CONFIG]
     return [ContentType(c) for c in content]
 
 

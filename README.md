@@ -427,8 +427,11 @@ index = SembleIndex.from_path("./my-project")
 # Index docs and prose (markdown, rst, etc.)
 index = SembleIndex.from_path("./my-project", content=ContentType.DOCS)
 
-# Index everything — code and docs
-index = SembleIndex.from_path("./my-project", content=ContentType.ALL)
+# Index everything — code, docs, and config
+index = SembleIndex.from_path("./my-project", content=[ContentType.CODE, ContentType.DOCS, ContentType.CONFIG])
+
+# Index code and docs together
+index = SembleIndex.from_path("./my-project", content=[ContentType.CODE, ContentType.DOCS])
 
 # Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")

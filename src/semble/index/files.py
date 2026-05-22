@@ -449,7 +449,7 @@ ALL_LANGUAGES = frozenset(_EXTENSION_TO_LANGUAGE.values())
 _CODE_LANGUAGES = ALL_LANGUAGES - _DOC_LANGUAGES - _CONFIG_LANGUAGES - _DATA_LANGUAGES
 _LANGUAGE_TO_EXTENSION = _inv_mapping(_EXTENSION_TO_LANGUAGE)
 
-_TYPES: dict[ContentType, frozenset[str]] = {
+_CONTENT_TYPE_LANGUAGES: dict[ContentType, frozenset[str]] = {
     ContentType.CODE: frozenset(_CODE_LANGUAGES),
     ContentType.DOCS: frozenset(_DOC_LANGUAGES),
     ContentType.CONFIG: frozenset(_CONFIG_LANGUAGES),
@@ -462,11 +462,12 @@ def detect_language(file_name: Path) -> str | None:
     return _EXTENSION_TO_LANGUAGE.get(file_name.suffix.lower())
 
 
-def get_extensions(types: Sequence[ContentType], extensions: Sequence[str] | None) -> list[str]:
+def get_extensions(types: "ContentType | Sequence[ContentType]", extensions: Sequence[str] | None) -> list[str]:
     """Returns a list of supported file extensions for the given content types."""
+    normalized = (types,) if isinstance(types, ContentType) else types
     languages: set[str] = set()
-    for content_type in types:
-        languages.update(_TYPES[content_type])
+    for content_type in normalized:
+        languages.update(_CONTENT_TYPE_LANGUAGES[content_type])
     all_extensions: set[str] = set()
     for language in languages:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))

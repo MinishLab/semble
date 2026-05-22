@@ -220,8 +220,8 @@ def test_include_text_files_cli_deprecated(
     [
         (["--content", "code"], [ContentType.CODE]),
         (["--content", "code", "docs"], [ContentType.CODE, ContentType.DOCS]),
-        (["--content", "all"], list(ContentType)),
-        (["--content", "code", "all"], list(ContentType)),
+        (["--content", "all"], [ContentType.CODE, ContentType.DOCS, ContentType.CONFIG]),
+        (["--content", "code", "all"], [ContentType.CODE, ContentType.DOCS, ContentType.CONFIG]),
         ([], [ContentType.CODE]),
     ],
 )
