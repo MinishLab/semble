@@ -22,7 +22,6 @@ class ContentType(str, Enum):
     CODE = "code"
     DOCS = "docs"
     CONFIG = "config"
-    DATA = "data"
 
 
 class Encoder(Protocol):

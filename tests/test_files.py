@@ -35,9 +35,8 @@ def test_language_sets_are_consistent() -> None:
         ([ContentType.CODE], [".py"], [".md", ".csv", ".toml"]),
         ([ContentType.DOCS], [".md"], [".py", ".csv", ".toml"]),
         ([ContentType.CONFIG], [".toml"], [".py", ".md", ".csv"]),
-        ([ContentType.DATA], [".csv"], [".py", ".md", ".toml"]),
         ([ContentType.CODE, ContentType.DOCS], [".py", ".md"], [".csv", ".toml"]),
-        (list(ContentType), [".py", ".md", ".csv", ".toml"], []),
+        (list(ContentType), [".py", ".md", ".toml"], []),
     ],
 )
 def test_get_extensions(types: list[ContentType], includes: list[str], excludes: list[str]) -> None:

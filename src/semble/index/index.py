@@ -29,10 +29,10 @@ _INCLUDE_TEXT_FILES_DEPRECATION_MSG = (
 
 def _apply_include_text_files(
     content: ContentType | Sequence[ContentType], include_text_files: bool | None
-) -> Sequence[ContentType]:
+) -> tuple[ContentType, ...]:
     """Apply the deprecated include_text_files override, emitting a DeprecationWarning."""
     if include_text_files is None:
-        return (content,) if isinstance(content, ContentType) else content
+        return (content,) if isinstance(content, ContentType) else tuple(content)
     warnings.warn(
         _INCLUDE_TEXT_FILES_DEPRECATION_MSG,
         DeprecationWarning,

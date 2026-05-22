@@ -120,7 +120,6 @@ def test_search_without_reranking(indexed_index: SembleIndex) -> None:
         ([ContentType.CODE, ContentType.DOCS], True),
         ([ContentType.DOCS], False),
         ([ContentType.CONFIG], False),
-        ([ContentType.DATA], False),
     ],
 )
 def test_search_rerank_default_by_content_type(
