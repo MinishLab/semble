@@ -189,7 +189,7 @@ def _cli_main() -> None:
             out = {"error": "No results found."}
         else:
             out = format_results(args.query, results)
-        print(json.dumps(out, indent=4))
+        print(json.dumps(out))
 
     elif args.command == "find-related":
         chunk = resolve_chunk(index.chunks, args.file_path, args.line)
@@ -198,7 +198,7 @@ def _cli_main() -> None:
             sys.exit(1)
         results = index.find_related(chunk, top_k=args.top_k)
         if not results:
-            out = {"error": "No related chunks found."}
+            out = {"error": f"No related chunks found for {args.file_path}:{args.line}."}
         else:
             out = format_results(f"Chunks related to {args.file_path}:{args.line}", results)
-        print(json.dumps(out, indent=4))
+        print(json.dumps(out))

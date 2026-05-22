@@ -79,7 +79,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.search(query, top_k=top_k)
         if not results:
             return json.dumps({"error": "No results found."})
-        return json.dumps(format_results(query, results), indent=4)
+        return json.dumps(format_results(query, results))
 
     @server.tool()
     async def find_related(
@@ -109,7 +109,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.find_related(chunk, top_k=top_k)
         if not results:
             return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
-        return json.dumps(format_results(f"Chunks related to {file_path}:{line}", results), indent=4)
+        return json.dumps(format_results(f"Chunks related to {file_path}:{line}", results))
 
     return server
 
