@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
     "https:// or http:// git URL (e.g. https://github.com/org/repo) or local directory path to index and search. "
-    "Required when no default index was configured at startup. "
+    "Defaults to the MCP server's startup path, or its current working directory if no startup path was provided. "
     "The index is cached after the first call, so repeat queries are fast."
 )
 
@@ -55,7 +55,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         instructions=(
             "Instant code search for any local or remote git repository. "
             "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
-            "When working in a local project, pass the project root as `repo`. "
+            "When working in a local project, omit `repo` to use the MCP server's default local source, "
+            "or pass a project root explicitly to search another local repository. "
             "For remote repos, pass an explicit https:// URL. Never guess or infer URLs. "
             "Prefer these tools over Grep, Glob, or Read for any question about how code works."
         ),
@@ -114,6 +115,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     return server
 
 
+def _resolve_default_source(path: str | None) -> str:
+    """Resolve the local default source used when MCP tool calls omit repo."""
+    return path if path is not None else str(Path.cwd().resolve())
+
+
 async def serve(
     path: str | None = None,
     ref: str | None = None,
@@ -121,6 +127,7 @@ async def serve(
 ) -> None:
     """Start an MCP stdio server, optionally pre-indexing a default source."""
     cache = _IndexCache(content=content)
+    default_source = _resolve_default_source(path)
 
     async def _load_and_prewarm() -> None:
         """Pre-load the model and optionally pre-index the default source in parallel with starting the server."""
@@ -132,16 +139,16 @@ async def serve(
             return
         finally:
             cache._model_ready.set()
-        if path:
+        if default_source:
             try:
-                await cache.get(path, ref=ref)
+                await cache.get(default_source, ref=ref)
             except Exception:
-                logger.warning("Failed to pre-index %r at startup", path, exc_info=True)
-            if not is_git_url(path):
-                await cache.start_watcher(path)
+                logger.warning("Failed to pre-index %r at startup", default_source, exc_info=True)
+            if not is_git_url(default_source):
+                await cache.start_watcher(default_source)
 
     init_task = asyncio.create_task(_load_and_prewarm())
-    server = create_server(cache, default_source=path)
+    server = create_server(cache, default_source=default_source)
     try:
         await server.run_stdio_async()
     finally:

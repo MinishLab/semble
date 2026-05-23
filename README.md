@@ -38,6 +38,8 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
+When started without a path, the MCP server uses its current working directory as the default local repo. Tool calls can omit `repo` for that default, or pass an explicit local path / `https://` URL to search another repo.
+
 Using another agent harness? See [MCP Server](#mcp-server) below for per-agent setup.
 
 ### Bash / AGENTS.md
@@ -134,6 +136,8 @@ uv cache clean semble          # for MCP users (restart your MCP client after)
 ## MCP Server
 
 Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand, and indexes are cached for the lifetime of the session. Local paths are watched for file changes and re-indexed automatically.
+
+If the MCP server starts without a path argument, its current working directory becomes the default local source. Calls to `search` and `find_related` may omit `repo` to use that default. Pass `repo` explicitly when searching another local repo or any remote repo.
 
 ### Setup
 

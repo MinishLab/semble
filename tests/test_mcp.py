@@ -162,6 +162,38 @@ async def test_tool_no_repo_no_default(cache: _IndexCache, tool: str, args: dict
 
 
 @pytest.mark.anyio
+async def test_tool_uses_default_source_when_repo_omitted(cache: _IndexCache, tmp_path: Path) -> None:
+    """Tool calls without repo use the server's default source."""
+    fake_index = MagicMock()
+    fake_index.search.return_value = [SearchResult(chunk=make_chunk("def local(): pass", "local.py"), score=0.7)]
+
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        server = create_server(cache, default_source=str(tmp_path))
+        result = await server.call_tool("search", {"query": "local"})
+
+    assert "local.py" in _tool_text(result)
+    mock_from_path.assert_called_once()
+    assert mock_from_path.call_args.args[0] == str(tmp_path.resolve())
+
+
+@pytest.mark.anyio
+async def test_tool_prefers_explicit_repo_over_default_source(cache: _IndexCache, tmp_path: Path) -> None:
+    """Explicit repo takes precedence over any server default source."""
+    default_source = tmp_path / "default"
+    explicit_repo = tmp_path / "explicit"
+    fake_index = MagicMock()
+    fake_index.search.return_value = [SearchResult(chunk=make_chunk("def explicit(): pass", "explicit.py"), score=0.7)]
+
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        server = create_server(cache, default_source=str(default_source))
+        result = await server.call_tool("search", {"query": "explicit", "repo": str(explicit_repo)})
+
+    assert "explicit.py" in _tool_text(result)
+    mock_from_path.assert_called_once()
+    assert mock_from_path.call_args.args[0] == str(explicit_repo.resolve())
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("tool", "args"),
     [
@@ -283,6 +315,27 @@ async def test_serve_runs_stdio(
         await (serve(str(tmp_path)) if with_path else serve())
 
     mock_run.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_serve_defaults_to_cwd_when_no_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """MCP serve without a path uses the process cwd as the local default source."""
+
+    async def fake_stdio() -> None:
+        await asyncio.sleep(0.05)
+
+    monkeypatch.chdir(tmp_path)
+    with (
+        patch("semble.mcp.load_model", return_value=(MagicMock(spec=StaticModel), "/fake/model")),
+        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()) as mock_from_path,
+        patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock) as mock_watcher,
+        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_stdio),
+    ):
+        await serve()
+
+    mock_from_path.assert_called_once()
+    assert mock_from_path.call_args.args[0] == str(tmp_path.resolve())
+    mock_watcher.assert_awaited_once_with(str(tmp_path.resolve()))
 
 
 @pytest.mark.anyio
