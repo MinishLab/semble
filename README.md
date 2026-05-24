@@ -45,8 +45,8 @@ Using another agent harness? See [MCP Server](#mcp-server) below for per-agent s
 Install Semble, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
-pip install semble       # Install with pip
-uv tool install semble   # Or install with uv
+uv tool install semble   # Install with uv (recommended)
+pip install semble       # Or with pip
 ```
 
 <details>
@@ -115,9 +115,9 @@ Note that sub-agents cannot call MCP tools directly, see [Bash / AGENTS.md](#bas
 <summary>Updating Semble</summary>
 
 ```bash
-pip install --upgrade semble   # with pip
 uv tool upgrade semble         # with uv
 uv cache clean semble          # for MCP users (restart your MCP client after)
+pip install --upgrade semble   # with pip
 ```
 
 </details>
