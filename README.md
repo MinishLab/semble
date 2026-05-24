@@ -32,8 +32,8 @@ Your agent queries Semble in natural language (e.g. `"How is authentication hand
 
 Semble has three complementary setup paths. We recommend all three when possible, but you can pick and choose based on your needs:
 
-- **[MCP server](#mcp-server)**: An MCP server for your top-level agent.
-- **[AGENTS.md](#agentsmd)**: a CLI + AGENTS.md snippet for any harness.
+- **[MCP server](#mcp-server)**: an MCP server for your agent.
+- **[AGENTS.md](#agentsmd)**: an AGENTS.md snippet with instructions for calling Semble via the CLI.
 - **[Sub-agent](#sub-agent-setup)**: a dedicated `semble-search` sub-agent for harnesses that support it.
 
 ### MCP
@@ -123,7 +123,7 @@ For harnesses that support sub-agents, install a dedicated `semble-search` sub-a
 semble init   # Claude Code → .claude/agents/semble-search.md
 ```
 
-See [Sub-agent setup](#sub-agent-setup) below for other harnesses (Gemini, Cursor, OpenCode, Copilot CLI, Kiro).
+See [Sub-agent setup](#sub-agent-setup) below for other harnesses.
 
 <details>
 <summary>Updating Semble</summary>
