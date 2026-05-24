@@ -191,7 +191,7 @@ class _IndexCache:
                 except Exception:
                     logger.warning("Failed to rebuild index for %r after file change", path, exc_info=True)
         except Exception:
-            pass
+            logger.warning("File watcher for %r stopped unexpectedly", path, exc_info=True)
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""
