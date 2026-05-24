@@ -83,12 +83,12 @@ def _mcp_main() -> None:
     asyncio.run(serve(args.path, ref=args.ref, content=content))
 
 
-def _run_index(*, path: str, include_text_files: bool = False, out: str) -> None:
+def _run_index(*, path: str, content: list[ContentType], out: str) -> None:
     """Index and store a codebase."""
     if is_git_url(path):
-        index = SembleIndex.from_git(path, include_text_files=include_text_files)
+        index = SembleIndex.from_git(path, content=content)
     else:
-        index = SembleIndex.from_path(path, include_text_files=include_text_files)
+        index = SembleIndex.from_path(path, content=content)
     Path(out).mkdir(parents=True, exist_ok=True)
     index.save(out)
 
@@ -124,11 +124,7 @@ def _cli_main() -> None:
 
     index_p = sub.add_parser("index", help="Index and store a codebase.")
     index_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
-    index_p.add_argument(
-        "--include-text-files",
-        action="store_true",
-        help="Also index non-code text files (.md, .yaml, .json, etc.).",
-    )
+    _add_content_args(index_p)
     index_p.add_argument("-o", "--out", type=str, required=True, help="The path to write the pre-built index to.")
 
     search_p = sub.add_parser("search", help="Search a codebase.")
@@ -166,7 +162,8 @@ def _cli_main() -> None:
         return
 
     if args.command == "index":
-        _run_index(path=args.path, include_text_files=args.include_text_files, out=args.out)
+        content = _resolve_content(args.content, args.include_text_files)
+        _run_index(path=args.path, content=content, out=args.out)
         return
 
     if args.command == "savings":

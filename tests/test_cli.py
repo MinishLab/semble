@@ -200,10 +200,21 @@ def test_run_index(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     out_dir = tmp_path / "index_output"
     fake_index = MagicMock()
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
-        _run_index(path="/some/path", include_text_files=True, out=str(out_dir))
-    mock_from_path.assert_called_once_with("/some/path", include_text_files=True)
+        _run_index(path="/some/path", content=[ContentType.CODE, ContentType.DOCS], out=str(out_dir))
+    mock_from_path.assert_called_once_with("/some/path", content=[ContentType.CODE, ContentType.DOCS])
     assert out_dir.exists()
     fake_index.save.assert_called_once_with(str(out_dir))
+
+
+def test_index_via_cli_with_content(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """_cli_main index subcommand passes --content to from_path."""
+    out_dir = tmp_path / "built_index"
+    fake_index = MagicMock()
+    monkeypatch.setattr(sys, "argv", ["semble", "index", "/some/path", "--content", "code", "docs", "-o", str(out_dir)])
+    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
+        _cli_main()
+    mock_from_path.assert_called_once()
+    assert mock_from_path.call_args.kwargs["content"] == [ContentType.CODE, ContentType.DOCS]
 
 
 def test_index_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
