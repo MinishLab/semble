@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from collections import OrderedDict
 from collections.abc import Sequence
@@ -77,8 +78,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             return str(exc)
         results = index.search(query, top_k=top_k)
         if not results:
-            return "No results found."
-        return format_results(f"Search results for: {query!r}", results)
+            return json.dumps({"error": "No results found."})
+        return json.dumps(format_results(query, results))
 
     @server.tool()
     async def find_related(
@@ -107,8 +108,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             )
         results = index.find_related(chunk, top_k=top_k)
         if not results:
-            return f"No related chunks found for {file_path}:{line}."
-        return format_results(f"Chunks related to {file_path}:{line}", results)
+            return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
+        return json.dumps(format_results(f"Chunks related to {file_path}:{line}", results))
 
     return server
 

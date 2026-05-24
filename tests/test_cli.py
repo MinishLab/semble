@@ -57,7 +57,7 @@ def test_cli_search(
 @pytest.mark.parametrize(
     ("scenario", "expected_stdout", "expected_stderr", "expected_exit_code"),
     [
-        ("with_results", ["src/bar.py", "0.800"], None, None),
+        ("with_results", ["src/bar.py", "0.8"], None, None),
         ("no_results", ["No related chunks found"], None, None),
         ("unknown_chunk", [], "No chunk found", 1),
     ],
