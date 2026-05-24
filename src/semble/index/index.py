@@ -305,7 +305,10 @@ class SembleIndex:
 
         model, model_path = load_model(model_path)
 
-        return cls(model, bm_25_index, semantic_index, chunks, model_path, root=root_path)
+        content_strs = metadata.get("content", ["code"])
+        content = tuple(ContentType(c) for c in content_strs)
+
+        return cls(model, bm_25_index, semantic_index, chunks, model_path, root=root_path, content=content)
 
     def save(self, path: Path | str) -> None:
         """Save the index to disk."""
@@ -321,7 +324,8 @@ class SembleIndex:
             data = orjson.dumps(chunks_as_dict)
             f.write(data)
         root_str = None if self._root is None else str(self._root)
-        metadata = {"root_path": root_str, "time": datetime.now().timestamp(), "model_path": self._model_path}
+        content_strs = [ct.value for ct in self._content]
+        metadata = {"root_path": root_str, "time": datetime.now().timestamp(), "model_path": self._model_path, "content": content_strs}
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
             f.write(data)
