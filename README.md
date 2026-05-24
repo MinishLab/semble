@@ -48,7 +48,7 @@ See [MCP Server](#mcp-server) below for other harnesses (Cursor, Codex, OpenCode
 
 ### AGENTS.md
 
-Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
+Adds Semble usage instructions to your agent's context so it knows when and how to call the CLI. Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 uv tool install semble   # Install with uv (recommended)
