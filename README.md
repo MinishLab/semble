@@ -38,7 +38,7 @@ Semble has three complementary setup paths. We recommend all three when possible
 
 ### MCP
 
-Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
+Expose Semble as a native tool via MCP so your agent can call it directly. Add it to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
@@ -48,7 +48,7 @@ See [MCP Server](#mcp-server) below for other harnesses (Cursor, Codex, OpenCode
 
 ### AGENTS.md
 
-Adds Semble usage instructions to your agent's context so it knows when and how to call the CLI. Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
+Add Semble usage instructions to your agent's context so it knows when and how to call the CLI. Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 uv tool install semble   # Install with uv (recommended)
