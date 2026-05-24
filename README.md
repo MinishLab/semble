@@ -350,17 +350,12 @@ If semble is not on `$PATH`, prefix the command with `uvx --from "semble[mcp]"`.
 Semble also ships as a standalone CLI. This is useful in scripts or anywhere you want search results without an MCP session.
 
 ```bash
-# Index a local repository
-semble index ./my-project -o my-index
-
 # Search a local repo
 semble search "authentication flow" ./my-project
-# Or with index (significantly faster)
-# the index flag applies to all commands below.
-semble search "authentication flow" --index my-index
 
-# Search for a symbol or identifier
-semble search "save_pretrained" ./my-project
+# Index first for faster repeated searches (--index works with any command below)
+semble index ./my-project -o my-index
+semble search "authentication flow" --index my-index
 
 # Search a remote repo (cloned on demand)
 semble search "save model to disk" https://github.com/MinishLab/model2vec
@@ -368,14 +363,8 @@ semble search "save model to disk" https://github.com/MinishLab/model2vec
 # Limit results
 semble search "save model to disk" ./my-project --top-k 10
 
-# Search docs and prose (markdown, rst, etc.) instead of code
-semble search "deployment guide" ./my-project --content docs
-
-# Search config files (yaml, toml, terraform, etc.)
-semble search "database host port" ./my-project --content config
-
-# Search everything (code, docs, and config)
-semble search "authentication" ./my-project --content all
+# Search docs/config/everything instead of just code
+semble search "deployment guide" ./my-project --content docs   # or: config, all
 
 # Find code similar to a known location
 semble find-related src/auth.py 42 ./my-project
