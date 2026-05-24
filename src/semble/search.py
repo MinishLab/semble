@@ -106,10 +106,10 @@ def search(
     normalized_bm25 = _rrf_scores(bm25_scores)
 
     # Sort by the file path and start line to
-    # counteract randomness introduces by hashing.
+    # counteract randomness introduced by hashing.
     all_candidates = sorted(
         {*normalized_semantic, *normalized_bm25},
-        key=lambda c: c.start_line,
+        key=lambda c: (c.file_path, c.start_line),
     )
     combined_scores: dict[Chunk, float] = {
         chunk: alpha_weight * normalized_semantic.get(chunk, 0.0)
