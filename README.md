@@ -44,7 +44,7 @@ Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-start
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Using another agent harness? See [MCP Server](#mcp-server) below for per-agent setup.
+See [MCP Server](#mcp-server) below for other harnesses (Cursor, Codex, OpenCode, etc.).
 
 ### AGENTS.md
 
@@ -123,7 +123,7 @@ For harnesses that support sub-agents, install a dedicated `semble-search` sub-a
 semble init   # Claude Code → .claude/agents/semble-search.md
 ```
 
-See [Sub-agent setup](#sub-agent-setup) below for other harnesses.
+See [Sub-agent setup](#sub-agent-setup) below for other harnesses (Cursor, Codex, OpenCode, etc.).
 
 <details>
 <summary>Updating Semble</summary>
