@@ -13,7 +13,7 @@ Thanks for your interest in semble. This document explains how contributions wor
 
 Our libraries are small and focused by design. We care a lot about keeping it that way. Before you invest time writing code, please open an issue describing:
 
-- What problem you're solving (bug, missing behaviour, feature, doc gap)
+- What problem you're solving
 - Why it belongs in semble (as opposed to a wrapper or separate tool)
 - What API or behaviour change it would involve, if any
 - A minimal (code) example of how it would work
