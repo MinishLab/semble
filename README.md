@@ -30,7 +30,7 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files.
 
-Semble has three complementary setup paths. We recommend all three when possible, but you can pick and choose based on your needs:
+Semble has three complementary setup paths. The recommended setup is using all three (but you can pick and choose based on your needs):
 
 - **[MCP server](#mcp-server)**: an MCP server for your agent.
 - **[AGENTS.md](#agentsmd)**: an AGENTS.md snippet with instructions for calling Semble via the CLI.
