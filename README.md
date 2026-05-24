@@ -18,19 +18,25 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
-[Bash / AGENTS.md](#bash-agentsmd) •
+[AGENTS.md](#agentsmd) •
 [CLI](#cli) •
 [Benchmarks](#benchmarks)
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-agentsmd) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#agentsmd) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
 ## Quickstart
 
-Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files. Set it up as an MCP server or via AGENTS.md:
+Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files.
 
-### MCP (Claude Code)
+Semble has three complementary setup paths. We recommend all three when possible, but you can pick and choose based on your needs:
+
+- **[MCP server](#mcp-server)**: An MCP server for your top-level agent.
+- **[AGENTS.md](#agentsmd)**: a CLI + AGENTS.md snippet for any harness.
+- **[Sub-agent](#sub-agent-setup)**: a dedicated `semble-search` sub-agent for harnesses that support it.
+
+### MCP
 
 Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
@@ -40,9 +46,9 @@ claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 
 Using another agent harness? See [MCP Server](#mcp-server) below for per-agent setup.
 
-### Bash / AGENTS.md
+### AGENTS.md
 
-Install Semble, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
+Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
 uv tool install semble   # Install with uv (recommended)
@@ -109,7 +115,15 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 </details>
 
-Note that sub-agents cannot call MCP tools directly, see [Bash / AGENTS.md](#bash-agentsmd) and [sub-agent setup](#sub-agent-setup) below for details.
+### Sub-agent
+
+For harnesses that support sub-agents, install a dedicated `semble-search` sub-agent so search runs in its own context (requires the CLI):
+
+```bash
+semble init   # Claude Code → .claude/agents/semble-search.md
+```
+
+See [Sub-agent setup](#sub-agent-setup) below for other harnesses (Gemini, Cursor, OpenCode, Copilot CLI, Kiro).
 
 <details>
 <summary>Updating Semble</summary>
