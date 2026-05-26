@@ -103,16 +103,13 @@ def get_validated_cache(
     resolved_extensions = extensions if extensions is not None else get_extensions(list(content), None)
 
     path_as_path = Path(path)
-    current_files = sorted(
-        str(f.relative_to(path_as_path)) for f in walk_files(path_as_path, extensions=resolved_extensions)
-    )
     stored_files: list[str] = metadata.get("file_paths", [])
-    if current_files != stored_files:
-        return None
-
+    current_files = []
     for file_path in walk_files(path_as_path, extensions=resolved_extensions):
-        st = file_path.stat()
-        if st.st_mtime > write_time:
+        current_files.append(str(file_path.relative_to(path_as_path)))
+        if file_path.stat().st_mtime > write_time:
             return None
+    if sorted(current_files) != stored_files:
+        return None
 
     return index_path

@@ -229,7 +229,11 @@ def test_get_validated_cache_manifest_mismatch(
 ) -> None:
     """Returns None when the current file set differs from the stored manifest."""
     index_path = tmp_path / "index"
-    walk_return = [tmp_path / f for f in current_files]
+    walk_return = []
+    for f in current_files:
+        p = tmp_path / f
+        p.write_text("")
+        walk_return.append(p)
     _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=stored_files)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.walk_files", return_value=walk_return):
