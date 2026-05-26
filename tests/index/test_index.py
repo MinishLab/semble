@@ -208,3 +208,21 @@ def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:
     assert "metadata.json" in error_msg
     # The file we did create should NOT be listed as missing.
     assert "chunks.json" not in error_msg
+
+
+def test_from_path_uses_cache_when_valid(tmp_project: Path) -> None:
+    """from_path returns the cached index directly when get_validated_cache hits."""
+    fake_cached = MagicMock(spec=SembleIndex)
+    with patch("semble.index.index.get_validated_cache", return_value=tmp_project / "cache"):
+        with patch.object(SembleIndex, "load_from_disk", return_value=fake_cached):
+            result = SembleIndex.from_path(tmp_project)
+    assert result is fake_cached
+
+
+def test_from_git_uses_cache_when_valid() -> None:
+    """from_git returns the cached index directly when get_validated_cache hits."""
+    fake_cached = MagicMock(spec=SembleIndex)
+    with patch("semble.index.index.get_validated_cache", return_value=Path("/cache")):
+        with patch.object(SembleIndex, "load_from_disk", return_value=fake_cached):
+            result = SembleIndex.from_git("https://github.com/org/repo.git")
+    assert result is fake_cached
