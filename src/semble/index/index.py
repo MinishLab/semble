@@ -332,6 +332,7 @@ class SembleIndex:
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]
         extensions = metadata.get("extensions")
+        content = tuple(ContentType(s) for s in metadata.get("content_type", ["code"]))
         if root_path:
             root_path = Path(root_path)
 
@@ -344,6 +345,7 @@ class SembleIndex:
             chunks,
             model_path,
             root=root_path,
+            content=content,
             loaded_from_disk=True,
             extensions=extensions,
         )

@@ -63,7 +63,7 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
-Results are cached automatically on first run and invalidated when files change.
+The index is built on first run (and cached for subsequent runs) and invalidated automatically when files change.
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 
@@ -320,7 +320,7 @@ semble search "save_pretrained" ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ​```
 
-Results are cached automatically on first run and invalidated when files change.
+The index is built on first run (and cached for subsequent runs) and invalidated automatically when files change.
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 
