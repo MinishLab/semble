@@ -15,6 +15,7 @@ import orjson
 from bm25s import BM25
 from model2vec.model import StaticModel
 
+from semble.cache import get_validated_cache
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.index.types import PersistencePath
@@ -57,6 +58,7 @@ class SembleIndex:
         model_path: str,
         root: Path | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
+        loaded_from_disk: bool = False,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -77,6 +79,7 @@ class SembleIndex:
         self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
+        self.loaded_from_disk: bool = loaded_from_disk
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -136,13 +139,18 @@ class SembleIndex:
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
         """
-        model, model_path = load_model(model_path)
-        normalized = _apply_include_text_files(content, include_text_files)
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Path does not exist: {path}")
         if not path.is_dir():
             raise NotADirectoryError(f"Path is not a directory: {path}")
+
+        normalized = _apply_include_text_files(content, include_text_files)
+        cache_path = get_validated_cache(str(path), model_path, normalized)
+        if cache_path:
+            return cls.load_from_disk(cache_path)
+        model, model_path = load_model(model_path)
+
         path = path.resolve()
         bm25, vicinity, chunks = create_index_from_path(
             path,
@@ -180,7 +188,12 @@ class SembleIndex:
         :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
+        path = f"{url}@{ref}" if ref else url
         normalized = _apply_include_text_files(content, include_text_files)
+        cache_path = get_validated_cache(path, model_path, normalized)
+        if cache_path:
+            return cls.load_from_disk(cache_path)
+
         with tempfile.TemporaryDirectory() as tmp_dir:
             # `--` prevents `url` from being interpreted as a git option (e.g. `--upload-pack=...`).
             cmd = ["git", "clone", "--depth", "1", *(["--branch", ref] if ref else []), "--", url, tmp_dir]
@@ -305,7 +318,7 @@ class SembleIndex:
 
         model, model_path = load_model(model_path)
 
-        return cls(model, bm_25_index, semantic_index, chunks, model_path, root=root_path)
+        return cls(model, bm_25_index, semantic_index, chunks, model_path, root=root_path, loaded_from_disk=True)
 
     def save(self, path: Path | str) -> None:
         """Save the index to disk."""
@@ -321,7 +334,12 @@ class SembleIndex:
             data = orjson.dumps(chunks_as_dict)
             f.write(data)
         root_str = None if self._root is None else str(self._root)
-        metadata = {"root_path": root_str, "time": datetime.now().timestamp(), "model_path": self._model_path}
+        metadata = {
+            "root_path": root_str,
+            "time": datetime.now().timestamp(),
+            "model_path": self._model_path,
+            "content_type": list(x.value for x in self._content),
+        }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
             f.write(data)

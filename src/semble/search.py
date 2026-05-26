@@ -105,8 +105,7 @@ def search(
     normalized_semantic = _rrf_scores(semantic_scores)
     normalized_bm25 = _rrf_scores(bm25_scores)
 
-    # Sort by the file path and start line to
-    # counteract randomness introduces by hashing.
+    # Sort by start line to counteract randomness introduced by hashing.
     all_candidates = sorted(
         {*normalized_semantic, *normalized_bm25},
         key=lambda c: c.start_line,

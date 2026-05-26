@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer
 from benchmarks.data import RepoSpec, Task, available_repo_specs, load_tasks, save_results
 from benchmarks.tools import run_colgrep_files, run_ripgrep_count
 from semble import SembleIndex
-from semble.index.dense import _DEFAULT_MODEL_NAME
+from semble.index.dense import DEFAULT_MODEL_NAME
 from semble.types import EmbeddingMatrix
 
 # One representative repo per language (medium size, healthy NDCG on the main benchmark).
@@ -192,7 +192,7 @@ def main() -> None:
 
     print("Loading semble model...", file=sys.stderr)
     started = time.perf_counter()
-    semble_model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
+    semble_model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
     print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
 
     print("Loading CodeRankEmbed...", file=sys.stderr)

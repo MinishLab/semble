@@ -24,7 +24,7 @@ from benchmarks.data import (
     target_matches_location,
 )
 from semble import SembleIndex
-from semble.index.dense import _DEFAULT_MODEL_NAME
+from semble.index.dense import DEFAULT_MODEL_NAME
 from semble.index.file_walker import DEFAULT_IGNORED_DIRS, FILE_TYPES, FileCategory
 from semble.ranking.boosting import _STOPWORDS as _SEMBLE_STOPWORDS
 from semble.types import Chunk
@@ -378,7 +378,7 @@ def run_recall(args: argparse.Namespace) -> None:
 
     print("Loading tokenizer + model...", file=sys.stderr)
     enc = tiktoken.get_encoding(_TOKENIZER_NAME)
-    model = StaticModel.from_pretrained(_DEFAULT_MODEL_NAME)
+    model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
 
     method_curves: dict[str, MethodCurves] = defaultdict(list)
     print(f"\n{'Repo':<22} {'Language':<12} {'Tasks':>6} {'Time':>8}", file=sys.stderr)

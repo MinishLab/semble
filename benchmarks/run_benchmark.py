@@ -16,7 +16,7 @@ from benchmarks.data import (
 )
 from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
-from semble.index.dense import _DEFAULT_MODEL_NAME
+from semble.index.dense import DEFAULT_MODEL_NAME
 from semble.types import SearchResult
 
 _LATENCY_RUNS = 5
@@ -259,7 +259,7 @@ def _save_results(results: list[RepoResult]) -> None:
     n_repos = len(results)
     output = {
         "tool": "semble-hybrid",
-        "model": _DEFAULT_MODEL_NAME,
+        "model": DEFAULT_MODEL_NAME,
         "summary": {
             "ndcg10": round(sum(r.ndcg10 for r in results) / n_repos, 4),
             "tokens": round(sum(r.tokens for r in results) / n_repos, 0),

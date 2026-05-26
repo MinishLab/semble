@@ -12,8 +12,7 @@ from vicinity.datatypes import QueryResult
 from vicinity.utils import normalize
 
 from semble.types import Chunk
-
-_DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
+from semble.utils import resolve_model_name
 
 
 @cache
@@ -32,7 +31,7 @@ def _load_cached(model_path: str) -> StaticModel:
 def load_model(model_path: str | None = None) -> tuple[StaticModel, str]:
     """Return the current model, loading the default if none was provided."""
     if model_path is None:
-        model_path = _DEFAULT_MODEL_NAME
+        model_path = resolve_model_name()
     model = _load_cached(model_path)
     return model, model_path
 

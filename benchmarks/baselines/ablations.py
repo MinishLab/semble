@@ -17,7 +17,7 @@ from benchmarks.data import (
 )
 from benchmarks.run_benchmark import RepoResult, evaluate
 from semble import SembleIndex
-from semble.index.dense import _DEFAULT_MODEL_NAME
+from semble.index.dense import DEFAULT_MODEL_NAME
 
 # alpha=None  → raw mode, input depends on query
 # alpha=0.0   → hybrid pipeline, BM25-only input
@@ -129,7 +129,7 @@ def main() -> None:
 
     summary = {
         "tool": "semble-ablations",
-        "model": _DEFAULT_MODEL_NAME,
+        "model": DEFAULT_MODEL_NAME,
         "by_mode": summarize_modes(results, modes),
         "repos": [asdict(r) for r in results],
     }

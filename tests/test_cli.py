@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from semble.cli import Agent, _agent_path, _cli_main, _run_index, _run_init, main
+from semble.cli import Agent, _agent_path, _cli_main, _run_init, main
 from semble.types import ContentType, SearchResult
 from tests.conftest import make_chunk
 
@@ -195,37 +195,26 @@ def test_mcp_main_exits_with_message_when_extras_missing(
     assert "pip install 'semble[mcp]'" in capsys.readouterr().err
 
 
-def test_run_index(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """_run_index creates the output directory and saves the index."""
-    out_dir = tmp_path / "index_output"
-    fake_index = MagicMock()
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
-        _run_index(path="/some/path", include_text_files=True, out=str(out_dir))
-    mock_from_path.assert_called_once_with("/some/path", include_text_files=True)
-    assert out_dir.exists()
-    fake_index.save.assert_called_once_with(str(out_dir))
-
-
 def test_index_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """_cli_main index subcommand calls _run_index with the correct arguments."""
-    out_dir = tmp_path / "built_index"
+    out_dir = tmp_path / "index"
     fake_index = MagicMock()
-    monkeypatch.setattr(sys, "argv", ["semble", "index", "/some/path", "-o", str(out_dir)])
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        _cli_main()
+    monkeypatch.setattr(sys, "argv", ["semble", "index", "/some/path"])
+    with patch("semble.cache.get_validated_cache", return_value=tmp_path):
+        with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
+            _cli_main()
     assert out_dir.exists()
     fake_index.save.assert_called_once_with(str(out_dir))
 
 
 def test_index_git_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """_cli_main index subcommand calls _run_index with the correct arguments."""
-    out_dir = tmp_path / "built_index"
     fake_index = MagicMock()
-    monkeypatch.setattr(sys, "argv", ["semble", "index", "git://xyz.git", "-o", str(out_dir)])
-    with patch("semble.cli.SembleIndex.from_git", return_value=fake_index):
-        _cli_main()
-    assert out_dir.exists()
-    fake_index.save.assert_called_once_with(str(out_dir))
+    with patch("semble.cache.get_validated_cache", lambda: tmp_path):
+        monkeypatch.setattr(sys, "argv", ["semble", "search", "git://xyz.git"])
+        with patch("semble.cli.SembleIndex.from_git", return_value=fake_index):
+            _cli_main()
+        fake_index.save.assert_called_once_with(str(tmp_path))
 
 
 def test_cli_search_with_prebuilt_index(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
@@ -233,10 +222,11 @@ def test_cli_search_with_prebuilt_index(monkeypatch: pytest.MonkeyPatch, capsys:
     chunk = make_chunk("def foo(): pass", "src/foo.py")
     fake_index = MagicMock()
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.95)]
-    monkeypatch.setattr(sys, "argv", ["semble", "search", "query text", ".", "--index", "/some/prebuilt"])
-    with patch("semble.cli.SembleIndex.load_from_disk", return_value=fake_index) as mock_load:
-        _cli_main()
-    mock_load.assert_called_once_with("/some/prebuilt")
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "query text"])
+    with patch("semble.cache.get_validated_cache", return_value="/some/prebuilt"):
+        with patch("semble.cli.SembleIndex.load_from_disk", return_value=fake_index) as mock_load:
+            _cli_main()
+        mock_load.assert_called_once()
     out = capsys.readouterr().out
     assert "query text" in out
     assert "0.95" in out

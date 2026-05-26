@@ -2,19 +2,20 @@ import argparse
 import asyncio
 import json
 import sys
+import time
 import warnings
 from enum import Enum
 from importlib.resources import files
 from importlib.util import find_spec
 from pathlib import Path
-from typing import Sequence
 
 from model2vec.utils import get_package_extras
 
+from semble.cache import find_index_from_cache_folder
 from semble.index import SembleIndex
 from semble.stats import format_savings_report
 from semble.types import ContentType
-from semble.utils import find_index_from_cache_folder, format_results, is_git_url, resolve_chunk
+from semble.utils import format_results, is_git_url, resolve_chunk
 
 
 class Agent(str, Enum):
@@ -28,6 +29,19 @@ class Agent(str, Enum):
 
 _DEFAULT_AGENT = Agent.CLAUDE
 _CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help", "index"})
+
+
+def _maybe_save_index(index: SembleIndex, path: str, creation_time: float) -> None:
+    """Maybe save an index. Based on the index itself and the creation time."""
+    # If the index was not loaded from disk,
+    # the index was invalidated or it didn't exist.
+    # If the creation time of the index was < 1 second, don't save
+    if creation_time > 1.0 and not index.loaded_from_disk:
+        try:
+            cache_folder = find_index_from_cache_folder(path)
+            index.save(cache_folder)
+        except Exception as e:
+            print(f"Error saving index: {e}", file=sys.stderr)
 
 
 def _agent_path(agent: Agent) -> Path:
@@ -82,17 +96,6 @@ def _mcp_main() -> None:
 
     content = _resolve_content(args.content, args.include_text_files)
     asyncio.run(serve(args.path, ref=args.ref, content=content))
-
-
-def _run_index(*, path: str, content: Sequence[ContentType], include_text_files: bool | None) -> None:
-    """Index and store a codebase."""
-    if is_git_url(path):
-        index = SembleIndex.from_git(path, content=content, include_text_files=include_text_files)
-    else:
-        index = SembleIndex.from_path(path, content=content, include_text_files=include_text_files)
-    index_path = find_index_from_cache_folder(Path(path))
-    print(f"Wrote index to `{index_path}`.")
-    index.save(index_path)
 
 
 def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
@@ -162,24 +165,18 @@ def _cli_main() -> None:
         _run_init(agent=Agent(args.agent), force=args.force)
         return
 
-    if args.command == "index":
-        _run_index(path=args.path, content=args.content, include_text_files=args.include_text_files)
-        return
-
     if args.command == "savings":
         print(format_savings_report(verbose=args.verbose))
         return
 
-    if args.index:
-        path = find_index_from_cache_folder(Path(args.path))
-        index = SembleIndex.load_from_disk(path)
-    else:
-        content = _resolve_content(args.content, args.include_text_files)
-        index = (
-            SembleIndex.from_git(args.path, content=content)
-            if is_git_url(args.path)
-            else SembleIndex.from_path(args.path, content=content)
-        )
+    content = _resolve_content(args.content, args.include_text_files)
+    start = time.time()
+    index = (
+        SembleIndex.from_git(args.path, content=content)
+        if is_git_url(args.path)
+        else SembleIndex.from_path(args.path, content=content)
+    )
+    creation_time = time.time() - start
 
     if args.command == "search":
         results = index.search(args.query, top_k=args.top_k)
@@ -200,3 +197,5 @@ def _cli_main() -> None:
         else:
             out = format_results(f"Chunks related to {args.file_path}:{args.line}", results)
         print(json.dumps(out))
+
+    _maybe_save_index(index, args.path, creation_time)

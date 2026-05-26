@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from semble.cache import resolve_cache_folder
 from semble.types import CallType, SearchResult
-from semble.utils import resolve_cache_folder
 
 logger = logging.getLogger(__name__)
 
