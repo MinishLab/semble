@@ -8,7 +8,7 @@ from semble.types import Chunk, SearchResult
 
 _GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
 _SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
-_DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
+DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
 
 
 def is_git_url(path: str) -> bool:
@@ -39,4 +39,4 @@ def format_results(query: str, results: list[SearchResult]) -> dict[str, Any]:
 
 def resolve_model_name() -> str:
     """Resolve a model name to a configurable."""
-    return os.environ.get("SEMBLE_MODEL_NAME", _DEFAULT_MODEL_NAME)
+    return os.environ.get("SEMBLE_MODEL_NAME", DEFAULT_MODEL_NAME)

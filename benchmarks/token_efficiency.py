@@ -24,10 +24,10 @@ from benchmarks.data import (
     target_matches_location,
 )
 from semble import SembleIndex
-from semble.index.dense import DEFAULT_MODEL_NAME
 from semble.index.file_walker import DEFAULT_IGNORED_DIRS, FILE_TYPES, FileCategory
 from semble.ranking.boosting import _STOPWORDS as _SEMBLE_STOPWORDS
 from semble.types import Chunk
+from semble.utils import DEFAULT_MODEL_NAME
 
 _RG_INCLUDE_GLOBS: tuple[str, ...] = tuple(
     f"*{ext}" for ext, spec in FILE_TYPES.items() if spec.category == FileCategory.CODE

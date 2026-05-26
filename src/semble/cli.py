@@ -31,6 +31,15 @@ _DEFAULT_AGENT = Agent.CLAUDE
 _CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help", "index"})
 
 
+def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
+    """Build an index from a local path or git URL."""
+    return (
+        SembleIndex.from_git(path, content=content)
+        if is_git_url(path)
+        else SembleIndex.from_path(path, content=content)
+    )
+
+
 def _maybe_save_index(index: SembleIndex, path: str, creation_time: float) -> None:
     """Maybe save an index. Based on the index itself and the creation time."""
     # If the index was not loaded from disk,
@@ -123,6 +132,58 @@ def _resolve_content(content: list[str], include_text_files: bool) -> list[Conte
     return [ContentType(c) for c in content]
 
 
+def _run_index(path: str, content: list[ContentType]) -> None:
+    """Handle the `index` subcommand."""
+    try:
+        index = _build_index(path, content)
+    except FileNotFoundError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    if not index.loaded_from_disk:
+        cache_folder = find_index_from_cache_folder(path)
+        index.save(cache_folder)
+        print(f"Wrote index to `{cache_folder}`.")
+    else:
+        print("Index is already up to date.")
+
+
+def _load_index_timed(path: str, content: list[ContentType]) -> tuple[SembleIndex, float]:
+    """Build an index and return it with the elapsed build time in seconds."""
+    start = time.time()
+    try:
+        index = _build_index(path, content)
+    except FileNotFoundError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    return index, time.time() - start
+
+
+def _run_search(path: str, query: str, top_k: int, content: list[ContentType]) -> None:
+    """Handle the `search` subcommand."""
+    index, creation_time = _load_index_timed(path, content)
+    results = index.search(query, top_k=top_k)
+    out = format_results(query, results) if results else {"error": "No results found."}
+    print(json.dumps(out))
+    _maybe_save_index(index, path, creation_time)
+
+
+def _run_find_related(path: str, file_path: str, line: int, top_k: int, content: list[ContentType]) -> None:
+    """Handle the `find-related` subcommand."""
+    index, creation_time = _load_index_timed(path, content)
+    chunk = resolve_chunk(index.chunks, file_path, line)
+    if chunk is None:
+        print(f"No chunk found at {file_path}:{line}.", file=sys.stderr)
+        sys.exit(1)
+    results = index.find_related(chunk, top_k=top_k)
+    out = (
+        format_results(f"Chunks related to {file_path}:{line}", results)
+        if results
+        else {"error": f"No related chunks found for {file_path}:{line}."}
+    )
+    print(json.dumps(out))
+    _maybe_save_index(index, path, creation_time)
+
+
 def _cli_main() -> None:
     parser = argparse.ArgumentParser(prog="semble")
     sub = parser.add_subparsers(dest="command")
@@ -135,7 +196,6 @@ def _cli_main() -> None:
     search_p.add_argument("query", help="Natural language or code query.")
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    search_p.add_argument("--index", action="store_true", help="Use an index at the default path.")
     _add_content_args(search_p)
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
@@ -143,7 +203,6 @@ def _cli_main() -> None:
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
     related_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    related_p.add_argument("--index", type=str, default=None, help="A path pointing to a pre-built index.")
     _add_content_args(related_p)
 
     init_p = sub.add_parser("init", help="Write a semble sub-agent file for your coding agent.")
@@ -163,39 +222,13 @@ def _cli_main() -> None:
 
     if args.command == "init":
         _run_init(agent=Agent(args.agent), force=args.force)
-        return
-
-    if args.command == "savings":
+    elif args.command == "savings":
         print(format_savings_report(verbose=args.verbose))
-        return
-
-    content = _resolve_content(args.content, args.include_text_files)
-    start = time.time()
-    index = (
-        SembleIndex.from_git(args.path, content=content)
-        if is_git_url(args.path)
-        else SembleIndex.from_path(args.path, content=content)
-    )
-    creation_time = time.time() - start
-
-    if args.command == "search":
-        results = index.search(args.query, top_k=args.top_k)
-        if not results:
-            out = {"error": "No results found."}
-        else:
-            out = format_results(args.query, results)
-        print(json.dumps(out))
-
+    elif args.command == "index":
+        _run_index(args.path, _resolve_content(args.content, args.include_text_files))
+    elif args.command == "search":
+        _run_search(args.path, args.query, args.top_k, _resolve_content(args.content, args.include_text_files))
     elif args.command == "find-related":
-        chunk = resolve_chunk(index.chunks, args.file_path, args.line)
-        if chunk is None:
-            print(f"No chunk found at {args.file_path}:{args.line}.", file=sys.stderr)
-            sys.exit(1)
-        results = index.find_related(chunk, top_k=args.top_k)
-        if not results:
-            out = {"error": f"No related chunks found for {args.file_path}:{args.line}."}
-        else:
-            out = format_results(f"Chunks related to {args.file_path}:{args.line}", results)
-        print(json.dumps(out))
-
-    _maybe_save_index(index, args.path, creation_time)
+        _run_find_related(
+            args.path, args.file_path, args.line, args.top_k, _resolve_content(args.content, args.include_text_files)
+        )

@@ -215,18 +215,35 @@ def test_index_via_cli(path: str, mock_target: str, tmp_path: Path, monkeypatch:
     fake_index.save.assert_called_once_with(expected_cache_path)
 
 
-def test_cli_search_with_prebuilt_index(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """Search returns results correctly when the index is loaded from cache."""
-    chunk = make_chunk("def foo(): pass", "src/foo.py")
+def test_index_already_up_to_date(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Index command prints 'up to date' when the index was loaded from disk (cache hit)."""
     fake_index = MagicMock()
     fake_index.loaded_from_disk = True
-    fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.95)]
-    monkeypatch.setattr(sys, "argv", ["semble", "search", "query text", "."])
+    monkeypatch.setattr(sys, "argv", ["semble", "index", "/some/path"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         _cli_main()
-    out = capsys.readouterr().out
-    assert "query text" in out
-    assert "0.95" in out
+    assert "up to date" in capsys.readouterr().out
+    fake_index.save.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("command", "argv"),
+    [
+        ("index", ["semble", "index", "/no/such/path"]),
+        ("search", ["semble", "search", "query", "/no/such/path"]),
+        ("find-related", ["semble", "find-related", "src/foo.py", "1", "/no/such/path"]),
+    ],
+)
+def test_cli_path_not_found(
+    command: str, argv: list[str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """index, search, and find-related exit 1 with a friendly message when the path does not exist."""
+    monkeypatch.setattr(sys, "argv", argv)
+    with patch("semble.cli._build_index", side_effect=FileNotFoundError("Path does not exist: /no/such/path")):
+        with pytest.raises(SystemExit) as exc_info:
+            _cli_main()
+    assert exc_info.value.code == 1
+    assert "Path does not exist" in capsys.readouterr().err
 
 
 def test_include_text_files_cli_deprecated(

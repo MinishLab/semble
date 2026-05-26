@@ -67,26 +67,21 @@ def test_cache_dir_no_env(fn: object, expected_rel: Path) -> None:
             assert fn("semble") == home / expected_rel  # type: ignore[operator]
 
 
-def test_resolve_cache_folder_windows() -> None:
-    """resolve_cache_folder calls _windows_cache_dir on win32."""
-    with patch.object(sys, "platform", "win32"):
-        with patch("semble.cache._windows_cache_dir", return_value=Path("/win")) as mock_win:
-            with patch("semble.cache._linux_cache_dir", return_value=Path("/linux")) as mock_linux:
-                with patch("pathlib.Path.mkdir"):
-                    result = resolve_cache_folder()
-    mock_win.assert_called_once_with("semble")
-    mock_linux.assert_called_once_with("semble")
-    assert result == Path("/linux")
-
-
-def test_resolve_cache_folder_linux() -> None:
-    """resolve_cache_folder calls _linux_cache_dir on non-darwin platforms."""
-    with patch.object(sys, "platform", "linux"):
-        with patch("semble.cache._linux_cache_dir", return_value=Path("/linux")) as mock_linux:
+@pytest.mark.parametrize(
+    ("platform", "mock_target", "expected"),
+    [
+        ("win32", "semble.cache._windows_cache_dir", Path("/win")),
+        ("linux", "semble.cache._linux_cache_dir", Path("/linux")),
+    ],
+)
+def test_resolve_cache_folder(platform: str, mock_target: str, expected: Path) -> None:
+    """resolve_cache_folder calls the correct platform helper."""
+    with patch.object(sys, "platform", platform):
+        with patch(mock_target, return_value=expected) as mock_fn:
             with patch("pathlib.Path.mkdir"):
                 result = resolve_cache_folder()
-    mock_linux.assert_called_once_with("semble")
-    assert result == Path("/linux")
+    mock_fn.assert_called_once_with("semble")
+    assert result == expected
 
 
 def test_clear_cache(tmp_path: Path) -> None:
@@ -100,13 +95,28 @@ def test_clear_cache(tmp_path: Path) -> None:
     assert not index_path.exists()
 
 
-def _write_metadata(path: Path, model_path: str, content_type: list[str], write_time: float) -> None:
+def _write_metadata(
+    path: Path,
+    model_path: str,
+    content_type: list[str],
+    write_time: float,
+    file_paths: list[str] | None = None,
+    extensions: list[str] | None = None,
+) -> None:
     path.mkdir(parents=True, exist_ok=True)
     (path / "chunks.json").write_text("[]")
     (path / "bm25_index").write_text("")
     (path / "semantic_index").write_text("")
     (path / "metadata.json").write_text(
-        json.dumps({"model_path": model_path, "content_type": content_type, "time": write_time})
+        json.dumps(
+            {
+                "model_path": model_path,
+                "content_type": content_type,
+                "time": write_time,
+                "file_paths": file_paths if file_paths is not None else [],
+                "extensions": extensions,
+            }
+        )
     )
 
 
@@ -173,13 +183,55 @@ def test_get_validated_cache_mtime(
 ) -> None:
     """Returns None when a tracked file is newer than the index; the path otherwise."""
     index_path = tmp_path / "index"
-    _write_metadata(index_path, "my/model", ["code"], write_time)
     stale_file = tmp_path / "src.py"
     stale_file.write_text("x = 1")
     files = [stale_file] if walk_result == "stale" else walk_result
+    # Include the file in stored manifest so manifest check passes and mtime check fires.
+    stored_files = ["src.py"] if walk_result == "stale" else []
+    _write_metadata(index_path, "my/model", ["code"], write_time, file_paths=stored_files)
 
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.get_extensions", return_value={".py"}):
             with patch("semble.cache.walk_files", return_value=files):
                 result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
     assert result == (index_path if expected == "index" else None)
+
+
+@pytest.mark.parametrize(
+    ("stored_extensions", "req_extensions"),
+    [
+        (None, [".py"]),  # stored without custom ext, requested with → mismatch
+        ([".py"], None),  # stored with custom ext, requested without → mismatch
+        ([".py"], [".ts"]),  # different custom extensions → mismatch
+    ],
+)
+def test_get_validated_cache_extensions_mismatch(
+    stored_extensions: list[str] | None,
+    req_extensions: list[str] | None,
+    tmp_path: Path,
+) -> None:
+    """Returns None when stored extensions don't match the requested extensions."""
+    index_path = tmp_path / "index"
+    _write_metadata(index_path, "my/model", ["code"], float("inf"), extensions=stored_extensions)
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE], req_extensions) is None
+
+
+@pytest.mark.parametrize(
+    ("stored_files", "current_files"),
+    [
+        (["deleted.py"], []),  # file deleted since indexing
+        ([], ["new.py"]),  # new file added since indexing
+    ],
+)
+def test_get_validated_cache_manifest_mismatch(
+    stored_files: list[str], current_files: list[str], tmp_path: Path
+) -> None:
+    """Returns None when the current file set differs from the stored manifest."""
+    index_path = tmp_path / "index"
+    walk_return = [tmp_path / f for f in current_files]
+    _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=stored_files)
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        with patch("semble.cache.walk_files", return_value=walk_return):
+            result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
+    assert result is None

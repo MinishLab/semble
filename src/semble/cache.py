@@ -49,7 +49,7 @@ def resolve_cache_folder() -> Path:
     name = "semble"
     if sys.platform == "win32":
         cache_dir = _windows_cache_dir(name)
-    if sys.platform == "darwin":
+    elif sys.platform == "darwin":
         cache_dir = _macos_cache_dir(name)
     else:
         cache_dir = _linux_cache_dir(name)
@@ -61,11 +61,25 @@ def resolve_cache_folder() -> Path:
 def clear_cache(path: str) -> None:
     """Clears the cache for the given path."""
     index_path = find_index_from_cache_folder(path)
-    if index_path and index_path.exists():
+    if index_path.exists():
         shutil.rmtree(index_path)
 
 
-def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:
+def _metadata_matches(
+    metadata: dict, model_path: str, content: Sequence[ContentType], extensions: list[str] | None
+) -> bool:
+    """Return True if the stored metadata is compatible with the requested parameters."""
+    content_type = tuple(ContentType(s) for s in metadata["content_type"])
+    return (
+        metadata["model_path"] == model_path
+        and set(content_type) == set(content)
+        and metadata.get("extensions") == extensions
+    )
+
+
+def get_validated_cache(
+    path: str, model_path: str | None, content: Sequence[ContentType], extensions: list[str] | None = None
+) -> Path | None:
     """Validates the cache folder and returns the index path."""
     index_path = find_index_from_cache_folder(path)
     if not index_path.exists():
@@ -75,28 +89,28 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
     if persistence_path.non_existing():
         return None
 
-    with open(persistence_path.metadata) as f:
-        metadata = json.load(f)
-    model_path_from_index = metadata["model_path"]
     if model_path is None:
         model_path = resolve_model_name()
-    if model_path_from_index != model_path:
-        return None
-
-    content_type_strings: list[str] = metadata["content_type"]
-
-    content_type = tuple(ContentType(string) for string in content_type_strings)
-    if set(content_type) != set(content):
+    with open(persistence_path.metadata) as f:
+        metadata = json.load(f)
+    if not _metadata_matches(metadata, model_path, content, extensions):
         return None
 
     if is_git_url(str(path)):
         return index_path
 
     write_time = metadata["time"]
-    extensions = get_extensions(content_type, None)
+    resolved_extensions = extensions if extensions is not None else get_extensions(list(content), None)
 
     path_as_path = Path(path)
-    for file_path in walk_files(path_as_path, extensions=extensions):
+    current_files = sorted(
+        str(f.relative_to(path_as_path)) for f in walk_files(path_as_path, extensions=resolved_extensions)
+    )
+    stored_files: list[str] = metadata.get("file_paths", [])
+    if current_files != stored_files:
+        return None
+
+    for file_path in walk_files(path_as_path, extensions=resolved_extensions):
         st = file_path.stat()
         if st.st_mtime > write_time:
             return None

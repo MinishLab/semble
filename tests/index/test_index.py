@@ -219,10 +219,11 @@ def test_from_path_uses_cache_when_valid(tmp_project: Path) -> None:
     assert result is fake_cached
 
 
-def test_from_git_uses_cache_when_valid() -> None:
-    """from_git returns the cached index directly when get_validated_cache hits."""
+@pytest.mark.parametrize("ref", [None, "v1.0"])
+def test_from_git_uses_cache_when_valid(ref: str | None) -> None:
+    """from_git uses the cache for both URL-only and URL@ref cache keys."""
     fake_cached = MagicMock(spec=SembleIndex)
     with patch("semble.index.index.get_validated_cache", return_value=Path("/cache")):
         with patch.object(SembleIndex, "load_from_disk", return_value=fake_cached):
-            result = SembleIndex.from_git("https://github.com/org/repo.git")
+            result = SembleIndex.from_git("https://github.com/org/repo.git", ref=ref)
     assert result is fake_cached

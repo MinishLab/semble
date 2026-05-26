@@ -16,8 +16,8 @@ from benchmarks.data import (
 )
 from benchmarks.metrics import ndcg_at_k, target_rank
 from semble import SembleIndex
-from semble.index.dense import DEFAULT_MODEL_NAME
 from semble.types import SearchResult
+from semble.utils import DEFAULT_MODEL_NAME
 
 _LATENCY_RUNS = 5
 _DIRECT_TOP_K = 10

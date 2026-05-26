@@ -18,6 +18,7 @@ from model2vec.model import StaticModel
 from semble.cache import get_validated_cache
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
+from semble.index.files import get_extensions
 from semble.index.types import PersistencePath
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
@@ -59,6 +60,7 @@ class SembleIndex:
         root: Path | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         loaded_from_disk: bool = False,
+        extensions: list[str] | None = None,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -69,6 +71,8 @@ class SembleIndex:
         :param model_path: Path to the model file.
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
+        :param loaded_from_disk: Whether the index was loaded from disk (cache hit); controls CLI messaging.
+        :param extensions: File extensions included in the index, or None if not applicable.
         """
         self.model = model
         self.chunks: list[Chunk] = chunks
@@ -77,6 +81,7 @@ class SembleIndex:
         self._model_path: str = model_path
         self._root: Path | None = root
         self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
+        self._extensions: list[str] | None = extensions
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
@@ -146,7 +151,8 @@ class SembleIndex:
             raise NotADirectoryError(f"Path is not a directory: {path}")
 
         normalized = _apply_include_text_files(content, include_text_files)
-        cache_path = get_validated_cache(str(path), model_path, normalized)
+        resolved_extensions = get_extensions(normalized, extensions)
+        cache_path = get_validated_cache(str(path), model_path, normalized, resolved_extensions)
         if cache_path:
             return cls.load_from_disk(cache_path)
         model, model_path = load_model(model_path)
@@ -160,7 +166,9 @@ class SembleIndex:
             display_root=path,
         )
 
-        return SembleIndex(model, bm25, vicinity, chunks, model_path, root=path, content=normalized)
+        return SembleIndex(
+            model, bm25, vicinity, chunks, model_path, root=path, content=normalized, extensions=resolved_extensions
+        )
 
     @classmethod
     def from_git(
@@ -188,9 +196,10 @@ class SembleIndex:
         :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
-        path = f"{url}@{ref}" if ref else url
         normalized = _apply_include_text_files(content, include_text_files)
-        cache_path = get_validated_cache(path, model_path, normalized)
+        resolved_extensions = get_extensions(normalized, extensions)
+        cache_key = f"{url}@{ref}" if ref else url
+        cache_path = get_validated_cache(cache_key, model_path, normalized, resolved_extensions)
         if cache_path:
             return cls.load_from_disk(cache_path)
 
@@ -218,7 +227,16 @@ class SembleIndex:
                 display_root=resolved_path,
             )
 
-            return SembleIndex(model, bm25, vicinity, chunks, model_path, root=resolved_path, content=normalized)
+            return SembleIndex(
+                model,
+                bm25,
+                vicinity,
+                chunks,
+                model_path,
+                root=resolved_path,
+                content=normalized,
+                extensions=resolved_extensions,
+            )
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically similar to the given chunk or search result.
@@ -313,12 +331,22 @@ class SembleIndex:
             chunks.append(Chunk.from_dict(chunk_item))
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]
+        extensions = metadata.get("extensions")
         if root_path:
             root_path = Path(root_path)
 
         model, model_path = load_model(model_path)
 
-        return cls(model, bm_25_index, semantic_index, chunks, model_path, root=root_path, loaded_from_disk=True)
+        return cls(
+            model,
+            bm_25_index,
+            semantic_index,
+            chunks,
+            model_path,
+            root=root_path,
+            loaded_from_disk=True,
+            extensions=extensions,
+        )
 
     def save(self, path: Path | str) -> None:
         """Save the index to disk."""
@@ -334,11 +362,14 @@ class SembleIndex:
             data = orjson.dumps(chunks_as_dict)
             f.write(data)
         root_str = None if self._root is None else str(self._root)
+        file_paths = sorted({chunk.file_path for chunk in self.chunks})
         metadata = {
             "root_path": root_str,
             "time": datetime.now().timestamp(),
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
+            "extensions": self._extensions,
+            "file_paths": file_paths,
         }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
