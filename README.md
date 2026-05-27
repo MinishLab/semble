@@ -405,6 +405,31 @@ semble find-related src/auth.py 42 ./my-project
 `--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
 <details>
+<summary>Controlling which files are indexed</summary>
+
+Semble reads `.gitignore` and `.sembleignore` files to determine which files to index. Both files use standard gitignore syntax and their patterns are merged. `.sembleignore` lets you add semble-specific rules without touching `.gitignore`. Rules are applied recursively, so a `.sembleignore` in a subdirectory applies to that subtree.
+
+**Excluding files:** add patterns the same way you would in `.gitignore`:
+
+```
+# .sembleignore
+generated/     # exclude generated dir
+*.pb.go.       # exclude Go protobuf files
+```
+
+**Including non-default extensions:** prefix the extension pattern with `!` to force-include files that semble wouldn't index by default:
+
+```
+# .sembleignore
+!*.proto       # include Protobuf files
+!*.cob         # include COBOL files
+```
+
+Semble also always skips a set of well-known non-source directories regardless of ignore files (e.g. `node_modules/`, `.venv/`, `dist/`, `build/`, `__pycache__/`, and similar).
+
+</details>
+
+<details>
 <summary>Savings</summary>
 
 `semble savings` shows how many tokens semble has saved across all your searches:
