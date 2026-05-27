@@ -176,6 +176,7 @@ class _IndexCache:
         return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
     def _build_and_cache_index(self, source: str, ref: str | None, model_path: str, cache_key: str) -> SembleIndex:
+        """Build an index for the given source and cache it."""
         index = (
             SembleIndex.from_git(source, ref=ref, model_path=model_path, content=self._content)
             if is_git_url(source)
