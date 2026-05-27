@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -14,6 +14,7 @@ from semble.cache import (
     find_index_from_cache_folder,
     get_validated_cache,
     resolve_cache_folder,
+    save_index_to_cache,
 )
 from semble.types import ContentType
 
@@ -65,6 +66,14 @@ def test_cache_dir_no_env(fn: object, expected_rel: Path) -> None:
     with patch.dict("os.environ", {}, clear=True):
         with patch("pathlib.Path.home", return_value=home):
             assert fn("semble") == home / expected_rel  # type: ignore[operator]
+
+
+def test_save_index_to_cache(tmp_path: Path) -> None:
+    """A freshly built index is saved under its cache key."""
+    index = MagicMock(loaded_from_disk=False)
+    with patch("semble.cache.find_index_from_cache_folder", return_value=tmp_path / "index"):
+        save_index_to_cache(index, "repo")
+    index.save.assert_called_once_with(tmp_path / "index")
 
 
 @pytest.mark.parametrize(

@@ -5,6 +5,7 @@ import shutil
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 from semble.index.file_walker import walk_files
 from semble.index.files import FileStatus, get_extensions, get_file_status
@@ -63,6 +64,12 @@ def clear_cache(path: str) -> None:
     index_path = find_index_from_cache_folder(path)
     if index_path.exists():
         shutil.rmtree(index_path)
+
+
+def save_index_to_cache(index: Any, path: str) -> None:
+    """Save an index to the cache folder if it was freshly built."""
+    if not index.loaded_from_disk:
+        index.save(find_index_from_cache_folder(path))
 
 
 def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:

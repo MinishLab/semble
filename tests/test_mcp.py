@@ -118,12 +118,16 @@ async def test_index_cache_builds_and_caches(
     """_IndexCache.get() builds via the correct SembleIndex.* entrypoint and caches subsequent calls."""
     resolved_source = str(tmp_path) if source == "local_tmp_path" else source
     fake_index = MagicMock()
-    with patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=fake_index) as mock_build:
+    with (
+        patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=fake_index) as mock_build,
+        patch("semble.mcp.save_index_to_cache") as mock_save,
+    ):
         first = await cache.get(resolved_source)
         second = await cache.get(resolved_source)
     assert first is fake_index
     assert second is fake_index
     mock_build.assert_called_once()
+    mock_save.assert_called_once_with(fake_index, cache._compute_cache_key(resolved_source))
 
 
 @pytest.mark.anyio
@@ -144,6 +148,17 @@ async def test_index_cache_evicts_on_failure(cache: _IndexCache, tmp_path: Path)
         result = await cache.get(str(tmp_path))
     assert result is not None
     assert call_count == 2
+
+
+@pytest.mark.anyio
+async def test_index_cache_ignores_cache_save_failure(cache: _IndexCache, tmp_path: Path) -> None:
+    """A cache save failure must not fail the MCP request."""
+    fake_index = MagicMock()
+    with (
+        patch("semble.mcp.SembleIndex.from_path", return_value=fake_index),
+        patch("semble.mcp.save_index_to_cache", side_effect=RuntimeError("save failed")),
+    ):
+        assert await cache.get(str(tmp_path)) is fake_index
 
 
 @pytest.mark.anyio

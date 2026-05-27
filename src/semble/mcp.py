@@ -12,6 +12,7 @@ import watchfiles
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
+from semble.cache import save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import ContentType
@@ -174,6 +175,18 @@ class _IndexCache:
         is_git = is_git_url(source)
         return (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
 
+    def _build_and_cache_index(self, source: str, ref: str | None, model_path: str, cache_key: str) -> SembleIndex:
+        index = (
+            SembleIndex.from_git(source, ref=ref, model_path=model_path, content=self._content)
+            if is_git_url(source)
+            else SembleIndex.from_path(cache_key, model_path=model_path, content=self._content)
+        )
+        try:
+            save_index_to_cache(index, cache_key)
+        except Exception:
+            logger.warning("Failed to save index cache for %r", cache_key, exc_info=True)
+        return index
+
     def evict(self, source: str) -> None:
         self._tasks.pop(self._compute_cache_key(source), None)
 
@@ -203,25 +216,9 @@ class _IndexCache:
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
                     self._tasks.popitem(last=False)
-                if is_git_url(source):
-                    self._tasks[cache_key] = asyncio.create_task(
-                        asyncio.to_thread(
-                            SembleIndex.from_git,
-                            source,
-                            ref=ref,
-                            model_path=model_path,
-                            content=self._content,
-                        )
-                    )
-                else:
-                    self._tasks[cache_key] = asyncio.create_task(
-                        asyncio.to_thread(
-                            SembleIndex.from_path,
-                            cache_key,
-                            model_path=model_path,
-                            content=self._content,
-                        )
-                    )
+                self._tasks[cache_key] = asyncio.create_task(
+                    asyncio.to_thread(self._build_and_cache_index, source, ref, model_path, cache_key)
+                )
         self._tasks.move_to_end(cache_key)
         task = self._tasks[cache_key]
         try:

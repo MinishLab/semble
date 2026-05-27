@@ -6,7 +6,7 @@ from pathlib import Path
 from semble.types import ContentType
 
 _MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
-_EMPTY_FILE_BYTES = 10
+_EMPTY_FILE_BYTES = 128
 _EXTENSION_TO_LANGUAGE = {
     ".4th": "forth",
     ".ada": "ada",
