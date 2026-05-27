@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from semble.index.file_walker import walk_files
-from semble.index.files import get_extensions
+from semble.index.files import FileStatus, get_extensions, get_file_status
 from semble.index.types import PersistencePath
 from semble.types import ContentType
 from semble.utils import is_git_url, resolve_model_name
@@ -101,10 +101,14 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
     stored_files: list[str] = metadata.get("file_paths", [])
     current_files = []
     for file_path in walk_files(path_as_path, extensions=extensions):
-        current_files.append(str(file_path.relative_to(path_as_path)))
-        if file_path.stat().st_mtime > write_time:
+        file_status = get_file_status(file_path, write_time)
+        if file_status == FileStatus.NEWER:
             return None
-    if sorted(current_files) != stored_files:
+        if file_status != FileStatus.VALID:
+            continue
+        current_files.append(str(file_path.relative_to(path_as_path)))
+
+    if set(current_files) != set(stored_files):
         return None
 
     return index_path

@@ -6,7 +6,8 @@ import pytest
 from model2vec import StaticModel
 
 from semble import SembleIndex
-from semble.index.create import _MAX_FILE_BYTES, create_index_from_path
+from semble.index.create import create_index_from_path
+from semble.index.files import _MAX_FILE_BYTES
 from semble.types import ContentType
 from tests.conftest import make_chunk
 

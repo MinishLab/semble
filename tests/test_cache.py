@@ -223,7 +223,8 @@ def test_get_validated_cache_manifest_mismatch(
     walk_return = []
     for f in current_files:
         p = tmp_path / f
-        p.write_text("")
+        # Make sure file is not empty
+        p.write_text("a")
         walk_return.append(p)
     _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=stored_files)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
