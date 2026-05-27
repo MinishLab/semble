@@ -20,7 +20,6 @@ _MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
 def create_index_from_path(
     path: Path,
     model: StaticModel,
-    extensions: Sequence[str] | None = None,
     content: ContentType | Sequence[ContentType] = (ContentType.CODE,),
     display_root: Path | None = None,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
@@ -28,7 +27,6 @@ def create_index_from_path(
 
     :param path: Resolved absolute path to index.
     :param model: The model to use for indexing.
-    :param extensions: File extensions to include.
     :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
     :raises ValueError: if no items were found, no index can be created.
@@ -36,7 +34,7 @@ def create_index_from_path(
     """
     chunks: list[Chunk] = []
     normalized = (content,) if isinstance(content, ContentType) else content
-    resolved_extensions = get_extensions(normalized, extensions)
+    resolved_extensions = get_extensions(normalized)
     for file_path in walk_files(path, resolved_extensions):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):

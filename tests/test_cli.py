@@ -196,39 +196,8 @@ def test_mcp_main_exits_with_message_when_extras_missing(
 
 
 @pytest.mark.parametrize(
-    ("path", "mock_target"),
-    [
-        ("/some/path", "semble.cli.SembleIndex.from_path"),
-        ("git://xyz.git", "semble.cli.SembleIndex.from_git"),
-    ],
-)
-def test_index_via_cli(path: str, mock_target: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Index command builds an index and saves it to the cache folder (local and git)."""
-    fake_index = MagicMock()
-    fake_index.loaded_from_disk = False
-    expected_cache_path = tmp_path / "hash" / "index"
-    monkeypatch.setattr(sys, "argv", ["semble", "index", path])
-    with patch(mock_target, return_value=fake_index):
-        with patch("semble.cli.find_index_from_cache_folder", return_value=expected_cache_path):
-            _cli_main()
-    fake_index.save.assert_called_once_with(expected_cache_path)
-
-
-def test_index_already_up_to_date(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """Index command prints 'up to date' when the index was loaded from disk (cache hit)."""
-    fake_index = MagicMock()
-    fake_index.loaded_from_disk = True
-    monkeypatch.setattr(sys, "argv", ["semble", "index", "/some/path"])
-    with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
-        _cli_main()
-    assert "up to date" in capsys.readouterr().out
-    fake_index.save.assert_not_called()
-
-
-@pytest.mark.parametrize(
     ("command", "argv"),
     [
-        ("index", ["semble", "index", "/no/such/path"]),
         ("search", ["semble", "search", "query", "/no/such/path"]),
         ("find-related", ["semble", "find-related", "src/foo.py", "1", "/no/such/path"]),
     ],

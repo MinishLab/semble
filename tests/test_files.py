@@ -41,7 +41,7 @@ def test_language_sets_are_consistent() -> None:
 )
 def test_get_extensions(types: list[ContentType], includes: list[str], excludes: list[str]) -> None:
     """get_extensions returns the right extensions for each combination of content types."""
-    exts = set(get_extensions(types, None))
+    exts = set(get_extensions(types))
     for ext in includes:
         assert ext in exts
     for ext in excludes:
@@ -50,17 +50,6 @@ def test_get_extensions(types: list[ContentType], includes: list[str], excludes:
 
 def test_all_excludes_data_extensions() -> None:
     """--content all does not include data file extensions (csv, json, tsv, psv)."""
-    all_exts = set(get_extensions(list(ContentType), None))
+    all_exts = set(get_extensions(list(ContentType)))
     for ext in (".csv", ".tsv", ".psv", ".json", ".json5"):
         assert ext not in all_exts, f"{ext} should not be indexed by 'all'"
-
-
-def test_get_extensions_additional() -> None:
-    """Extra extensions are appended and existing ones are not duplicated."""
-    base = get_extensions(list(ContentType), None)
-    with_extra = get_extensions(list(ContentType), [".kjs"])
-    assert set(with_extra) == set(base) | {".kjs"}
-
-    base_code = get_extensions([ContentType.CODE], None)
-    with_existing = get_extensions([ContentType.CODE], [".py"])
-    assert set(with_existing) == set(base_code)

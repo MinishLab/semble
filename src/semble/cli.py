@@ -128,21 +128,6 @@ def _resolve_content(content: list[str], include_text_files: bool) -> list[Conte
     return [ContentType(c) for c in content]
 
 
-def _run_index(path: str, content: list[ContentType]) -> None:
-    """Handle the `index` subcommand."""
-    try:
-        index = _build_index(path, content)
-    except FileNotFoundError as e:
-        print(str(e), file=sys.stderr)
-        sys.exit(1)
-    if not index.loaded_from_disk:
-        cache_folder = find_index_from_cache_folder(path)
-        index.save(cache_folder)
-        print(f"Wrote index to `{cache_folder}`.")
-    else:
-        print("Index is already up to date.")
-
-
 def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
     """Build an index from a local path or git URL, exiting on FileNotFoundError."""
     try:
@@ -182,10 +167,6 @@ def _cli_main() -> None:
     parser = argparse.ArgumentParser(prog="semble")
     sub = parser.add_subparsers(dest="command")
 
-    index_p = sub.add_parser("index", help="Index and store a codebase.")
-    index_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
-    _add_content_args(index_p)
-
     search_p = sub.add_parser("search", help="Search a codebase.")
     search_p.add_argument("query", help="Natural language or code query.")
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
@@ -218,8 +199,6 @@ def _cli_main() -> None:
         _run_init(agent=Agent(args.agent), force=args.force)
     elif args.command == "savings":
         print(format_savings_report(verbose=args.verbose))
-    elif args.command == "index":
-        _run_index(args.path, _resolve_content(args.content, args.include_text_files))
     elif args.command == "search":
         _run_search(args.path, args.query, args.top_k, _resolve_content(args.content, args.include_text_files))
     elif args.command == "find-related":

@@ -18,8 +18,6 @@ from model2vec.model import StaticModel
 from semble.cache import get_validated_cache
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
-from semble.index.file_walker import walk_files
-from semble.index.files import get_extensions
 from semble.index.types import PersistencePath
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
@@ -61,7 +59,6 @@ class SembleIndex:
         root: Path | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         loaded_from_disk: bool = False,
-        file_manifest: list[str] | None = None,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -73,7 +70,6 @@ class SembleIndex:
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
         :param loaded_from_disk: Whether the index was loaded from disk (cache hit); controls CLI messaging.
-        :param file_manifest: Sorted repo-relative paths of all walked files at index time, used for cache invalidation.
         """
         self.model = model
         self.chunks: list[Chunk] = chunks
@@ -82,7 +78,6 @@ class SembleIndex:
         self._model_path: str = model_path
         self._root: Path | None = root
         self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
-        self._file_manifest: list[str] | None = file_manifest
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
@@ -156,8 +151,6 @@ class SembleIndex:
         model, model_path = load_model(model_path)
 
         path = path.resolve()
-        extensions = get_extensions(normalized, None)
-        file_manifest = sorted(str(f.relative_to(path)) for f in walk_files(path, extensions=extensions))
         bm25, vicinity, chunks = create_index_from_path(
             path,
             model=model,
@@ -165,9 +158,7 @@ class SembleIndex:
             display_root=path,
         )
 
-        return SembleIndex(
-            model, bm25, vicinity, chunks, model_path, root=path, content=normalized, file_manifest=file_manifest
-        )
+        return SembleIndex(model, bm25, vicinity, chunks, model_path, root=path, content=normalized)
 
     @classmethod
     def from_git(
@@ -215,10 +206,6 @@ class SembleIndex:
 
             model, model_path = load_model(model_path)
             resolved_path = Path(tmp_dir).resolve()
-            extensions = get_extensions(normalized, None)
-            file_manifest = sorted(
-                str(f.relative_to(resolved_path)) for f in walk_files(resolved_path, extensions=extensions)
-            )
             bm25, vicinity, chunks = create_index_from_path(
                 resolved_path,
                 model=model,
@@ -234,7 +221,6 @@ class SembleIndex:
                 model_path,
                 root=resolved_path,
                 content=normalized,
-                file_manifest=file_manifest,
             )
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
@@ -331,7 +317,6 @@ class SembleIndex:
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]
         content = tuple(ContentType(s) for s in metadata.get("content_type", ["code"]))
-        file_manifest = metadata.get("file_paths")
         if root_path:
             root_path = Path(root_path)
 
@@ -346,7 +331,6 @@ class SembleIndex:
             root=root_path,
             content=content,
             loaded_from_disk=True,
-            file_manifest=file_manifest,
         )
 
     def save(self, path: Path | str) -> None:
@@ -368,7 +352,7 @@ class SembleIndex:
             "time": datetime.now().timestamp(),
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
-            "file_paths": self._file_manifest if self._file_manifest is not None else [],
+            "file_paths": sorted(self._file_mapping),
         }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
