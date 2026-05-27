@@ -9,7 +9,7 @@ from vicinity.backends.basic import BasicArgs
 from semble.chunking import chunk_source
 from semble.index.dense import SelectableBasicBackend, embed_chunks
 from semble.index.file_walker import walk_files
-from semble.index.files import detect_language, get_extensions, get_file_status
+from semble.index.files import FileStatus, detect_language, get_extensions, get_file_status
 from semble.index.sparse import enrich_for_bm25
 from semble.tokens import tokenize
 from semble.types import Chunk, ContentType
@@ -37,7 +37,7 @@ def create_index_from_path(
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
             file_status = get_file_status(file_path, None)
-            if file_status != file_status.VALID:
+            if file_status != FileStatus.VALID:
                 continue
             source = file_path.read_text(encoding="utf-8", errors="replace")
             chunk_path = file_path.relative_to(display_root) if display_root else file_path

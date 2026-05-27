@@ -383,9 +383,6 @@ If semble is not on `$PATH`, prefix the command with `uvx --from "semble[mcp]"`.
 Semble also ships as a standalone CLI. This is useful in scripts or anywhere you want search results without an MCP session.
 
 ```bash
-# Pre-build the cache for a local repository (optional — search builds it automatically)
-semble index ./my-project
-
 # Search a local repo (index is built and cached automatically)
 semble search "authentication flow" ./my-project
 

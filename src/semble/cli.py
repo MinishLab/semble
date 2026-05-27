@@ -27,7 +27,7 @@ class Agent(str, Enum):
 
 
 _DEFAULT_AGENT = Agent.CLAUDE
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help", "index"})
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help"})
 
 
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:

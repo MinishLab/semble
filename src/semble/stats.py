@@ -10,7 +10,10 @@ from semble.types import CallType, SearchResult
 
 logger = logging.getLogger(__name__)
 
-_STATS_FILE = resolve_cache_folder() / "savings.jsonl"
+
+def _get_stats_file() -> Path:
+    """Safely create a stats file."""
+    return resolve_cache_folder() / "savings.jsonl"
 
 
 @dataclass
@@ -53,15 +56,18 @@ def save_search_stats(
             "snippet_chars": snippet_chars,
             "file_chars": file_chars,
         }
-        _STATS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with _STATS_FILE.open("a") as f:
+        stats_file = _get_stats_file()
+        stats_file.parent.mkdir(parents=True, exist_ok=True)
+        with stats_file.open("a") as f:
             f.write(json.dumps(record) + "\n")
     except OSError:
         pass
 
 
-def build_savings_summary(path: Path = _STATS_FILE) -> SavingsSummary:
+def build_savings_summary(path: Path | None = None) -> SavingsSummary:
     """Read savings.jsonl and return a SavingsSummary."""
+    if path is None:
+        path = _get_stats_file()
     now = datetime.now(timezone.utc)
     today = now.date()
     seven_days_ago = (now - timedelta(days=7)).date()
@@ -99,7 +105,7 @@ def build_savings_summary(path: Path = _STATS_FILE) -> SavingsSummary:
 def format_savings_report(path: Path | None = None, *, verbose: bool = False) -> str:
     """Return a formatted token-savings report."""
     if path is None:
-        path = _STATS_FILE
+        path = _get_stats_file()
     if not path.exists():
         return "No stats yet. Run a search first."
 
