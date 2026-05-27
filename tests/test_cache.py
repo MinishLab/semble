@@ -101,7 +101,6 @@ def _write_metadata(
     content_type: list[str],
     write_time: float,
     file_paths: list[str] | None = None,
-    extensions: list[str] | None = None,
 ) -> None:
     path.mkdir(parents=True, exist_ok=True)
     (path / "chunks.json").write_text("[]")
@@ -114,7 +113,6 @@ def _write_metadata(
                 "content_type": content_type,
                 "time": write_time,
                 "file_paths": file_paths if file_paths is not None else [],
-                "extensions": extensions,
             }
         )
     )
@@ -195,26 +193,6 @@ def test_get_validated_cache_mtime(
             with patch("semble.cache.walk_files", return_value=files):
                 result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
     assert result == (index_path if expected == "index" else None)
-
-
-@pytest.mark.parametrize(
-    ("stored_extensions", "req_extensions"),
-    [
-        (None, [".py"]),  # stored without custom ext, requested with → mismatch
-        ([".py"], None),  # stored with custom ext, requested without → mismatch
-        ([".py"], [".ts"]),  # different custom extensions → mismatch
-    ],
-)
-def test_get_validated_cache_extensions_mismatch(
-    stored_extensions: list[str] | None,
-    req_extensions: list[str] | None,
-    tmp_path: Path,
-) -> None:
-    """Returns None when stored extensions don't match the requested extensions."""
-    index_path = tmp_path / "index"
-    _write_metadata(index_path, "my/model", ["code"], float("inf"), extensions=stored_extensions)
-    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", "my/model", [ContentType.CODE], req_extensions) is None
 
 
 @pytest.mark.parametrize(

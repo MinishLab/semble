@@ -210,8 +210,7 @@ def test_index_via_cli(path: str, mock_target: str, tmp_path: Path, monkeypatch:
     monkeypatch.setattr(sys, "argv", ["semble", "index", path])
     with patch(mock_target, return_value=fake_index):
         with patch("semble.cli.find_index_from_cache_folder", return_value=expected_cache_path):
-            with patch("semble.cli.time.time", side_effect=[0.0, 2.0]):
-                _cli_main()
+            _cli_main()
     fake_index.save.assert_called_once_with(expected_cache_path)
 
 
@@ -297,7 +296,7 @@ def test_maybe_save_index_logs_error_on_save_failure(capsys: pytest.CaptureFixtu
     fake_index.loaded_from_disk = False
     fake_index.save.side_effect = OSError("disk full")
     with patch("semble.cli.find_index_from_cache_folder", return_value=Path("/cache")):
-        _maybe_save_index(fake_index, "/some/path", 2.0)
+        _maybe_save_index(fake_index, "/some/path")
     assert "Error saving index" in capsys.readouterr().err
 
 

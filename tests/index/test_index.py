@@ -185,6 +185,22 @@ def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
     assert index_2._root == indexed_index._root
 
 
+def test_load_save_roundtrip_preserves_manifest(tmp_path: Path, indexed_index: SembleIndex) -> None:
+    """load_from_disk followed by save must not clobber file_paths with an empty list."""
+    save_a = tmp_path / "a"
+    save_b = tmp_path / "b"
+    indexed_index.save(save_a)
+    with patch.object(StaticModel, "from_pretrained"):
+        loaded = SembleIndex.load_from_disk(save_a)
+    loaded.save(save_b)
+    import json
+
+    manifest_a = json.loads((save_a / "metadata.json").read_text())["file_paths"]
+    manifest_b = json.loads((save_b / "metadata.json").read_text())["file_paths"]
+    assert manifest_b == manifest_a
+    assert len(manifest_b) > 0
+
+
 def test_load_non_existent(tmp_path: Path, indexed_index: SembleIndex) -> None:
     """Test that saving and loading a folder leads to the same data."""
     with pytest.raises(FileNotFoundError):

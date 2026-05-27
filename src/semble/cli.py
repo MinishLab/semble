@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import json
 import sys
-import time
 import warnings
 from enum import Enum
 from importlib.resources import files
@@ -40,12 +39,9 @@ def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
     )
 
 
-def _maybe_save_index(index: SembleIndex, path: str, creation_time: float) -> None:
-    """Maybe save an index. Based on the index itself and the creation time."""
-    # If the index was not loaded from disk,
-    # the index was invalidated or it didn't exist.
-    # If the creation time of the index was < 1 second, don't save
-    if creation_time > 1.0 and not index.loaded_from_disk:
+def _maybe_save_index(index: SembleIndex, path: str) -> None:
+    """Save the index to the cache folder if it was not loaded from disk."""
+    if not index.loaded_from_disk:
         try:
             cache_folder = find_index_from_cache_folder(path)
             index.save(cache_folder)
@@ -147,29 +143,27 @@ def _run_index(path: str, content: list[ContentType]) -> None:
         print("Index is already up to date.")
 
 
-def _load_index_timed(path: str, content: list[ContentType]) -> tuple[SembleIndex, float]:
-    """Build an index and return it with the elapsed build time in seconds."""
-    start = time.time()
+def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
+    """Build an index from a local path or git URL, exiting on FileNotFoundError."""
     try:
-        index = _build_index(path, content)
+        return _build_index(path, content)
     except FileNotFoundError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
-    return index, time.time() - start
 
 
 def _run_search(path: str, query: str, top_k: int, content: list[ContentType]) -> None:
     """Handle the `search` subcommand."""
-    index, creation_time = _load_index_timed(path, content)
+    index = _load_index(path, content)
     results = index.search(query, top_k=top_k)
     out = format_results(query, results) if results else {"error": "No results found."}
     print(json.dumps(out))
-    _maybe_save_index(index, path, creation_time)
+    _maybe_save_index(index, path)
 
 
 def _run_find_related(path: str, file_path: str, line: int, top_k: int, content: list[ContentType]) -> None:
     """Handle the `find-related` subcommand."""
-    index, creation_time = _load_index_timed(path, content)
+    index = _load_index(path, content)
     chunk = resolve_chunk(index.chunks, file_path, line)
     if chunk is None:
         print(f"No chunk found at {file_path}:{line}.", file=sys.stderr)
@@ -181,7 +175,7 @@ def _run_find_related(path: str, file_path: str, line: int, top_k: int, content:
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )
     print(json.dumps(out))
-    _maybe_save_index(index, path, creation_time)
+    _maybe_save_index(index, path)
 
 
 def _cli_main() -> None:

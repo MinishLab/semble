@@ -61,7 +61,6 @@ class SembleIndex:
         root: Path | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         loaded_from_disk: bool = False,
-        extensions: list[str] | None = None,
         file_manifest: list[str] | None = None,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
@@ -74,7 +73,6 @@ class SembleIndex:
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
         :param loaded_from_disk: Whether the index was loaded from disk (cache hit); controls CLI messaging.
-        :param extensions: File extensions included in the index, or None if not applicable.
         :param file_manifest: Sorted repo-relative paths of all walked files at index time, used for cache invalidation.
         """
         self.model = model
@@ -84,7 +82,6 @@ class SembleIndex:
         self._model_path: str = model_path
         self._root: Path | None = root
         self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
-        self._extensions: list[str] | None = extensions
         self._file_manifest: list[str] | None = file_manifest
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
@@ -132,7 +129,6 @@ class SembleIndex:
     def from_path(
         cls,
         path: str | Path,
-        extensions: Sequence[str] | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
         model_path: str | None = None,
@@ -140,7 +136,6 @@ class SembleIndex:
         """Create and index a SembleIndex from a directory.
 
         :param path: Root directory to index.
-        :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param content: Content types to index, e.g. ContentType.CODE or [ContentType.CODE, ContentType.DOCS].
         :param include_text_files: Deprecated. Pass a content sequence directly instead.
         :param model_path: Path to the model to use. If None, the default model will be used.
@@ -155,32 +150,23 @@ class SembleIndex:
             raise NotADirectoryError(f"Path is not a directory: {path}")
 
         normalized = _apply_include_text_files(content, include_text_files)
-        resolved_extensions = get_extensions(normalized, extensions)
-        cache_path = get_validated_cache(str(path), model_path, normalized, resolved_extensions)
+        cache_path = get_validated_cache(str(path), model_path, normalized)
         if cache_path:
             return cls.load_from_disk(cache_path)
         model, model_path = load_model(model_path)
 
         path = path.resolve()
-        file_manifest = sorted(str(f.relative_to(path)) for f in walk_files(path, extensions=resolved_extensions))
+        extensions = get_extensions(normalized, None)
+        file_manifest = sorted(str(f.relative_to(path)) for f in walk_files(path, extensions=extensions))
         bm25, vicinity, chunks = create_index_from_path(
             path,
             model=model,
-            extensions=extensions,
             content=normalized,
             display_root=path,
         )
 
         return SembleIndex(
-            model,
-            bm25,
-            vicinity,
-            chunks,
-            model_path,
-            root=path,
-            content=normalized,
-            extensions=resolved_extensions,
-            file_manifest=file_manifest,
+            model, bm25, vicinity, chunks, model_path, root=path, content=normalized, file_manifest=file_manifest
         )
 
     @classmethod
@@ -188,7 +174,6 @@ class SembleIndex:
         cls,
         url: str,
         ref: str | None = None,
-        extensions: Sequence[str] | None = None,
         model_path: str | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
@@ -202,7 +187,6 @@ class SembleIndex:
 
         :param url: URL of the git repository to clone (any git provider).
         :param ref: Branch or tag to check out. Defaults to the remote HEAD.
-        :param extensions: File extensions to include. Defaults to a standard set of code extensions.
         :param model_path: Path to the model to use. If None, the default model will be used.
         :param content: Content types to index, e.g. (ContentType.CODE,) or (ContentType.CODE, ContentType.DOCS).
         :param include_text_files: Deprecated. Pass content=(ContentType.CODE, ContentType.DOCS, ...) instead.
@@ -210,9 +194,8 @@ class SembleIndex:
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
         normalized = _apply_include_text_files(content, include_text_files)
-        resolved_extensions = get_extensions(normalized, extensions)
         cache_key = f"{url}@{ref}" if ref else url
-        cache_path = get_validated_cache(cache_key, model_path, normalized, resolved_extensions)
+        cache_path = get_validated_cache(cache_key, model_path, normalized)
         if cache_path:
             return cls.load_from_disk(cache_path)
 
@@ -232,13 +215,13 @@ class SembleIndex:
 
             model, model_path = load_model(model_path)
             resolved_path = Path(tmp_dir).resolve()
+            extensions = get_extensions(normalized, None)
             file_manifest = sorted(
-                str(f.relative_to(resolved_path)) for f in walk_files(resolved_path, extensions=resolved_extensions)
+                str(f.relative_to(resolved_path)) for f in walk_files(resolved_path, extensions=extensions)
             )
             bm25, vicinity, chunks = create_index_from_path(
                 resolved_path,
                 model=model,
-                extensions=extensions,
                 content=normalized,
                 display_root=resolved_path,
             )
@@ -251,7 +234,6 @@ class SembleIndex:
                 model_path,
                 root=resolved_path,
                 content=normalized,
-                extensions=resolved_extensions,
                 file_manifest=file_manifest,
             )
 
@@ -348,7 +330,6 @@ class SembleIndex:
             chunks.append(Chunk.from_dict(chunk_item))
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]
-        extensions = metadata.get("extensions")
         content = tuple(ContentType(s) for s in metadata.get("content_type", ["code"]))
         file_manifest = metadata.get("file_paths")
         if root_path:
@@ -365,7 +346,6 @@ class SembleIndex:
             root=root_path,
             content=content,
             loaded_from_disk=True,
-            extensions=extensions,
             file_manifest=file_manifest,
         )
 
@@ -388,7 +368,6 @@ class SembleIndex:
             "time": datetime.now().timestamp(),
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
-            "extensions": self._extensions,
             "file_paths": self._file_manifest if self._file_manifest is not None else [],
         }
         with open(persistence_paths.metadata, "wb") as f:

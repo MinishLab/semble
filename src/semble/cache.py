@@ -65,21 +65,13 @@ def clear_cache(path: str) -> None:
         shutil.rmtree(index_path)
 
 
-def _metadata_matches(
-    metadata: dict, model_path: str, content: Sequence[ContentType], extensions: list[str] | None
-) -> bool:
+def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:
     """Return True if the stored metadata is compatible with the requested parameters."""
     content_type = tuple(ContentType(s) for s in metadata["content_type"])
-    return (
-        metadata["model_path"] == model_path
-        and set(content_type) == set(content)
-        and metadata.get("extensions") == extensions
-    )
+    return metadata["model_path"] == model_path and set(content_type) == set(content)
 
 
-def get_validated_cache(
-    path: str, model_path: str | None, content: Sequence[ContentType], extensions: list[str] | None = None
-) -> Path | None:
+def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:
     """Validates the cache folder and returns the index path."""
     index_path = find_index_from_cache_folder(path)
     if not index_path.exists():
@@ -93,19 +85,19 @@ def get_validated_cache(
         model_path = resolve_model_name()
     with open(persistence_path.metadata) as f:
         metadata = json.load(f)
-    if not _metadata_matches(metadata, model_path, content, extensions):
+    if not _metadata_matches(metadata, model_path, content):
         return None
 
     if is_git_url(str(path)):
         return index_path
 
     write_time = metadata["time"]
-    resolved_extensions = extensions if extensions is not None else get_extensions(list(content), None)
+    extensions = get_extensions(list(content), None)
 
     path_as_path = Path(path)
     stored_files: list[str] = metadata.get("file_paths", [])
     current_files = []
-    for file_path in walk_files(path_as_path, extensions=resolved_extensions):
+    for file_path in walk_files(path_as_path, extensions=extensions):
         current_files.append(str(file_path.relative_to(path_as_path)))
         if file_path.stat().st_mtime > write_time:
             return None
