@@ -5,13 +5,16 @@ import shutil
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 from semble.index.file_walker import walk_files
 from semble.index.files import FileStatus, get_extensions, get_file_status
 from semble.index.types import PersistencePath
 from semble.types import ContentType
 from semble.utils import is_git_url, resolve_model_name
+
+if TYPE_CHECKING:
+    from semble.index import SembleIndex
 
 
 def find_index_from_cache_folder(path: str) -> Path:
@@ -66,7 +69,7 @@ def clear_cache(path: str) -> None:
         shutil.rmtree(index_path)
 
 
-def save_index_to_cache(index: Any, path: str) -> None:
+def save_index_to_cache(index: "SembleIndex", path: str) -> None:
     """Save an index to the cache folder if it was freshly built."""
     if not index.loaded_from_disk:
         index.save(find_index_from_cache_folder(path))
