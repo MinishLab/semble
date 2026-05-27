@@ -4,27 +4,28 @@ Thanks for your interest in semble. This document explains how contributions wor
 
 ## tl;dr
 
-- **Bug fix or typo?** Open a PR directly.
-- **New feature or behaviour change?** Open an issue first to discuss with us.
+- **Every PR must link to an existing issue.** Open an issue to discuss before writing code, then link it from your PR (e.g. `Closes #123`).
 - **AI-generated PRs** will be closed without review if they weren't discussed beforehand.
 
 ---
 
 ## Discuss before building
 
-Our libraries are small and focused by design. We care a lot about keeping it that way. Before you invest time writing code for a new feature, please open an issue describing:
+Our libraries are small and focused by design. We care a lot about keeping it that way. Before you invest time writing code, please open an issue describing:
 
 - What problem you're solving
 - Why it belongs in semble (as opposed to a wrapper or separate tool)
-- What API or behaviour change it would involve
+- What API or behaviour change it would involve, if any
 - A minimal (code) example of how it would work
 
-**PRs that add features without a prior issue will be closed.**
+This applies to small PRs (e.g. bug fixes and documentation updates) as well.  A quick issue lets us confirm the fix is wanted and aligned with how we'd want to solve it, so you don't waste time on a PR we'd need to reject or rework.
 
-## What we welcome
+**PRs without a linked issue will be closed.**
 
-- Bug fixes (with a test that reproduces the issue)
-- Documentation improvements and example fixes
+## What we generally welcome
+
+- Bug fixes (with a linked issue and a test that reproduces the issue)
+- Documentation improvements and example fixes (with a linked issue)
 
 ## What we generally won't accept
 
@@ -47,6 +48,7 @@ If you want a feature, include the things listed under "Discuss before building"
 
 Before opening a PR:
 
+- [ ] Link to an existing issue (e.g. `Closes #123`). PRs without one will be closed
 - [ ] Run `make test` and confirm all tests pass
 - [ ] Run `make lint` and `make typecheck`
 - [ ] Run `make fix` to auto-fix any lint issues

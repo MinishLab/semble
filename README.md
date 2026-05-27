@@ -18,35 +18,41 @@
 
 [Quickstart](#quickstart) •
 [MCP Server](#mcp-server) •
-[Bash / AGENTS.md](#bash-agentsmd) •
+[AGENTS.md](#agentsmd) •
 [CLI](#cli) •
 [Benchmarks](#benchmarks)
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#bash-agentsmd) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~98% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, with ~200x faster indexing and ~10x faster queries than a code-specialized transformer, at 99% of its retrieval quality (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Run it as an [MCP server](#mcp-server) or call it from the shell via [AGENTS.md](#agentsmd) and any agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
 ## Quickstart
 
-Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files. Set it up as an MCP server or via AGENTS.md:
+Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files.
 
-### MCP (Claude Code)
+Semble has three complementary setup paths. The recommended setup is using all three (but you can pick and choose based on your needs):
 
-Add Semble to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
+- **[MCP server](#mcp-server)**: an MCP server for your agent.
+- **[AGENTS.md](#agentsmd)**: an AGENTS.md snippet with instructions for calling Semble via the CLI.
+- **[Sub-agent](#sub-agent-setup)**: a dedicated `semble-search` sub-agent for harnesses that support it.
+
+### MCP
+
+Expose Semble as a native tool via MCP so your agent can call it directly. Add it to Claude Code (requires [uv](https://docs.astral.sh/uv/getting-started/installation/)):
 
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
 ```
 
-Using another agent harness? See [MCP Server](#mcp-server) below for per-agent setup.
+See [MCP Server](#mcp-server) below for other harnesses (Cursor, Codex, OpenCode, etc.).
 
-### Bash / AGENTS.md
+### AGENTS.md
 
-Install Semble, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
+Add Semble usage instructions to your agent's context so it knows when and how to call the CLI. Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 ```bash
-pip install semble       # Install with pip
-uv tool install semble   # Or install with uv
+uv tool install semble   # Install with uv (recommended)
+pip install semble       # Or with pip
 ```
 
 <details>
@@ -94,15 +100,23 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 </details>
 
-Note that sub-agents cannot call MCP tools directly, see [Bash / AGENTS.md](#bash-agentsmd) and [sub-agent setup](#sub-agent-setup) below for details.
+### Sub-agent
+
+For harnesses that support sub-agents, install a dedicated `semble-search` sub-agent so search runs in its own context (requires the CLI):
+
+```bash
+semble init   # Claude Code → .claude/agents/semble-search.md
+```
+
+See [Sub-agent setup](#sub-agent-setup) below for other harnesses (Cursor, Codex, OpenCode, etc.).
 
 <details>
 <summary>Updating Semble</summary>
 
 ```bash
-pip install --upgrade semble   # with pip
 uv tool upgrade semble         # with uv
 uv cache clean semble          # for MCP users (restart your MCP client after)
+pip install --upgrade semble   # with pip
 ```
 
 </details>
@@ -375,23 +389,14 @@ semble index ./my-project
 # Search a local repo (index is built and cached automatically)
 semble search "authentication flow" ./my-project
 
-# Search for a symbol or identifier
-semble search "save_pretrained" ./my-project
-
 # Search a remote repo (cloned on demand)
 semble search "save model to disk" https://github.com/MinishLab/model2vec
 
 # Limit results
 semble search "save model to disk" ./my-project --top-k 10
 
-# Search docs and prose (markdown, rst, etc.) instead of code
-semble search "deployment guide" ./my-project --content docs
-
-# Search config files (yaml, toml, terraform, etc.)
-semble search "database host port" ./my-project --content config
-
-# Search everything (code, docs, and config)
-semble search "authentication" ./my-project --content all
+# Search docs/config/everything instead of just code
+semble search "deployment guide" ./my-project --content docs   # or: config, all
 
 # Find code similar to a known location
 semble find-related src/auth.py 42 ./my-project
