@@ -183,19 +183,20 @@ def test_get_validated_cache_git_url_returns_immediately(tmp_path: Path) -> None
 
 
 @pytest.mark.parametrize(
-    ("write_time", "walk_result", "expected"),
+    ("write_time", "walk_result", "write", "expected"),
     [
-        (0.0, "stale", None),  # file newer than index → stale
-        (float("inf"), [], "index"),  # no newer files → valid
+        (0.0, "stale", True, None),  # file newer than index → stale
+        (float("inf"), [], True, "index"),  # no newer files → valid
+        (float("inf"), "stale", False, None),  # no index, returns None
     ],
 )
 def test_get_validated_cache_mtime(
-    write_time: float, walk_result: str | list, expected: str | None, tmp_path: Path
+    write_time: float, walk_result: str | list, write: bool, expected: str | None, tmp_path: Path
 ) -> None:
     """Returns None when a tracked file is newer than the index; the path otherwise."""
     index_path = tmp_path / "index"
     stale_file = tmp_path / "src.py"
-    stale_file.write_text("x = 1")
+    stale_file.write_text("x = 1" if write else "")
     files = [stale_file] if walk_result == "stale" else walk_result
     # Include the file in stored manifest so manifest check passes and mtime check fires.
     stored_files = ["src.py"] if walk_result == "stale" else []

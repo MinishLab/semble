@@ -2,7 +2,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -86,6 +86,11 @@ def test_savings_do_not_subtract_unknown_baselines(tmp_path: Path) -> None:
     summary = build_savings_summary(path=stats_file)
     assert summary.buckets["All time"].saved_chars == 400
     assert "~100 tokens" in format_savings_report(path=stats_file)
+
+    with patch("semble.stats._get_stats_file", lambda: stats_file):
+        summary = build_savings_summary(path=None)
+        assert summary.buckets["All time"].saved_chars == 400
+        assert "~100 tokens" in format_savings_report(path=stats_file)
 
 
 def test_savings_tolerates_bad_json(tmp_path: Path) -> None:
