@@ -67,8 +67,11 @@ def clear_cache(path: str) -> None:
 
 def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:
     """Return True if the stored metadata is compatible with the requested parameters."""
-    content_type = tuple(ContentType(s) for s in metadata["content_type"])
-    return metadata["model_path"] == model_path and set(content_type) == set(content)
+    try:
+        content_type = tuple(ContentType(s) for s in metadata["content_type"])
+        return metadata["model_path"] == model_path and set(content_type) == set(content)
+    except (KeyError, ValueError):
+        return False
 
 
 def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:

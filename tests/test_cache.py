@@ -134,6 +134,7 @@ def test_get_validated_cache_invalid_index(tmp_path: Path) -> None:
     [
         ("other/model", ["code"], "my/model", [ContentType.CODE]),  # model mismatch
         ("my/model", ["docs"], "my/model", [ContentType.CODE]),  # content mismatch
+        ("my/model", ["unknown_type"], "my/model", [ContentType.CODE]),  # invalid content value
     ],
 )
 def test_get_validated_cache_metadata_mismatch(
@@ -148,6 +149,18 @@ def test_get_validated_cache_metadata_mismatch(
     _write_metadata(index_path, stored_model, stored_content, 0.0)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         assert get_validated_cache("/path", req_model, req_content) is None
+
+
+def test_get_validated_cache_legacy_metadata_returns_none(tmp_path: Path) -> None:
+    """Old cache metadata missing content_type returns None instead of crashing."""
+    index_path = tmp_path / "index"
+    index_path.mkdir(parents=True)
+    (index_path / "chunks.json").write_text("[]")
+    (index_path / "bm25_index").write_text("")
+    (index_path / "semantic_index").write_text("")
+    (index_path / "metadata.json").write_text(json.dumps({"model_path": "my/model", "time": 0.0}))
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
 
 
 def test_get_validated_cache_resolves_default_model(tmp_path: Path) -> None:
