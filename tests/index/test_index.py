@@ -7,7 +7,7 @@ from model2vec import StaticModel
 
 from semble import SembleIndex
 from semble.index.create import create_index_from_path
-from semble.index.files import _MAX_FILE_BYTES
+from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
 from semble.types import ContentType
 from tests.conftest import make_chunk
 
@@ -73,6 +73,13 @@ def test_oversized_file_is_skipped(mock_model: StaticModel, tmp_path: Path) -> N
     (tmp_path / "big.py").write_bytes(b"x" * (_MAX_FILE_BYTES + 1))
     with pytest.raises(ValueError):  # no indexable content remains
         create_index_from_path(tmp_path, mock_model)
+
+
+def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:
+    """Tiny files with invalid UTF-8 bytes are treated as non-empty."""
+    path = tmp_path / "latin1.py"
+    path.write_bytes(b"\xff")
+    assert get_file_status(path, None) is FileStatus.VALID
 
 
 def test_index_language_counts(indexed_index: SembleIndex) -> None:

@@ -483,6 +483,11 @@ class FileStatus(str, Enum):
     VALID = "valid"
 
 
+def read_file_text(file_path: Path) -> str:
+    """Read a file's text content, replacing invalid characters and silencing read errors."""
+    return file_path.read_text(encoding="utf-8", errors="replace")
+
+
 def get_file_status(file_path: Path, write_time: float | None) -> FileStatus:
     """Checks if a file should be indexed based on its size and modification time."""
     stat = file_path.stat()
@@ -493,7 +498,7 @@ def get_file_status(file_path: Path, write_time: float | None) -> FileStatus:
     if size > _MAX_FILE_BYTES:
         # index valid, file invalid
         return FileStatus.TOO_LARGE
-    if size < _EMPTY_FILE_BYTES and not file_path.read_text().strip():
+    if size < _EMPTY_FILE_BYTES and not read_file_text(file_path).strip():
         # index valid, file invalid
         return FileStatus.EMPTY
 

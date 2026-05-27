@@ -18,6 +18,7 @@ from model2vec.model import StaticModel
 from semble.cache import get_validated_cache
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
+from semble.index.files import read_file_text
 from semble.index.types import PersistencePath
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
@@ -101,7 +102,7 @@ class SembleIndex:
             if chunk.file_path in sizes:
                 continue
             try:
-                sizes[chunk.file_path] = len((root / chunk.file_path).read_text(encoding="utf-8", errors="replace"))
+                sizes[chunk.file_path] = len(read_file_text(root / chunk.file_path))
             except OSError:
                 pass
         return sizes
