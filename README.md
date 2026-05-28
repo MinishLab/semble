@@ -134,7 +134,7 @@ pip install --upgrade semble   # with pip
 
 ## MCP Server
 
-Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand, and indexes are cached for the lifetime of the session. Local paths are watched for file changes and re-indexed automatically.
+Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand. Indexes are persisted to the OS cache folder and reused across sessions; local paths are watched for file changes and re-indexed automatically.
 
 ### Setup
 
@@ -481,7 +481,7 @@ Indexes are cached to disk automatically on the first search. On subsequent runs
 
 ## Acknowledgements
 
-Thanks to [Greptile](https://greptile.com) for providing free access to their AI code review platform for open-source projects.
+Thanks to [Greptile](https://greptile.com) for providing free access to their AI code review platform.
 
 ## License
 
