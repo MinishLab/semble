@@ -477,6 +477,12 @@ After fusing, results are reranked with a set of code-aware signals:
 
 Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
 
+Indexes are cached to disk automatically on the first search. On subsequent runs, Semble walks the file tree and compares modification times; if any file was added, removed, or changed, the index is fully rebuilt. In MCP mode, a file watcher detects changes and triggers a rebuild automatically so the index is always current within the same session.
+
+## Acknowledgements
+
+Thanks to [Greptile](https://greptile.com) for providing free access to their AI code review platform for open-source projects.
+
 ## License
 
 MIT
