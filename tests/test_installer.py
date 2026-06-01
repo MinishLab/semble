@@ -12,7 +12,6 @@ from semble.installer import (
     AGENTS,
     SEMBLE_END,
     SEMBLE_START,
-    AgentTarget,
     _merge_toml_block,
     _remove_toml_block,
     _vscode_mcp_path,
@@ -30,14 +29,10 @@ _BLOCK_V2 = f"{SEMBLE_START}\n## Semble\nupdated instructions\n{SEMBLE_END}\n"
 def claude_agent(tmp_path):
     """A Claude agent target with MCP/instructions paths rooted in tmp_path."""
     a = next(a for a in AGENTS if a.id == "claude")
-    return AgentTarget(
-        id=a.id,
-        display_name=a.display_name,
-        binary=a.binary,
+    return replace(
+        a,
         config_dir=tmp_path / ".claude",
         mcp_path=tmp_path / ".claude.json",
-        mcp_key=a.mcp_key,
-        mcp_entry=a.mcp_entry,
         instructions_path=tmp_path / ".claude" / "CLAUDE.md",
     )
 
@@ -170,6 +165,7 @@ def test_vscode_mcp_path_is_user_mcp_json():
             ["updated instructions", "# Before", "# After"],
             ["some instructions"],
         ),
+        (_BLOCK, _BLOCK, "unchanged", [SEMBLE_START], []),
     ],
 )
 def test_replace_or_append_marked(tmp_path, initial, block, expected, present, absent):
@@ -181,13 +177,6 @@ def test_replace_or_append_marked(tmp_path, initial, block, expected, present, a
     text = f.read_text()
     assert all(s in text for s in present)
     assert all(s not in text for s in absent)
-
-
-def test_replace_marked_unchanged_when_identical(tmp_path):
-    """Re-applying an identical block reports unchanged."""
-    f = tmp_path / "CLAUDE.md"
-    replace_or_append_marked(f, _BLOCK)
-    assert replace_or_append_marked(f, _BLOCK) == "unchanged"
 
 
 def test_remove_marked_strips_block_and_deletes_empty_file(tmp_path):

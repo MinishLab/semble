@@ -253,12 +253,6 @@ def _json5_parser() -> Parser | None:
         return None
 
 
-def _write_json(path: Path, data: dict[str, object]) -> None:
-    """Write data to a JSON file, creating parent directories as needed."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-
 def _json5_object(text: str) -> tuple[Node, bytes] | None:
     """Parse text as JSON5; return (top-level object node, source bytes), or None if not a clean object."""
     parser = _json5_parser()
@@ -332,7 +326,8 @@ def merge_mcp(agent: AgentTarget) -> WriteResult:
     text = path.read_text(encoding="utf-8") if existed else ""
 
     if not text.strip():  # missing or empty: write a clean fresh file
-        _write_json(path, {agent.mcp_key: {"semble": agent.mcp_entry}})
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({agent.mcp_key: {"semble": agent.mcp_entry}}, indent=2) + "\n", encoding="utf-8")
         return WriteResult(path=path, action="updated" if existed else "created")
 
     located = _json5_object(text)
@@ -483,8 +478,7 @@ def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     if path is None:
         return None
     if agent.mcp_format == "toml":
-        action = _merge_toml_block(path) if mode == "install" else _remove_toml_block(path)
-        return WriteResult(path, action)
+        return WriteResult(path, _merge_toml_block(path) if mode == "install" else _remove_toml_block(path))
     return merge_mcp(agent) if mode == "install" else remove_mcp(agent)
 
 
