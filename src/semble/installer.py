@@ -71,11 +71,16 @@ Action = Literal["created", "updated", "unchanged", "not-found", "removed", "err
 Mode = Literal["install", "uninstall"]
 PathResolver = Callable[[], Path]
 JsonObjectResult = tuple[Node, bytes] | Literal["skipped", "error"]
+_T = TypeVar("_T")
 
 _GREEN = "\033[32m"
 _DIM = "\033[2m"
 _RESET = "\033[0m"
 _BOLD = "\033[1m"
+_ACTION_DETAIL: dict[str, str] = {
+    "skipped": "JSON5 grammar unavailable — add manually (see README)",
+    "error": "could not parse or edit config",
+}
 
 
 @dataclass(frozen=True)
@@ -472,6 +477,7 @@ def _remove_toml_block(path: Path) -> Action:
 
 
 def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the MCP server integration for one agent."""
     if agent.mcp is None:
         return None
     path = agent.mcp.resolved_path()
@@ -481,6 +487,7 @@ def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
 
 
 def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the instructions block integration for one agent."""
     path = agent.instructions_path
     if path is None:
         return None
@@ -489,6 +496,7 @@ def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
 
 
 def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the global sub-agent file for one agent."""
     dest = agent.subagent_path
     if dest is None:
         return None
@@ -505,6 +513,8 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
 
 @dataclass(frozen=True)
 class _Integration:
+    """Descriptor for one installer integration (MCP server, instructions, sub-agent)."""
+
     id: str
     label: str
     desc: str
@@ -541,20 +551,18 @@ def is_detected(agent: AgentTarget) -> bool:
 
 
 def _tick(ok: bool) -> str:
+    """Return a green ✓ or dim – for use in apply output."""
     return f"{_GREEN}✓{_RESET}" if ok else f"{_DIM}–{_RESET}"
 
 
 def _exit(message: str) -> NoReturn:
+    """Print message and exit with code 0."""
     print(message)
     sys.exit(0)
 
 
-_T = TypeVar("_T")
-
-
 def _checkbox(prompt: str, items: Sequence[tuple[str, _T, bool]]) -> list[_T] | None:
-    import questionary
-
+    """Show an interactive multi-select checkbox; return selected values or None if cancelled."""
     # prompt_toolkit defaults "selected" to reverse-video (a filled block); override it
     # so checked rows show a clean green ● and the cursor row is just bold.
     style = questionary.Style(
@@ -570,6 +578,7 @@ def _checkbox(prompt: str, items: Sequence[tuple[str, _T, bool]]) -> list[_T] | 
 
 
 def _print_plan(agents: list[AgentTarget], integrations: list[_Integration]) -> None:
+    """Print what will be written or removed for each selected agent and integration."""
     print(f"\n  {_BOLD}Plan:{_RESET}\n")
     for agent in agents:
         print(f"  {_BOLD}{agent.display_name}{_RESET}")
@@ -580,13 +589,8 @@ def _print_plan(agents: list[AgentTarget], integrations: list[_Integration]) -> 
     print()
 
 
-_ACTION_DETAIL: dict[str, str] = {
-    "skipped": "JSON5 grammar unavailable — add manually (see README)",
-    "error": "could not parse or edit config",
-}
-
-
 def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integration]) -> None:
+    """Execute install or uninstall for all chosen agents and integrations, printing results."""
     print()
     for agent in agents:
         print(f"  {_BOLD}{agent.display_name}{_RESET}")
