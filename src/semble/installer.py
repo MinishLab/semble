@@ -122,6 +122,17 @@ class AgentTarget:
         return self.mcp.resolved_path() if self.mcp else None
 
 
+@dataclass(frozen=True)
+class _Integration:
+    """Descriptor for one installer integration (MCP server, instructions, sub-agent)."""
+
+    id: str
+    label: str
+    desc: str
+    apply: Callable[[AgentTarget, Mode], WriteResult | None]
+    plan_path: Callable[[AgentTarget], Path | None]
+
+
 def _opencode_mcp_path() -> Path:
     """Return the opencode config path, preferring .jsonc over .json."""
     xdg = os.environ.get("XDG_CONFIG_HOME")
@@ -511,18 +522,7 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     return WriteResult(dest, "updated" if existed else "created")
 
 
-@dataclass(frozen=True)
-class _Integration:
-    """Descriptor for one installer integration (MCP server, instructions, sub-agent)."""
-
-    id: str
-    label: str
-    desc: str
-    apply: Callable[[AgentTarget, Mode], WriteResult | None]
-    plan_path: Callable[[AgentTarget], Path | None]
-
-
-INTEGRATIONS: list[_Integration] = [
+_INTEGRATIONS: list[_Integration] = [
     _Integration(
         "mcp", "MCP server", "registers semble as a tool in the agent", _apply_mcp, AgentTarget.resolved_mcp_path
     ),
@@ -620,7 +620,7 @@ def run(mode: Mode) -> None:
         f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
     ) or _exit("Nothing selected. Exiting.")
 
-    integ_items = [(f"{i.label}  —  {i.desc}", i, True) for i in INTEGRATIONS]
+    integ_items = [(f"{i.label}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
     chosen_integrations = _checkbox(
         f"Select integrations to {'enable' if install else 'remove'}:", integ_items
     ) or _exit("Nothing selected. Exiting.")
