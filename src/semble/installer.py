@@ -69,12 +69,27 @@ The index is built on first run and cached automatically. If `semble` is not on 
 
 Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error"]
 Mode = Literal["install", "uninstall"]
+PathResolver = Callable[[], Path]
 
 _GREEN = "\033[32m"
 _YELLOW = "\033[33m"
 _DIM = "\033[2m"
 _RESET = "\033[0m"
 _BOLD = "\033[1m"
+
+
+@dataclass(frozen=True)
+class McpConfig:
+    """MCP integration config for one agent."""
+
+    path: Path | PathResolver
+    key: str
+    entry: dict[str, object]
+    format: Literal["json", "toml"] = "json"
+
+    def resolved_path(self) -> Path:
+        """Return the resolved config path."""
+        return self.path() if callable(self.path) else self.path
 
 
 @dataclass(frozen=True)
@@ -93,12 +108,13 @@ class AgentTarget:
     display_name: str
     binary: str | None  # for shutil.which detection
     config_dir: Path | None  # directory existence check for detection
-    mcp_path: Path | None  # None = MCP not supported (or resolved dynamically, e.g. opencode)
-    mcp_key: str  # top-level JSON key: "mcpServers" or "mcp"
-    mcp_entry: dict[str, object]  # value written under mcp_key.semble
+    mcp: McpConfig | None
     instructions_path: Path | None  # None = not supported for this agent
     subagent_path: Path | None = None  # global (user-level) sub-agent file; None = unsupported
-    mcp_format: Literal["json", "toml"] = "json"  # "toml" = Codex-style config.toml
+
+    def resolved_mcp_path(self) -> Path | None:
+        """Return the resolved MCP config path, or None if MCP is unsupported."""
+        return self.mcp.resolved_path() if self.mcp else None
 
 
 def _opencode_mcp_path() -> Path:
@@ -127,9 +143,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Claude Code",
         binary="claude",
         config_dir=_HOME / ".claude",
-        mcp_path=_HOME / ".claude.json",
-        mcp_key="mcpServers",
-        mcp_entry=_STDIO_ENTRY,
+        mcp=McpConfig(_HOME / ".claude.json", "mcpServers", _STDIO_ENTRY),
         instructions_path=_HOME / ".claude" / "CLAUDE.md",
         subagent_path=_HOME / ".claude" / "agents" / "semble-search.md",
     ),
@@ -138,9 +152,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Cursor",
         binary="cursor",
         config_dir=_HOME / ".cursor",
-        mcp_path=_HOME / ".cursor" / "mcp.json",
-        mcp_key="mcpServers",
-        mcp_entry=_STDIO_ENTRY,
+        mcp=McpConfig(_HOME / ".cursor" / "mcp.json", "mcpServers", _STDIO_ENTRY),
         instructions_path=None,  # Cursor instructions are project-local .mdc files
         subagent_path=_HOME / ".cursor" / "agents" / "semble-search.md",
     ),
@@ -149,9 +161,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Gemini CLI",
         binary="gemini",
         config_dir=_HOME / ".gemini",
-        mcp_path=_HOME / ".gemini" / "settings.json",
-        mcp_key="mcpServers",
-        mcp_entry=_STDIO_ENTRY,
+        mcp=McpConfig(_HOME / ".gemini" / "settings.json", "mcpServers", _STDIO_ENTRY),
         instructions_path=_HOME / ".gemini" / "GEMINI.md",
         subagent_path=_HOME / ".gemini" / "agents" / "semble-search.md",
     ),
@@ -160,9 +170,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Kiro",
         binary="kiro",
         config_dir=_HOME / ".kiro",
-        mcp_path=_HOME / ".kiro" / "settings" / "mcp.json",
-        mcp_key="mcpServers",
-        mcp_entry=_STDIO_ENTRY,
+        mcp=McpConfig(_HOME / ".kiro" / "settings" / "mcp.json", "mcpServers", _STDIO_ENTRY),
         instructions_path=_HOME / ".kiro" / "steering" / "semble.md",
         subagent_path=_HOME / ".kiro" / "agents" / "semble-search.md",
     ),
@@ -171,9 +179,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Opencode",
         binary="opencode",
         config_dir=_HOME / ".config" / "opencode",
-        mcp_path=None,  # resolved dynamically via _mcp_path()
-        mcp_key="mcp",
-        mcp_entry=_OPENCODE_ENTRY,
+        mcp=McpConfig(_opencode_mcp_path, "mcp", _OPENCODE_ENTRY),
         instructions_path=_HOME / ".config" / "opencode" / "AGENTS.md",
         subagent_path=_HOME / ".config" / "opencode" / "agents" / "semble-search.md",
     ),
@@ -182,9 +188,7 @@ AGENTS: list[AgentTarget] = [
         display_name="GitHub Copilot",
         binary=None,
         config_dir=_HOME / ".config" / "github-copilot",
-        mcp_path=None,  # no stable global MCP config path
-        mcp_key="mcpServers",
-        mcp_entry=_STDIO_ENTRY,
+        mcp=None,  # no stable global MCP config path
         instructions_path=None,
         subagent_path=_HOME / ".copilot" / "agents" / "semble-search.agent.md",
     ),
@@ -193,20 +197,15 @@ AGENTS: list[AgentTarget] = [
         display_name="Codex",
         binary="codex",
         config_dir=_HOME / ".codex",
-        mcp_path=_HOME / ".codex" / "config.toml",
-        mcp_key="mcp_servers",  # unused for TOML (entry written by _merge_toml_block)
-        mcp_entry=_STDIO_ENTRY,  # unused for TOML
+        mcp=McpConfig(_HOME / ".codex" / "config.toml", "mcp_servers", _STDIO_ENTRY, format="toml"),
         instructions_path=_HOME / ".codex" / "AGENTS.md",
-        mcp_format="toml",
     ),
     AgentTarget(
         id="vscode",
         display_name="VS Code",
         binary="code",
         config_dir=None,
-        mcp_path=None,  # resolved dynamically via _vscode_mcp_path()
-        mcp_key="servers",
-        mcp_entry=_STDIO_ENTRY,
+        mcp=McpConfig(_vscode_mcp_path, "servers", _STDIO_ENTRY),
         instructions_path=None,
     ),
     AgentTarget(
@@ -214,9 +213,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Windsurf",
         binary="windsurf",
         config_dir=_HOME / ".codeium" / "windsurf",
-        mcp_path=_HOME / ".codeium" / "windsurf" / "mcp_config.json",
-        mcp_key="mcpServers",
-        mcp_entry=_BARE_STDIO_ENTRY,
+        mcp=McpConfig(_HOME / ".codeium" / "windsurf" / "mcp_config.json", "mcpServers", _BARE_STDIO_ENTRY),
         instructions_path=None,
     ),
     AgentTarget(
@@ -224,21 +221,10 @@ AGENTS: list[AgentTarget] = [
         display_name="Zed",
         binary="zed",
         config_dir=_HOME / ".config" / "zed",
-        mcp_path=_HOME / ".config" / "zed" / "settings.json",
-        mcp_key="context_servers",
-        mcp_entry=_ZED_ENTRY,
+        mcp=McpConfig(_HOME / ".config" / "zed" / "settings.json", "context_servers", _ZED_ENTRY),
         instructions_path=None,
     ),
 ]
-
-
-def _mcp_path(agent: AgentTarget) -> Path | None:
-    """Resolve the agent's MCP config path, or None if MCP is unsupported."""
-    if agent.id == "opencode":
-        return _opencode_mcp_path()
-    if agent.id == "vscode":
-        return _vscode_mcp_path()
-    return agent.mcp_path
 
 
 @lru_cache(maxsize=1)
@@ -320,25 +306,25 @@ def _reparse_ok(text: str) -> bool:
 
 def merge_mcp(agent: AgentTarget) -> WriteResult:
     """Add the semble MCP entry to the agent's config, preserving comments and formatting."""
-    path = _mcp_path(agent)
-    assert path is not None
+    assert agent.mcp is not None
+    path = agent.mcp.resolved_path()
     existed = path.exists()
     text = path.read_text(encoding="utf-8") if existed else ""
 
     if not text.strip():  # missing or empty: write a clean fresh file
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({agent.mcp_key: {"semble": agent.mcp_entry}}, indent=2) + "\n", encoding="utf-8")
+        path.write_text(json.dumps({agent.mcp.key: {"semble": agent.mcp.entry}}, indent=2) + "\n", encoding="utf-8")
         return WriteResult(path=path, action="updated" if existed else "created")
 
     located = _json5_object(text)
     if located is None:
         return WriteResult(path=path, action="error")  # don't clobber what we can't parse
     obj, src = located
-    entry = json.dumps(agent.mcp_entry)
+    entry = json.dumps(agent.mcp.entry)
 
-    section = _member(obj, src, agent.mcp_key)
+    section = _member(obj, src, agent.mcp.key)
     if section is None:
-        new_src = _insert_first_member(src, obj, f'"{agent.mcp_key}": {{"semble": {entry}}}')
+        new_src = _insert_first_member(src, obj, f'"{agent.mcp.key}": {{"semble": {entry}}}')
     elif _value_of(section).type != "object":
         return WriteResult(path=path, action="error")
     elif (existing := _member(_value_of(section), src, "semble")) is not None:
@@ -358,8 +344,8 @@ def merge_mcp(agent: AgentTarget) -> WriteResult:
 
 def remove_mcp(agent: AgentTarget) -> WriteResult:
     """Remove the semble MCP entry from the agent's config, leaving everything else intact."""
-    path = _mcp_path(agent)
-    assert path is not None
+    assert agent.mcp is not None
+    path = agent.mcp.resolved_path()
     if not path.exists():
         return WriteResult(path=path, action="not-found")
 
@@ -368,7 +354,7 @@ def remove_mcp(agent: AgentTarget) -> WriteResult:
         return WriteResult(path=path, action="error")
     obj, src = located
 
-    section = _member(obj, src, agent.mcp_key)
+    section = _member(obj, src, agent.mcp.key)
     if section is None or _value_of(section).type != "object":
         return WriteResult(path=path, action="not-found")
     semble = _member(_value_of(section), src, "semble")
@@ -474,10 +460,10 @@ def _remove_toml_block(path: Path) -> Action:
 
 
 def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
-    path = _mcp_path(agent)
-    if path is None:
+    if agent.mcp is None:
         return None
-    if agent.mcp_format == "toml":
+    path = agent.mcp.resolved_path()
+    if agent.mcp.format == "toml":
         return WriteResult(path, _merge_toml_block(path) if mode == "install" else _remove_toml_block(path))
     return merge_mcp(agent) if mode == "install" else remove_mcp(agent)
 
@@ -515,7 +501,9 @@ class _Integration:
 
 
 INTEGRATIONS: list[_Integration] = [
-    _Integration("mcp", "MCP server", "registers semble as a tool in the agent", _apply_mcp, _mcp_path),
+    _Integration(
+        "mcp", "MCP server", "registers semble as a tool in the agent", _apply_mcp, AgentTarget.resolved_mcp_path
+    ),
     _Integration(
         "instructions",
         "Instructions",

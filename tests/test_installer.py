@@ -32,7 +32,7 @@ def claude_agent(tmp_path):
     return replace(
         a,
         config_dir=tmp_path / ".claude",
-        mcp_path=tmp_path / ".claude.json",
+        mcp=replace(a.mcp, path=tmp_path / ".claude.json"),
         instructions_path=tmp_path / ".claude" / "CLAUDE.md",
     )
 
@@ -40,15 +40,15 @@ def claude_agent(tmp_path):
 def test_merge_mcp_creates_fresh_file(claude_agent):
     """merge_mcp writes a clean new config file when none exists."""
     assert merge_mcp(claude_agent).action == "created"
-    data = json.loads(claude_agent.mcp_path.read_text())
+    data = json.loads(claude_agent.mcp.path.read_text())
     assert data["mcpServers"]["semble"] == _STDIO_ENTRY
 
 
 def test_merge_mcp_preserves_comments_and_other_entries(claude_agent):
     """merge_mcp adds semble while leaving existing comments and entries byte-intact."""
-    claude_agent.mcp_path.write_text('{\n  // my servers\n  "mcpServers": {\n    "other": {"command": "x"}\n  }\n}\n')
+    claude_agent.mcp.path.write_text('{\n  // my servers\n  "mcpServers": {\n    "other": {"command": "x"}\n  }\n}\n')
     assert merge_mcp(claude_agent).action == "updated"
-    text = claude_agent.mcp_path.read_text()
+    text = claude_agent.mcp.path.read_text()
     assert "// my servers" in text  # comment preserved
     assert '"other"' in text  # existing entry preserved
     assert '"semble"' in text  # semble added
@@ -56,9 +56,9 @@ def test_merge_mcp_preserves_comments_and_other_entries(claude_agent):
 
 def test_merge_mcp_adds_section_when_absent(claude_agent):
     """merge_mcp creates the mcpServers section if missing, keeping other keys and comments."""
-    claude_agent.mcp_path.write_text('{\n  // keep me\n  "theme": "dark"\n}\n')
+    claude_agent.mcp.path.write_text('{\n  // keep me\n  "theme": "dark"\n}\n')
     assert merge_mcp(claude_agent).action == "updated"
-    text = claude_agent.mcp_path.read_text()
+    text = claude_agent.mcp.path.read_text()
     assert "// keep me" in text
     assert '"theme"' in text
     assert '"mcpServers"' in text
@@ -71,41 +71,39 @@ def test_merge_mcp_adds_section_when_absent(claude_agent):
 )
 def test_merge_mcp_into_empty_object_produces_valid_json(claude_agent, initial):
     """Inserting into an empty strict-JSON object must not produce a trailing comma."""
-    claude_agent.mcp_path.write_text(initial)
+    claude_agent.mcp.path.write_text(initial)
     assert merge_mcp(claude_agent).action == "updated"
-    json.loads(claude_agent.mcp_path.read_text())  # raises if invalid
+    json.loads(claude_agent.mcp.path.read_text())  # raises if invalid
 
 
 def test_merge_mcp_idempotent(claude_agent):
     """Running merge twice adds semble once and reports unchanged the second time."""
-    claude_agent.mcp_path.write_text('{\n  "mcpServers": {}\n}\n')
+    claude_agent.mcp.path.write_text('{\n  "mcpServers": {}\n}\n')
     assert merge_mcp(claude_agent).action == "updated"
     assert merge_mcp(claude_agent).action == "unchanged"
-    assert claude_agent.mcp_path.read_text().count('"semble":') == 1  # the member key, once
+    assert claude_agent.mcp.path.read_text().count('"semble":') == 1  # the member key, once
 
 
 def test_merge_mcp_errors_on_malformed_file(claude_agent):
     """merge_mcp reports an error and leaves a genuinely unparseable file untouched."""
     original = "this is not json {{{{ "
-    claude_agent.mcp_path.write_text(original)
+    claude_agent.mcp.path.write_text(original)
     assert merge_mcp(claude_agent).action == "error"
-    assert claude_agent.mcp_path.read_text() == original
+    assert claude_agent.mcp.path.read_text() == original
 
 
-@pytest.mark.parametrize(
-    ("agent_id", "key"), [("zed", "context_servers"), ("windsurf", "mcpServers"), ("copilot", "mcpServers")]
-)
+@pytest.mark.parametrize(("agent_id", "key"), [("zed", "context_servers"), ("windsurf", "mcpServers")])
 def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
     """merge_mcp writes the semble entry under each agent's own top-level MCP key."""
     src = next(a for a in AGENTS if a.id == agent_id)
-    agent = replace(src, mcp_path=tmp_path / "cfg.json")
+    agent = replace(src, mcp=replace(src.mcp, path=tmp_path / "cfg.json"))
     merge_mcp(agent)
     assert "semble" in json.loads((tmp_path / "cfg.json").read_text())[key]
 
 
 def test_remove_mcp_preserves_comments(claude_agent):
     """remove_mcp deletes only semble, keeping comments and sibling entries intact."""
-    claude_agent.mcp_path.write_text(
+    claude_agent.mcp.path.write_text(
         "{\n"
         "  // my servers\n"
         '  "mcpServers": {\n'
@@ -115,7 +113,7 @@ def test_remove_mcp_preserves_comments(claude_agent):
         "}\n"
     )
     assert remove_mcp(claude_agent).action == "removed"
-    text = claude_agent.mcp_path.read_text()
+    text = claude_agent.mcp.path.read_text()
     assert "// my servers" in text
     assert '"other"' in text
     assert '"semble"' not in text
@@ -125,7 +123,7 @@ def test_remove_mcp_preserves_comments(claude_agent):
 def test_remove_mcp_not_found(claude_agent, setup):
     """remove_mcp reports not-found when the file is missing or has no semble entry."""
     if setup is not None:
-        claude_agent.mcp_path.write_text(setup)
+        claude_agent.mcp.path.write_text(setup)
     assert remove_mcp(claude_agent).action == "not-found"
 
 
