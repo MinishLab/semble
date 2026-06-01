@@ -70,6 +70,7 @@ The index is built on first run and cached automatically. If `semble` is not on 
 Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
 Mode = Literal["install", "uninstall"]
 PathResolver = Callable[[], Path]
+JsonObjectResult = tuple[Node, bytes] | Literal["skipped", "error"]
 
 _GREEN = "\033[32m"
 _DIM = "\033[2m"
@@ -238,7 +239,7 @@ def _json5_parser() -> Parser | None:
         return None
 
 
-def _json5_object(text: str) -> tuple[Node, bytes] | Action:
+def _json5_object(text: str) -> JsonObjectResult:
     """Parse text as JSON5; return (object node, source bytes), "skipped" if grammar unavailable, or "error" if unparseable."""
     parser = _json5_parser()
     if parser is None:
@@ -253,12 +254,12 @@ def _json5_object(text: str) -> tuple[Node, bytes] | Action:
 
 def _member(obj: Node, src: bytes, key: str) -> Node | None:
     """Return the member of object `obj` whose key equals `key`, or None."""
-    for m in obj.named_children:
-        if m.type != "member":
+    for node in obj.named_children:
+        if node.type != "member":
             continue
-        parts = [c for c in m.named_children if c.type != "comment"]
-        if parts and src[parts[0].start_byte : parts[0].end_byte].decode("utf-8").strip("\"'") == key:
-            return m
+        children = [c for c in node.named_children if c.type != "comment"]
+        if children and src[children[0].start_byte : children[0].end_byte].decode("utf-8").strip("\"'") == key:
+            return node
     return None
 
 
@@ -279,17 +280,17 @@ def _insert_first_member(src: bytes, obj: Node, member_text: str) -> bytes:
 def _delete_member(src: bytes, member: Node) -> bytes:
     """Remove `member` plus one adjacent comma and its leading line indentation."""
     start, end = member.start_byte, member.end_byte
-    j = end
-    while j < len(src) and src[j : j + 1] in (b" ", b"\t"):
-        j += 1
-    if j < len(src) and src[j : j + 1] == b",":  # prefer a trailing comma
-        end = j + 1
+    after = end
+    while after < len(src) and src[after : after + 1] in (b" ", b"\t"):
+        after += 1
+    if after < len(src) and src[after : after + 1] == b",":  # prefer a trailing comma
+        end = after + 1
     else:
-        i = start
-        while i > 0 and src[i - 1 : i] in (b" ", b"\t"):
-            i -= 1
-        if i > 0 and src[i - 1 : i] == b",":
-            start = i - 1
+        before = start
+        while before > 0 and src[before - 1 : before] in (b" ", b"\t"):
+            before -= 1
+        if before > 0 and src[before - 1 : before] == b",":
+            start = before - 1
     while start > 0 and src[start - 1 : start] in (b" ", b"\t"):
         start -= 1
     if start > 0 and src[start - 1 : start] == b"\n":
@@ -303,68 +304,80 @@ def _reparse_ok(text: str) -> bool:
     return parser is not None and not parser.parse(text.encode("utf-8")).root_node.has_error
 
 
-def merge_mcp(agent: AgentTarget) -> WriteResult:
-    """Add the semble MCP entry to the agent's config, preserving comments and formatting."""
-    assert agent.mcp is not None
-    path = agent.mcp.resolved_path()
+def merge_json_member(path: Path, section_key: str, member_key: str, value: dict[str, object]) -> Action:
+    """Add or update `section_key.member_key = value` in a JSON5 config file, preserving comments and formatting."""
     existed = path.exists()
     text = path.read_text(encoding="utf-8") if existed else ""
 
     if not text.strip():  # missing or empty: write a clean fresh file
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({agent.mcp.key: {"semble": agent.mcp.entry}}, indent=2) + "\n", encoding="utf-8")
-        return WriteResult(path=path, action="updated" if existed else "created")
+        path.write_text(json.dumps({section_key: {member_key: value}}, indent=2) + "\n", encoding="utf-8")
+        return "updated" if existed else "created"
 
     located = _json5_object(text)
     if not isinstance(located, tuple):
-        return WriteResult(path=path, action=located)
+        return located
     obj, src = located
-    entry = json.dumps(agent.mcp.entry)
+    section_key_json = json.dumps(section_key)
+    member_key_json = json.dumps(member_key)
+    value_json = json.dumps(value)
 
-    section = _member(obj, src, agent.mcp.key)
+    section = _member(obj, src, section_key)
     if section is None:
-        new_src = _insert_first_member(src, obj, f'"{agent.mcp.key}": {{"semble": {entry}}}')
+        new_src = _insert_first_member(src, obj, f"{section_key_json}: {{{member_key_json}: {value_json}}}")
     elif _value_of(section).type != "object":
-        return WriteResult(path=path, action="error")
-    elif (existing := _member(_value_of(section), src, "semble")) is not None:
-        value = _value_of(existing)
-        new_src = src[: value.start_byte] + entry.encode("utf-8") + src[value.end_byte :]
+        return "error"
+    elif (existing := _member(_value_of(section), src, member_key)) is not None:
+        val_node = _value_of(existing)
+        new_src = src[: val_node.start_byte] + value_json.encode("utf-8") + src[val_node.end_byte :]
     else:
-        new_src = _insert_first_member(src, _value_of(section), f'"semble": {entry}')
+        new_src = _insert_first_member(src, _value_of(section), f"{member_key_json}: {value_json}")
 
     new_text = new_src.decode("utf-8")
     if new_text == text:
-        return WriteResult(path=path, action="unchanged")
+        return "unchanged"
     if not _reparse_ok(new_text):
-        return WriteResult(path=path, action="error")
+        return "error"
     path.write_text(new_text, encoding="utf-8")
-    return WriteResult(path=path, action="updated" if existed else "created")
+    return "updated" if existed else "created"
 
 
-def remove_mcp(agent: AgentTarget) -> WriteResult:
-    """Remove the semble MCP entry from the agent's config, leaving everything else intact."""
-    assert agent.mcp is not None
-    path = agent.mcp.resolved_path()
+def remove_json_member(path: Path, section_key: str, member_key: str) -> Action:
+    """Remove `section_key.member_key` from a JSON5 config file, leaving everything else intact."""
     if not path.exists():
-        return WriteResult(path=path, action="not-found")
+        return "not-found"
 
     located = _json5_object(path.read_text(encoding="utf-8"))
     if not isinstance(located, tuple):
-        return WriteResult(path=path, action=located)
+        return located
     obj, src = located
 
-    section = _member(obj, src, agent.mcp.key)
+    section = _member(obj, src, section_key)
     if section is None or _value_of(section).type != "object":
-        return WriteResult(path=path, action="not-found")
-    semble = _member(_value_of(section), src, "semble")
-    if semble is None:
-        return WriteResult(path=path, action="not-found")
+        return "not-found"
+    member = _member(_value_of(section), src, member_key)
+    if member is None:
+        return "not-found"
 
-    new_text = _delete_member(src, semble).decode("utf-8")
+    new_text = _delete_member(src, member).decode("utf-8")
     if not _reparse_ok(new_text):
-        return WriteResult(path=path, action="error")
+        return "error"
     path.write_text(new_text, encoding="utf-8")
-    return WriteResult(path=path, action="removed")
+    return "removed"
+
+
+def merge_mcp(agent: AgentTarget) -> WriteResult:
+    """Add the semble MCP entry to the agent's config."""
+    assert agent.mcp is not None
+    path = agent.mcp.resolved_path()
+    return WriteResult(path, merge_json_member(path, agent.mcp.key, "semble", agent.mcp.entry))
+
+
+def remove_mcp(agent: AgentTarget) -> WriteResult:
+    """Remove the semble MCP entry from the agent's config."""
+    assert agent.mcp is not None
+    path = agent.mcp.resolved_path()
+    return WriteResult(path, remove_json_member(path, agent.mcp.key, "semble"))
 
 
 def replace_or_append_marked(path: Path, content: str) -> Action:
@@ -468,11 +481,11 @@ def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
 
 
 def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
-    p = agent.instructions_path
-    if p is None:
+    path = agent.instructions_path
+    if path is None:
         return None
-    action = replace_or_append_marked(p, _INSTRUCTIONS) if mode == "install" else remove_marked(p)
-    return WriteResult(p, action)
+    action = replace_or_append_marked(path, _INSTRUCTIONS) if mode == "install" else remove_marked(path)
+    return WriteResult(path, action)
 
 
 def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
@@ -596,7 +609,8 @@ def run(mode: Mode) -> None:
 
     # Pre-check detected agents on install.
     agent_items = [
-        (f"{a.display_name}{'  (detected)' if (d := is_detected(a)) else ''}", a, d and install) for a in AGENTS
+        (f"{a.display_name}{'  (detected)' if (detected := is_detected(a)) else ''}", a, detected and install)
+        for a in AGENTS
     ]
     chosen_agents = _checkbox(
         f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
