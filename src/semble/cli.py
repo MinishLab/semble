@@ -27,7 +27,7 @@ class Agent(str, Enum):
 
 
 _DEFAULT_AGENT = Agent.CLAUDE
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "savings", "-h", "--help"})
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "install", "uninstall", "savings", "-h", "--help"})
 
 
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
@@ -52,7 +52,9 @@ def _maybe_save_index(index: SembleIndex, path: str) -> None:
 def _agent_path(agent: Agent) -> Path:
     """Return the project-relative path where the semble sub-agent file should be written."""
     base_dir = ".github" if agent is Agent.COPILOT else f".{agent.value}"
-    return Path(base_dir) / "agents" / "semble-search.md"
+    # Copilot requires the .agent.md extension; the others use a plain .md file.
+    filename = "semble-search.agent.md" if agent is Agent.COPILOT else "semble-search.md"
+    return Path(base_dir) / "agents" / filename
 
 
 def _add_content_args(p: argparse.ArgumentParser) -> None:
@@ -105,6 +107,10 @@ def _mcp_main() -> None:
 
 def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
     """Write the semble sub-agent file for the given coding agent into the current project."""
+    print(
+        "Warning: 'semble init' is deprecated and will be removed in a future version. Use 'semble install' instead.",
+        file=sys.stderr,
+    )
     dest = _agent_path(agent)
     if dest.exists() and not force:
         print(f"{dest} already exists. Run with --force to overwrite.", file=sys.stderr)
@@ -180,7 +186,9 @@ def _cli_main() -> None:
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     _add_content_args(related_p)
 
-    init_p = sub.add_parser("init", help="Write a semble sub-agent file for your coding agent.")
+    init_p = sub.add_parser(
+        "init", help="(Deprecated; use 'semble install') Write a semble sub-agent file into the current project."
+    )
     init_p.add_argument(
         "--agent",
         "-a",
@@ -193,12 +201,23 @@ def _cli_main() -> None:
     savings_p = sub.add_parser("savings", help="Show token savings and usage stats.")
     savings_p.add_argument("--verbose", action="store_true", help="Also show usage breakdown by call type.")
 
+    sub.add_parser("install", help="Interactively configure semble across coding agents.")
+    sub.add_parser("uninstall", help="Interactively remove semble configuration from coding agents.")
+
     args = parser.parse_args()
 
     if args.command == "init":
         _run_init(agent=Agent(args.agent), force=args.force)
     elif args.command == "savings":
         print(format_savings_report(verbose=args.verbose))
+    elif args.command == "install":
+        from semble.installer import run_install
+
+        run_install()
+    elif args.command == "uninstall":
+        from semble.installer import run_uninstall
+
+        run_uninstall()
     elif args.command == "search":
         _run_search(args.path, args.query, args.top_k, _resolve_content(args.content, args.include_text_files))
     elif args.command == "find-related":

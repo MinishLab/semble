@@ -30,11 +30,22 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files.
 
-Semble has three complementary setup paths. The recommended setup is using all three (but you can pick and choose based on your needs):
+The fastest way to get started is the interactive installer. Install the CLI, then run `semble install`:
 
-- **[MCP server](#mcp-server)**: an MCP server for your agent.
-- **[AGENTS.md](#agentsmd)**: an AGENTS.md snippet with instructions for calling Semble via the CLI.
-- **[Sub-agent](#sub-agent-setup)**: a dedicated `semble-search` sub-agent for harnesses that support it.
+```bash
+uv tool install semble   # Install with uv (recommended)
+pip install semble       # Or with pip
+
+semble install           # configure your agents (run `semble uninstall` to undo)
+```
+
+`semble install` detects your installed agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot) and configures any combination of three integrations globally:
+
+- **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.
+- **[AGENTS.md](#agentsmd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
+- **[Sub-agent](#sub-agent-setup)**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
+
+Prefer to configure things by hand — or use an agent the installer doesn't cover (Codex, VS Code, Windsurf, Zed)? The sections below walk through each integration manually.
 
 ### MCP
 
@@ -50,12 +61,7 @@ See [MCP Server](#mcp-server) below for other harnesses (Cursor, Codex, OpenCode
 
 ### AGENTS.md
 
-Add Semble usage instructions to your agent's context so it knows when and how to call the CLI. Install the Semble CLI, then add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
-
-```bash
-uv tool install semble   # Install with uv (recommended)
-pip install semble       # Or with pip
-```
+Add Semble usage instructions to your agent's context so it knows when and how to call the CLI. Add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
 
 <details>
 <summary>AGENTS.md / CLAUDE.md snippet</summary>
@@ -101,16 +107,6 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ```
 
 </details>
-
-### Sub-agent
-
-For harnesses that support sub-agents, install a dedicated `semble-search` sub-agent so search runs in its own context (requires the CLI):
-
-```bash
-semble init   # Claude Code → .claude/agents/semble-search.md
-```
-
-See [Sub-agent setup](#sub-agent-setup) below for other harnesses (Cursor, Codex, OpenCode, etc.).
 
 <details>
 <summary>Updating Semble</summary>
@@ -319,18 +315,7 @@ By default the MCP server indexes only code files. To also index documentation, 
 
 ## Sub-agent setup
 
-Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated semble search sub-agent. Run `semble init` once in your project root:
-
-```bash
-semble init                      # Claude Code  → .claude/agents/semble-search.md
-semble init --agent gemini       # Gemini CLI   → .gemini/agents/semble-search.md
-semble init --agent cursor       # Cursor       → .cursor/agents/semble-search.md
-semble init --agent opencode     # OpenCode     → .opencode/agents/semble-search.md
-semble init --agent copilot      # Copilot CLI  → .github/agents/semble-search.md
-semble init --agent kiro         # Kiro         → .kiro/agents/semble-search.md
-```
-
-If semble is not on `$PATH`, prefix the command with `uvx --from "semble[mcp]"`.
+Claude Code, Gemini CLI, Cursor, OpenCode, GitHub Copilot CLI, and Kiro all support a dedicated `semble-search` sub-agent that runs search in its own isolated context. [`semble install`](#quickstart) sets this up for you — alongside the MCP server and instructions — so there's no separate step: just select the **Sub-agent** integration when you run it.
 
 ## CLI
 
