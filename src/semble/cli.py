@@ -210,14 +210,10 @@ def _cli_main() -> None:
         _run_init(agent=Agent(args.agent), force=args.force)
     elif args.command == "savings":
         print(format_savings_report(verbose=args.verbose))
-    elif args.command == "install":
-        from semble.installer import run_install
+    elif args.command in ("install", "uninstall"):
+        from semble.installer import run
 
-        run_install()
-    elif args.command == "uninstall":
-        from semble.installer import run_uninstall
-
-        run_uninstall()
+        run(args.command)
     elif args.command == "search":
         _run_search(args.path, args.query, args.top_k, _resolve_content(args.content, args.include_text_files))
     elif args.command == "find-related":

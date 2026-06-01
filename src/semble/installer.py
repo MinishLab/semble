@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
-from typing import Callable, Literal, Sequence
+from typing import Callable, Literal, NoReturn, Sequence, TypeVar
 
 _HOME = Path.home()
 
@@ -278,15 +278,13 @@ def _uninstall_mcp(agent: AgentTarget) -> WriteResult | None:
 
 
 def _install_instructions(agent: AgentTarget) -> WriteResult | None:
-    if agent.instructions_path is None:
-        return None
-    return WriteResult(agent.instructions_path, replace_or_append_marked(agent.instructions_path, _INSTRUCTIONS))
+    p = agent.instructions_path
+    return WriteResult(p, replace_or_append_marked(p, _INSTRUCTIONS)) if p else None
 
 
 def _uninstall_instructions(agent: AgentTarget) -> WriteResult | None:
-    if agent.instructions_path is None:
-        return None
-    return WriteResult(agent.instructions_path, remove_marked(agent.instructions_path))
+    p = agent.instructions_path
+    return WriteResult(p, remove_marked(p)) if p else None
 
 
 def _install_subagent(agent: AgentTarget) -> WriteResult | None:
@@ -354,13 +352,15 @@ def _tick(ok: bool) -> str:
     return f"{_GREEN}✓{_RESET}" if ok else f"{_DIM}–{_RESET}"
 
 
-def _checkbox(prompt: str, items: Sequence[tuple[str, object, bool]]) -> list[object] | None:
-    """Multi-select checkbox: arrows navigate, space toggles, enter confirms.
+def _exit(message: str) -> NoReturn:
+    print(message)
+    sys.exit(0)
 
-    :param prompt: Question shown above the list.
-    :param items: (label, value, checked) tuples for each selectable row.
-    :return: Selected values, or None if the user cancelled (Ctrl-C).
-    """
+
+_T = TypeVar("_T")
+
+
+def _checkbox(prompt: str, items: Sequence[tuple[str, _T, bool]]) -> list[_T] | None:
     import questionary
 
     # prompt_toolkit defaults "selected" to reverse-video (a filled block); override it
@@ -402,47 +402,32 @@ def _apply(mode: Literal["install", "uninstall"], agents: list[AgentTarget], int
         print()
 
 
-def _run(mode: Literal["install", "uninstall"]) -> None:
+def run(mode: Literal["install", "uninstall"]) -> None:
+    """Interactively install or uninstall semble across coding agents."""
     import questionary
 
     install = mode == "install"
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
 
-    agent_items: list[tuple[str, object, bool]] = []
-    for agent in AGENTS:
-        detected = is_detected(agent)
-        label = f"{agent.display_name}{'  (detected)' if detected else ''}"
-        agent_items.append((label, agent, detected and install))  # pre-check detected agents on install
+    # Pre-check detected agents on install.
+    agent_items = [
+        (f"{a.display_name}{'  (detected)' if (d := is_detected(a)) else ''}", a, d and install) for a in AGENTS
+    ]
     chosen_agents = _checkbox(
         f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
-    )
-    if not chosen_agents:
-        print("Nothing selected. Exiting.")
-        sys.exit(0)
+    ) or _exit("Nothing selected. Exiting.")
 
     integ_items = [(f"{i.label}  —  {i.desc}", i, True) for i in INTEGRATIONS]
-    chosen_integrations = _checkbox(f"Select integrations to {'enable' if install else 'remove'}:", integ_items)
-    if not chosen_integrations:
-        print("Nothing selected. Exiting.")
-        sys.exit(0)
+    chosen_integrations = _checkbox(
+        f"Select integrations to {'enable' if install else 'remove'}:", integ_items
+    ) or _exit("Nothing selected. Exiting.")
 
-    _print_plan(chosen_agents, chosen_integrations)  # type: ignore[arg-type]
+    _print_plan(chosen_agents, chosen_integrations)
 
     question = "Proceed?" if install else "Remove semble configuration?"
     if not questionary.confirm(question, default=install).ask():
-        print("Cancelled.")
-        sys.exit(0)
+        _exit("Cancelled.")
 
-    _apply(mode, chosen_agents, chosen_integrations)  # type: ignore[arg-type]
+    _apply(mode, chosen_agents, chosen_integrations)
     footer = " Restart your agents to pick up the changes." if install else ""
     print(f"  {_GREEN}Done!{_RESET}{footer}\n")
-
-
-def run_install() -> None:
-    """Interactive semble installer."""
-    _run("install")
-
-
-def run_uninstall() -> None:
-    """Interactive semble uninstaller."""
-    _run("uninstall")
