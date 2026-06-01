@@ -1,6 +1,7 @@
 """Tests for the installer module's file-manipulation helpers."""
 
 import json
+import sys
 
 import pytest
 
@@ -25,17 +26,27 @@ _BLOCK_V2 = f"{SEMBLE_START}\n## Semble\nupdated instructions\n{SEMBLE_END}\n"
     ("content", "expected"),
     [
         (None, {}),  # missing file
+        ("", {}),  # empty file
         ('{"mcpServers": {"other": {}}}', {"mcpServers": {"other": {}}}),
-        ('{\n  // a comment\n  "key": "value"\n}\n', {"key": "value"}),  # JSONC
-        ("not json at all {{{{", {}),  # invalid
+        ('{"url": "https://localhost:8080/x"}', {"url": "https://localhost:8080/x"}),  # // inside a string kept
+        ('{\n  // a comment\n  "key": "value"\n}\n', {"key": "value"}),  # JSONC line comment
+        ('{\n  // c\n  "url": "https://x"\n}\n', {"url": "https://x"}),  # JSONC comment + // inside a string
     ],
 )
 def test_read_json(tmp_path, content, expected):
-    """_read_json parses JSON/JSONC and returns {} for a missing or invalid file."""
+    """_read_json parses JSON/JSONC, keeps // inside strings, and returns {} when missing or empty."""
     f = tmp_path / "cfg.json"
     if content is not None:
         f.write_text(content)
     assert _read_json(f) == expected
+
+
+def test_read_json_raises_on_unparseable(tmp_path):
+    """_read_json raises rather than silently returning {} for content it cannot parse."""
+    f = tmp_path / "bad.json"
+    f.write_text("not json at all {{{{")
+    with pytest.raises(ValueError):
+        _read_json(f)
 
 
 @pytest.fixture
@@ -68,6 +79,14 @@ def test_merge_mcp_preserves_others_and_is_idempotent(claude_agent):
     servers = json.loads(claude_agent.mcp_path.read_text())["mcpServers"]
     assert servers["semble"] == _STDIO_ENTRY
     assert servers["other"] == {"command": "foo"}
+
+
+def test_merge_mcp_preserves_unparseable_file(claude_agent):
+    """merge_mcp reports an error and leaves an unparseable config untouched instead of clobbering it."""
+    original = '{ broken, "url": "https://x"  '
+    claude_agent.mcp_path.write_text(original)
+    assert merge_mcp(claude_agent).action == "error"
+    assert claude_agent.mcp_path.read_text() == original
 
 
 def test_remove_mcp_deletes_semble_and_drops_empty_section(claude_agent):
@@ -143,3 +162,15 @@ def test_remove_marked_not_found(tmp_path, initial):
     if initial is not None:
         f.write_text(initial)
     assert remove_marked(f) == "not-found"
+
+
+@pytest.mark.parametrize("command", ["install", "uninstall"])
+def test_cli_dispatches_to_installer_run(monkeypatch, command):
+    """`semble install` / `semble uninstall` route to installer.run with the command name."""
+    import semble.cli as cli
+
+    calls = []
+    monkeypatch.setattr("semble.installer.run", lambda mode: calls.append(mode))
+    monkeypatch.setattr(sys, "argv", ["semble", command])
+    cli.main()
+    assert calls == [command]

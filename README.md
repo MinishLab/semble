@@ -39,6 +39,8 @@ pip install semble       # Or with pip
 semble install           # configure your agents (run `semble uninstall` to undo)
 ```
 
+> The MCP integration is configured to launch via `uvx`, so [uv](https://docs.astral.sh/uv/getting-started/installation/) needs to be installed for it (the instructions and sub-agent integrations work either way). Adding the MCP entry rewrites the agent's JSON config, which may reformat it and strip comments.
+
 `semble install` detects your installed agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot) and configures any combination of three integrations globally:
 
 - **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.

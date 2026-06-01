@@ -23,7 +23,7 @@ _STDIO_ENTRY: dict[str, object] = {
 
 _OPENCODE_ENTRY: dict[str, object] = {
     "command": ["uvx", "--from", "semble[mcp]", "semble"],
-    "type": "stdio",
+    "type": "local",  # opencode uses "local"/"remote", not "stdio"
     "enabled": True,
 }
 
@@ -49,7 +49,8 @@ The index is built on first run and cached automatically. If `semble` is not on 
 {SEMBLE_END}
 """
 
-Action = Literal["created", "updated", "unchanged", "not-found", "removed"]
+Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error"]
+Mode = Literal["install", "uninstall"]
 
 _GREEN = "\033[32m"
 _DIM = "\033[2m"
@@ -164,17 +165,30 @@ def _mcp_path(agent: AgentTarget) -> Path | None:
     return _opencode_mcp_path() if agent.id == "opencode" else agent.mcp_path
 
 
+# Matches a full JSON string literal, a // line comment, or a /* */ block comment.
+# Trying the string alternative first means comment-like text inside strings (e.g. URLs) is kept.
+_JSONC_TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.DOTALL)
+
+
+def _strip_jsonc_comments(text: str) -> str:
+    """Strip // and /* */ comments from JSONC, leaving comment-like text inside strings intact."""
+    return _JSONC_TOKEN.sub(lambda m: m.group(0) if m.group(0).startswith('"') else "", text)
+
+
 def _read_json(path: Path) -> dict[str, object]:
-    """Read a JSON or JSONC file, stripping line comments. Returns {} if missing or unparseable."""
+    """Parse a JSON/JSONC config file into a dict ({} if missing/empty); raises ValueError if unparseable."""
     if not path.exists():
         return {}
     text = path.read_text(encoding="utf-8")
-    text = re.sub(r"//[^\n]*", "", text)  # strip // line comments (JSONC)
+    if not text.strip():
+        return {}
     try:
         result = json.loads(text)
-        return result if isinstance(result, dict) else {}
     except json.JSONDecodeError:
-        return {}
+        result = json.loads(_strip_jsonc_comments(text))  # retry as JSONC; raises if still invalid
+    if not isinstance(result, dict):
+        raise ValueError(f"{path} does not contain a JSON object")
+    return result
 
 
 def _write_json(path: Path, data: dict[str, object]) -> None:
@@ -189,7 +203,10 @@ def merge_mcp(agent: AgentTarget) -> WriteResult:
     assert path is not None
     existed = path.exists()
 
-    config = _read_json(path)
+    try:
+        config = _read_json(path)
+    except ValueError:
+        return WriteResult(path=path, action="error")  # don't clobber a config we can't parse
     section = config.get(agent.mcp_key)
     if not isinstance(section, dict):
         section = {}
@@ -208,7 +225,10 @@ def remove_mcp(agent: AgentTarget) -> WriteResult:
     if not path.exists():
         return WriteResult(path=path, action="not-found")
 
-    config = _read_json(path)
+    try:
+        config = _read_json(path)
+    except ValueError:
+        return WriteResult(path=path, action="error")  # don't clobber a config we can't parse
     section = config.get(agent.mcp_key)
     if not isinstance(section, dict) or "semble" not in section:
         return WriteResult(path=path, action="not-found")
@@ -269,43 +289,33 @@ def remove_marked(path: Path) -> Action:
     return "removed"
 
 
-def _install_mcp(agent: AgentTarget) -> WriteResult | None:
-    return merge_mcp(agent) if _mcp_path(agent) is not None else None
+def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    if _mcp_path(agent) is None:
+        return None
+    return merge_mcp(agent) if mode == "install" else remove_mcp(agent)
 
 
-def _uninstall_mcp(agent: AgentTarget) -> WriteResult | None:
-    return remove_mcp(agent) if _mcp_path(agent) is not None else None
-
-
-def _install_instructions(agent: AgentTarget) -> WriteResult | None:
+def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     p = agent.instructions_path
-    return WriteResult(p, replace_or_append_marked(p, _INSTRUCTIONS)) if p else None
+    if p is None:
+        return None
+    action = replace_or_append_marked(p, _INSTRUCTIONS) if mode == "install" else remove_marked(p)
+    return WriteResult(p, action)
 
 
-def _uninstall_instructions(agent: AgentTarget) -> WriteResult | None:
-    p = agent.instructions_path
-    return WriteResult(p, remove_marked(p)) if p else None
-
-
-def _install_subagent(agent: AgentTarget) -> WriteResult | None:
+def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest = agent.subagent_path
     if dest is None:
         return None
+    if mode == "uninstall":
+        if not dest.exists():
+            return WriteResult(dest, "not-found")
+        dest.unlink()
+        return WriteResult(dest, "removed")
     existed = dest.exists()
     dest.parent.mkdir(parents=True, exist_ok=True)
-    content = files("semble").joinpath(f"agents/{agent.id}.md").read_text(encoding="utf-8")
-    dest.write_text(content, encoding="utf-8")
+    dest.write_text(files("semble").joinpath(f"agents/{agent.id}.md").read_text(encoding="utf-8"), encoding="utf-8")
     return WriteResult(dest, "updated" if existed else "created")
-
-
-def _uninstall_subagent(agent: AgentTarget) -> WriteResult | None:
-    dest = agent.subagent_path
-    if dest is None:
-        return None
-    if not dest.exists():
-        return WriteResult(dest, "not-found")
-    dest.unlink()
-    return WriteResult(dest, "removed")
 
 
 @dataclass(frozen=True)
@@ -313,29 +323,24 @@ class _Integration:
     id: str
     label: str
     desc: str
-    install: Callable[[AgentTarget], WriteResult | None]
-    uninstall: Callable[[AgentTarget], WriteResult | None]
+    apply: Callable[[AgentTarget, Mode], WriteResult | None]
     plan_path: Callable[[AgentTarget], Path | None]
 
 
 INTEGRATIONS: list[_Integration] = [
-    _Integration(
-        "mcp", "MCP server", "registers semble as a tool in the agent", _install_mcp, _uninstall_mcp, _mcp_path
-    ),
+    _Integration("mcp", "MCP server", "registers semble as a tool in the agent", _apply_mcp, _mcp_path),
     _Integration(
         "instructions",
         "Instructions",
         "adds usage guide to the agent's config file",
-        _install_instructions,
-        _uninstall_instructions,
+        _apply_instructions,
         lambda a: a.instructions_path,
     ),
     _Integration(
         "subagent",
         "Sub-agent",
         "installs a global semble-search sub-agent (available in all projects)",
-        _install_subagent,
-        _uninstall_subagent,
+        _apply_subagent,
         lambda a: a.subagent_path,
     ),
 ]
@@ -388,21 +393,21 @@ def _print_plan(agents: list[AgentTarget], integrations: list[_Integration]) -> 
     print()
 
 
-def _apply(mode: Literal["install", "uninstall"], agents: list[AgentTarget], integrations: list[_Integration]) -> None:
+def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integration]) -> None:
     print()
     for agent in agents:
         print(f"  {_BOLD}{agent.display_name}{_RESET}")
         for integ in integrations:
-            result = (integ.install if mode == "install" else integ.uninstall)(agent)
+            result = integ.apply(agent, mode)
             if result is None:
                 print(f"    {_DIM}– {integ.id}: not supported{_RESET}")
                 continue
-            ok = result.action not in ("not-found", "unchanged")
+            ok = result.action in ("created", "updated", "removed")
             print(f"    {_tick(ok)} {integ.id} ({result.action}) → {result.path}")
         print()
 
 
-def run(mode: Literal["install", "uninstall"]) -> None:
+def run(mode: Mode) -> None:
     """Interactively install or uninstall semble across coding agents."""
     import questionary
 
