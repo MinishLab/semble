@@ -15,6 +15,24 @@ from tree_sitter_language_pack import SupportedLanguage, download, get_parser
 
 _HOME = Path.home()
 
+# Types
+Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
+Mode = Literal["install", "uninstall"]
+PathResolver = Callable[[], Path]
+JsonObjectResult = tuple[Node, bytes] | Literal["skipped", "error"]
+_T = TypeVar("_T")
+
+# Styling / output
+_GREEN = "\033[32m"
+_DIM = "\033[2m"
+_RESET = "\033[0m"
+_BOLD = "\033[1m"
+_ACTION_DETAIL: dict[str, str] = {
+    "skipped": "JSON5 grammar unavailable — add manually (see README)",
+    "error": "could not parse or edit config",
+}
+
+# Config fragments
 SEMBLE_START = "<!-- SEMBLE_START -->"
 SEMBLE_END = "<!-- SEMBLE_END -->"
 
@@ -66,21 +84,6 @@ semble find-related src/auth.py 42 .
 The index is built on first run and cached automatically. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble`.
 {SEMBLE_END}
 """
-
-Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
-Mode = Literal["install", "uninstall"]
-PathResolver = Callable[[], Path]
-JsonObjectResult = tuple[Node, bytes] | Literal["skipped", "error"]
-_T = TypeVar("_T")
-
-_GREEN = "\033[32m"
-_DIM = "\033[2m"
-_RESET = "\033[0m"
-_BOLD = "\033[1m"
-_ACTION_DETAIL: dict[str, str] = {
-    "skipped": "JSON5 grammar unavailable — add manually (see README)",
-    "error": "could not parse or edit config",
-}
 
 
 @dataclass(frozen=True)
