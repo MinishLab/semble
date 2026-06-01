@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Callable, Literal, NoReturn, Sequence, TypeVar, cast
 
 from tree_sitter import Node, Parser
-from tree_sitter_language_pack import SupportedLanguage, get_parser
+from tree_sitter_language_pack import SupportedLanguage, download, get_parser
 
 _HOME = Path.home()
 
@@ -71,6 +71,7 @@ Action = Literal["created", "updated", "unchanged", "not-found", "removed", "err
 Mode = Literal["install", "uninstall"]
 
 _GREEN = "\033[32m"
+_YELLOW = "\033[33m"
 _DIM = "\033[2m"
 _RESET = "\033[0m"
 _BOLD = "\033[1m"
@@ -292,7 +293,8 @@ def _insert_first_member(src: bytes, obj: Node, member_text: str) -> bytes:
     brace = obj.start_byte  # the '{'
     line_start = src.rfind(b"\n", 0, brace) + 1
     indent = b" " * (len(src[line_start:brace]) - len(src[line_start:brace].lstrip()) + 2)
-    return src[: brace + 1] + b"\n" + indent + member_text.encode("utf-8") + b"," + src[brace + 1 :]
+    comma = b"," if obj.named_children else b""
+    return src[: brace + 1] + b"\n" + indent + member_text.encode("utf-8") + comma + src[brace + 1 :]
 
 
 def _delete_member(src: bytes, member: Node) -> bytes:
@@ -598,12 +600,26 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
         print()
 
 
+def _ensure_json5_grammar() -> None:
+    """Download the json5 tree-sitter grammar if not already cached."""
+    try:
+        download(["json5"])
+    except Exception as e:
+        print(
+            f"  {_YELLOW}Warning:{_RESET} Could not download the json5 grammar ({e}).\n"
+            f"  Config files that use JSON5/JSONC (e.g. VS Code, OpenCode) will be skipped.\n"
+            f"  You can add the MCP entry manually (see semble README).\n"
+        )
+
+
 def run(mode: Mode) -> None:
     """Interactively install or uninstall semble across coding agents."""
     import questionary
 
     install = mode == "install"
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
+    if install:
+        _ensure_json5_grammar()
 
     # Pre-check detected agents on install.
     agent_items = [

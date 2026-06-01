@@ -70,6 +70,17 @@ def test_merge_mcp_adds_section_when_absent(claude_agent):
     assert '"semble"' in text
 
 
+@pytest.mark.parametrize(
+    "initial",
+    ['{\n  "mcpServers": {}\n}\n', '{"mcpServers": {}}\n', "{}"],
+)
+def test_merge_mcp_into_empty_object_produces_valid_json(claude_agent, initial):
+    """Inserting into an empty strict-JSON object must not produce a trailing comma."""
+    claude_agent.mcp_path.write_text(initial)
+    assert merge_mcp(claude_agent).action == "updated"
+    json.loads(claude_agent.mcp_path.read_text())  # raises if invalid
+
+
 def test_merge_mcp_idempotent(claude_agent):
     """Running merge twice adds semble once and reports unchanged the second time."""
     claude_agent.mcp_path.write_text('{\n  "mcpServers": {}\n}\n')

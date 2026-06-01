@@ -229,7 +229,7 @@ args = ["--from", "semble[mcp]", "semble"]
 <details>
 <summary>OpenCode</summary>
 
-Add to `~/.opencode/config.json`:
+Add to `~/.config/opencode/opencode.jsonc`:
 
 ```json
 {
