@@ -5,11 +5,11 @@ import os
 import shutil
 import sys
 from dataclasses import dataclass
-from functools import lru_cache
 from importlib.resources import files
 from pathlib import Path
 from typing import Callable, Literal, NoReturn, Sequence, TypeVar, cast
 
+import questionary
 from tree_sitter import Node, Parser
 from tree_sitter_language_pack import SupportedLanguage, download, get_parser
 
@@ -67,12 +67,11 @@ The index is built on first run and cached automatically. If `semble` is not on 
 {SEMBLE_END}
 """
 
-Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error"]
+Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
 Mode = Literal["install", "uninstall"]
 PathResolver = Callable[[], Path]
 
 _GREEN = "\033[32m"
-_YELLOW = "\033[33m"
 _DIM = "\033[2m"
 _RESET = "\033[0m"
 _BOLD = "\033[1m"
@@ -227,29 +226,29 @@ AGENTS: list[AgentTarget] = [
 ]
 
 
-@lru_cache(maxsize=1)
 def _json5_parser() -> Parser | None:
-    """Cached tree-sitter JSON5 parser (handles comments + trailing commas), or None if unavailable.
+    """Return a tree-sitter JSON5 parser, downloading the grammar if needed.
 
     "json5" ships in tree-sitter-language-pack but isn't in its typed language list, hence the cast.
     """
     try:
+        download(["json5"])
         return get_parser(cast(SupportedLanguage, "json5"))
-    except Exception:  # grammar not present in this language-pack build
+    except Exception:
         return None
 
 
-def _json5_object(text: str) -> tuple[Node, bytes] | None:
-    """Parse text as JSON5; return (top-level object node, source bytes), or None if not a clean object."""
+def _json5_object(text: str) -> tuple[Node, bytes] | Action:
+    """Parse text as JSON5; return (object node, source bytes), "skipped" if grammar unavailable, or "error" if unparseable."""
     parser = _json5_parser()
     if parser is None:
-        return None
+        return "skipped"
     src = text.encode("utf-8")
     root = parser.parse(src).root_node
     if root.has_error:
-        return None
+        return "error"
     objects = [c for c in root.named_children if c.type == "object"]
-    return (objects[0], src) if objects else None
+    return (objects[0], src) if objects else "error"
 
 
 def _member(obj: Node, src: bytes, key: str) -> Node | None:
@@ -317,8 +316,8 @@ def merge_mcp(agent: AgentTarget) -> WriteResult:
         return WriteResult(path=path, action="updated" if existed else "created")
 
     located = _json5_object(text)
-    if located is None:
-        return WriteResult(path=path, action="error")  # don't clobber what we can't parse
+    if not isinstance(located, tuple):
+        return WriteResult(path=path, action=located)
     obj, src = located
     entry = json.dumps(agent.mcp.entry)
 
@@ -350,8 +349,8 @@ def remove_mcp(agent: AgentTarget) -> WriteResult:
         return WriteResult(path=path, action="not-found")
 
     located = _json5_object(path.read_text(encoding="utf-8"))
-    if located is None:
-        return WriteResult(path=path, action="error")
+    if not isinstance(located, tuple):
+        return WriteResult(path=path, action=located)
     obj, src = located
 
     section = _member(obj, src, agent.mcp.key)
@@ -568,6 +567,12 @@ def _print_plan(agents: list[AgentTarget], integrations: list[_Integration]) -> 
     print()
 
 
+_ACTION_DETAIL: dict[str, str] = {
+    "skipped": "JSON5 grammar unavailable — add manually (see README)",
+    "error": "could not parse or edit config",
+}
+
+
 def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integration]) -> None:
     print()
     for agent in agents:
@@ -578,30 +583,16 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
                 print(f"    {_DIM}– {integ.id}: not supported{_RESET}")
                 continue
             ok = result.action in ("created", "updated", "removed")
-            print(f"    {_tick(ok)} {integ.id} ({result.action}) → {result.path}")
+            detail = _ACTION_DETAIL.get(result.action, "")
+            suffix = f" — {detail}" if detail else ""
+            print(f"    {_tick(ok)} {integ.id} ({result.action}){suffix} → {result.path}")
         print()
-
-
-def _ensure_json5_grammar() -> None:
-    """Download the json5 tree-sitter grammar if not already cached."""
-    try:
-        download(["json5"])
-    except Exception as e:
-        print(
-            f"  {_YELLOW}Warning:{_RESET} Could not download the json5 grammar ({e}).\n"
-            f"  Config files that use JSON5/JSONC (e.g. VS Code, OpenCode) will be skipped.\n"
-            f"  You can add the MCP entry manually (see semble README).\n"
-        )
 
 
 def run(mode: Mode) -> None:
     """Interactively install or uninstall semble across coding agents."""
-    import questionary
-
     install = mode == "install"
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
-    if install:
-        _ensure_json5_grammar()
 
     # Pre-check detected agents on install.
     agent_items = [
