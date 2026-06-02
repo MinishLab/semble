@@ -16,7 +16,7 @@ from semble.cache import save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import ContentType
-from semble.utils import format_results, is_git_url, resolve_chunk
+from semble.utils import find_git_root, format_results, is_git_url, resolve_chunk
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,11 @@ async def _get_index(
     if repo is not None and is_git_url(repo) and not repo.startswith(("https://", "http://")):
         raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
     source = repo or default_source
+    if not source:
+        # Auto-detect: walk up from cwd to find the nearest git repo
+        git_root = find_git_root()
+        if git_root is not None:
+            source = str(git_root)
     if not source:
         raise ValueError(
             "No repo specified and no default index. "

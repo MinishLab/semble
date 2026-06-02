@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 from typing import Any
 
 from semble.types import Chunk, SearchResult
@@ -14,6 +15,18 @@ DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
 def is_git_url(path: str) -> bool:
     """Return True if path looks like a remote git URL rather than a local path."""
     return path.startswith(_GIT_URL_SCHEMES) or _SCP_GIT_URL_RE.match(path) is not None
+
+
+def find_git_root(start: Path | None = None) -> Path | None:
+    """Walk up from *start* (default: cwd) to find the nearest directory containing .git.
+
+    Returns the resolved path if found, else None.
+    """
+    current = (start or Path.cwd()).resolve()
+    for parent in [current, *current.parents]:
+        if (parent / ".git").exists():
+            return parent
+    return None
 
 
 def resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:

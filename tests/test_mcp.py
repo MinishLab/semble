@@ -170,10 +170,11 @@ async def test_index_cache_ignores_cache_save_failure(cache: _IndexCache, tmp_pa
     ],
 )
 async def test_tool_no_repo_no_default(cache: _IndexCache, tool: str, args: dict[str, object]) -> None:
-    """Both tools return an error message when no repo and no default source are given."""
-    server = create_server(cache, default_source=None)
-    result = await server.call_tool(tool, args)
-    assert "No repo specified" in _tool_text(result)
+    """Both tools return an error message when no repo, no default source, and no git root are found."""
+    with patch("semble.mcp.find_git_root", return_value=None):
+        server = create_server(cache, default_source=None)
+        result = await server.call_tool(tool, args)
+        assert "No repo specified" in _tool_text(result)
 
 
 @pytest.mark.anyio
