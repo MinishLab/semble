@@ -23,8 +23,9 @@ Quality and speed across all methods.
 | ColGREP | 0.693 | 5.8 s | 124 ms |
 | BM25 | 0.673 | 263 ms | 0.02 ms |
 | grepai | 0.561 | 35 s | 48 ms |
+| ripgrep-keywords | 0.634 | — | 68 ms |
 | probe | 0.387 | — | 207 ms |
-| ripgrep | 0.126 | — | 12 ms |
+| ripgrep (full query) | 0.126 | — | 12 ms |
 
 | ![Speed vs quality (cold)](../assets/images/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](../assets/images/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
@@ -33,6 +34,18 @@ Quality and speed across all methods.
 The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 218x and query latency by 11x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
+
+### By query category
+
+NDCG@10 broken down by query type for semble and the two ripgrep baselines.
+
+| Method | Architecture | Semantic | Symbol |
+|---|---:|---:|---:|
+| **semble** | **0.802** | **0.846** | **0.958** |
+| ripgrep-keywords | 0.634 | 0.602 | 0.725 |
+| ripgrep (full query) | — | — | — |
+
+`ripgrep-keywords` splits each query into keywords (dropping stopwords), runs a separate `rg` search per keyword, and ranks files by how many distinct keywords they match — modelling how an agent would actually use grep. `ripgrep (full query)` passes the raw natural-language query as a literal string to `rg`, which is included as a lower-bound baseline only.
 
 ## Token efficiency
 
@@ -136,7 +149,8 @@ NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best sc
 
 ## Methods
 
-- **[ripgrep](https://github.com/BurntSushi/ripgrep)**: fast regex search over files, included as a raw keyword-match baseline.
+- **[ripgrep-keywords](https://github.com/BurntSushi/ripgrep)**: ripgrep with keyword-extraction preprocessing. The query is split into meaningful keywords (stopwords dropped, minimum length 3), a separate `rg --fixed-strings --ignore-case` search is run for each keyword, and files are ranked by how many distinct keywords they contain. This models how an agent would realistically use grep.
+- **[ripgrep (full query)](https://github.com/BurntSushi/ripgrep)**: ripgrep with the raw natural-language query passed as a literal string. Included as a lower-bound baseline only; real agents do not use grep this way.
 - **[probe](https://github.com/buger/probe)**: BM25 keyword ranking backed by tree-sitter parse trees. No persistent index; scans on the fly.
 - **[ColGREP](https://github.com/lightonai/next-plaid/tree/main/colgrep)**: late-interaction code retrieval built on next-plaid with the [LateOn-Code-edge](https://huggingface.co/lightonai/LateOn-Code-edge) model.
 - **[grepai](https://github.com/nicholasgasior/grepai)**: semantic search using [nomic-embed-text](https://huggingface.co/nomic-ai/nomic-embed-text-v1) (137M params) via a local Ollama daemon.
@@ -238,9 +252,15 @@ The `--output` flag enables resume mode: already-completed repos are skipped on 
 Needs `rg` on `$PATH` (`brew install ripgrep` / `apt install ripgrep`).
 
 ```bash
+# Keyword-extraction mode (fair baseline — models real agent grep usage)
+uv run python -m benchmarks.baselines.ripgrep --keywords
+
+# Full-query literal match (lower-bound baseline only)
 uv run python -m benchmarks.baselines.ripgrep
 uv run python -m benchmarks.baselines.ripgrep --no-fixed-strings
 ```
+
+Both modes report per-category NDCG@10 (architecture / semantic / symbol).
 
 </details>
 
