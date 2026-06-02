@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import numpy as np
+import orjson
 
-from semble.index.chunk_store import FileManifest, LmdbChunkStore
+from semble.index.chunk_store import _CHUNK_PAYLOAD_V1, FileManifest, LmdbChunkStore, _int_key
 from semble.types import Chunk
 from tests.conftest import make_chunk
 
@@ -32,6 +33,8 @@ def test_query_embedding_round_trip(tmp_path: Path) -> None:
 
     np.testing.assert_allclose(loaded, vector)
 
+
+def test_lmdb_chunk_store_reads_chunks_by_stable_id(tmp_path: Path) -> None:
     """Chunk payloads are looked up by stable chunk_id without loading a JSON list."""
     chunks = [
         chunk_with_id("def authenticate(token):\n    return token", "auth.py", 7),
@@ -47,6 +50,55 @@ def test_query_embedding_round_trip(tmp_path: Path) -> None:
     assert loaded.get_chunks([9, 7]) == [chunks[1], chunks[0]]
     assert loaded.next_chunk_id() == 10
     loaded.close()
+
+
+def test_lmdb_chunk_store_writes_chunks_by_explicit_ids_without_mutating_payload(tmp_path: Path) -> None:
+    """Full-save chunk IDs can be storage keys without changing public chunk payloads."""
+    chunk = make_chunk("def authenticate(token):\n    return token", "auth.py")
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
+    try:
+        store.write_chunks_with_ids([chunk], [7])
+    finally:
+        store.close()
+
+    loaded = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
+    try:
+        assert loaded.get_chunk(7) == chunk
+        assert loaded.next_chunk_id() == 8
+    finally:
+        loaded.close()
+
+
+def test_lmdb_chunk_store_reads_legacy_json_chunk_payload(tmp_path: Path) -> None:
+    """Existing LMDB caches with JSON chunk payloads should remain readable."""
+    chunk = chunk_with_id("def authenticate(token):\n    return token", "auth.py", 7)
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
+    try:
+        with store.env.begin(write=True) as txn:
+            txn.put(_int_key(7), orjson.dumps(chunk.to_dict()), db=store.chunks_db)
+    finally:
+        store.close()
+
+    loaded = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
+    try:
+        assert loaded.get_chunk(7) == chunk
+        assert loaded.get_chunks([7]) == [chunk]
+    finally:
+        loaded.close()
+
+
+def test_lmdb_chunk_store_writes_binary_chunk_payload(tmp_path: Path) -> None:
+    """New LMDB chunk payloads should avoid JSON object overhead."""
+    chunk = chunk_with_id("def authenticate(token):\n    return token", "auth.py", 7)
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
+    try:
+        store.write_chunks([chunk])
+        with store.env.begin(buffers=True) as txn:
+            data = bytes(txn.get(_int_key(7), db=store.chunks_db))
+    finally:
+        store.close()
+
+    assert data.startswith(_CHUNK_PAYLOAD_V1)
 
 
 def test_file_manifest_round_trips_source_root_metadata() -> None:

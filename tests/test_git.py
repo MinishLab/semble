@@ -76,6 +76,35 @@ def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
     assert "feature.py" in file_names
 
 
+def test_from_git_accepts_non_hybrid_tantivy_cache(tmp_path: Path) -> None:
+    """from_git can load saved full-cold Tantivy caches when no active generation is involved."""
+    cached = MagicMock(spec=SembleIndex)
+    index_path = tmp_path / "index"
+    paths = PersistencePath.from_path(index_path)
+    paths.bm25_index.mkdir(parents=True)
+    paths.semantic_index.mkdir(parents=True)
+    paths.chunk_store.mkdir(parents=True)
+    paths.metadata.write_bytes(
+        orjson.dumps(
+            {
+                "root_path": None,
+                "model_path": "mock-model",
+                "content_type": ["code"],
+                "file_paths": [],
+                "chunk_ids": [],
+                "sparse_backend": "tantivy",
+            }
+        )
+    )
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=index_path),
+        patch.object(SembleIndex, "load_from_disk", return_value=cached),
+        patch("semble.index.index.subprocess.run", side_effect=AssertionError("cache hit should not clone")),
+    ):
+        assert SembleIndex.from_git("https://github.com/x/y", model_path="mock-model") is cached
+
+
 def test_from_git_rejects_invalid_hybrid_cache(mock_model: Any, tmp_path: Path) -> None:
     """from_git must not serve a cache whose hybrid generation cannot be proven active."""
     index_path = tmp_path / "index"

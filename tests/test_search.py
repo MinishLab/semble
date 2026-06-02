@@ -9,6 +9,7 @@ from model2vec import StaticModel
 from vicinity.backends.basic import BasicArgs
 
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
+from semble.index.index import _StableIdSemanticBackend
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
 from semble.types import Chunk, FilterSpec, SearchResult
@@ -262,6 +263,69 @@ def test_hybrid_merge_keeps_position_fallback_distinct_from_chunk_id(mock_model:
         )
 
     assert {result.chunk for result in results} == {legacy, stable}
+
+
+def test_stable_id_semantic_backend_returns_empty_for_unmatched_selector(mock_model: Any) -> None:
+    """Stable-id dense filters should return no results when selected IDs have no dense rows."""
+    chunk = Chunk("def current():\n    pass", "current.py", 10, 11, "python", chunk_id=7)
+    backend = SelectableBasicBackend(np.ones((1, 256), dtype=np.float32), BasicArgs())
+    semantic = _StableIdSemanticBackend(backend, [7])
+
+    class LazyChunks:
+        def __len__(self) -> int:
+            return 1
+
+        def chunk_by_id(self, chunk_id: int) -> Chunk:
+            assert chunk_id == 7
+            return chunk
+
+    results = _search_semantic(
+        "current",
+        mock_model,
+        semantic,
+        LazyChunks(),
+        top_k=1,
+        filter_spec=FilterSpec(chunk_ids=frozenset({999})),
+    )
+
+    assert results == []
+
+
+def test_lazy_no_rerank_tie_order_uses_chunk_order_not_chunk_id(mock_model: Any) -> None:
+    """Loaded-index no-rerank ties should match eager start-line ordering, not stable chunk_id order."""
+    late = Chunk("def late_hit():\n    pass", "late.py", 100, 101, "python", chunk_id=10)
+    early = Chunk("def early_hit():\n    pass", "early.py", 1, 2, "python", chunk_id=20)
+
+    class LazyChunks:
+        def __len__(self) -> int:
+            return 2
+
+        def chunk_by_id(self, chunk_id: int) -> Chunk:
+            return {10: late, 20: early}[chunk_id]
+
+        def chunks_by_id(self, chunk_ids: list[int]) -> list[Chunk]:
+            return [self.chunk_by_id(chunk_id) for chunk_id in chunk_ids]
+
+    class FakeSemanticIndex:
+        def query(self, vectors: Any, k: int, selector: Any = None) -> list[tuple[np.ndarray, np.ndarray]]:
+            return [(np.array([10]), np.array([0.0], dtype=np.float32))]
+
+    class FakeSparseIndex:
+        def search_ids(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[tuple[int, float]]:
+            return [(20, 1.0)]
+
+    results = search(
+        "hit",
+        mock_model,
+        FakeSemanticIndex(),
+        FakeSparseIndex(),
+        LazyChunks(),
+        top_k=2,
+        alpha=0.5,
+        rerank=False,
+    )
+
+    assert [result.chunk for result in results] == [early, late]
 
 
 def test_lazy_rerank_boosts_candidates_without_iterating_all_chunks(mock_model: Any) -> None:

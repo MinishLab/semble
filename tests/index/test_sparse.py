@@ -2,12 +2,48 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import bm25s
 import numpy as np
 
 from semble.index.chunk_store import LmdbChunkStore
-from semble.index.sparse import TantivySparseIndex, filter_spec_to_selector
+from semble.index.sparse import (
+    Bm25sSparseIndex,
+    TantivySparseIndex,
+    _prepare_tantivy_fields,
+    enrich_for_bm25,
+    filter_spec_to_selector,
+)
+from semble.tokens import tokenize
 from semble.types import FilterSpec
 from tests.conftest import make_chunk
+
+
+def test_tantivy_prepares_same_enriched_body_as_bm25() -> None:
+    """Tantivy sparse indexing should preserve the existing bm25s document text."""
+    chunk = make_chunk(
+        "def HTTPClientFactory():\n    return response\n",
+        "src/http/HTTPClientFactory.py",
+    )
+
+    fields = _prepare_tantivy_fields(chunk)
+
+    assert fields.body == " ".join(tokenize(enrich_for_bm25(chunk)))
+
+
+def test_tantivy_sparse_order_matches_bm25_for_enriched_body() -> None:
+    """Tantivy sparse search should keep bm25s path-enrichment rank intent."""
+    chunks = [
+        make_chunk("needle needle needle", "src/plain.py"),
+        make_chunk("other", "src/needle.py"),
+        make_chunk("unrelated", "src/other.py"),
+    ]
+    bm25_index = bm25s.BM25()
+    bm25_index.index([tokenize(enrich_for_bm25(chunk)) for chunk in chunks], show_progress=False)
+
+    expected = [result.chunk for result in Bm25sSparseIndex(bm25_index, chunks).search("needle", 3)]
+    actual = [result.chunk for result in TantivySparseIndex.from_chunks(chunks).search("needle", 3)]
+
+    assert actual == expected
 
 
 def test_tantivy_sparse_index_searches_content_and_path_terms(tmp_path: Path) -> None:
@@ -27,7 +63,7 @@ def test_tantivy_sparse_index_searches_content_and_path_terms(tmp_path: Path) ->
 
 
 def test_tantivy_sparse_index_builds_query_from_semble_tokens_without_parse_query() -> None:
-    """Tantivy sparse query construction should not re-tokenize through Tantivy's parser."""
+    """Tantivy sparse query construction should use Semble tokens against the enriched body field."""
     searcher = Mock()
     searcher.search.return_value.hits = []
     index = Mock()
@@ -42,26 +78,16 @@ def test_tantivy_sparse_index_builds_query_from_semble_tokens_without_parse_quer
         term_queries.append((field_name, field_value, index_option))
         return f"{field_name}:{field_value}"
 
-    def fake_boost_query(query: object, boost: float) -> tuple[str, object, float]:
-        return ("boost", query, boost)
-
-    def fake_disjunction_max_query(subqueries: object) -> tuple[str, object]:
-        return ("dismax", subqueries)
-
     def fake_boolean_query(subqueries: object) -> tuple[str, object]:
         return ("bool", subqueries)
 
     with (
         patch("semble.index.sparse.tantivy.Query.term_query", side_effect=fake_term_query),
-        patch("semble.index.sparse.tantivy.Query.boost_query", side_effect=fake_boost_query),
-        patch("semble.index.sparse.tantivy.Query.disjunction_max_query", side_effect=fake_disjunction_max_query),
         patch("semble.index.sparse.tantivy.Query.boolean_query", side_effect=fake_boolean_query),
     ):
         sparse_index.search("date_tools", top_k=1)
 
-    assert ("content", "date_tools", "position") in term_queries
-    assert ("path_stem", "date_tools", "position") in term_queries
-    assert ("path_dirs", "date_tools", "position") in term_queries
+    assert ("body", "date_tools", "position") in term_queries
     searcher.search.assert_called_once()
     assert searcher.search.call_args.args[0][0] == "bool"
     assert searcher.search.call_args.args[1] == 1
@@ -73,7 +99,7 @@ def test_tantivy_sparse_index_stores_filter_fields(tmp_path: Path) -> None:
     sparse_index = TantivySparseIndex.from_chunks(chunks, path=tmp_path / "tantivy")
 
     searcher = sparse_index.index.searcher()
-    query = sparse_index.index.parse_query("authenticate", ["content"])
+    query = sparse_index.index.parse_query("authenticate", ["body"])
     _, doc_address = searcher.search(query, 1).hits[0]
     document = searcher.doc(doc_address)
 

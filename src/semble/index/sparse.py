@@ -14,8 +14,7 @@ from semble.index.chunk_store import LmdbChunkStore
 from semble.tokens import tokenize
 from semble.types import Chunk, FilterSpec, SearchResult
 
-_TANTIVY_FIELD_BOOSTS = {"path_stem": 3.0, "path_dirs": 1.3}
-_TANTIVY_SEARCH_FIELDS = ["content", *_TANTIVY_FIELD_BOOSTS]
+_TANTIVY_BODY_FIELD = "body"
 _TANTIVY_BUILD_HEAP_SIZE = 128_000_000
 _TANTIVY_BUILD_THREADS = 4
 
@@ -54,32 +53,18 @@ def _tantivy_schema() -> tantivy.Schema:
         .add_integer_field("chunk_id", indexed=True, stored=True)
         .add_text_field("file_path", stored=True, tokenizer_name="raw")
         .add_text_field("language", stored=True, tokenizer_name="raw")
-        .add_text_field("content", tokenizer_name="whitespace")
-        .add_text_field("path_stem", tokenizer_name="whitespace")
-        .add_text_field("path_dirs", tokenizer_name="whitespace")
+        .add_text_field(_TANTIVY_BODY_FIELD, tokenizer_name="whitespace")
         .build()
     )
 
 
-def _token_text(value: str) -> str:
-    return " ".join(tokenize(value))
-
-
 @dataclass(frozen=True, slots=True)
 class PreparedTantivyFields:
-    content: str
-    path_stem: str
-    path_dirs: str
+    body: str
 
 
 def _prepare_tantivy_fields(chunk: Chunk) -> PreparedTantivyFields:
-    path_value = Path(chunk.file_path)
-    dir_text = " ".join(part for part in path_value.parent.parts[-3:] if part not in (".", "/"))
-    return PreparedTantivyFields(
-        content=_token_text(chunk.content),
-        path_stem=_token_text(path_value.stem),
-        path_dirs=_token_text(dir_text),
-    )
+    return PreparedTantivyFields(body=" ".join(tokenize(enrich_for_bm25(chunk))))
 
 
 def _tantivy_document_from_fields(
@@ -91,9 +76,7 @@ def _tantivy_document_from_fields(
         chunk_id=chunk_id,
         file_path=[chunk.file_path],
         language=[chunk.language or ""],
-        content=[fields.content],
-        path_stem=[fields.path_stem],
-        path_dirs=[fields.path_dirs],
+        body=[fields.body],
     )
 
 
@@ -117,14 +100,7 @@ def _tantivy_term_filter_query(
 
 
 def _tantivy_search_query(schema: tantivy.Schema, query: str) -> tantivy.Query | None:
-    token_queries = []
-    for token in tokenize(query):
-        field_queries = []
-        for field_name in _TANTIVY_SEARCH_FIELDS:
-            term_query = tantivy.Query.term_query(schema, field_name, token)
-            boost = _TANTIVY_FIELD_BOOSTS.get(field_name)
-            field_queries.append(term_query if boost is None else tantivy.Query.boost_query(term_query, boost))
-        token_queries.append(tantivy.Query.disjunction_max_query(field_queries))
+    token_queries = [tantivy.Query.term_query(schema, _TANTIVY_BODY_FIELD, token) for token in tokenize(query)]
     if not token_queries:
         return None
     if len(token_queries) == 1:
@@ -218,6 +194,14 @@ class TantivySparseIndex:
         return writer.finish(chunks)
 
     @classmethod
+    def build_temporary(cls, chunks: Sequence[Chunk]) -> "TantivySparseIndex":
+        """Build a temporary on-disk index so save can copy instead of rebuilding."""
+        path = Path(tempfile.mkdtemp(prefix="semble-tantivy-"))
+        index = cls.from_chunks(chunks, path=path)
+        index._temporary_path = path
+        return index
+
+    @classmethod
     def load(cls, path: Path, chunks: Sequence[Chunk]) -> "TantivySparseIndex":
         """Open a persisted Tantivy sparse index."""
         index = tantivy.Index.open(str(path))
@@ -256,15 +240,20 @@ class TantivySparseIndex:
         if self._temporary_path is not None:
             shutil.rmtree(self._temporary_path, ignore_errors=True)
 
-    def _chunk_by_id(self, chunk_id: int) -> Chunk | None:
+    def _chunk_by_id(self, chunk_id: int) -> Chunk:
         chunk = self._chunks_by_id.get(chunk_id)
-        if chunk is not None or self.chunk_store_path is None:
+        if chunk is not None:
             return chunk
+        if self.chunk_store_path is None:
+            raise FileNotFoundError(f"Sparse index is missing chunk payload for id {chunk_id}")
         store = LmdbChunkStore.open(self.chunk_store_path, readonly=True)
         try:
-            return store.get_chunk(chunk_id)
+            loaded = store.get_chunk(chunk_id)
         finally:
             store.close()
+        if loaded is None:
+            raise FileNotFoundError(f"Sparse index is missing chunk payload for id {chunk_id}")
+        return loaded
 
     def update_chunks(
         self,
@@ -309,10 +298,7 @@ class TantivySparseIndex:
         """Return Tantivy BM25 results mapped back to chunks."""
         results: list[SearchResult] = []
         for chunk_id, score in self.search_ids(query, top_k, filter_spec):
-            chunk = self._chunk_by_id(chunk_id)
-            if chunk is None:
-                continue
-            results.append(SearchResult(chunk=chunk, score=score))
+            results.append(SearchResult(chunk=self._chunk_by_id(chunk_id), score=score))
             if len(results) == top_k:
                 break
         return results

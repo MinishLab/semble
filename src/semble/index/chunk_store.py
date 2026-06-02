@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import lmdb
+import msgspec
 import numpy as np
 import numpy.typing as npt
 import orjson
@@ -25,6 +26,39 @@ _ACTIVE_GENERATION = b"active_generation"
 _PENDING_GENERATION = b"pending_generation"
 _ACTIVE_GENERATION_SNAPSHOT_ID = b"active_generation_snapshot_id"
 _DEFAULT_MAP_SIZE = 4 * 1024 * 1024 * 1024
+_CHUNK_PAYLOAD_V1 = b"\x01"
+_ChunkPayload = tuple[str, str, int, int, str | None, int | None]
+
+
+def _chunk_payload(chunk: Chunk) -> _ChunkPayload:
+    return (
+        chunk.content,
+        chunk.file_path,
+        chunk.start_line,
+        chunk.end_line,
+        chunk.language,
+        chunk.chunk_id,
+    )
+
+
+def _serialize_chunk(chunk: Chunk) -> bytes:
+    return _CHUNK_PAYLOAD_V1 + msgspec.msgpack.encode(_chunk_payload(chunk))
+
+
+def _deserialize_chunk(data: bytes) -> Chunk:
+    if data.startswith(_CHUNK_PAYLOAD_V1):
+        content, file_path, start_line, end_line, language, chunk_id = msgspec.msgpack.decode(
+            data[len(_CHUNK_PAYLOAD_V1) :]
+        )
+        return Chunk(
+            str(content),
+            str(file_path),
+            int(start_line),
+            int(end_line),
+            None if language is None else str(language),
+            None if chunk_id is None else int(chunk_id),
+        )
+    return Chunk.from_dict(orjson.loads(data))
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,13 +179,20 @@ class LmdbChunkStore:
 
     def write_chunks(self, chunks: list[Chunk]) -> None:
         """Persist chunks keyed by stable chunk_id."""
+        self._write_keyed_chunks((chunk, chunk.chunk_id) for chunk in chunks)
+
+    def write_chunks_with_ids(self, chunks: Sequence[Chunk], chunk_ids: Sequence[int]) -> None:
+        """Persist chunks keyed by supplied IDs without changing chunk payloads."""
+        self._write_keyed_chunks(zip(chunks, chunk_ids))
+
+    def _write_keyed_chunks(self, keyed_chunks: Iterator[tuple[Chunk, int | None]]) -> None:
         with self.env.begin(write=True) as txn:
             next_chunk_id = self.next_chunk_id()
-            for chunk in chunks:
-                if chunk.chunk_id is None:
+            for chunk, chunk_id in keyed_chunks:
+                if chunk_id is None:
                     continue
-                txn.put(_int_key(chunk.chunk_id), orjson.dumps(chunk.to_dict()), db=self.chunks_db)
-                next_chunk_id = max(next_chunk_id, chunk.chunk_id + 1)
+                txn.put(_int_key(chunk_id), _serialize_chunk(chunk), db=self.chunks_db)
+                next_chunk_id = max(next_chunk_id, chunk_id + 1)
             txn.put(_NEXT_CHUNK_ID, str(next_chunk_id).encode(), db=self.meta_db)
 
     def get_chunk(self, chunk_id: int) -> Chunk | None:
@@ -160,7 +201,7 @@ class LmdbChunkStore:
             data = txn.get(_int_key(chunk_id), db=self.chunks_db)
             if data is None:
                 return None
-            return Chunk.from_dict(orjson.loads(bytes(data)))
+            return _deserialize_chunk(bytes(data))
 
     def get_chunks(self, chunk_ids: list[int]) -> list[Chunk]:
         """Return chunks by stable chunk_id, preserving requested order."""
@@ -169,7 +210,7 @@ class LmdbChunkStore:
             for chunk_id in chunk_ids:
                 data = txn.get(_int_key(chunk_id), db=self.chunks_db)
                 if data is not None:
-                    chunks.append(Chunk.from_dict(orjson.loads(bytes(data))))
+                    chunks.append(_deserialize_chunk(bytes(data)))
         return chunks
 
     def copy_chunks_from(self, source_path: Path, chunk_ids: list[int]) -> None:
@@ -214,6 +255,11 @@ class LmdbChunkStore:
         finally:
             source.close()
 
+    def _manifest_for_generation(self, data: bytes, generation: int) -> FileManifest:
+        payload = FileManifest.from_dict(orjson.loads(data)).to_dict()
+        payload["generation"] = generation
+        return FileManifest.from_dict(payload)
+
     def copy_file_manifests_from(self, source_path: Path, file_paths: list[str], generation: int) -> None:
         """Copy file manifests from another LMDB store while assigning a new generation."""
         if source_path.resolve() == self.path.resolve():
@@ -223,12 +269,10 @@ class LmdbChunkStore:
                     data = source_txn.get(file_path.encode(), db=self.files_db)
                     if data is None:
                         raise FileNotFoundError("Index chunk store is missing file manifests")
-                    payload = FileManifest.from_dict(orjson.loads(bytes(data))).to_dict()
-                    payload["generation"] = generation
-                    manifests.append((file_path, payload))
+                    manifests.append((file_path, self._manifest_for_generation(bytes(data), generation)))
             with self.env.begin(write=True) as target_txn:
-                for file_path, payload in manifests:
-                    self._put_file_manifest(target_txn, FileManifest.from_dict(payload))
+                for _, manifest in manifests:
+                    self._put_file_manifest(target_txn, manifest)
             return
 
         source = LmdbChunkStore.open(source_path, readonly=True)
@@ -238,10 +282,7 @@ class LmdbChunkStore:
                     data = source_txn.get(file_path.encode(), db=source.files_db)
                     if data is None:
                         raise FileNotFoundError("Index chunk store is missing file manifests")
-                    manifest = FileManifest.from_dict(orjson.loads(bytes(data)))
-                    payload = manifest.to_dict()
-                    payload["generation"] = generation
-                    self._put_file_manifest(target_txn, FileManifest.from_dict(payload))
+                    self._put_file_manifest(target_txn, self._manifest_for_generation(bytes(data), generation))
         finally:
             source.close()
 
@@ -397,7 +438,7 @@ class LmdbChunkStore:
             for chunk in chunks:
                 if chunk.chunk_id is None:
                     continue
-                txn.put(_int_key(chunk.chunk_id), orjson.dumps(chunk.to_dict()), db=self.chunks_db)
+                txn.put(_int_key(chunk.chunk_id), _serialize_chunk(chunk), db=self.chunks_db)
                 next_chunk_id = max(next_chunk_id, chunk.chunk_id + 1)
             if chunks:
                 txn.put(_NEXT_CHUNK_ID, str(next_chunk_id).encode(), db=self.meta_db)

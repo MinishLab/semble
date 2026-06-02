@@ -117,7 +117,10 @@ def _semantic_id_scores(
     if selector is not None and len(selector) == 0:
         return []
 
-    indices, distances = semantic_index.query(query_embedding, k=top_k, selector=selector)[0]
+    indices_and_distances = semantic_index.query(query_embedding, k=top_k, selector=selector)
+    if not indices_and_distances:
+        return []
+    indices, distances = indices_and_distances[0]
     # Vicinity returns cosine distance; convert to similarity so higher = better.
     return [(int(index), 1.0 - float(distance)) for index, distance in zip(indices, distances)]
 
@@ -274,7 +277,10 @@ def search(
         if not rerank:
             ranked = [
                 (identity, score)
-                for identity, score in sorted(combined_scores.items(), key=lambda item: (-item[1], item[0]))
+                for identity, score in sorted(
+                    combined_scores.items(),
+                    key=lambda item: (-item[1], chunk_lookup(item[0][1]).start_line, item[0]),
+                )
                 if identity[0] == "chunk_id"
             ][:top_k]
             if chunks_lookup is not None:

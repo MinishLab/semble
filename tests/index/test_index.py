@@ -1,13 +1,20 @@
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import numpy as np
+import orjson
 import pytest
 from model2vec import StaticModel
+from vicinity.backends.basic import BasicArgs
 
 from semble import SembleIndex
-from semble.index.create import create_index_from_path
+from semble.index.chunk_store import LmdbChunkStore, _int_key
+from semble.index.create import IndexBuild, create_index_build_from_path, create_index_from_path
+from semble.index.dense import SelectableBasicBackend
 from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
+from semble.index.sparse import TantivySparseIndex
 from semble.types import ContentType
 from tests.conftest import make_chunk
 
@@ -36,6 +43,48 @@ def test_index_markdown_inclusion(
     assert has_md is md_in_results
 
 
+def test_create_index_chunks_files_concurrently_without_changing_order(mock_model: StaticModel, tmp_path: Path) -> None:
+    """Concurrent chunking must preserve serial walk order and per-file chunk order."""
+    (tmp_path / "a.py").write_text("def a():\n    return 1\n")
+    (tmp_path / "b.py").write_text("def b():\n    return 2\n")
+    (tmp_path / "c.py").write_text("def c():\n    return 3\n")
+    call_order: list[str] = []
+
+    def fake_chunk_source(source: str, file_path: str, language: str | None):
+        call_order.append(file_path)
+        return [make_chunk(f"first {file_path}", file_path), make_chunk(f"second {file_path}", file_path)]
+
+    with (
+        patch("semble.index.create._CHUNK_WORKER_COUNT", 2),
+        patch("semble.index.create.chunk_source", side_effect=fake_chunk_source),
+    ):
+        _, _, chunks = create_index_from_path(tmp_path, mock_model, display_root=tmp_path)
+
+    assert [chunk.content for chunk in chunks] == [
+        "first a.py",
+        "second a.py",
+        "first b.py",
+        "second b.py",
+        "first c.py",
+        "second c.py",
+    ]
+    assert set(call_order) == {"a.py", "b.py", "c.py"}
+
+
+def test_create_index_build_uses_tantivy_sparse_and_collects_file_sizes(
+    mock_model: StaticModel, tmp_path: Path
+) -> None:
+    """Full cold build should use Tantivy sparse index and reuse first-read file sizes."""
+    (tmp_path / "auth.py").write_text("def authenticate(token):\n    return token\n")
+
+    build = create_index_build_from_path(tmp_path, mock_model, display_root=tmp_path)
+
+    assert isinstance(build, IndexBuild)
+    assert isinstance(build.sparse_index, TantivySparseIndex)
+    assert build.file_sizes == {"auth.py": len("def authenticate(token):\n    return token\n")}
+    assert create_index_from_path(tmp_path, mock_model, display_root=tmp_path)[0].__class__ is TantivySparseIndex
+
+
 def test_include_text_files_deprecated(mock_model: Any, tmp_project: Path) -> None:
     """include_text_files=True warns and expands to all content types; False warns and resets to code-only."""
     from semble.index.index import _ALL_CONTENT, _DEFAULT_CONTENT
@@ -56,8 +105,8 @@ def test_from_git_include_text_files_deprecated(mock_model: Any, tmp_project: Pa
     fake_result.returncode = 0
     with patch("semble.index.index.load_model", return_value=(mock_model, "")):
         with patch("subprocess.run", return_value=fake_result):
-            with patch("semble.index.index.create_index_from_path") as mock_create:
-                mock_create.return_value = (MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")])
+            with patch("semble.index.index.create_index_build_from_path") as mock_create:
+                mock_create.return_value = IndexBuild(MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")], {})
                 with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
                     SembleIndex.from_git("https://example.com/repo", include_text_files=True)
 
@@ -193,6 +242,103 @@ def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
     assert index_2._root == indexed_index._root
 
 
+def test_save_uses_lmdb_chunks_and_tantivy_sparse_backend(
+    tmp_path: Path, indexed_index: SembleIndex, mock_model: StaticModel
+) -> None:
+    """Saved full-cold indexes should avoid chunks.json and persist Tantivy sparse metadata."""
+    indexed_index.save(tmp_path)
+
+    metadata = orjson.loads((tmp_path / "metadata.json").read_bytes())
+    assert metadata["sparse_backend"] == "tantivy"
+    assert metadata["chunk_ids"] == list(range(len(indexed_index.chunks)))
+    assert not (tmp_path / "chunks.json").exists()
+    assert (tmp_path / "chunks.lmdb").exists()
+
+    with patch.object(LmdbChunkStore, "get_chunks", side_effect=AssertionError("load should not bulk-read chunks")):
+        with patch("semble.index.index.load_model", return_value=(mock_model, indexed_index._model_path)):
+            loaded = SembleIndex.load_from_disk(tmp_path)
+    assert isinstance(loaded._bm25_index, TantivySparseIndex)
+    assert loaded.search("authenticate", top_k=1)
+
+
+def test_save_preserves_stable_chunk_ids_for_loaded_search(tmp_path: Path, mock_model: StaticModel) -> None:
+    """Saved Tantivy and LMDB IDs must match when chunks already carry stable chunk_id values."""
+    chunk = replace(make_chunk("def authenticate(token):\n    return token", "auth.py"), chunk_id=10)
+    semantic_index = SelectableBasicBackend(np.ones((1, mock_model.dim), dtype=np.float32), BasicArgs())
+    index = SembleIndex(
+        mock_model,
+        TantivySparseIndex.build_temporary([chunk]),
+        semantic_index,
+        [chunk],
+        "mock-model",
+    )
+
+    index.save(tmp_path)
+
+    metadata = orjson.loads((tmp_path / "metadata.json").read_bytes())
+    assert metadata["chunk_ids"] == [10]
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        loaded = SembleIndex.load_from_disk(tmp_path)
+
+    assert loaded.search("authenticate token", top_k=1)[0].chunk == chunk
+
+
+def test_loaded_tantivy_index_fails_loud_when_lmdb_chunk_payload_is_missing(
+    tmp_path: Path, indexed_index: SembleIndex, mock_model: StaticModel
+) -> None:
+    """Tantivy cache corruption should not silently return fewer sparse results."""
+    indexed_index.save(tmp_path)
+    metadata = orjson.loads((tmp_path / "metadata.json").read_bytes())
+    missing_id = int(metadata["chunk_ids"][0])
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
+    try:
+        with store.env.begin(write=True) as txn:
+            txn.delete(_int_key(missing_id), db=store.chunks_db)
+    finally:
+        store.close()
+
+    with patch("semble.index.index.load_model", return_value=(mock_model, indexed_index._model_path)):
+        loaded = SembleIndex.load_from_disk(tmp_path)
+
+    with pytest.raises(FileNotFoundError, match="missing chunk payload"):
+        loaded._bm25_index.search("authenticate", top_k=1)
+
+
+def test_load_from_disk_fails_loud_when_lmdb_chunk_payload_is_missing(tmp_path: Path, mock_model: StaticModel) -> None:
+    """LMDB chunk_ids metadata must not load when payloads are missing."""
+    index_path = tmp_path / "bm25-lmdb"
+    index_path.mkdir()
+    (index_path / "bm25_index").mkdir()
+    (index_path / "semantic_index").mkdir()
+    chunk = make_chunk("def authenticate(token):\n    return token", "auth.py")
+    store = LmdbChunkStore.open(index_path / "chunks.lmdb")
+    try:
+        store.write_chunks_with_ids([chunk], [0])
+    finally:
+        store.close()
+    (index_path / "metadata.json").write_bytes(
+        orjson.dumps(
+            {
+                "root_path": None,
+                "time": 1.0,
+                "model_path": "mock-model",
+                "content_type": ["code"],
+                "file_paths": ["auth.py"],
+                "chunk_ids": [0, 1],
+                "sparse_backend": "bm25s",
+            }
+        )
+    )
+
+    with (
+        patch("semble.index.index.BM25.load", return_value=MagicMock()),
+        patch("semble.index.index.SelectableBasicBackend.load", return_value=MagicMock()),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+        pytest.raises(FileNotFoundError, match="missing chunk payloads"),
+    ):
+        SembleIndex.load_from_disk(index_path)
+
+
 def test_load_save_roundtrip_preserves_manifest(tmp_path: Path, indexed_index: SembleIndex) -> None:
     """load_from_disk followed by save must not clobber file_paths with an empty list."""
     save_a = tmp_path / "a"
@@ -213,6 +359,36 @@ def test_load_non_existent(tmp_path: Path, indexed_index: SembleIndex) -> None:
     """Test that saving and loading a folder leads to the same data."""
     with pytest.raises(FileNotFoundError):
         SembleIndex.load_from_disk(tmp_path / "temp")
+
+
+def test_legacy_bm25_chunks_json_cache_still_loads(tmp_path: Path, indexed_index: SembleIndex) -> None:
+    """Legacy bm25s/chunks.json caches should remain loadable after Tantivy becomes default."""
+    paths = tmp_path / "legacy"
+    paths.mkdir()
+    indexed_index._bm25_index = MagicMock()
+    (paths / "bm25_index").write_text("legacy")
+    indexed_index._semantic_index.save(paths / "semantic_index")
+    (paths / "chunks.json").write_bytes(orjson.dumps([chunk.to_dict() for chunk in indexed_index.chunks]))
+    (paths / "metadata.json").write_bytes(
+        orjson.dumps(
+            {
+                "root_path": None,
+                "time": 1.0,
+                "model_path": indexed_index._model_path,
+                "content_type": [item.value for item in indexed_index._content],
+                "file_paths": sorted(indexed_index._file_mapping),
+            }
+        )
+    )
+
+    with (
+        patch("semble.index.index.BM25.load", return_value=indexed_index._bm25_index),
+        patch.object(StaticModel, "from_pretrained"),
+    ):
+        loaded = SembleIndex.load_from_disk(paths)
+
+    assert loaded.chunks == indexed_index.chunks
+    assert loaded._bm25_index is indexed_index._bm25_index
 
 
 def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:

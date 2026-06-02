@@ -35,6 +35,7 @@ dependencies = [
     "tree-sitter-language-pack>=1.0,<1.8.0,!=1.6.3",
     "orjson",
     "questionary>=2.0,<3.0",
+    "msgspec>=0.18",
     "turbovec>=0.5.1",
     "tantivy>=0.26.0",
     "lmdb>=2.2.0",
