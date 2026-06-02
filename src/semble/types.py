@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, TypeAlias
 
@@ -34,6 +34,7 @@ class Chunk:
     start_line: int
     end_line: int
     language: str | None = None
+    chunk_id: int | None = None
 
     @property
     def location(self) -> str:
@@ -42,13 +43,22 @@ class Chunk:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the dataclass to a dict."""
-        d = asdict(self)
-        d["location"] = self.location
-        return d
+        payload: dict[str, Any] = {
+            "content": self.content,
+            "file_path": self.file_path,
+            "start_line": self.start_line,
+            "end_line": self.end_line,
+            "language": self.language,
+            "location": self.location,
+        }
+        if self.chunk_id is not None:
+            payload["chunk_id"] = self.chunk_id
+        return payload
 
     @classmethod
     def from_dict(cls: type[Chunk], data: dict[str, Any]) -> Chunk:
         """Create a Chunk from a dict."""
+        data = dict(data)
         data.pop("location", None)
         return cls(**data)
 
@@ -59,13 +69,26 @@ class SearchResult:
 
     chunk: Chunk
     score: float
+    source_snapshot_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Dump a search result to a dict."""
-        return {
+        result = {
             "chunk": self.chunk.to_dict(),
             "score": self.score,
         }
+        if self.source_snapshot_id is not None:
+            result["source_snapshot_id"] = self.source_snapshot_id
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class FilterSpec:
+    """Stable filter description independent of backend list positions."""
+
+    file_paths: frozenset[str] | None = None
+    languages: frozenset[str] | None = None
+    chunk_ids: frozenset[int] | None = None
 
 
 @dataclass(frozen=True, slots=True)

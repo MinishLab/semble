@@ -1,6 +1,6 @@
 import functools
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from semble.tokens import split_identifier
@@ -88,7 +88,7 @@ _STOPWORDS = frozenset(
 def apply_query_boost(
     combined_scores: dict[Chunk, float],
     query: str,
-    all_chunks: list[Chunk],
+    all_chunks: Sequence[Chunk],
 ) -> dict[Chunk, float]:
     """Apply query-type boosts to candidate scores."""
     if not combined_scores:
@@ -184,7 +184,7 @@ def _scan_non_candidates(
     boosted: dict[Chunk, float],
     names: set[str],
     boost_unit: float,
-    all_chunks: list[Chunk],
+    all_chunks: Sequence[Chunk],
     stem_ok: Callable[[str], bool],
 ) -> None:
     """Boost non-candidate chunks whose lowercased file stem satisfies stem_ok (in-place)."""
@@ -201,7 +201,7 @@ def _boost_symbol_definitions(
     boosted: dict[Chunk, float],
     query: str,
     max_score: float,
-    all_chunks: list[Chunk],
+    all_chunks: Sequence[Chunk],
 ) -> None:
     """Boost chunks that define the queried symbol, scanning candidates and stem-matched non-candidates (in-place)."""
     symbol_name = _extract_symbol_name(query)
@@ -228,7 +228,7 @@ def _boost_embedded_symbols(
     boosted: dict[Chunk, float],
     query: str,
     max_score: float,
-    all_chunks: list[Chunk],
+    all_chunks: Sequence[Chunk],
 ) -> None:
     """Boost chunks defining CamelCase/camelCase symbols embedded in NL queries (in-place).
 

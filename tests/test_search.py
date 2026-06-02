@@ -11,7 +11,7 @@ from vicinity.backends.basic import BasicArgs
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
-from semble.types import Chunk
+from semble.types import Chunk, FilterSpec, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -51,27 +51,108 @@ def semantic(embeddings: npt.NDArray[np.float32]) -> SelectableBasicBackend:
 
 
 def test_search_bm25(bm25: bm25s.BM25, chunks: list[Chunk]) -> None:
-    """search_bm25: returns most relevant chunk first; selector restricts to given indices."""
-    results = _search_bm25("authenticate token", bm25, chunks, top_k=4, selector=None)
+    """search_bm25: returns most relevant chunk first; FilterSpec restricts candidates."""
+    results = _search_bm25("authenticate token", bm25, chunks, top_k=4)
     assert len(results) > 0
     assert "authenticate" in results[0].chunk.content
 
-    selector = np.array([len(chunks) - 1], dtype=np.int_)
-    filtered = _search_bm25("format", bm25, chunks, top_k=4, selector=selector)
+    filter_spec = FilterSpec(file_paths=frozenset({"utils.py"}))
+    filtered = _search_bm25("format", bm25, chunks, top_k=4, filter_spec=filter_spec)
     assert all(r.chunk is chunks[len(chunks) - 1] for r in filtered)
 
 
 @pytest.mark.parametrize("query", ["", "   ", "\n\n", "zzzznonexistentterm"])
 def test_bm25_returns_empty_for_no_match(bm25: bm25s.BM25, chunks: list[Chunk], query: str) -> None:
     """Empty / whitespace-only / token-less queries return [] instead of crashing bm25s."""
-    assert _search_bm25(query, bm25, chunks, top_k=3, selector=None) == []
+    assert _search_bm25(query, bm25, chunks, top_k=3, filter_spec=None) == []
 
 
 def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any) -> None:
     """Semantic search returns results with scores in [-1, 1]."""
-    results = _search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
+    results = _search_semantic("login", mock_model, semantic, chunks, top_k=3, filter_spec=None)
     assert len(results) > 0
     assert all(-1.0 <= r.score <= 1.0 for r in results)
+
+
+def test_semantic_search_applies_filter_spec(
+    semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any
+) -> None:
+    """Dense filtering should be expressed as FilterSpec before backend-specific selector conversion."""
+    filter_spec = FilterSpec(file_paths=frozenset({"utils.py"}))
+
+    results = _search_semantic("login", mock_model, semantic, chunks, top_k=3, filter_spec=filter_spec)
+
+    assert [result.chunk.file_path for result in results] == ["utils.py"]
+
+
+def test_semantic_search_maps_backend_chunk_ids_to_canonical_chunks(mock_model: Any) -> None:
+    """Dense backend IDs should resolve through stable chunk IDs, not list positions."""
+    chunks = [
+        Chunk("def old():\n    pass", "old.py", 1, 2, "python", chunk_id=100),
+        Chunk("def current():\n    pass", "current.py", 10, 11, "python", chunk_id=101),
+    ]
+
+    class StableIdSemanticIndex:
+        def query(
+            self,
+            vectors: npt.NDArray,
+            k: int,
+            selector: npt.NDArray[np.int_] | None = None,
+        ) -> list[tuple[npt.NDArray[np.int_], npt.NDArray[np.float32]]]:
+            return [(np.array([101]), np.array([0.25], dtype=np.float32))]
+
+    results = _search_semantic("current", mock_model, StableIdSemanticIndex(), chunks, top_k=1)
+
+    assert [result.chunk for result in results] == [chunks[1]]
+
+
+def test_semantic_search_filter_spec_passes_stable_chunk_ids(mock_model: Any) -> None:
+    """Dense filters should pass stable chunk IDs so compacted dense rows remain addressable."""
+    chunks = [
+        Chunk("def old():\n    pass", "old.py", 1, 2, "python", chunk_id=100),
+        Chunk("def current():\n    pass", "current.py", 10, 11, "python", chunk_id=101),
+    ]
+
+    class CapturingSemanticIndex:
+        seen_selector: npt.NDArray[np.int_] | None = None
+
+        def query(
+            self,
+            vectors: npt.NDArray,
+            k: int,
+            selector: npt.NDArray[np.int_] | None = None,
+        ) -> list[tuple[npt.NDArray[np.int_], npt.NDArray[np.float32]]]:
+            self.seen_selector = selector
+            return [(np.array([101]), np.array([0.25], dtype=np.float32))]
+
+    semantic = CapturingSemanticIndex()
+    results = _search_semantic(
+        "current",
+        mock_model,
+        semantic,
+        chunks,
+        top_k=1,
+        filter_spec=FilterSpec(file_paths=frozenset({"current.py"})),
+    )
+
+    np.testing.assert_array_equal(semantic.seen_selector, np.array([101]))
+    assert [result.chunk for result in results] == [chunks[1]]
+
+
+def test_semantic_search_returns_empty_for_unmatched_filter_spec(
+    semantic: SelectableBasicBackend, chunks: list[Chunk], mock_model: Any
+) -> None:
+    """Dense filters with no matching chunks should return [] instead of querying an empty selector."""
+    results = _search_semantic(
+        "login",
+        mock_model,
+        semantic,
+        chunks,
+        top_k=3,
+        filter_spec=FilterSpec(file_paths=frozenset({"missing.py"})),
+    )
+
+    assert results == []
 
 
 def test_search_hybrid(
@@ -100,11 +181,134 @@ def test_search_hybrid(
     assert "module_b.py" in result_locations
 
 
+def test_search_accepts_sparse_index_protocol(
+    chunks: list[Chunk], semantic: SelectableBasicBackend, mock_model: Any
+) -> None:
+    """Hybrid search can use a sparse backend without relying on bm25s internals."""
+
+    class FakeSparseIndex:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, int, FilterSpec | None]] = []
+
+        def search(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[SearchResult]:
+            self.calls.append((query, top_k, filter_spec))
+            return [SearchResult(chunks[0], 42.0)]
+
+    sparse_index = FakeSparseIndex()
+
+    filter_spec = FilterSpec(file_paths=frozenset({"auth.py"}))
+    results = search(
+        "authenticate token",
+        mock_model,
+        semantic,
+        sparse_index,
+        chunks,
+        top_k=1,
+        alpha=0.0,
+        filter_spec=filter_spec,
+        rerank=False,
+    )
+
+    assert sparse_index.calls == [("authenticate token", 5, filter_spec)]
+    assert results[0].chunk is chunks[0]
+
+
+def test_hybrid_merge_uses_chunk_id_identity(mock_model: Any) -> None:
+    """Dense/sparse hits for one stable chunk ID should merge even when Chunk objects differ."""
+    canonical = Chunk("def authenticate(token):\n    return token", "auth.py", 1, 2, "python", chunk_id=7)
+    stale_payload = Chunk("def authenticate(token):\n    return False", "old_auth.py", 50, 51, "python", chunk_id=7)
+    chunks = [canonical]
+
+    class FakeSparseIndex:
+        def search(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[SearchResult]:
+            return [SearchResult(stale_payload, 100.0)]
+
+    with patch("semble.search._search_semantic", return_value=[SearchResult(canonical, 1.0)]):
+        results = search(
+            "authenticate token",
+            mock_model,
+            MagicMock(),
+            FakeSparseIndex(),
+            chunks,
+            top_k=2,
+            alpha=0.5,
+            rerank=False,
+        )
+
+    assert [result.chunk for result in results] == [canonical]
+    assert results[0].score > 0.01
+
+
+def test_hybrid_merge_keeps_position_fallback_distinct_from_chunk_id(mock_model: Any) -> None:
+    """Legacy position fallback should not collide with a stable chunk ID of the same integer value."""
+    legacy = Chunk("def old_chunk():\n    pass", "legacy.py", 1, 2, "python")
+    stable = Chunk("def stable_chunk():\n    pass", "stable.py", 10, 11, "python", chunk_id=0)
+    chunks = [legacy, stable]
+
+    class FakeSparseIndex:
+        def search(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[SearchResult]:
+            return [SearchResult(stable, 100.0)]
+
+    with patch("semble.search._search_semantic", return_value=[SearchResult(legacy, 1.0)]):
+        results = search(
+            "chunk",
+            mock_model,
+            MagicMock(),
+            FakeSparseIndex(),
+            chunks,
+            top_k=2,
+            alpha=0.5,
+            rerank=False,
+        )
+
+    assert {result.chunk for result in results} == {legacy, stable}
+
+
+def test_lazy_rerank_boosts_candidates_without_iterating_all_chunks(mock_model: Any) -> None:
+    """Hot rerank should not scan every persisted chunk to find non-candidate symbol matches."""
+    candidate = Chunk("class UserSessionManager:\n    pass", "sessions.py", 1, 2, "python", chunk_id=7)
+
+    class LazyChunks:
+        def __len__(self) -> int:
+            return 1
+
+        def __iter__(self):
+            raise AssertionError("lazy chunks should not be iterated during rerank")
+
+        def __getitem__(self, index: int) -> Chunk:
+            raise AssertionError("lazy chunks should not be indexed during rerank")
+
+        def chunk_by_id(self, chunk_id: int) -> Chunk:
+            assert chunk_id == 7
+            return candidate
+
+    class FakeSemanticIndex:
+        def query(self, vectors: Any, k: int, selector: Any = None) -> list[tuple[np.ndarray, np.ndarray]]:
+            return [(np.array([7]), np.array([0.0]))]
+
+    class FakeSparseIndex:
+        def search(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[SearchResult]:
+            return [SearchResult(candidate, 100.0)]
+
+    results = search(
+        "find UserSessionManager",
+        mock_model,
+        FakeSemanticIndex(),
+        FakeSparseIndex(),
+        LazyChunks(),
+        top_k=1,
+        alpha=0.5,
+        rerank=True,
+    )
+
+    assert [result.chunk for result in results] == [candidate]
+
+
 @pytest.mark.parametrize(
     ("search_fn", "query", "top_k"),
     [
-        (lambda q, m, s, b, c, k: _search_bm25(q, b, c, k, selector=None), "authenticate", 3),
-        (lambda q, m, s, b, c, k: _search_semantic(q, m, s, c, k, selector=None), "query", 4),
+        (lambda q, m, s, b, c, k: _search_bm25(q, b, c, k, filter_spec=None), "authenticate", 3),
+        (lambda q, m, s, b, c, k: _search_semantic(q, m, s, c, k, filter_spec=None), "query", 4),
         (lambda q, m, s, b, c, k: search(q, m, s, b, c, k), "login", 4),
     ],
 )
@@ -152,6 +356,18 @@ def test_embed_chunks_empty_returns_empty_array(mock_model: Any) -> None:
     result = embed_chunks(mock_model, [])
     assert result.shape == (0, 256)
     assert result.dtype == np.float32
+
+
+def test_embed_chunks_uses_model_multiprocessing(mock_model: Any) -> None:
+    """Embedding keeps model2vec's built-in multiprocessing path available."""
+    embed_chunks(mock_model, [make_chunk("x = 1")])
+    mock_model.encode.assert_called_once_with(["x = 1"], use_multiprocessing=True)
+
+
+def test_embed_chunks_can_disable_model_multiprocessing(mock_model: Any) -> None:
+    """Streaming micro-batches can avoid repeated model2vec worker startup."""
+    embed_chunks(mock_model, [make_chunk("x = 1")], use_multiprocessing=False)
+    mock_model.encode.assert_called_once_with(["x = 1"], use_multiprocessing=False)
 
 
 def test_selectable_basic_backend_rejects_k_below_one(

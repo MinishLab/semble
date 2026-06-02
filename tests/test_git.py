@@ -2,11 +2,13 @@ import os
 import subprocess
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import orjson
 import pytest
 
 from semble import SembleIndex
+from semble.index.types import PersistencePath
 
 _GIT_ENV = {
     **os.environ,
@@ -47,6 +49,19 @@ def test_from_git_indexes_local_repo_with_relative_paths(mock_model: Any, git_re
     assert all(not Path(c.file_path).is_absolute() for c in idx.chunks)
 
 
+def test_from_git_index_saves_after_temporary_clone_is_removed(mock_model: Any, git_repo: Path, tmp_path: Path) -> None:
+    """from_git returns a portable index whose save path does not reread the temp clone."""
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        idx = SembleIndex.from_git(str(git_repo))
+
+    index_path = tmp_path / "saved-index"
+    idx.save(index_path)
+
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        loaded = SembleIndex.load_from_disk(index_path)
+        assert loaded.search("hello", top_k=1)[0].chunk.file_path == "main.py"
+
+
 def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
     """from_git with ref= checks out the specified branch."""
     repo = tmp_path / "repo"
@@ -59,6 +74,35 @@ def test_from_git_with_branch(mock_model: Any, tmp_path: Path) -> None:
         idx = SembleIndex.from_git(str(repo), ref="feature")
     file_names = {Path(c.file_path).name for c in idx.chunks}
     assert "feature.py" in file_names
+
+
+def test_from_git_rejects_invalid_hybrid_cache(mock_model: Any, tmp_path: Path) -> None:
+    """from_git must not serve a cache whose hybrid generation cannot be proven active."""
+    index_path = tmp_path / "index"
+    paths = PersistencePath.from_path(index_path)
+    paths.bm25_index.mkdir(parents=True)
+    paths.semantic_index.mkdir(parents=True)
+    paths.chunk_store.mkdir(parents=True)
+    paths.metadata.write_bytes(
+        orjson.dumps(
+            {
+                "root_path": None,
+                "model_path": "mock-model",
+                "content_type": ["code"],
+                "file_paths": [],
+                "sparse_backend": "tantivy",
+                "active_generation": 1,
+            }
+        )
+    )
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=index_path),
+        patch.object(SembleIndex, "load_from_disk", side_effect=AssertionError("invalid hybrid cache should not load")),
+        patch("semble.index.index.subprocess.run", return_value=MagicMock(returncode=1, stderr="clone failed")),
+        pytest.raises(RuntimeError, match="git clone failed"),
+    ):
+        SembleIndex.from_git("https://github.com/x/y", model_path="mock-model")
 
 
 @pytest.mark.parametrize(

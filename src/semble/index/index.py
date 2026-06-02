@@ -22,7 +22,7 @@ from semble.index.files import read_file_text
 from semble.index.types import PersistencePath
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
-from semble.types import CallType, Chunk, ContentType, IndexStats, SearchResult
+from semble.types import CallType, Chunk, ContentType, FilterSpec, IndexStats, SearchResult
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 _DEFAULT_CONTENT: tuple[ContentType, ...] = (ContentType.CODE,)
@@ -45,6 +45,18 @@ def _apply_include_text_files(
         stacklevel=3,
     )
     return _ALL_CONTENT if include_text_files else _DEFAULT_CONTENT
+
+
+def _cache_is_loadable_for_git(cache_path: Path) -> bool:
+    """Reject hybrid-generation caches that this non-streaming path cannot prove active."""
+    metadata_path = PersistencePath.from_path(cache_path).metadata
+    try:
+        metadata = orjson.loads(metadata_path.read_bytes())
+    except OSError:
+        return True
+    except ValueError:
+        return False
+    return metadata.get("active_generation") is None and metadata.get("sparse_backend") != "tantivy"
 
 
 class SembleIndex:
@@ -188,7 +200,7 @@ class SembleIndex:
         normalized = _apply_include_text_files(content, include_text_files)
         cache_key = f"{url}@{ref}" if ref else url
         cache_path = get_validated_cache(cache_key, model_path, normalized)
-        if cache_path:
+        if cache_path and _cache_is_loadable_for_git(cache_path):
             return cls.load_from_disk(cache_path)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -232,8 +244,10 @@ class SembleIndex:
         :return: Ranked list of SearchResult objects, most similar first.
         """
         target = source.chunk if isinstance(source, SearchResult) else source
-        selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
-        results = _search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
+        filter_spec = FilterSpec(languages=frozenset([target.language])) if target.language else None
+        results = _search_semantic(
+            target.content, self.model, self._semantic_index, self.chunks, top_k + 1, filter_spec
+        )
         results = [r for r in results if r.chunk != target][:top_k]
         save_search_stats(results, CallType.FIND_RELATED, self._file_sizes)
         return results
@@ -278,7 +292,12 @@ class SembleIndex:
 
         resolved_rerank = (ContentType.CODE in self._content) if rerank is None else rerank
 
-        selector = self._get_selector_vector(filter_languages, filter_paths)
+        filter_spec = None
+        if filter_languages or filter_paths:
+            filter_spec = FilterSpec(
+                file_paths=frozenset(filter_paths) if filter_paths else None,
+                languages=frozenset(filter_languages) if filter_languages else None,
+            )
         results = search(
             query,
             self.model,
@@ -287,7 +306,7 @@ class SembleIndex:
             self.chunks,
             top_k,
             alpha=alpha,
-            selector=selector,
+            filter_spec=filter_spec,
             rerank=resolved_rerank,
         )
         save_search_stats(results, CallType.SEARCH, self._file_sizes)

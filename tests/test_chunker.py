@@ -1,4 +1,6 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier, get_ident
 from unittest.mock import patch
 
 import pytest
@@ -45,6 +47,45 @@ def test_chunk_source_language() -> None:
         chunk_line_spy.assert_called_once()
 
 
+def test_chunk_source_line_numbers_do_not_prefix_scan_per_chunk() -> None:
+    """Line number assignment should not rescan source prefixes for every chunk boundary."""
+
+    class NoPrefixSliceStr(str):
+        def __getitem__(self, key):  # type: ignore[no-untyped-def]
+            if isinstance(key, slice) and key.start is None and isinstance(key.stop, int):
+                raise AssertionError("line numbers should not use prefix scans")
+            return super().__getitem__(key)
+
+    source = NoPrefixSliceStr("one\ntwo\nthree\nfour\n")
+    boundaries = [ChunkBoundary(0, 4), ChunkBoundary(4, 8), ChunkBoundary(8, 14), ChunkBoundary(14, 19)]
+
+    with patch("semble.chunking.chunking.chunk_lines", return_value=boundaries):
+        chunks = chunk_source(source, "large.txt", None)
+
+    assert [chunk.start_line for chunk in chunks] == [1, 2, 3, 4]
+    assert [chunk.end_line for chunk in chunks] == [1, 2, 3, 4]
+
+
+def test_chunk_source_counts_lines_only_for_chunk_boundaries() -> None:
+    """Fallback chunking should avoid full-source newline index materialization for each large file."""
+
+    class NoFullIterationStr(str):
+        def __iter__(self):  # type: ignore[no-untyped-def]
+            raise AssertionError("line numbers should not materialize every newline index")
+
+    source = NoFullIterationStr("first line\n" + ("middle\n" * 10_000) + "last line\n")
+
+    def fake_chunk_lines(text: str, desired_length: int) -> list[ChunkBoundary]:
+        assert text is source
+        assert desired_length > 0
+        return [ChunkBoundary(0, len("first line\n")), ChunkBoundary(len(source) - len("last line\n"), len(source))]
+
+    with patch("semble.chunking.chunking.chunk_lines", side_effect=fake_chunk_lines):
+        chunks = chunk_source(source, "large.txt", None)
+
+    assert [(chunk.start_line, chunk.end_line) for chunk in chunks] == [(1, 1), (10_002, 10_002)]
+
+
 def test_core_chunk_empty_input() -> None:
     """core.chunk returns [] for whitespace-only input."""
     assert chunk("   \n", "python", 100) == []
@@ -87,6 +128,32 @@ def test_core_chunk_leaf_node_exceeds_desired_length() -> None:
     assert chunks[0].start == 0
     for c in chunks:
         assert 0 <= c.start < c.end <= len(code)
+
+
+def test_core_chunk_uses_thread_local_parsers() -> None:
+    """Parallel chunking does not share a parser instance across worker threads."""
+    parser_threads: list[int] = []
+    barrier = Barrier(2)
+
+    class FakeTree:
+        root_node = None
+
+    class FakeParser:
+        def __init__(self) -> None:
+            self.thread_id = get_ident()
+
+        def parse(self, source: bytes) -> FakeTree:
+            barrier.wait(timeout=5)
+            parser_threads.append(self.thread_id)
+            return FakeTree()
+
+    with patch("semble.chunking.core.get_parser", side_effect=lambda language: FakeParser()):
+        with patch("semble.chunking.core._merge_node", return_value=[ChunkBoundary(0, 5)]):
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                results = list(executor.map(lambda _: chunk("x = 1", "python", 100), range(2)))
+
+    assert results == [[ChunkBoundary(0, 5)], [ChunkBoundary(0, 5)]]
+    assert len(set(parser_threads)) == 2
 
 
 def test_get_parser(caplog: pytest.LogCaptureFixture) -> None:

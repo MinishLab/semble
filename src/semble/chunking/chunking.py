@@ -10,29 +10,41 @@ logger = logging.getLogger(__name__)
 _DESIRED_CHUNK_LENGTH_CHARS = 1500
 
 
-def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
+def chunk_source(
+    source: str,
+    file_path: str,
+    language: str | None,
+    desired_length_chars: int = _DESIRED_CHUNK_LENGTH_CHARS,
+) -> list[Chunk]:
     """Chunk pre-read source text."""
     if not source.strip():
         return []
     chunk_boundaries = None
     if language is not None and is_supported_language(language):
-        chunk_boundaries = chunk(source, language, _DESIRED_CHUNK_LENGTH_CHARS)
+        chunk_boundaries = chunk(source, language, desired_length_chars)
     # This is an if because the error state of the parser above
     # is a None.
     if chunk_boundaries is None:
-        chunk_boundaries = chunk_lines(source, _DESIRED_CHUNK_LENGTH_CHARS)
+        chunk_boundaries = chunk_lines(source, desired_length_chars)
 
     chunks: list[Chunk] = []
+    line_number = 1
+    cursor = 0
     for boundary in chunk_boundaries:
         # Clamp to start_index so zero-length chunks don't produce an off-by-one.
         end_index = max(boundary.end - 1, boundary.start)
+        line_number += source.count("\n", cursor, boundary.start)
+        start_line = line_number
+        end_line = line_number + source.count("\n", boundary.start, end_index)
+        line_number = end_line
+        cursor = end_index
         text = source[boundary.start : end_index + 1]
         chunks.append(
             Chunk(
                 content=text,
                 file_path=file_path,
-                start_line=source[: boundary.start].count("\n") + 1,
-                end_line=source[:end_index].count("\n") + 1,
+                start_line=start_line,
+                end_line=end_line,
                 language=language,
             )
         )

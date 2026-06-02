@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import cache
 from logging import getLogger
+from threading import current_thread, local, main_thread
 
 from tree_sitter import Node, Parser
 from tree_sitter_language_pack import DownloadError, LanguageNotFoundError, SupportedLanguage, get_parser
@@ -13,6 +14,7 @@ logger = getLogger(__name__)
 
 _RECURSION_DEPTH = 500
 _MIN_CHUNK_SIZE = 50
+_thread_local_parsers = local()
 
 
 def is_supported_language(language: str) -> bool:
@@ -40,6 +42,20 @@ def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
     except Exception:
         logger.error("Uncaught exception in _cached_get_parser", exc_info=True)
     return None
+
+
+def _get_thread_parser(language: SupportedLanguage) -> Parser | None:
+    if current_thread() is main_thread():
+        return _cached_get_parser(language)
+
+    parsers = getattr(_thread_local_parsers, "parsers", None)
+    if parsers is None:
+        parsers = {}
+        _thread_local_parsers.parsers = parsers
+    if language not in parsers:
+        parser_factory = getattr(_cached_get_parser, "__wrapped__", _cached_get_parser)
+        parsers[language] = parser_factory(language)
+    return parsers[language]
 
 
 def _merge_adjacent_chunks(
@@ -147,7 +163,7 @@ def chunk(text: str, language: str, desired_length: int) -> list[ChunkBoundary] 
         return []
 
     as_bytes = text.encode("utf-8")
-    parser = _cached_get_parser(language)
+    parser = _get_thread_parser(language)
     if parser is None:
         return None
     root = parser.parse(as_bytes).root_node
