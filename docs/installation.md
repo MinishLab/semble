@@ -12,8 +12,13 @@ Install the CLI with [uv](https://docs.astral.sh/uv/getting-started/installation
 
 ```bash
 uv tool install semble
-semble install           # configure your agents
-semble uninstall         # undo
+semble install
+```
+
+To undo:
+
+```bash
+semble uninstall
 ```
 
 Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, and Zed.

@@ -9,7 +9,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-05-25T07:13:27.232487Z"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -3195,7 +3195,7 @@ requires-dist = [
     { name = "pydoclint", marker = "extra == 'dev'", specifier = ">=0.5.3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
-    { name = "questionary", specifier = ">=2.0" },
+    { name = "questionary", specifier = ">=2.0,<3.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
     { name = "tiktoken", marker = "extra == 'benchmark'", specifier = ">=0.7" },

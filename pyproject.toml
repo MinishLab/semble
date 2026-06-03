@@ -34,7 +34,7 @@ dependencies = [
     "tree-sitter>=0.25,<0.26",
     "tree-sitter-language-pack>=1.0,<1.8.0,!=1.6.3",
     "orjson",
-    "questionary>=2.0",
+    "questionary>=2.0,<3.0",
 ]
 
 [project.optional-dependencies]
@@ -93,7 +93,7 @@ target-version = "py310"
 "tests/**" = ["ANN"]
 "benchmarks/*.py" = ["T20"]
 "src/semble/cli.py" = ["T20", "E501"]
-"src/semble/installer.py" = ["T20", "E501"]
+"src/semble/installer/*.py" = ["T20", "E501"]
 
 [tool.ruff.lint]
 select = [

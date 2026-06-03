@@ -3,10 +3,7 @@ import asyncio
 import json
 import sys
 import warnings
-from enum import Enum
-from importlib.resources import files
 from importlib.util import find_spec
-from pathlib import Path
 
 from model2vec.utils import get_package_extras
 
@@ -16,18 +13,7 @@ from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
 
-
-class Agent(str, Enum):
-    CLAUDE = "claude"
-    COPILOT = "copilot"
-    CURSOR = "cursor"
-    GEMINI = "gemini"
-    KIRO = "kiro"
-    OPENCODE = "opencode"
-
-
-_DEFAULT_AGENT = Agent.CLAUDE
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "init", "install", "uninstall", "savings", "-h", "--help"})
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "install", "uninstall", "savings", "-h", "--help"})
 
 
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
@@ -47,14 +33,6 @@ def _maybe_save_index(index: SembleIndex, path: str) -> None:
             index.save(cache_folder)
         except Exception as e:
             print(f"Error saving index: {e}", file=sys.stderr)
-
-
-def _agent_path(agent: Agent) -> Path:
-    """Return the project-relative path where the semble sub-agent file should be written."""
-    base_dir = ".github" if agent is Agent.COPILOT else f".{agent.value}"
-    # Copilot requires the .agent.md extension; the others use a plain .md file.
-    filename = "semble-search.agent.md" if agent is Agent.COPILOT else "semble-search.md"
-    return Path(base_dir) / "agents" / filename
 
 
 def _add_content_args(p: argparse.ArgumentParser) -> None:
@@ -103,22 +81,6 @@ def _mcp_main() -> None:
 
     content = _resolve_content(args.content, args.include_text_files)
     asyncio.run(serve(args.path, ref=args.ref, content=content))
-
-
-def _run_init(*, agent: Agent = _DEFAULT_AGENT, force: bool = False) -> None:
-    """Write the semble sub-agent file for the given coding agent into the current project."""
-    print(
-        "Warning: 'semble init' is deprecated and will be removed in a future version. Use 'semble install' instead.",
-        file=sys.stderr,
-    )
-    dest = _agent_path(agent)
-    if dest.exists() and not force:
-        print(f"{dest} already exists. Run with --force to overwrite.", file=sys.stderr)
-        sys.exit(1)
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    content = files("semble").joinpath(f"agents/{agent.value}.md").read_text(encoding="utf-8")
-    dest.write_text(content, encoding="utf-8")
-    print(f"Created {dest}")
 
 
 def _resolve_content(content: list[str], include_text_files: bool) -> list[ContentType]:
@@ -186,18 +148,6 @@ def _cli_main() -> None:
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     _add_content_args(related_p)
 
-    init_p = sub.add_parser(
-        "init", help="(Deprecated; use 'semble install') Write a semble sub-agent file into the current project."
-    )
-    init_p.add_argument(
-        "--agent",
-        "-a",
-        default=_DEFAULT_AGENT.value,
-        choices=[a.value for a in Agent],
-        help=f"Coding agent to set up (default: {_DEFAULT_AGENT.value}).",
-    )
-    init_p.add_argument("--force", action="store_true", help="Overwrite if the file already exists.")
-
     savings_p = sub.add_parser("savings", help="Show token savings and usage stats.")
     savings_p.add_argument("--verbose", action="store_true", help="Also show usage breakdown by call type.")
 
@@ -206,9 +156,7 @@ def _cli_main() -> None:
 
     args = parser.parse_args()
 
-    if args.command == "init":
-        _run_init(agent=Agent(args.agent), force=args.force)
-    elif args.command == "savings":
+    if args.command == "savings":
         print(format_savings_report(verbose=args.verbose))
     elif args.command in ("install", "uninstall"):
         from semble.installer import run

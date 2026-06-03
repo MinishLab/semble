@@ -4,28 +4,32 @@ from dataclasses import replace
 
 import pytest
 
-from semble.installer import (
-    _CODEX_MCP_HEADER,
-    _INTEGRATIONS,
-    _STDIO_ENTRY,
+from semble.installer import run
+from semble.installer.agents import (
+    _STDIO_SERVER_CONFIG,
     AGENTS,
     SEMBLE_END,
     SEMBLE_START,
+    _opencode_mcp_path,
+    _vscode_mcp_path,
+    is_detected,
+)
+from semble.installer.config import (
+    _CODEX_MCP_HEADER,
+    _merge_toml_block,
+    _remove_toml_block,
+    remove_marked,
+    replace_or_append_marked,
+)
+from semble.installer.installer import (
+    _INTEGRATIONS,
     _apply_instructions,
     _apply_mcp,
     _apply_subagent,
     _checkbox,
-    _merge_toml_block,
-    _opencode_mcp_path,
     _print_plan,
-    _remove_toml_block,
-    _vscode_mcp_path,
-    is_detected,
     merge_mcp,
-    remove_marked,
     remove_mcp,
-    replace_or_append_marked,
-    run,
 )
 
 _BLOCK = f"{SEMBLE_START}\n## Semble\nsome instructions\n{SEMBLE_END}\n"
@@ -54,8 +58,8 @@ def run_setup(monkeypatch, tmp_path, claude_agent):
         mcp=replace(cursor.mcp, path=tmp_path / "cursor.json"),
         subagent_path=tmp_path / "cursor_subagent.md",
     )
-    monkeypatch.setattr("semble.installer.AGENTS", [claude_agent, cursor])
-    monkeypatch.setattr("semble.installer._checkbox", lambda _p, items: [v for _, v, _ in items])
+    monkeypatch.setattr("semble.installer.installer.AGENTS", [claude_agent, cursor])
+    monkeypatch.setattr("semble.installer.installer._checkbox", lambda _p, items: [v for _, v, _ in items])
     return monkeypatch
 
 
@@ -63,7 +67,7 @@ def test_merge_mcp_creates_fresh_file(claude_agent):
     """merge_mcp writes a clean new config file when none exists."""
     assert merge_mcp(claude_agent).action == "created"
     data = json.loads(claude_agent.mcp.path.read_text())
-    assert data["mcpServers"]["semble"] == _STDIO_ENTRY
+    assert data["mcpServers"]["semble"] == _STDIO_SERVER_CONFIG
 
 
 def test_merge_mcp_preserves_comments_and_other_entries(claude_agent):
@@ -134,7 +138,8 @@ def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
 def test_mcp_skipped_when_grammar_unavailable(claude_agent, monkeypatch):
     """When the JSON5 grammar cannot be downloaded, merge/remove return 'skipped'."""
     claude_agent.mcp.path.write_text('{ "mcpServers": {} }')
-    monkeypatch.setattr("semble.installer.download", lambda _: 1 / 0)
+    monkeypatch.setattr("semble.installer.config.download", lambda _: 1 / 0)
+    monkeypatch.setattr("semble.installer.config._json5_parser_cache", False)
     assert merge_mcp(claude_agent).action == "skipped"
     assert remove_mcp(claude_agent).action == "skipped"
 
@@ -142,7 +147,7 @@ def test_mcp_skipped_when_grammar_unavailable(claude_agent, monkeypatch):
 def test_merge_mcp_reparse_guard(claude_agent, monkeypatch):
     """merge_mcp reports error when the edited JSON5 fails reparse validation."""
     claude_agent.mcp.path.write_text('{\n  "mcpServers": {}\n}\n')
-    monkeypatch.setattr("semble.installer._reparse_ok", lambda _: False)
+    monkeypatch.setattr("semble.installer.config._reparse_ok", lambda _: False)
     assert merge_mcp(claude_agent).action == "error"
 
 
@@ -182,7 +187,7 @@ def test_remove_mcp_no_trailing_comma(claude_agent, initial):
 def test_remove_mcp_reparse_guard(claude_agent, monkeypatch):
     """remove_mcp reports error when the result fails reparse validation."""
     claude_agent.mcp.path.write_text('{\n  "mcpServers": {\n    "semble": {}\n  }\n}\n')
-    monkeypatch.setattr("semble.installer._reparse_ok", lambda _: False)
+    monkeypatch.setattr("semble.installer.config._reparse_ok", lambda _: False)
     assert remove_mcp(claude_agent).action == "error"
 
 
@@ -335,7 +340,7 @@ def test_apply_subagent(tmp_path):
 def test_is_detected(monkeypatch, tmp_path):
     """is_detected returns True when binary is on PATH or config dir exists."""
     agent = next(a for a in AGENTS if a.id == "claude")
-    monkeypatch.setattr("semble.installer.shutil.which", lambda _: "/usr/bin/claude")
+    monkeypatch.setattr("semble.installer.agents.shutil.which", lambda _: "/usr/bin/claude")
     assert is_detected(agent)
 
     agent_no_bin = replace(agent, binary=None, config_dir=tmp_path)
@@ -349,7 +354,7 @@ def test_checkbox(monkeypatch):
         def ask(self):
             return ["a"]
 
-    monkeypatch.setattr("semble.installer.questionary.checkbox", lambda *_, **__: _Fake())
+    monkeypatch.setattr("semble.installer.installer.questionary.checkbox", lambda *_, **__: _Fake())
     assert _checkbox("Pick:", [("Option A", "a", False)]) == ["a"]
 
 
@@ -369,7 +374,7 @@ def test_run_completes(run_setup, monkeypatch, capsys):
         def ask(self):
             return True
 
-    monkeypatch.setattr("semble.installer.questionary.confirm", lambda *_, **__: _Yes())
+    monkeypatch.setattr("semble.installer.installer.questionary.confirm", lambda *_, **__: _Yes())
     run("install")
     assert "Done!" in capsys.readouterr().out
 
@@ -381,7 +386,7 @@ def test_run_cancels(run_setup, monkeypatch):
         def ask(self):
             return False
 
-    monkeypatch.setattr("semble.installer.questionary.confirm", lambda *_, **__: _No())
+    monkeypatch.setattr("semble.installer.installer.questionary.confirm", lambda *_, **__: _No())
     with pytest.raises(SystemExit):
         run("install")
 
