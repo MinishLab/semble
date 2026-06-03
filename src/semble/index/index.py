@@ -899,6 +899,7 @@ class SembleIndex:
         self._file_sizes: dict[str, int] = {}
         self._file_hashes: dict[str, str] = {}
         self._git_cache_metadata: tuple[dict[str, str], ...] | None = None
+        self._git_cache_metadata_fresh = False
         self._tracked_paths: tuple[str, ...] | None = None
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
@@ -992,6 +993,9 @@ class SembleIndex:
         )
         index._file_sizes = build.file_sizes
         index._file_hashes = build.file_hashes
+        index._git_cache_metadata = build.git_cache_metadata
+        index._git_cache_metadata_fresh = build.git_cache_metadata is not None
+        index._tracked_paths = build.tracked_paths
         return index
 
     @classmethod
@@ -1035,6 +1039,7 @@ class SembleIndex:
             index._file_sizes = state.file_sizes
             index._file_hashes = state.file_hashes
             index._git_cache_metadata = _merged_git_cache_metadata(lazy_plan, _lazy_seed_for_plan(seed_metadata))
+            index._git_cache_metadata_fresh = index._git_cache_metadata is not None
             index._tracked_paths = tuple(sorted(lazy_plan.tracked_paths))
             return index
 
@@ -1066,6 +1071,7 @@ class SembleIndex:
         index._file_hashes = state.file_hashes
         if plan is not None:
             index._git_cache_metadata = _merged_git_cache_metadata(plan, seed)
+            index._git_cache_metadata_fresh = index._git_cache_metadata is not None
             index._tracked_paths = tuple(sorted(plan.tracked_paths))
         return index
 
@@ -1132,6 +1138,10 @@ class SembleIndex:
                 content=normalized,
             )
             index._file_sizes = build.file_sizes
+            index._file_hashes = build.file_hashes
+            index._git_cache_metadata = build.git_cache_metadata
+            index._git_cache_metadata_fresh = build.git_cache_metadata is not None
+            index._tracked_paths = build.tracked_paths
             return index
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
@@ -1377,7 +1387,7 @@ class SembleIndex:
             git_roots = self._git_cache_metadata
             if git_roots is None:
                 save_metadata = build_git_cache_save_metadata(self._root, file_paths)
-            else:
+            elif not self._git_cache_metadata_fresh:
                 refreshed_git_roots = refresh_git_cache_metadata(self._root, git_roots)
                 if refreshed_git_roots is not None:
                     git_roots = tuple(refreshed_git_roots)

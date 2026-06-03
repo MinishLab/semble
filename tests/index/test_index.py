@@ -14,6 +14,7 @@ from vicinity.backends.basic import BasicArgs
 
 from semble import SembleIndex
 from semble.cache import GIT_CACHE_ROOTS_VERSION, get_validated_cache
+from semble.chunking import chunk_source
 from semble.index.chunk_store import LmdbChunkStore, _int_key
 from semble.index.create import IndexBuild, create_index_build_from_path, create_index_from_path
 from semble.index.dense import SelectableBasicBackend
@@ -98,7 +99,31 @@ def test_create_index_chunks_files_concurrently_without_changing_order(mock_mode
     assert set(call_order) == {"a.py", "b.py", "c.py"}
 
 
-def test_create_index_build_uses_tantivy_sparse_and_collects_file_sizes(
+def test_create_index_reuses_exact_source_chunk_templates_without_changing_paths(
+    mock_model: StaticModel, tmp_path: Path
+) -> None:
+    """Duplicate file contents should reuse chunk templates while preserving each file path in output chunks."""
+    source = "def shared():\n    return 'same'\n"
+    (tmp_path / "a.py").write_text(source)
+    (tmp_path / "b.py").write_text(source)
+    calls: list[tuple[str, str]] = []
+
+    def fake_chunk_source(source_text: str, file_path: str, language: str | None):
+        calls.append((source_text, file_path))
+        return chunk_source(source_text, file_path, language)
+
+    with patch("semble.index.create.chunk_source", side_effect=fake_chunk_source):
+        _, _, chunks = create_index_from_path(tmp_path, mock_model, display_root=tmp_path)
+
+    assert len(calls) == 1
+    assert calls[0][0] == source
+    assert calls[0][1] in {"a.py", "b.py"}
+    assert [chunk.file_path for chunk in chunks] == ["a.py", "b.py"]
+    assert [chunk.content for chunk in chunks] == [source, source]
+    assert [(chunk.start_line, chunk.end_line) for chunk in chunks] == [(1, 2), (1, 2)]
+
+
+def test_create_index_build_uses_tantivy_sparse_index_and_reuses_file_sizes(
     mock_model: StaticModel, tmp_path: Path
 ) -> None:
     """Full cold build should use Tantivy sparse index and reuse first-read file sizes."""
@@ -346,7 +371,12 @@ def test_save_writes_git_cache_metadata_for_hot_validation(tmp_path: Path, mock_
     with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
         index = SembleIndex.from_path(repo)
     save_path = tmp_path / "index"
-    index.save(save_path)
+    with (
+        patch("semble.index.index.build_git_cache_save_metadata", side_effect=AssertionError("git metadata reused")),
+        patch("semble.index.index.refresh_git_cache_metadata", side_effect=AssertionError("fresh metadata reused")),
+        patch.object(SembleIndex, "_compute_file_sizes", side_effect=AssertionError("file sizes reused")),
+    ):
+        index.save(save_path)
 
     metadata = orjson.loads((save_path / "metadata.json").read_bytes())
     assert metadata["git_roots_version"] == GIT_CACHE_ROOTS_VERSION
@@ -653,7 +683,10 @@ def test_from_path_rebuilds_changed_files_from_git_plan_without_full_walk(
         rebuilt = SembleIndex.from_path(tmp_path)
 
     build_temporary.assert_not_called()
-    with patch.object(rebuilt.chunks, "chunk_by_id", side_effect=AssertionError("save should not walk lazy chunks")):
+    with (
+        patch("semble.index.index.refresh_git_cache_metadata", side_effect=AssertionError("plan metadata is fresh")),
+        patch.object(rebuilt.chunks, "chunk_by_id", side_effect=AssertionError("save should not walk lazy chunks")),
+    ):
         rebuilt.save(tmp_path / "rebuilt-cache")
     assert rebuilt.stats.indexed_files == 2
     assert any("changed_format" in chunk.content for chunk in rebuilt.chunks if chunk.file_path == "utils.py")

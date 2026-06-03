@@ -36,6 +36,27 @@ def load_model(model_path: str | None = None) -> tuple[StaticModel, str]:
     return model, model_path
 
 
+def _unique_contents(chunks: list[Chunk]) -> tuple[list[str], list[int]]:
+    """Return unique chunk contents and per-chunk positions into that unique list."""
+    content_positions: dict[str, int] = {}
+    contents: list[str] = []
+    positions: list[int] = []
+    for chunk in chunks:
+        position = content_positions.get(chunk.content)
+        if position is None:
+            position = len(contents)
+            content_positions[chunk.content] = position
+            contents.append(chunk.content)
+        positions.append(position)
+    return contents, positions
+
+
+def _can_deduplicate_embeddings(model: StaticModel) -> bool:
+    """Return whether exact text dedup preserves the model's full-batch output bitwise."""
+    model_type = type(model)
+    return model_type.__module__ == "model2vec.model" and model_type.__name__ == "StaticModel"
+
+
 def embed_chunks(
     model: StaticModel,
     chunks: list[Chunk],
@@ -45,10 +66,19 @@ def embed_chunks(
     """Embed chunks using the configured model."""
     if not chunks:
         return np.empty((0, model.dim), dtype=np.float32)
-    return np.array(
-        model.encode([c.content for c in chunks], use_multiprocessing=use_multiprocessing),
+    if not _can_deduplicate_embeddings(model):
+        return np.array(
+            model.encode([c.content for c in chunks], use_multiprocessing=use_multiprocessing),
+            dtype=np.float32,
+        )
+    contents, positions = _unique_contents(chunks)
+    embeddings = np.array(
+        model.encode(contents, use_multiprocessing=use_multiprocessing),
         dtype=np.float32,
     )
+    if len(contents) == len(chunks):
+        return embeddings
+    return embeddings[np.array(positions, dtype=np.intp)]
 
 
 class SelectableBasicBackend(CosineBasicBackend):

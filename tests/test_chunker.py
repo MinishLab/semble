@@ -156,6 +156,31 @@ def test_core_chunk_uses_thread_local_parsers() -> None:
     assert len(set(parser_threads)) == 2
 
 
+def test_core_chunk_ascii_fast_path_matches_byte_boundaries() -> None:
+    """ASCII source should keep byte offsets as char offsets without changing chunk boundaries."""
+    code = "x = 1\ndef foo():\n    return x\n"
+
+    with patch("semble.chunking.core._merge_node", return_value=[ChunkBoundary(0, 6), ChunkBoundary(6, len(code))]):
+        chunks = chunk(code, "python", 100)
+
+    assert chunks == [ChunkBoundary(0, 6), ChunkBoundary(6, len(code))]
+
+
+def test_core_chunk_unicode_offsets_still_convert_from_utf8_bytes() -> None:
+    """Non-ASCII source must still convert tree-sitter byte offsets to Python char offsets."""
+    code = "é = 1\n"
+    as_bytes = code.encode("utf-8")
+
+    encoded_e = len("é".encode("utf-8"))
+    with patch(
+        "semble.chunking.core._merge_node",
+        return_value=[ChunkBoundary(0, encoded_e), ChunkBoundary(encoded_e, len(as_bytes))],
+    ):
+        chunks = chunk(code, "python", 100)
+
+    assert chunks == [ChunkBoundary(0, 1), ChunkBoundary(1, len(code))]
+
+
 def test_get_parser(caplog: pytest.LogCaptureFixture) -> None:
     """Test that get parser only logs the first time."""
     _cached_get_parser.cache_clear()

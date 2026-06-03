@@ -30,9 +30,7 @@ class ChunkBoundary:
     end: int
 
 
-@cache
-def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
-    """Gets a parser from tree_sitter."""
+def _create_parser(language: SupportedLanguage) -> Parser | None:
     try:
         return get_parser(language)
     except LanguageNotFoundError:
@@ -44,6 +42,12 @@ def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
     return None
 
 
+@cache
+def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
+    """Gets a parser from tree_sitter."""
+    return _create_parser(language)
+
+
 def _get_thread_parser(language: SupportedLanguage) -> Parser | None:
     if current_thread() is main_thread():
         return _cached_get_parser(language)
@@ -53,8 +57,7 @@ def _get_thread_parser(language: SupportedLanguage) -> Parser | None:
         parsers = {}
         _thread_local_parsers.parsers = parsers
     if language not in parsers:
-        parser_factory = getattr(_cached_get_parser, "__wrapped__", _cached_get_parser)
-        parsers[language] = parser_factory(language)
+        parsers[language] = _create_parser(language)
     return parsers[language]
 
 
@@ -168,10 +171,14 @@ def chunk(text: str, language: str, desired_length: int) -> list[ChunkBoundary] 
         return None
     root = parser.parse(as_bytes).root_node
 
-    chunks = []
-    for chunk_boundary in _merge_node(root, desired_length):
+    chunks = _merge_node(root, desired_length)
+    if len(as_bytes) == len(text):
+        return [ChunkBoundary(chunk_boundary.start, chunk_boundary.end) for chunk_boundary in chunks]
+
+    converted_chunks = []
+    for chunk_boundary in chunks:
         start_char = len(as_bytes[: chunk_boundary.start].decode("utf-8"))
         end_char = len(as_bytes[: chunk_boundary.end].decode("utf-8"))
-        chunks.append(ChunkBoundary(start=start_char, end=end_char))
+        converted_chunks.append(ChunkBoundary(start=start_char, end=end_char))
 
-    return chunks
+    return converted_chunks

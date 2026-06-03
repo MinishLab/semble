@@ -7,8 +7,9 @@ from unittest.mock import patch
 import numpy as np
 from vicinity.backends.basic import BasicArgs
 
-from semble.index.dense import SelectableBasicBackend
+from semble.index.dense import SelectableBasicBackend, _load_cached, embed_chunks, load_model
 from semble.index.turbovec import TurboVecBasicBackend, TurboVecBuildWriter
+from tests.conftest import make_chunk
 
 
 def _assert_single_native_add(index: Any, expected_ids: list[int]) -> None:
@@ -16,6 +17,59 @@ def _assert_single_native_add(index: Any, expected_ids: list[int]) -> None:
     vectors, ids = index.add_with_ids.call_args.args
     assert vectors.shape == (len(expected_ids), 8)
     assert ids.tolist() == expected_ids
+
+
+def test_embed_chunks_keeps_full_batch_contract_for_custom_models() -> None:
+    """Custom models keep original full-list encode contract unless dedup safety is known."""
+
+    class RecordingModel:
+        dim = 2
+
+        def __init__(self) -> None:
+            self.encoded_texts: list[str] = []
+
+        def encode(self, texts: list[str], **kwargs: Any) -> np.ndarray:
+            assert kwargs["use_multiprocessing"] is True
+            self.encoded_texts = texts
+            return np.array([[index, len(text)] for index, text in enumerate(texts)], dtype=np.float32)
+
+    model = RecordingModel()
+    chunks = [
+        make_chunk("same", "a.py"),
+        make_chunk("different", "b.py"),
+        make_chunk("same", "c.py"),
+        make_chunk("different", "d.py"),
+    ]
+    baseline = np.array(
+        RecordingModel().encode([chunk.content for chunk in chunks], use_multiprocessing=True),
+        dtype=np.float32,
+    )
+
+    embeddings = embed_chunks(model, chunks)
+
+    assert model.encoded_texts == ["same", "different", "same", "different"]
+    np.testing.assert_array_equal(embeddings, baseline)
+
+
+def test_embed_chunks_default_model_dedup_matches_full_batch_bitwise() -> None:
+    """Default model exact dedup should match full-list encoding bit-for-bit."""
+    try:
+        model, _ = load_model()
+        chunks = [
+            make_chunk("same auth token", "a.py"),
+            make_chunk("different wallet refund", "b.py"),
+            make_chunk("same auth token", "c.py"),
+        ]
+        baseline = np.array(
+            model.encode([chunk.content for chunk in chunks], use_multiprocessing=True),
+            dtype=np.float32,
+        )
+
+        embeddings = embed_chunks(model, chunks)
+
+        np.testing.assert_array_equal(embeddings, baseline)
+    finally:
+        _load_cached.cache_clear()
 
 
 def test_save_load_roundtrip(tmp_path: Path) -> None:
