@@ -49,9 +49,11 @@ def _linux_cache_dir(name: str) -> Path:
 
 
 def resolve_cache_folder() -> Path:
-    """Resolves a cache folder, respects XDG_CACHE_HOME."""
+    """Resolves a cache folder, respects SEMBLE_CACHE_LOCATION (highest precedence), XDG_CACHE_HOME."""
     name = "semble"
-    if sys.platform == "win32":
+    if semble_cache_location := os.getenv("SEMBLE_CACHE_LOCATION"):
+        cache_dir = Path(semble_cache_location)
+    elif sys.platform == "win32":
         cache_dir = _windows_cache_dir(name)
     elif sys.platform == "darwin":
         cache_dir = _macos_cache_dir(name)
