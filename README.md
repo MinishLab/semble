@@ -39,8 +39,8 @@ semble install           # configure your agents (run `semble uninstall` to undo
 
 `semble install` detects your installed agents/harnesses (Claude Code, Codex, OpenCode, etc) and configures any combination of three integrations globally:
 
-- **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.
-- **[AGENTS.md](#agentsmd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
+- **MCP server**: exposes Semble as a native tool your agent can call directly.
+- **AGENTS.md**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
 
 For manual setup instructions (MCP config per agent, AGENTS.md snippet, sub-agent files), see [docs/installation.md](docs/installation.md).
