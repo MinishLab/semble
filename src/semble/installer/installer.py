@@ -102,19 +102,19 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
 
 _INTEGRATIONS: list[_Integration] = [
     _Integration(
-        "mcp", "MCP server", "registers semble as a tool in the agent", _apply_mcp, AgentTarget.resolved_mcp_path
+        "mcp", "MCP server", "lets the agent call semble directly as a tool", _apply_mcp, AgentTarget.resolved_mcp_path
     ),
     _Integration(
         "instructions",
         "Instructions",
-        "adds usage guide to the agent's config file",
+        "adds CLI usage guidance to AGENTS.md / CLAUDE.md",
         _apply_instructions,
         lambda a: a.instructions_path,
     ),
     _Integration(
         "subagent",
         "Sub-agent",
-        "installs a global semble-search sub-agent (available in all projects)",
+        "installs a dedicated semble-search sub-agent",
         _apply_subagent,
         lambda a: a.subagent_path,
     ),
@@ -190,7 +190,8 @@ def run(mode: Mode) -> None:
         f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
     ) or _exit("Nothing selected. Exiting.")
 
-    integ_items = [(f"{i.label}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
+    max_label = max(len(i.label) for i in _INTEGRATIONS)
+    integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
     chosen_integrations = _checkbox(
         f"Select integrations to {'enable' if install else 'remove'}:", integ_items
     ) or _exit("Nothing selected. Exiting.")
