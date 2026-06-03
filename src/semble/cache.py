@@ -163,7 +163,21 @@ def _has_chunk_payloads(persistence_path: PersistencePath, metadata: dict | None
     if metadata is None:
         return persistence_path.chunks.exists() or persistence_path.chunk_store.exists()
     if "chunk_ids" in metadata:
-        return persistence_path.chunk_store.exists()
+        if not persistence_path.chunk_store.exists():
+            return False
+        expected_store_id = metadata.get("chunk_store_id")
+        if expected_store_id is None:
+            return True
+        from semble.index.chunk_store import LmdbChunkStore
+
+        try:
+            store = LmdbChunkStore.open(persistence_path.chunk_store, readonly=True)
+        except (OSError, ValueError):
+            return False
+        try:
+            return store.store_id() == str(expected_store_id)
+        finally:
+            store.close()
     return persistence_path.chunks.exists()
 
 
@@ -594,7 +608,7 @@ def _is_dirty_cache_affecting_status(
         if _is_semble_ignored_path(source_root, path):
             return False
         if _is_nested_git_dir(source_root, path):
-            return True
+            return _nested_git_dir_has_cache_affecting_files(source_root, path, extensions)
         if _is_ignore_file(path) or path.rstrip("/") in stored_files:
             return False
         return Path(path).suffix.lower() in extensions
@@ -604,6 +618,31 @@ def _is_dirty_cache_affecting_status(
 def _is_nested_git_dir(source_root: Path, path: str) -> bool:
     candidate = source_root / path.rstrip("/")
     return candidate.is_dir() and (candidate / ".git").exists()
+
+
+def _nested_git_dir_has_cache_affecting_files(source_root: Path, path: str, extensions: set[str]) -> bool:
+    candidate = source_root / path.rstrip("/")
+    return _nested_dir_has_indexable_file(source_root, path.rstrip("/"), candidate, extensions)
+
+
+def _nested_dir_has_indexable_file(source_root: Path, relative_dir: str, directory: Path, extensions: set[str]) -> bool:
+    try:
+        items = sorted(directory.iterdir())
+    except OSError:
+        return True
+    for item in items:
+        if item.is_symlink():
+            continue
+        relative_path = _join_git_path(relative_dir, item.name)
+        ignored, found = _is_ignored_path(item, _ignore_specs_for_path(source_root, relative_path))
+        if ignored:
+            continue
+        if item.is_dir():
+            if _nested_dir_has_indexable_file(source_root, relative_path, item, extensions):
+                return True
+        elif item.is_file() and (found or item.suffix.lower() in extensions):
+            return True
+    return False
 
 
 def _is_semble_ignored_path(source_root: Path, path: str) -> bool:

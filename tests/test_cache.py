@@ -267,6 +267,31 @@ def test_get_validated_cache_accepts_lmdb_chunk_store(tmp_path: Path) -> None:
     assert result == index_path
 
 
+def test_get_validated_cache_rejects_lmdb_store_id_mismatch(tmp_path: Path) -> None:
+    """Metadata-bound LMDB stores should reject incomplete replacement saves."""
+    from semble.index.chunk_store import LmdbChunkStore
+
+    index_path = tmp_path / "index"
+    _write_metadata(index_path, "my/model", ["code"], 0.0)
+    metadata_path = index_path / "metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    metadata["chunk_ids"] = []
+    metadata["chunk_store_id"] = "expected-store"
+    metadata_path.write_text(json.dumps(metadata))
+    (index_path / "chunks.json").unlink()
+    store = LmdbChunkStore.open(index_path / "chunks.lmdb")
+    try:
+        store.write_store_id("other-store")
+    finally:
+        store.close()
+
+    url = "https://github.com/org/repo.git"
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        result = get_validated_cache(url, "my/model", [ContentType.CODE])
+
+    assert result is None
+
+
 def test_get_validated_cache_rejects_lmdb_without_chunk_ids(tmp_path: Path) -> None:
     """LMDB-only cache without chunk_ids cannot restore chunk order and is invalid."""
     index_path = tmp_path / "index"
@@ -733,6 +758,51 @@ def test_get_validated_cache_new_nested_git_repo_returns_none_without_full_walk(
     _git_commit_all(nested)
     index_path = tmp_path / "index"
     _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=[])
+
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        with patch("semble.cache.walk_files", side_effect=AssertionError("git cache validation should not full-walk")):
+            result = get_validated_cache(str(repo), "my/model", [ContentType.CODE])
+
+    assert result is None
+
+
+def test_get_validated_cache_new_nested_git_repo_without_code_keeps_hot_cache(tmp_path: Path) -> None:
+    """New nested git worktrees without indexable files should not invalidate hot cache."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "src.py").write_text("print('clean')\n")
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+    nested = repo / "scratch-worktree"
+    nested.mkdir()
+    (nested / "README.txt").write_text("not indexed as code\n")
+    _init_git_repo(nested)
+    _git_commit_all(nested)
+    index_path = tmp_path / "index"
+    _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=["src.py"])
+
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        with patch("semble.cache.walk_files", side_effect=AssertionError("git cache validation should not full-walk")):
+            result = get_validated_cache(str(repo), "my/model", [ContentType.CODE])
+
+    assert result == index_path
+
+
+def test_get_validated_cache_nested_git_repo_with_negated_file_returns_none_without_full_walk(tmp_path: Path) -> None:
+    """Nested git dirs with Semble-included non-extension files must invalidate hot cache."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "src.py").write_text("print('clean')\n")
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+    nested = repo / "scratch-worktree"
+    nested.mkdir()
+    (nested / ".gitignore").write_text("*\n")
+    (nested / ".sembleignore").write_text("!special.kjs\n")
+    (nested / "special.kjs").write_text("print('included by Semble negation')\n")
+    _init_git_repo(nested)
+    index_path = tmp_path / "index"
+    _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=["src.py"])
 
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.walk_files", side_effect=AssertionError("git cache validation should not full-walk")):

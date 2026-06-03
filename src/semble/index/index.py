@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
+import uuid
 import warnings
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
@@ -15,7 +17,7 @@ import orjson
 from bm25s import BM25
 from model2vec.model import StaticModel
 
-from semble.cache import get_validated_cache
+from semble.cache import GIT_CACHE_ROOTS_VERSION, build_git_cache_metadata, get_validated_cache
 from semble.index.chunk_store import LmdbChunkStore
 from semble.index.create import create_index_build_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
@@ -519,37 +521,81 @@ class SembleIndex:
     def save(self, path: Path | str) -> None:
         """Save the index to disk."""
         path = Path(path)
-        path.mkdir(parents=True, exist_ok=True)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        staging_path = path.parent / f"{path.name}.tmp-{uuid.uuid4().hex}"
+        backup_path = path.parent / f"{path.name}.old-{uuid.uuid4().hex}"
 
-        persistence_paths = PersistencePath.from_path(path)
+        try:
+            self._write_staged_index(staging_path)
+            self._replace_saved_index(path, staging_path, backup_path)
+        except Exception:
+            self._restore_failed_save(path, staging_path, backup_path)
+            raise
+        if backup_path.exists():
+            shutil.rmtree(backup_path)
+
+    def _write_staged_index(self, staging_path: Path) -> None:
+        """Write a complete index into a staging directory."""
+        if staging_path.exists():
+            shutil.rmtree(staging_path)
+        staging_path.mkdir(parents=True)
+        persistence_paths = PersistencePath.from_path(staging_path)
 
         if self._root is not None and not self._file_sizes:
             self._file_sizes = self._compute_file_sizes(self._root)
         self._bm25_index.save(persistence_paths.bm25_index)
         self._semantic_index.save(persistence_paths.semantic_index)
         chunk_ids = [chunk.chunk_id if chunk.chunk_id is not None else index for index, chunk in enumerate(self.chunks)]
+        chunk_store_id = self._write_chunk_store(persistence_paths, chunk_ids)
+        metadata = self._metadata_for_save(chunk_ids, chunk_store_id)
+        with open(persistence_paths.metadata, "wb") as f:
+            data = orjson.dumps(metadata)
+            f.write(data)
+
+    def _write_chunk_store(self, persistence_paths: PersistencePath, chunk_ids: list[int]) -> str:
+        """Write LMDB chunks and return the store identifier bound to metadata."""
+        chunk_store_id = uuid.uuid4().hex
         store = LmdbChunkStore.open(persistence_paths.chunk_store)
         try:
             store.write_chunks_with_ids(self.chunks, chunk_ids)
+            store.write_store_id(chunk_store_id)
         finally:
             store.close()
-        if persistence_paths.chunks.exists():
-            persistence_paths.chunks.unlink()
+        return chunk_store_id
+
+    def _metadata_for_save(self, chunk_ids: list[int], chunk_store_id: str) -> dict[str, object]:
+        """Build metadata for a staged full-save index."""
         root_str = None if self._root is None else str(self._root)
-        chunk_file_paths = [chunk.file_path for chunk in self.chunks]
-        chunk_languages = [chunk.language for chunk in self.chunks]
-        metadata = {
+        file_paths = sorted(self._file_mapping)
+        metadata: dict[str, object] = {
             "root_path": root_str,
             "time": datetime.now().timestamp(),
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
-            "file_paths": sorted(self._file_mapping),
+            "file_paths": file_paths,
             "chunk_ids": chunk_ids,
-            "chunk_file_paths": chunk_file_paths,
-            "chunk_languages": chunk_languages,
+            "chunk_file_paths": [chunk.file_path for chunk in self.chunks],
+            "chunk_languages": [chunk.language for chunk in self.chunks],
+            "chunk_store_id": chunk_store_id,
             "file_sizes": self._file_sizes,
             "sparse_backend": "tantivy" if isinstance(self._bm25_index, TantivySparseIndex) else "bm25s",
         }
-        with open(persistence_paths.metadata, "wb") as f:
-            data = orjson.dumps(metadata)
-            f.write(data)
+        if self._root is not None:
+            git_roots = build_git_cache_metadata(self._root, file_paths)
+            if git_roots is not None:
+                metadata["git_roots"] = git_roots
+                metadata["git_roots_version"] = GIT_CACHE_ROOTS_VERSION
+        return metadata
+
+    def _replace_saved_index(self, path: Path, staging_path: Path, backup_path: Path) -> None:
+        """Replace an existing index with a complete staged index."""
+        if path.exists():
+            path.rename(backup_path)
+        staging_path.rename(path)
+
+    def _restore_failed_save(self, path: Path, staging_path: Path, backup_path: Path) -> None:
+        """Remove incomplete staged data and restore the previous index if needed."""
+        if staging_path.exists():
+            shutil.rmtree(staging_path)
+        if backup_path.exists() and not path.exists():
+            backup_path.rename(path)

@@ -22,6 +22,7 @@ _FILE_HASHES_DB = b"file_hashes"
 _META_DB = b"meta"
 _GENERATIONS_DB = b"generations"
 _NEXT_CHUNK_ID = b"next_chunk_id"
+_STORE_ID = b"store_id"
 _ACTIVE_GENERATION = b"active_generation"
 _PENDING_GENERATION = b"pending_generation"
 _ACTIVE_GENERATION_SNAPSHOT_ID = b"active_generation_snapshot_id"
@@ -176,6 +177,17 @@ class LmdbChunkStore:
     def close(self) -> None:
         """Close the underlying LMDB environment."""
         self.env.close()
+
+    def write_store_id(self, store_id: str) -> None:
+        """Persist an identifier that binds metadata to this LMDB store generation."""
+        with self.env.begin(write=True) as txn:
+            txn.put(_STORE_ID, store_id.encode(), db=self.meta_db)
+
+    def store_id(self) -> str | None:
+        """Return the metadata binding identifier for this LMDB store, if present."""
+        with self.env.begin(buffers=True) as txn:
+            data = txn.get(_STORE_ID, db=self.meta_db)
+            return None if data is None else bytes(data).decode()
 
     def write_chunks(self, chunks: list[Chunk]) -> None:
         """Persist chunks keyed by stable chunk_id."""

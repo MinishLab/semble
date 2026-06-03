@@ -1,3 +1,5 @@
+import os
+import subprocess
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -10,6 +12,7 @@ from model2vec import StaticModel
 from vicinity.backends.basic import BasicArgs
 
 from semble import SembleIndex
+from semble.cache import GIT_CACHE_ROOTS_VERSION, get_validated_cache
 from semble.index.chunk_store import LmdbChunkStore, _int_key
 from semble.index.create import IndexBuild, create_index_build_from_path, create_index_from_path
 from semble.index.dense import SelectableBasicBackend
@@ -17,6 +20,28 @@ from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
 from semble.index.sparse import TantivySparseIndex
 from semble.types import ContentType
 from tests.conftest import make_chunk
+
+_GIT_ENV = {
+    **os.environ,
+    "GIT_AUTHOR_NAME": "test",
+    "GIT_AUTHOR_EMAIL": "t@t.com",
+    "GIT_COMMITTER_NAME": "test",
+    "GIT_COMMITTER_EMAIL": "t@t.com",
+}
+
+
+def _init_git_repo(path: Path) -> None:
+    subprocess.run(["git", "init", str(path)], check=True, capture_output=True)
+
+
+def _git_commit_all(path: Path, message: str = "commit") -> None:
+    subprocess.run(["git", "-C", str(path), "add", "."], check=True, capture_output=True, env=_GIT_ENV)
+    subprocess.run(["git", "-C", str(path), "commit", "-m", message], check=True, capture_output=True, env=_GIT_ENV)
+
+
+def _git_head(path: Path) -> str:
+    result = subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"], check=True, capture_output=True)
+    return result.stdout.decode().strip()
 
 
 @pytest.fixture
@@ -259,6 +284,91 @@ def test_save_uses_lmdb_chunks_and_tantivy_sparse_backend(
             loaded = SembleIndex.load_from_disk(tmp_path)
     assert isinstance(loaded._bm25_index, TantivySparseIndex)
     assert loaded.search("authenticate", top_k=1)
+
+
+def test_save_writes_git_cache_metadata_for_hot_validation(tmp_path: Path, mock_model: StaticModel) -> None:
+    """Fresh full saves in git repos should include HEAD metadata for hot cache validation."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "auth.py").write_text("def authenticate(token):\n    return token\n")
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        index = SembleIndex.from_path(repo)
+    save_path = tmp_path / "index"
+    index.save(save_path)
+
+    metadata = orjson.loads((save_path / "metadata.json").read_bytes())
+    assert metadata["git_roots_version"] == GIT_CACHE_ROOTS_VERSION
+    assert metadata["git_roots"] == [{"path": "", "head": _git_head(repo)}]
+    with patch("semble.cache.find_index_from_cache_folder", return_value=save_path):
+        with patch("semble.cache.walk_files", side_effect=AssertionError("git metadata should avoid full walk")):
+            assert get_validated_cache(str(repo), "mock-model", [ContentType.CODE]) == save_path
+
+
+def test_full_save_replaces_lmdb_chunk_store(tmp_path: Path, mock_model: StaticModel) -> None:
+    """Full saves should not leave stale chunk payloads in an existing LMDB store."""
+    first = make_chunk("def authenticate(token):\n    return token", "auth.py")
+    stale = make_chunk("def stale():\n    return None", "stale.py")
+    first_index = SembleIndex(
+        mock_model,
+        TantivySparseIndex.build_temporary([first, stale]),
+        SelectableBasicBackend(np.ones((2, mock_model.dim), dtype=np.float32), BasicArgs()),
+        [first, stale],
+        "mock-model",
+    )
+    first_index.save(tmp_path)
+
+    second_index = SembleIndex(
+        mock_model,
+        TantivySparseIndex.build_temporary([first]),
+        SelectableBasicBackend(np.ones((1, mock_model.dim), dtype=np.float32), BasicArgs()),
+        [first],
+        "mock-model",
+    )
+    second_index.save(tmp_path)
+
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
+    try:
+        assert store.get_chunk(0) == first
+        assert store.get_chunk(1) is None
+    finally:
+        store.close()
+
+
+def test_full_save_keeps_existing_lmdb_chunk_store_when_rewrite_fails(tmp_path: Path, mock_model: StaticModel) -> None:
+    """Failed full saves should not replace a valid existing LMDB store with an incomplete one."""
+    first = make_chunk("def authenticate(token):\n    return token", "auth.py")
+    stale = make_chunk("def stale():\n    return None", "stale.py")
+    existing_index = SembleIndex(
+        mock_model,
+        TantivySparseIndex.build_temporary([first, stale]),
+        SelectableBasicBackend(np.ones((2, mock_model.dim), dtype=np.float32), BasicArgs()),
+        [first, stale],
+        "mock-model",
+    )
+    existing_index.save(tmp_path)
+
+    replacement_index = SembleIndex(
+        mock_model,
+        TantivySparseIndex.build_temporary([first]),
+        SelectableBasicBackend(np.ones((1, mock_model.dim), dtype=np.float32), BasicArgs()),
+        [first],
+        "mock-model",
+    )
+    with (
+        patch.object(LmdbChunkStore, "write_chunks_with_ids", side_effect=RuntimeError("write failed")),
+        pytest.raises(RuntimeError, match="write failed"),
+    ):
+        replacement_index.save(tmp_path)
+
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
+    try:
+        assert store.get_chunk(0) == first
+        assert store.get_chunk(1) == stale
+    finally:
+        store.close()
 
 
 def test_save_preserves_stable_chunk_ids_for_loaded_search(tmp_path: Path, mock_model: StaticModel) -> None:
