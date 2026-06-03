@@ -258,13 +258,41 @@ def _git_cache_is_current(
         return False
     trust_git_heads = git_roots_are_current and heads_match is True
 
+    root_args = _git_cache_root_args(source_roots, stored_files)
+    root_results = _validate_git_cache_roots(
+        path,
+        extensions,
+        write_time,
+        trust_git_heads,
+        root_args,
+    )
+    if root_results is None:
+        return None
+    root_is_current, current_files = root_results
+    if not root_is_current:
+        return False
+    return set(current_files) == set(stored_files)
+
+
+def _git_cache_root_args(
+    source_roots: list[tuple[Path, str]], stored_files: list[str]
+) -> list[tuple[Path, str, list[str], set[str]]]:
     root_args = []
     for source_root, source_rel in source_roots:
         child_roots = _child_git_root_paths(source_roots, source_rel)
         root_stored_paths = _stored_paths_in_root(stored_files, source_rel)
         stored_root_files = set(_local_git_paths_outside_children(root_stored_paths, child_roots))
         root_args.append((source_root, source_rel, child_roots, stored_root_files))
+    return root_args
 
+
+def _validate_git_cache_roots(
+    path: Path,
+    extensions: set[str],
+    write_time: float,
+    trust_git_heads: bool,
+    root_args: list[tuple[Path, str, list[str], set[str]]],
+) -> tuple[bool, list[str]] | None:
     def validate_root(args: tuple[Path, str, list[str], set[str]]) -> tuple[bool, list[str]] | None:
         source_root, source_rel, child_roots, stored_root_files = args
         return _git_cache_root_files(
@@ -279,6 +307,17 @@ def _git_cache_is_current(
         )
 
     current_files = []
+    if len(root_args) > 8:
+        root_index = next((index for index, args in enumerate(root_args) if args[1] == ""), None)
+        if root_index is not None:
+            root_result = validate_root(root_args[root_index])
+            if root_result is None:
+                return None
+            root_is_current, root_files = root_result
+            if not root_is_current:
+                return False, []
+            current_files.extend(root_files)
+            root_args = root_args[:root_index] + root_args[root_index + 1 :]
     with ThreadPoolExecutor(max_workers=min(32, len(root_args))) as executor:
         root_results = list(executor.map(validate_root, root_args))
     for root_result in root_results:
@@ -286,9 +325,9 @@ def _git_cache_is_current(
             return None
         root_is_current, root_files = root_result
         if not root_is_current:
-            return False
+            return False, []
         current_files.extend(root_files)
-    return set(current_files) == set(stored_files)
+    return True, current_files
 
 
 def _git_cache_root_files(

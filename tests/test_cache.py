@@ -737,6 +737,55 @@ def test_git_cache_validation_checks_source_roots_concurrently(tmp_path: Path) -
     assert result is True
 
 
+def test_git_cache_validation_short_circuits_many_roots_when_root_is_dirty(tmp_path: Path) -> None:
+    """Large multi-root hot validation should stop after the parent root invalidates the cache."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git_roots = [{"path": "", "head": "old-head"}]
+    stored_files = ["src.py"]
+    for index in range(9):
+        rel_path = f"nested{index}"
+        git_roots.append({"path": rel_path, "head": "old-head"})
+        stored_files.append(f"{rel_path}/lib.py")
+
+    def fake_source_roots(path: Path, roots: list[dict[str, str]]) -> list[tuple[Path, str]]:
+        return [(repo / str(item["path"]), str(item["path"])) for item in roots]
+
+    calls = []
+
+    def fake_root_files(
+        display_root: Path,
+        source_root: Path,
+        source_rel: str,
+        child_roots: list[str],
+        extensions: set[str],
+        write_time: float,
+        stored_files: set[str],
+        trust_git_heads: bool,
+    ) -> tuple[bool, list[str]]:
+        calls.append(source_rel)
+        if source_rel == "":
+            return False, []
+        raise AssertionError("child roots should not run after parent invalidates")
+
+    with (
+        patch("semble.cache._git_cache_source_roots_from_metadata", side_effect=fake_source_roots),
+        patch("semble.cache._git_cache_heads_match", return_value=True),
+        patch("semble.cache._git_cache_root_files", side_effect=fake_root_files),
+    ):
+        result = _git_cache_is_current(
+            repo,
+            {".py"},
+            stored_files,
+            float("inf"),
+            git_roots=git_roots,
+            git_roots_version=cache_module.GIT_CACHE_ROOTS_VERSION,
+        )
+
+    assert result is False
+    assert calls == [""]
+
+
 def test_git_cache_root_files_ignores_submodules_in_status(tmp_path: Path) -> None:
     """Parent root status should not rescan child git roots that are validated separately."""
     repo = tmp_path / "repo"

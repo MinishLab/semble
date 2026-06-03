@@ -126,9 +126,11 @@ class LazyChunkList(Sequence[Chunk]):
         """Create a lazy chunk sequence backed by LMDB payloads."""
         self._chunk_ids = list(chunk_ids)
         self._store_path = store_path
+        self.chunk_file_paths = list(file_paths)
+        self.chunk_languages = list(languages)
         self._cache: dict[int, Chunk] = {}
-        self._file_mapping = self._build_mapping(file_paths)
-        self._language_mapping = self._build_language_mapping(languages)
+        self._file_mapping = self._build_mapping(self.chunk_file_paths)
+        self._language_mapping = self._build_language_mapping(self.chunk_languages)
 
     def __len__(self) -> int:
         """Return total persisted chunk count."""
@@ -166,7 +168,17 @@ class LazyChunkList(Sequence[Chunk]):
 
     def chunks_by_id(self, chunk_ids: Sequence[int]) -> list[Chunk]:
         """Return chunks for stable IDs, preserving requested order."""
-        return [self.chunk_by_id(chunk_id) for chunk_id in chunk_ids]
+        missing_ids = [chunk_id for chunk_id in chunk_ids if chunk_id not in self._cache]
+        if missing_ids:
+            store = LmdbChunkStore.open(self._store_path, readonly=True)
+            try:
+                loaded_chunks = store.get_chunks(missing_ids)
+            finally:
+                store.close()
+            if len(loaded_chunks) != len(missing_ids):
+                raise FileNotFoundError("Index chunk store is missing chunk payloads")
+            self._cache.update(zip(missing_ids, loaded_chunks))
+        return [self._cache[chunk_id] for chunk_id in chunk_ids]
 
     def chunk_ids_for_paths(self, file_paths: frozenset[str]) -> list[int]:
         """Return stable IDs for persisted chunks under selected file paths."""
@@ -197,6 +209,139 @@ class LazyChunkList(Sequence[Chunk]):
                 mapping[language].append(chunk_id)
         return dict(mapping)
 
+    def chunk_ids(self) -> list[int]:
+        """Return stable chunk IDs in sequence order."""
+        return list(self._chunk_ids)
+
+
+class MergedLazyChunkList(Sequence[Chunk]):
+    """Lazy chunk sequence that overlays changed chunks on a persisted chunk store."""
+
+    def __init__(
+        self,
+        chunk_ids: Sequence[int],
+        store_path: Path,
+        file_paths: Sequence[str],
+        languages: Sequence[str | None],
+        changed_chunks_by_id: dict[int, Chunk],
+        deleted_chunk_ids: set[int],
+    ) -> None:
+        """Create a sequence for incremental rebuilds without loading unchanged payloads."""
+        self._chunk_ids = list(chunk_ids)
+        self._store_path = store_path
+        self.chunk_file_paths = list(file_paths)
+        self.chunk_languages = list(languages)
+        self._changed_chunks_by_id = changed_chunks_by_id
+        self._deleted_chunk_ids = set(deleted_chunk_ids)
+        self._cache: dict[int, Chunk] = dict(changed_chunks_by_id)
+        self._file_mapping = self._build_mapping(self.chunk_file_paths)
+        self._language_mapping = self._build_language_mapping(self.chunk_languages)
+
+    def __len__(self) -> int:
+        """Return total chunk count."""
+        return len(self._chunk_ids)
+
+    def __iter__(self) -> Iterator[Chunk]:
+        """Yield chunks in sequence order."""
+        for chunk_id in self._chunk_ids:
+            yield self.chunk_by_id(chunk_id)
+
+    def __getitem__(self, index: int) -> Chunk:
+        """Return one chunk by sequence position."""
+        return self.chunk_by_id(self._chunk_ids[index])
+
+    def chunk_by_id(self, chunk_id: int) -> Chunk:
+        """Return one chunk by stable ID."""
+        cached = self._cache.get(chunk_id)
+        if cached is not None:
+            return cached
+        store = LmdbChunkStore.open(self._store_path, readonly=True)
+        try:
+            chunk = store.get_chunk(chunk_id)
+        finally:
+            store.close()
+        if chunk is None:
+            raise FileNotFoundError(f"Index chunk store is missing chunk payload for id {chunk_id}")
+        self._cache[chunk_id] = chunk
+        return chunk
+
+    def chunks_by_id(self, chunk_ids: Sequence[int]) -> list[Chunk]:
+        """Return chunks for stable IDs, preserving requested order."""
+        missing_ids = [chunk_id for chunk_id in chunk_ids if chunk_id not in self._cache]
+        if missing_ids:
+            store = LmdbChunkStore.open(self._store_path, readonly=True)
+            try:
+                loaded_chunks = store.get_chunks(missing_ids)
+            finally:
+                store.close()
+            if len(loaded_chunks) != len(missing_ids):
+                raise FileNotFoundError("Index chunk store is missing chunk payloads")
+            self._cache.update(zip(missing_ids, loaded_chunks))
+        return [self._cache[chunk_id] for chunk_id in chunk_ids]
+
+    def chunk_ids_for_paths(self, file_paths: frozenset[str]) -> list[int]:
+        """Return stable IDs for persisted chunks under selected file paths."""
+        return [chunk_id for path in file_paths for chunk_id in self._file_mapping.get(path, [])]
+
+    def chunk_ids_for_languages(self, languages: frozenset[str]) -> list[int]:
+        """Return stable IDs for persisted chunks in selected languages."""
+        return [chunk_id for language in languages for chunk_id in self._language_mapping.get(language, [])]
+
+    def file_mapping(self) -> dict[str, list[int]]:
+        """Return file-to-chunk-ID mapping."""
+        return self._file_mapping
+
+    def language_mapping(self) -> dict[str, list[int]]:
+        """Return language-to-chunk-ID mapping."""
+        return self._language_mapping
+
+    def chunk_ids(self) -> list[int]:
+        """Return stable chunk IDs in sequence order."""
+        return list(self._chunk_ids)
+
+    def write_chunks_to_store(self, store: LmdbChunkStore, chunk_ids: list[int]) -> None:
+        """Copy unchanged payloads and write changed payloads without decoding unchanged chunks."""
+        changed_ids = set(self._changed_chunks_by_id)
+        old_ids = [chunk_id for chunk_id in chunk_ids if chunk_id not in changed_ids]
+        if old_ids:
+            store.copy_chunks_from(self._store_path, old_ids)
+        changed_ids_in_order = [chunk_id for chunk_id in chunk_ids if chunk_id in changed_ids]
+        if changed_ids_in_order:
+            store.write_chunks_with_ids(
+                [self._changed_chunks_by_id[chunk_id] for chunk_id in changed_ids_in_order],
+                changed_ids_in_order,
+            )
+
+    def copy_chunk_store_to(self, target_path: Path, chunk_ids: list[int]) -> None:
+        """Copy the old LMDB store wholesale, then patch changed/deleted chunk payloads."""
+        if target_path.exists():
+            shutil.rmtree(target_path)
+        shutil.copytree(self._store_path, target_path)
+        store = LmdbChunkStore.open(target_path)
+        try:
+            store.delete_chunks(sorted(self._deleted_chunk_ids))
+            changed_ids = [chunk_id for chunk_id in chunk_ids if chunk_id in self._changed_chunks_by_id]
+            if changed_ids:
+                store.write_chunks_with_ids(
+                    [self._changed_chunks_by_id[chunk_id] for chunk_id in changed_ids],
+                    changed_ids,
+                )
+        finally:
+            store.close()
+
+    def _build_mapping(self, file_paths: Sequence[str]) -> dict[str, list[int]]:
+        mapping: dict[str, list[int]] = defaultdict(list)
+        for chunk_id, file_path in zip(self._chunk_ids, file_paths):
+            mapping[file_path].append(chunk_id)
+        return dict(mapping)
+
+    def _build_language_mapping(self, languages: Sequence[str | None]) -> dict[str, list[int]]:
+        mapping: dict[str, list[int]] = defaultdict(list)
+        for chunk_id, language in zip(self._chunk_ids, languages):
+            if language:
+                mapping[language].append(chunk_id)
+        return dict(mapping)
+
 
 def _file_hash(source: str) -> str:
     return hashlib.sha256(source.encode("utf-8", errors="surrogatepass")).hexdigest()
@@ -205,6 +350,21 @@ def _file_hash(source: str) -> str:
 @dataclass(slots=True)
 class _RebuildState:
     chunks: list[Chunk]
+    vectors: list[npt.NDArray[np.float32]]
+    file_sizes: dict[str, int]
+    file_hashes: dict[str, str]
+    changed_chunks: list[Chunk]
+    changed_positions: list[int]
+    deleted_chunk_ids: set[int]
+    next_chunk_id: int
+
+
+@dataclass(slots=True)
+class _LazyRebuildState:
+    chunk_ids: list[int]
+    chunk_file_paths: list[str]
+    chunk_languages: list[str | None]
+    changed_chunks_by_id: dict[int, Chunk]
     vectors: list[npt.NDArray[np.float32]]
     file_sizes: dict[str, int]
     file_hashes: dict[str, str]
@@ -226,6 +386,25 @@ class _SeedData:
     git_roots: dict[str, str] | None
     write_time: float | None
     next_chunk_id: int
+
+
+@dataclass(frozen=True, slots=True)
+class _SeedMetadata:
+    file_hashes: dict[str, str]
+    vectors: npt.NDArray[np.float32]
+    chunk_ids: list[int]
+    chunk_file_paths: list[str]
+    chunk_languages: list[str | None]
+    chunk_ids_by_file: dict[str, list[int]]
+    vector_rows_by_file: dict[str, list[npt.NDArray[np.float32]]]
+    languages_by_file: dict[str, list[str | None]]
+    file_sizes: dict[str, int]
+    file_paths: list[str]
+    tracked_paths: list[str] | None
+    git_roots: dict[str, str] | None
+    write_time: float | None
+    next_chunk_id: int
+    chunk_store_path: Path
 
 
 @dataclass(frozen=True, slots=True)
@@ -257,12 +436,6 @@ def _seed_chunk_ids(metadata: dict) -> list[int] | None:
     return [int(chunk_id) for chunk_id in chunk_ids]
 
 
-def _chunk_without_id(chunk: Chunk) -> Chunk:
-    if chunk.chunk_id is None:
-        return chunk
-    return Chunk(chunk.content, chunk.file_path, chunk.start_line, chunk.end_line, chunk.language)
-
-
 def _load_seed_chunks(persistence_paths: PersistencePath, chunk_ids: list[int]) -> list[Chunk] | None:
     if not persistence_paths.chunk_store.exists():
         return None
@@ -273,7 +446,7 @@ def _load_seed_chunks(persistence_paths: PersistencePath, chunk_ids: list[int]) 
         store.close()
     if len(chunks) != len(chunk_ids):
         return None
-    return [_chunk_without_id(chunk) for chunk in chunks]
+    return chunks
 
 
 def _seed_git_roots(metadata: dict) -> dict[str, str] | None:
@@ -292,6 +465,14 @@ def _seed_tracked_paths(metadata: dict) -> list[str] | None:
     return [str(path) for path in tracked_paths]
 
 
+def _seed_file_sizes(metadata: dict) -> dict[str, int]:
+    return {str(key): int(value) for key, value in metadata.get("file_sizes", {}).items()}
+
+
+def _seed_file_paths(metadata: dict) -> list[str]:
+    return [str(path) for path in metadata.get("file_paths", [])]
+
+
 def _seed_data_from_chunks(
     metadata: dict,
     file_hashes: dict[str, str],
@@ -306,18 +487,66 @@ def _seed_data_from_chunks(
         chunks_by_file[chunk.file_path].append(chunk)
         vectors_by_file[chunk.file_path].append(vectors[index])
         chunk_ids_by_file[chunk.file_path].append(chunk_ids[index])
-    file_sizes = {str(key): int(value) for key, value in metadata.get("file_sizes", {}).items()}
     return _SeedData(
         file_hashes,
         chunks_by_file,
         vectors_by_file,
         chunk_ids_by_file,
-        file_sizes,
-        [str(path) for path in metadata.get("file_paths", [])],
+        _seed_file_sizes(metadata),
+        _seed_file_paths(metadata),
         _seed_tracked_paths(metadata),
         _seed_git_roots(metadata),
         float(metadata["time"]) if "time" in metadata else None,
         max(chunk_ids, default=-1) + 1,
+    )
+
+
+def _metadata_chunk_file_paths(metadata: dict) -> list[str] | None:
+    file_paths = metadata.get("chunk_file_paths")
+    if not isinstance(file_paths, list):
+        return None
+    return [str(file_path) for file_path in file_paths]
+
+
+def _metadata_chunk_languages(metadata: dict) -> list[str | None] | None:
+    languages = metadata.get("chunk_languages")
+    if not isinstance(languages, list):
+        return None
+    return [None if language is None else str(language) for language in languages]
+
+
+def _seed_metadata_from_vectors(
+    metadata: dict,
+    file_hashes: dict[str, str],
+    chunk_ids: list[int],
+    chunk_file_paths: list[str],
+    chunk_languages: list[str | None],
+    vectors: npt.NDArray[np.float32],
+    chunk_store_path: Path,
+) -> _SeedMetadata:
+    chunk_ids_by_file: dict[str, list[int]] = defaultdict(list)
+    vector_rows_by_file: dict[str, list[npt.NDArray[np.float32]]] = defaultdict(list)
+    languages_by_file: dict[str, list[str | None]] = defaultdict(list)
+    for index, (chunk_id, file_path, language) in enumerate(zip(chunk_ids, chunk_file_paths, chunk_languages)):
+        chunk_ids_by_file[file_path].append(chunk_id)
+        vector_rows_by_file[file_path].append(vectors[index])
+        languages_by_file[file_path].append(language)
+    return _SeedMetadata(
+        file_hashes,
+        vectors,
+        chunk_ids,
+        chunk_file_paths,
+        chunk_languages,
+        chunk_ids_by_file,
+        vector_rows_by_file,
+        languages_by_file,
+        _seed_file_sizes(metadata),
+        _seed_file_paths(metadata),
+        _seed_tracked_paths(metadata),
+        _seed_git_roots(metadata),
+        float(metadata["time"]) if "time" in metadata else None,
+        max(chunk_ids, default=-1) + 1,
+        chunk_store_path,
     )
 
 
@@ -336,6 +565,38 @@ def _load_rebuild_seed(seed_path: Path) -> _SeedData | None:
     if chunks is None or len(vectors) != len(chunks):
         return None
     return _seed_data_from_chunks(metadata, file_hashes, chunk_ids, chunks, vectors)
+
+
+def _load_rebuild_seed_metadata(seed_path: Path) -> _SeedMetadata | None:
+    persistence_paths = PersistencePath.from_path(seed_path)
+    if not persistence_paths.chunk_store.exists():
+        return None
+    try:
+        metadata = orjson.loads(persistence_paths.metadata.read_bytes())
+        vectors = SelectableBasicBackend.load(persistence_paths.semantic_index).vectors
+    except (OSError, ValueError, FileNotFoundError):
+        return None
+    file_hashes = _seed_file_hashes(metadata)
+    chunk_ids = _seed_chunk_ids(metadata)
+    chunk_file_paths = _metadata_chunk_file_paths(metadata)
+    chunk_languages = _metadata_chunk_languages(metadata)
+    if not file_hashes or chunk_ids is None or chunk_file_paths is None or chunk_languages is None:
+        return None
+    if (
+        len(vectors) != len(chunk_ids)
+        or len(chunk_file_paths) != len(chunk_ids)
+        or len(chunk_languages) != len(chunk_ids)
+    ):
+        return None
+    return _seed_metadata_from_vectors(
+        metadata,
+        file_hashes,
+        chunk_ids,
+        chunk_file_paths,
+        chunk_languages,
+        vectors,
+        persistence_paths.chunk_store,
+    )
 
 
 def _rebuild_file(
@@ -483,7 +744,109 @@ def _collect_rebuild_state_from_plan(
     return state if state.chunks else None
 
 
-def _embed_changed_chunks(model: StaticModel, state: _RebuildState) -> None:
+def _lazy_seed_for_plan(seed: _SeedMetadata) -> _SeedData:
+    """Adapt metadata-only seed to Git plan validation without loading chunk payloads."""
+    return _SeedData(
+        seed.file_hashes,
+        {},
+        {},
+        seed.chunk_ids_by_file,
+        seed.file_sizes,
+        seed.file_paths,
+        seed.tracked_paths,
+        seed.git_roots,
+        seed.write_time,
+        seed.next_chunk_id,
+    )
+
+
+def _rebuild_changed_file(path: Path, relative_path: str) -> _RebuiltFile | None:
+    language = detect_language(path / relative_path)
+    try:
+        file_path = path / relative_path
+        if get_file_status(file_path, None) != FileStatus.VALID:
+            return _RebuiltFile(relative_path, [], False, None, None)
+        source = read_file_text(file_path)
+    except OSError:
+        return None
+    file_hash = _file_hash(source)
+    chunks = chunk_source(source, relative_path, language)
+    return _RebuiltFile(relative_path, chunks, False, len(source) if chunks else None, file_hash if chunks else None)
+
+
+def _empty_lazy_rebuild_state(next_chunk_id: int) -> _LazyRebuildState:
+    return _LazyRebuildState([], [], [], {}, [], {}, {}, [], [], set(), next_chunk_id)
+
+
+def _append_lazy_reused_file(state: _LazyRebuildState, relative_path: str, seed: _SeedMetadata) -> bool:
+    reused_ids = seed.chunk_ids_by_file.get(relative_path)
+    reused_vectors = seed.vector_rows_by_file.get(relative_path)
+    reused_languages = seed.languages_by_file.get(relative_path)
+    if reused_ids is None or reused_vectors is None or reused_languages is None:
+        return False
+    if len(reused_ids) != len(reused_vectors) or len(reused_ids) != len(reused_languages):
+        return False
+    state.chunk_ids.extend(reused_ids)
+    state.chunk_file_paths.extend([relative_path] * len(reused_ids))
+    state.chunk_languages.extend(reused_languages)
+    state.vectors.extend(reused_vectors)
+    if relative_path in seed.file_sizes:
+        state.file_sizes[relative_path] = seed.file_sizes[relative_path]
+    if relative_path in seed.file_hashes:
+        state.file_hashes[relative_path] = seed.file_hashes[relative_path]
+    return True
+
+
+def _append_lazy_changed_file(
+    state: _LazyRebuildState,
+    path: Path,
+    relative_path: str,
+    seed: _SeedMetadata,
+    model_dim: int,
+) -> bool:
+    rebuilt = _rebuild_changed_file(path, relative_path)
+    if rebuilt is None:
+        return False
+    state.deleted_chunk_ids.update(seed.chunk_ids_by_file.get(relative_path, ()))
+    if rebuilt.size is not None and rebuilt.chunks:
+        state.file_sizes[rebuilt.path] = rebuilt.size
+    if rebuilt.file_hash is not None and rebuilt.chunks:
+        state.file_hashes[rebuilt.path] = rebuilt.file_hash
+    for chunk in rebuilt.chunks:
+        chunk_id = state.next_chunk_id
+        state.next_chunk_id += 1
+        changed_chunk = _chunk_with_id(chunk, chunk_id)
+        state.chunk_ids.append(chunk_id)
+        state.chunk_file_paths.append(changed_chunk.file_path)
+        state.chunk_languages.append(changed_chunk.language)
+        state.changed_chunks_by_id[chunk_id] = changed_chunk
+        state.changed_positions.append(len(state.vectors))
+        state.vectors.append(np.empty(model_dim, dtype=np.float32))
+        state.changed_chunks.append(changed_chunk)
+    return True
+
+
+def _collect_lazy_rebuild_state_from_plan(
+    path: Path,
+    seed: _SeedMetadata,
+    plan: GitWalkPlan,
+    model_dim: int,
+) -> _LazyRebuildState | None:
+    state = _empty_lazy_rebuild_state(seed.next_chunk_id)
+    changed_paths = set(plan.changed_paths)
+    for deleted_path in plan.deleted_paths:
+        state.deleted_chunk_ids.update(seed.chunk_ids_by_file.get(deleted_path, ()))
+    for relative_path in sorted(plan.current_paths, key=_walk_order_key):
+        if relative_path not in changed_paths:
+            if not _append_lazy_reused_file(state, relative_path, seed):
+                return None
+            continue
+        if not _append_lazy_changed_file(state, path, relative_path, seed, model_dim):
+            return None
+    return state if state.chunk_ids else None
+
+
+def _embed_changed_chunks(model: StaticModel, state: _RebuildState | _LazyRebuildState) -> None:
     if not state.changed_chunks:
         return
     new_vectors = embed_chunks(model, state.changed_chunks)
@@ -569,15 +932,10 @@ class SembleIndex:
     @property
     def stats(self) -> IndexStats:
         """Stats of an index."""
-        language_counts: dict[str, int] = defaultdict(int)
-        for chunk in self.chunks:
-            if chunk.language:
-                language_counts[chunk.language] += 1
-
         return IndexStats(
             indexed_files=len(self._file_mapping),
             total_chunks=len(self.chunks),
-            languages=dict(language_counts),
+            languages={language: len(chunk_ids) for language, chunk_ids in self._language_mapping.items()},
         )
 
     @classmethod
@@ -646,6 +1004,40 @@ class SembleIndex:
         content: tuple[ContentType, ...],
     ) -> SembleIndex | None:
         """Rebuild changed worktrees by reusing unchanged chunks and dense rows."""
+        seed_metadata = _load_rebuild_seed_metadata(seed_path)
+        if seed_metadata is None:
+            lazy_plan = None
+        else:
+            lazy_plan = _git_rebuild_plan(path, content, _lazy_seed_for_plan(seed_metadata))
+        if seed_metadata is not None and lazy_plan is not None:
+            state = _collect_lazy_rebuild_state_from_plan(path, seed_metadata, lazy_plan, model.dim)
+            if state is None:
+                return None
+            _embed_changed_chunks(model, state)
+            embeddings = np.asarray(state.vectors, dtype=np.float32)
+            semantic_backend = SelectableBasicBackend(embeddings, BasicArgs())
+            semantic_index = _StableIdSemanticBackend(semantic_backend, state.chunk_ids)
+            chunks = MergedLazyChunkList(
+                state.chunk_ids,
+                seed_metadata.chunk_store_path,
+                state.chunk_file_paths,
+                state.chunk_languages,
+                state.changed_chunks_by_id,
+                state.deleted_chunk_ids,
+            )
+            persistence_paths = PersistencePath.from_path(seed_path)
+            sparse_index = TantivySparseIndex.load_copy_from_store(
+                persistence_paths.bm25_index,
+                seed_metadata.chunk_store_path,
+            )
+            sparse_index.update_chunks(chunks, state.deleted_chunk_ids, state.changed_chunks)
+            index = SembleIndex(model, sparse_index, semantic_index, chunks, model_path, root=path, content=content)
+            index._file_sizes = state.file_sizes
+            index._file_hashes = state.file_hashes
+            index._git_cache_metadata = _merged_git_cache_metadata(lazy_plan, _lazy_seed_for_plan(seed_metadata))
+            index._tracked_paths = tuple(sorted(lazy_plan.tracked_paths))
+            return index
+
         seed = _load_rebuild_seed(seed_path)
         if seed is None:
             return None
@@ -914,16 +1306,33 @@ class SembleIndex:
             self._file_sizes = self._compute_file_sizes(self._root)
         self._bm25_index.save(persistence_paths.bm25_index)
         self._semantic_index.save(persistence_paths.semantic_index)
-        chunk_ids = [chunk.chunk_id if chunk.chunk_id is not None else index for index, chunk in enumerate(self.chunks)]
+        chunk_ids = self._chunk_ids_for_save()
         chunk_store_id = self._write_chunk_store(persistence_paths, chunk_ids)
         metadata = self._metadata_for_save(chunk_ids, chunk_store_id)
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
             f.write(data)
 
+    def _chunk_ids_for_save(self) -> list[int]:
+        """Return stable chunk IDs without forcing lazy chunk payload loads."""
+        chunk_ids = getattr(self.chunks, "chunk_ids", None)
+        if chunk_ids is not None:
+            return list(chunk_ids())
+        return [chunk.chunk_id if chunk.chunk_id is not None else index for index, chunk in enumerate(self.chunks)]
+
     def _write_chunk_store(self, persistence_paths: PersistencePath, chunk_ids: list[int]) -> str:
         """Write LMDB chunks and return the store identifier bound to metadata."""
         chunk_store_id = uuid.uuid4().hex
+        copy_chunk_store_to = getattr(self.chunks, "copy_chunk_store_to", None)
+        if copy_chunk_store_to is not None:
+            copy_chunk_store_to(persistence_paths.chunk_store, chunk_ids)
+            store = LmdbChunkStore.open(persistence_paths.chunk_store)
+            try:
+                store.write_store_id(chunk_store_id)
+            finally:
+                store.close()
+            return chunk_store_id
+
         store = LmdbChunkStore.open(persistence_paths.chunk_store)
         try:
             store.write_chunks_with_ids(self.chunks, chunk_ids)
@@ -931,6 +1340,18 @@ class SembleIndex:
         finally:
             store.close()
         return chunk_store_id
+
+    def _chunk_file_paths_for_save(self) -> list[str]:
+        chunk_file_paths = getattr(self.chunks, "chunk_file_paths", None)
+        if chunk_file_paths is not None:
+            return list(chunk_file_paths)
+        return [chunk.file_path for chunk in self.chunks]
+
+    def _chunk_languages_for_save(self) -> list[str | None]:
+        chunk_languages = getattr(self.chunks, "chunk_languages", None)
+        if chunk_languages is not None:
+            return list(chunk_languages)
+        return [chunk.language for chunk in self.chunks]
 
     def _metadata_for_save(self, chunk_ids: list[int], chunk_store_id: str) -> dict[str, object]:
         """Build metadata for a staged full-save index."""
@@ -943,8 +1364,8 @@ class SembleIndex:
             "content_type": list(x.value for x in self._content),
             "file_paths": file_paths,
             "chunk_ids": chunk_ids,
-            "chunk_file_paths": [chunk.file_path for chunk in self.chunks],
-            "chunk_languages": [chunk.language for chunk in self.chunks],
+            "chunk_file_paths": self._chunk_file_paths_for_save(),
+            "chunk_languages": self._chunk_languages_for_save(),
             "chunk_store_id": chunk_store_id,
             "file_sizes": self._file_sizes,
             "file_hashes": self._file_hashes,

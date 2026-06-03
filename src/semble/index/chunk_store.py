@@ -46,11 +46,9 @@ def _serialize_chunk(chunk: Chunk) -> bytes:
     return _CHUNK_PAYLOAD_V1 + msgspec.msgpack.encode(_chunk_payload(chunk))
 
 
-def _deserialize_chunk(data: bytes) -> Chunk:
-    if data.startswith(_CHUNK_PAYLOAD_V1):
-        content, file_path, start_line, end_line, language, chunk_id = msgspec.msgpack.decode(
-            data[len(_CHUNK_PAYLOAD_V1) :]
-        )
+def _deserialize_chunk(data: bytes | memoryview) -> Chunk:
+    if data and data[0] == _CHUNK_PAYLOAD_V1[0]:
+        content, file_path, start_line, end_line, language, chunk_id = msgspec.msgpack.decode(data[1:])
         return Chunk(
             str(content),
             str(file_path),
@@ -59,7 +57,7 @@ def _deserialize_chunk(data: bytes) -> Chunk:
             None if language is None else str(language),
             None if chunk_id is None else int(chunk_id),
         )
-    return Chunk.from_dict(orjson.loads(data))
+    return Chunk.from_dict(orjson.loads(bytes(data)))
 
 
 @dataclass(frozen=True, slots=True)
@@ -213,7 +211,7 @@ class LmdbChunkStore:
             data = txn.get(_int_key(chunk_id), db=self.chunks_db)
             if data is None:
                 return None
-            return _deserialize_chunk(bytes(data))
+            return _deserialize_chunk(data)
 
     def get_chunks(self, chunk_ids: list[int]) -> list[Chunk]:
         """Return chunks by stable chunk_id, preserving requested order."""
@@ -222,8 +220,16 @@ class LmdbChunkStore:
             for chunk_id in chunk_ids:
                 data = txn.get(_int_key(chunk_id), db=self.chunks_db)
                 if data is not None:
-                    chunks.append(_deserialize_chunk(bytes(data)))
+                    chunks.append(_deserialize_chunk(data))
         return chunks
+
+    def delete_chunks(self, chunk_ids: Sequence[int]) -> None:
+        """Delete chunk payloads by stable chunk_id."""
+        if not chunk_ids:
+            return
+        with self.env.begin(write=True) as txn:
+            for chunk_id in chunk_ids:
+                txn.delete(_int_key(chunk_id), db=self.chunks_db)
 
     def copy_chunks_from(self, source_path: Path, chunk_ids: list[int]) -> None:
         """Copy raw chunk payloads from another LMDB store without decoding them."""

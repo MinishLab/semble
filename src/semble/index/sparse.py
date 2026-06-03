@@ -224,6 +224,15 @@ class TantivySparseIndex:
         index._temporary_path = copied_path
         return index
 
+    @classmethod
+    def load_copy_from_store(cls, path: Path, chunk_store_path: Path) -> "TantivySparseIndex":
+        """Open a writable Tantivy copy that resolves unchanged hits from an existing chunk store."""
+        copied_path = Path(tempfile.mkdtemp(prefix="semble-tantivy-"))
+        shutil.copytree(path, copied_path, dirs_exist_ok=True)
+        index = cls.load_from_store(copied_path, chunk_store_path)
+        index._temporary_path = copied_path
+        return index
+
     def save(self, path: Path) -> None:
         """Persist this sparse index at path without rebuilding when a Tantivy directory exists."""
         if self.path is None:
@@ -262,19 +271,27 @@ class TantivySparseIndex:
         added_chunks: Sequence[Chunk],
     ) -> None:
         """Apply Tantivy delete/add updates for changed chunk IDs."""
-        chunk_indices = {chunk: index for index, chunk in enumerate(chunks)}
+        chunk_indices: dict[Chunk, int] | None = None
         writer = self.index.writer(heap_size=15_000_000, num_threads=1)
         for chunk_id in deleted_chunk_ids:
             writer.delete_documents("chunk_id", chunk_id)
-        for chunk in added_chunks:
-            writer.add_document(_tantivy_document(chunk, _chunk_id(chunk, chunk_indices[chunk])))
+        for added_index, chunk in enumerate(added_chunks):
+            chunk_id = chunk.chunk_id
+            if chunk_id is None:
+                if chunk_indices is None:
+                    chunk_indices = {candidate: index for index, candidate in enumerate(chunks)}
+                chunk_id = _chunk_id(chunk, chunk_indices[chunk])
+            writer.add_document(_tantivy_document(chunk, chunk_id))
         writer.commit()
         self.index.reload()
         self.chunks = chunks
         if self.chunk_store_path is None:
             self.__post_init__()
         else:
-            self._chunks_by_id = {_chunk_id(chunk, index): chunk for index, chunk in enumerate(added_chunks)}
+            self._chunks_by_id = {
+                chunk.chunk_id if chunk.chunk_id is not None else index: chunk
+                for index, chunk in enumerate(added_chunks)
+            }
 
     def search_ids(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[tuple[int, float]]:
         """Return Tantivy BM25 hits as stable chunk IDs without loading chunk payloads."""

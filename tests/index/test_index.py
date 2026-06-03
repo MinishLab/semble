@@ -298,6 +298,43 @@ def test_save_uses_lmdb_chunks_and_tantivy_sparse_backend(
     assert loaded.search("authenticate", top_k=1)
 
 
+def test_loaded_stats_use_mappings_without_loading_chunk_payloads(
+    tmp_path: Path, indexed_index: SembleIndex, mock_model: StaticModel
+) -> None:
+    """Stats for persisted indexes should use metadata mappings, not lazy chunk payload reads."""
+    indexed_index.save(tmp_path)
+    expected_stats = indexed_index.stats
+
+    with patch("semble.index.index.load_model", return_value=(mock_model, indexed_index._model_path)):
+        loaded = SembleIndex.load_from_disk(tmp_path)
+
+    with patch.object(loaded.chunks, "chunk_by_id", side_effect=AssertionError("stats should not load chunks")):
+        stats = loaded.stats
+
+    assert stats == expected_stats
+
+
+def test_loaded_chunks_by_id_batches_payload_reads(
+    tmp_path: Path, indexed_index: SembleIndex, mock_model: StaticModel
+) -> None:
+    """Lazy chunk batch lookup should avoid per-id payload reads through chunk_by_id."""
+    indexed_index.save(tmp_path)
+
+    with patch("semble.index.index.load_model", return_value=(mock_model, indexed_index._model_path)):
+        loaded = SembleIndex.load_from_disk(tmp_path)
+
+    chunk_ids = [0, min(1, len(indexed_index.chunks) - 1)]
+    expected = [indexed_index.chunks[chunk_id] for chunk_id in chunk_ids]
+    with patch.object(
+        loaded.chunks,
+        "chunk_by_id",
+        side_effect=AssertionError("batch lookup should not call chunk_by_id"),
+    ):
+        chunks = loaded.chunks.chunks_by_id(chunk_ids)
+
+    assert chunks == expected
+
+
 def test_save_writes_git_cache_metadata_for_hot_validation(tmp_path: Path, mock_model: StaticModel) -> None:
     """Fresh full saves in git repos should include HEAD metadata for hot cache validation."""
     repo = tmp_path / "repo"
@@ -609,12 +646,15 @@ def test_from_path_rebuilds_changed_files_from_git_plan_without_full_walk(
         patch("semble.index.index.get_rebuild_cache", return_value=cache_path),
         patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
         patch("semble.index.index.build_git_walk_plan", return_value=plan),
+        patch.object(LmdbChunkStore, "get_chunks", side_effect=AssertionError("git plan should avoid seed chunk load")),
         patch("semble.index.index.TantivySparseIndex.build_temporary") as build_temporary,
         patch("semble.index.index.walk_files", side_effect=AssertionError("git plan should avoid full walk")),
     ):
         rebuilt = SembleIndex.from_path(tmp_path)
 
     build_temporary.assert_not_called()
+    with patch.object(rebuilt.chunks, "chunk_by_id", side_effect=AssertionError("save should not walk lazy chunks")):
+        rebuilt.save(tmp_path / "rebuilt-cache")
     assert rebuilt.stats.indexed_files == 2
     assert any("changed_format" in chunk.content for chunk in rebuilt.chunks if chunk.file_path == "utils.py")
     assert rebuilt.search("changed_format", top_k=1)
@@ -622,6 +662,57 @@ def test_from_path_rebuilds_changed_files_from_git_plan_without_full_walk(
         {"path": "", "head": "old-head"},
         {"path": "empty-nested", "head": "old-empty-head"},
     )
+
+
+def test_git_plan_lazy_save_removes_deleted_chunk_payloads(
+    tmp_path: Path,
+    mock_model: StaticModel,
+) -> None:
+    """Lazy incremental saves should remove payloads for files deleted from the rebuilt index."""
+    (tmp_path / "auth.py").write_text("def authenticate(token):\n    return token\n")
+    (tmp_path / "deleted.py").write_text("def deleted():\n    return 'stale'\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        original = SembleIndex.from_path(tmp_path)
+    cache_path = tmp_path / "cache"
+    original.save(cache_path)
+    metadata_path = cache_path / "metadata.json"
+    metadata = orjson.loads(metadata_path.read_bytes())
+    deleted_chunk_ids = [
+        chunk_id
+        for chunk_id, file_path in zip(metadata["chunk_ids"], metadata["chunk_file_paths"])
+        if file_path == "deleted.py"
+    ]
+    assert deleted_chunk_ids
+    metadata["git_roots"] = [{"path": "", "head": "old-head"}]
+    metadata["git_roots_version"] = GIT_CACHE_ROOTS_VERSION
+    metadata["tracked_paths"] = ["auth.py", "deleted.py"]
+    metadata_path.write_bytes(orjson.dumps(metadata))
+    (tmp_path / "deleted.py").unlink()
+    plan = GitWalkPlan(
+        current_paths=("auth.py",),
+        changed_paths=frozenset(),
+        deleted_paths=frozenset({"deleted.py"}),
+        source_roots=(),
+        git_cache_metadata=({"path": "", "head": "old-head"},),
+    )
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=None),
+        patch("semble.index.index.get_rebuild_cache", return_value=cache_path),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+        patch("semble.index.index.build_git_walk_plan", return_value=plan),
+    ):
+        rebuilt = SembleIndex.from_path(tmp_path)
+
+    saved_path = tmp_path / "rebuilt-cache"
+    rebuilt.save(saved_path)
+    store = LmdbChunkStore.open(saved_path / "chunks.lmdb", readonly=True)
+    try:
+        assert all(store.get_chunk(chunk_id) is None for chunk_id in deleted_chunk_ids if chunk_id is not None)
+    finally:
+        store.close()
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        assert all(chunk.file_path != "deleted.py" for chunk in SembleIndex.load_from_disk(saved_path).chunks)
 
 
 def test_from_path_rejects_git_plan_missing_root_with_cached_files(
