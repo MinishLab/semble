@@ -43,7 +43,7 @@ semble install           # configure your agents (run `semble uninstall` to undo
 - **AGENTS.md**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
 
-For manual setup instructions (MCP config per agent, AGENTS.md snippet, sub-agent files), see [docs/installation.md](docs/installation.md).
+For manual setup instructions (MCP config per agent, AGENTS.md snippet, sub-agent files), see the [installation docs](docs/installation.md).
 
 <details>
 <summary>Updating Semble</summary>
@@ -186,7 +186,7 @@ Semble runs as an MCP server so agents can search any codebase directly as a nat
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
-For per-agent setup instructions, see [docs/installation.md](docs/installation.md#mcp-server).
+For per-agent setup instructions, see the [installation docs](docs/installation.md#mcp-server).
 
 
 ## Benchmarks
