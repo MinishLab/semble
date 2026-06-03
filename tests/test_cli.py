@@ -5,11 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from semble.cli import Agent, _agent_path, _cli_main, _maybe_save_index, _run_init, main
+from semble.cli import _cli_main, _maybe_save_index, main
 from semble.types import ContentType, SearchResult
 from tests.conftest import make_chunk
-
-_CLAUDE_FILE_PATH = _agent_path(Agent.CLAUDE)
 
 
 @pytest.mark.parametrize(
@@ -89,51 +87,6 @@ def test_cli_find_related(
         assert fragment in captured.out
     if expected_stderr:
         assert expected_stderr in captured.err
-
-
-@pytest.mark.parametrize("agent", list(Agent))
-def test_init_creates_file(
-    agent: Agent, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    """_run_init writes the correct agent file for every supported agent."""
-    monkeypatch.chdir(tmp_path)
-    _run_init(agent=agent)
-    dest = tmp_path / _agent_path(agent)
-    expected = files("semble").joinpath(f"agents/{agent.value}.md").read_text(encoding="utf-8")
-    assert dest.exists()
-    assert dest.read_text(encoding="utf-8") == expected
-    assert str(_agent_path(agent)) in capsys.readouterr().out
-
-
-def test_init_refuses_overwrite_without_force(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    """_run_init exits with code 1 when the file exists and force=False."""
-    monkeypatch.chdir(tmp_path)
-    _run_init()
-    with pytest.raises(SystemExit) as exc_info:
-        _run_init()
-    assert exc_info.value.code == 1
-    assert "already exists" in capsys.readouterr().err
-
-
-def test_init_overwrites_with_force(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """_run_init overwrites an existing file when force=True."""
-    monkeypatch.chdir(tmp_path)
-    dest = tmp_path / _CLAUDE_FILE_PATH
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text("old content", encoding="utf-8")
-    _run_init(force=True)
-    assert dest.read_text(encoding="utf-8") == files("semble").joinpath("agents/claude.md").read_text(encoding="utf-8")
-
-
-def test_init_via_cli(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
-    """Semble init creates the Claude agent file via _cli_main."""
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr(sys, "argv", ["semble", "init"])
-    _cli_main()
-    assert (tmp_path / _CLAUDE_FILE_PATH).exists()
-    assert str(_CLAUDE_FILE_PATH) in capsys.readouterr().out
 
 
 def test_main_dispatches_to_cli(
