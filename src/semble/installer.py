@@ -462,16 +462,20 @@ def remove_marked(path: Path) -> Action:
 
 
 def _strip_toml_section(text: str, header: str) -> str:
-    """Drop the TOML table beginning at `header` (a [table] line) up to the next table or EOF."""
+    """Drop all TOML tables matching `header` or any of its sub-tables, in any order."""
+    prefix = header.strip()[1:-1]  # "[mcp_servers.semble]" → "mcp_servers.semble"
     result, skipping = [], False
     for line in text.splitlines(keepends=True):
         stripped = line.strip()
-        if stripped.split("#")[0].strip() == header:
-            skipping = True
+        table_key = stripped.split("#")[0].strip()
+        if table_key.startswith("[") and table_key.endswith("]"):
+            table_name = table_key[1:-1]
+            if table_name == prefix or table_name.startswith(prefix + "."):
+                skipping = True
+                continue
+            skipping = False
+        if skipping:
             continue
-        if skipping and not stripped.startswith("["):
-            continue
-        skipping = False
         result.append(line)
     return "".join(result)
 

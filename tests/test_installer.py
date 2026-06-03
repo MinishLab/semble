@@ -243,6 +243,30 @@ def test_remove_toml_deletes_file_when_only_semble(tmp_path):
     assert not f.exists()
 
 
+_SUB_AFTER = (
+    '[mcp_servers.semble]\ncommand = "uvx"\n\n'
+    '[mcp_servers.semble.tools.search]\napproval_mode = "approve"\n\n'
+    '[other]\nkey = "val"\n'
+)
+_SUB_BEFORE = (
+    '[mcp_servers.semble.tools.search]\napproval_mode = "approve"\n\n'
+    '[mcp_servers.semble]\ncommand = "uvx"\n\n'
+    '[other]\nkey = "val"\n'
+)
+
+
+@pytest.mark.parametrize("content", [_SUB_AFTER, _SUB_BEFORE])
+def test_remove_toml_strips_sub_tables(tmp_path, content):
+    """_remove_toml_block removes sub-tables like [mcp_servers.semble.tools.search], before or after the main header."""
+    f = tmp_path / "config.toml"
+    f.write_text(content)
+    assert _remove_toml_block(f) == "removed"
+    text = f.read_text()
+    assert "[mcp_servers.semble]" not in text
+    assert "[mcp_servers.semble.tools.search]" not in text
+    assert "[other]" in text
+
+
 @pytest.mark.parametrize(
     ("platform", "env_vars"),
     [
