@@ -18,8 +18,9 @@
 [Quickstart](#quickstart) •
 [CLI](#cli) •
 [MCP Server](#mcp-server) •
-[AGENTS.md](#agentsmd) •
+[Installation](docs/installation.md) •
 [Benchmarks](#benchmarks)
+
 
 </div>
 
@@ -42,7 +43,7 @@ semble install           # configure your agents (run `semble uninstall` to undo
 - **[AGENTS.md](#agentsmd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
 
-For manual setup, see the [MCP Server](#mcp-server) and [AGENTS.md](#agentsmd) sections below.
+For manual setup instructions (MCP config per agent, AGENTS.md snippet, sub-agent files), see [docs/installation.md](docs/installation.md).
 
 <details>
 <summary>Updating Semble</summary>
@@ -65,7 +66,7 @@ uv cache clean semble    # for MCP users (restart your MCP client after)
 
 ## CLI
 
-Semble also ships as a standalone CLI. This is useful in scripts or anywhere you want search results without an MCP session.
+Semble also ships as a standalone CLI. This is useful in scripts or anywhere you want search results without an MCP session. Indexes are built and cached on first run, and invalidated automatically when files change.
 
 ```bash
 # Search a local repo (index is built and cached automatically)
@@ -178,239 +179,15 @@ result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 
 ## MCP Server
 
-Semble can run as an MCP server so agents can search any codebase directly. Repos are cloned and indexed on demand. Indexes are persisted to the OS cache folder and reused across sessions; local paths are watched for file changes and re-indexed automatically.
-
-### Setup
-
-> Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
-
-<details>
-<summary>Claude Code</summary>
-
-```bash
-claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
-```
-
-</details>
-
-<details>
-<summary>Cursor</summary>
-
-Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
-
-```json
-{
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Codex</summary>
-
-Add to `~/.codex/config.toml`:
-
-```toml
-[mcp_servers.semble]
-command = "uvx"
-args = ["--from", "semble[mcp]", "semble"]
-```
-
-</details>
-
-<details>
-<summary>OpenCode</summary>
-
-Add to `~/.config/opencode/opencode.jsonc`:
-
-```json
-{
-  "mcp": {
-    "semble": {
-      "type": "local",
-      "command": ["uvx", "--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>VS Code</summary>
-
-Add to `.vscode/mcp.json` in your project (or your user profile's `mcp.json`):
-
-```json
-{
-  "servers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>GitHub Copilot CLI</summary>
-
-Add to `~/.copilot/mcp-config.json`:
-
-```json
-{
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Windsurf</summary>
-
-Add to `~/.codeium/windsurf/mcp_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Gemini CLI</summary>
-
-Add to `~/.gemini/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Kiro</summary>
-
-Add to `~/.kiro/settings/mcp.json` (or `.kiro/settings/mcp.json` in your project):
-
-```json
-{
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>Zed</summary>
-
-Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
-
-```json
-{
-  "context_servers": {
-    "semble": {
-      "source": "custom",
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
-    }
-  }
-}
-```
-
-</details>
-
-
-### Tools
+Semble runs as an MCP server so agents can search any codebase directly as a native tool call. Repos are indexed on demand and cached; local paths are re-indexed automatically on file changes.
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local directory path or an https:// git URL. |
+| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL. |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
-By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command, or a combination, e.g. `--content code docs`. For example, in Claude Code: `claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all`.
+For per-agent setup instructions, see [docs/installation.md](docs/installation.md#mcp-server).
 
-<a id="agentsmd"></a>
-
-## AGENTS.md
-
-Add Semble usage instructions to your agent's context so it knows when and how to call the CLI. Add the snippet below to your `AGENTS.md` or `CLAUDE.md`:
-
-<details>
-<summary>AGENTS.md / CLAUDE.md snippet</summary>
-
-```markdown
-## Code Search
-
-Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
-
-​```bash
-semble search "authentication flow" ./my-project
-semble search "save_pretrained" ./my-project
-semble search "save model to disk" ./my-project --top-k 10
-​```
-
-The index is built on first run (and cached for subsequent runs) and invalidated automatically when files change.
-
-Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
-
-​```bash
-semble search "deployment guide" ./my-project --content docs
-semble search "database host port" ./my-project --content config
-semble search "authentication" ./my-project --content all
-​```
-
-Use `semble find-related` to discover code similar to a known location (pass `file_path` and `line` from a prior search result):
-
-​```bash
-semble find-related src/auth.py 42 ./my-project
-​```
-
-`path` defaults to the current directory when omitted; git URLs are accepted.
-
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
-
-### Workflow
-
-1. Start with `semble search` to find relevant chunks. The index is built and cached automatically.
-2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Inspect full files only when the returned chunk does not give enough context.
-4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
-```
-
-</details>
 
 ## Benchmarks
 
