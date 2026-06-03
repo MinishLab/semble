@@ -70,22 +70,31 @@ class PreparedTantivyFields:
 
 
 @lru_cache(maxsize=65_536)
-def _content_bm25_tokens(content: str) -> tuple[str, ...]:
-    return tuple(tokenize(content))
+def _content_bm25_body(content: str) -> str:
+    return " ".join(tokenize(content))
 
 
 @lru_cache(maxsize=65_536)
-def _path_bm25_tokens(file_path: str) -> tuple[str, ...]:
+def _path_bm25_body(file_path: str) -> str:
     path = Path(file_path)
     stem = path.stem
     dir_parts = [part for part in path.parent.parts if part not in (".", "/")]
     dir_text = " ".join(dir_parts[-3:])
-    return tuple(tokenize(f"{stem} {stem} {dir_text}"))
+    return " ".join(tokenize(f"{stem} {stem} {dir_text}"))
+
+
+def _combine_bm25_body(content_body: str, path_body: str) -> str:
+    if not content_body:
+        return path_body
+    if not path_body:
+        return content_body
+    return f"{content_body} {path_body}"
 
 
 def _prepare_tantivy_fields(chunk: Chunk) -> PreparedTantivyFields:
-    tokens = [*_content_bm25_tokens(chunk.content), *_path_bm25_tokens(chunk.file_path)]
-    return PreparedTantivyFields(body=" ".join(tokens))
+    return PreparedTantivyFields(
+        body=_combine_bm25_body(_content_bm25_body(chunk.content), _path_bm25_body(chunk.file_path))
+    )
 
 
 def _tantivy_document_from_fields(
