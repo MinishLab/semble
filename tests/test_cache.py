@@ -93,6 +93,15 @@ def test_resolve_cache_folder(platform: str, mock_target: str, expected: Path) -
     assert result == expected
 
 
+def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
+    """SEMBLE_CACHE_LOCATION takes precedence over all platform-specific helpers."""
+    custom = tmp_path / "custom_cache"
+    with patch.dict("os.environ", {"SEMBLE_CACHE_LOCATION": str(custom)}):
+        result = resolve_cache_folder()
+    assert result == custom
+    assert custom.exists()
+
+
 def test_clear_cache(tmp_path: Path) -> None:
     """clear_cache removes the index directory when it exists and is a no-op otherwise."""
     index_path = tmp_path / "index"

@@ -307,9 +307,9 @@ class SembleIndex:
 
         bm_25_index = BM25.load(persistence_paths.bm25_index)
         semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
-        with open(persistence_paths.metadata, "r") as f:
+        with open(persistence_paths.metadata, "rb") as f:
             metadata = orjson.loads(f.read())
-        with open(persistence_paths.chunks, "r") as f:
+        with open(persistence_paths.chunks, "rb") as f:
             chunk_data = orjson.loads(f.read())
 
         chunks = []
