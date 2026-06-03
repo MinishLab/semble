@@ -36,15 +36,13 @@ uv tool install semble
 semble install           # configure your agents (run `semble uninstall` to undo)
 ```
 
-`semble install` detects your installed agents — Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, and Zed — and configures any combination of three integrations globally:
+`semble install` detects your installed agents/harnesses (Claude Code, Codex, OpenCode, etc) and configures any combination of three integrations globally:
 
 - **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.
 - **[AGENTS.md](#agentsmd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
 
-> The MCP integration only adds `semble` next to your existing entries — nothing else is touched. Edits are surgical (via tree-sitter), so **comments and formatting are preserved**, including in JSONC files like Zed's `settings.json` and Codex's TOML config. A config that can't be parsed is left untouched and reported.
-
-Prefer to set things up by hand? The [MCP Server](#mcp-server) and [AGENTS.md](#agentsmd) sections below walk through each integration manually.
+For manual setup, see the [MCP Server](#mcp-server) and [AGENTS.md](#agentsmd) sections below.
 
 <details>
 <summary>Updating Semble</summary>
