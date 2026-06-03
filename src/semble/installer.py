@@ -308,6 +308,10 @@ def _delete_member(src: bytes, member: Node) -> bytes:
         before = start
         while before > 0 and src[before - 1 : before] in (b" ", b"\t"):
             before -= 1
+        if before > 0 and src[before - 1 : before] == b"\n":
+            before -= 1  # step over newline to find comma on preceding line
+            while before > 0 and src[before - 1 : before] in (b" ", b"\t"):
+                before -= 1
         if before > 0 and src[before - 1 : before] == b",":
             start = before - 1
     while start > 0 and src[start - 1 : start] in (b" ", b"\t"):
@@ -521,7 +525,10 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
         return WriteResult(dest, "removed")
     existed = dest.exists()
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(files("semble").joinpath(f"agents/{agent.id}.md").read_text(encoding="utf-8"), encoding="utf-8")
+    try:
+        dest.write_text(files("semble").joinpath(f"agents/{agent.id}.md").read_text(encoding="utf-8"), encoding="utf-8")
+    except Exception:
+        return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")
 
 
@@ -602,7 +609,7 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
             if result is None:
                 print(f"    {_DIM}– {integ.id}: not supported{_RESET}")
                 continue
-            ok = result.action in ("created", "updated", "removed")
+            ok = result.action in ("created", "updated", "removed", "unchanged")
             detail = _ACTION_DETAIL.get(result.action, "")
             suffix = f" — {detail}" if detail else ""
             print(f"    {_tick(ok)} {integ.id} ({result.action}){suffix} → {result.path}")

@@ -119,6 +119,15 @@ def test_remove_mcp_preserves_comments(claude_agent):
     assert '"semble"' not in text
 
 
+def test_remove_mcp_last_entry_no_trailing_comma(claude_agent):
+    """Removing semble when it's the last entry must not leave a trailing comma on the predecessor."""
+    claude_agent.mcp.path.write_text(
+        '{\n  "mcpServers": {\n    "other": {"command": "x"},\n    "semble": {"command": "uvx"}\n  }\n}\n'
+    )
+    assert remove_mcp(claude_agent).action == "removed"
+    json.loads(claude_agent.mcp.path.read_text())  # raises if trailing comma or otherwise invalid
+
+
 @pytest.mark.parametrize("setup", [None, '{\n  "mcpServers": {"other": {}}\n}\n'])
 def test_remove_mcp_not_found(claude_agent, setup):
     """remove_mcp reports not-found when the file is missing or has no semble entry."""
