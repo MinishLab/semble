@@ -47,10 +47,14 @@ def claude_agent(tmp_path):
 
 @pytest.fixture
 def run_setup(monkeypatch, tmp_path, claude_agent):
-    """Patches AGENTS with claude+copilot in tmp_path; stubs _checkbox to select all."""
-    copilot = next(a for a in AGENTS if a.id == "copilot")
-    copilot = replace(copilot, subagent_path=tmp_path / "copilot_subagent.md")
-    monkeypatch.setattr("semble.installer.AGENTS", [claude_agent, copilot])
+    """Patches AGENTS with claude+cursor in tmp_path; stubs _checkbox to select all."""
+    cursor = next(a for a in AGENTS if a.id == "cursor")
+    cursor = replace(
+        cursor,
+        mcp=replace(cursor.mcp, path=tmp_path / "cursor.json"),
+        subagent_path=tmp_path / "cursor_subagent.md",
+    )
+    monkeypatch.setattr("semble.installer.AGENTS", [claude_agent, cursor])
     monkeypatch.setattr("semble.installer._checkbox", lambda _p, items: [v for _, v, _ in items])
     return monkeypatch
 
@@ -115,7 +119,10 @@ def test_merge_mcp_errors(claude_agent, content):
     assert merge_mcp(claude_agent).action == "error"
 
 
-@pytest.mark.parametrize(("agent_id", "key"), [("zed", "context_servers"), ("windsurf", "mcpServers")])
+@pytest.mark.parametrize(
+    ("agent_id", "key"),
+    [("zed", "context_servers"), ("windsurf", "mcpServers"), ("copilot", "mcpServers")],
+)
 def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
     """merge_mcp writes the semble entry under each agent's own top-level MCP key."""
     src = next(a for a in AGENTS if a.id == agent_id)
@@ -261,13 +268,14 @@ def test_opencode_mcp_path(monkeypatch, tmp_path):
     assert _opencode_mcp_path() == jsonc  # jsonc preferred
 
 
-def test_apply_mcp_toml_format(tmp_path):
-    """_apply_mcp handles TOML-format agents (codex) via _merge_toml_block."""
+def test_apply_mcp(tmp_path):
+    """_apply_mcp returns None for mcp=None agents and uses the TOML path for codex."""
+    no_mcp = replace(next(a for a in AGENTS if a.id == "claude"), mcp=None)
+    assert _apply_mcp(no_mcp, "install") is None
+
     codex = next(a for a in AGENTS if a.id == "codex")
     codex = replace(codex, mcp=replace(codex.mcp, path=tmp_path / "config.toml"))
-    result = _apply_mcp(codex, "install")
-    assert result is not None
-    assert result.action in ("created", "updated")
+    assert _apply_mcp(codex, "install").action in ("created", "updated")
 
 
 def test_apply_instructions_none():
@@ -314,12 +322,11 @@ def test_checkbox(monkeypatch):
 
 def test_print_plan(capsys, claude_agent):
     """_print_plan prints each agent, integration, and resolved path (or 'not supported')."""
-    copilot = next(a for a in AGENTS if a.id == "copilot")
-    _print_plan([claude_agent, copilot], _INTEGRATIONS)
+    no_mcp = replace(claude_agent, display_name="No MCP Agent", mcp=None)
+    _print_plan([claude_agent, no_mcp], _INTEGRATIONS)
     out = capsys.readouterr().out
     assert "Claude Code" in out
-    assert "GitHub Copilot" in out
-    assert "not supported" in out  # copilot has no MCP
+    assert "not supported" in out  # no_mcp has no MCP
 
 
 def test_run_completes(run_setup, monkeypatch, capsys):

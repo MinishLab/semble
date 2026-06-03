@@ -207,7 +207,7 @@ AGENTS: list[AgentTarget] = [
         display_name="GitHub Copilot",
         binary=None,
         config_dir=_HOME / ".config" / "github-copilot",
-        mcp=None,  # no stable global MCP config path
+        mcp=McpConfig(_HOME / ".copilot" / "mcp-config.json", "mcpServers", _BARE_STDIO_ENTRY),
         instructions_path=None,
         subagent_path=_HOME / ".copilot" / "agents" / "semble-search.agent.md",
     ),

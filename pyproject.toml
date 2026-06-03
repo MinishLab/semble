@@ -93,7 +93,7 @@ target-version = "py310"
 "tests/**" = ["ANN"]
 "benchmarks/*.py" = ["T20"]
 "src/semble/cli.py" = ["T20", "E501"]
-"src/semble/installer.py" = ["T20", "E501", "C901"]
+"src/semble/installer.py" = ["T20", "E501"]
 
 [tool.ruff.lint]
 select = [
