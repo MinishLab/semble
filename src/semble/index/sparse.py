@@ -2,6 +2,7 @@ import shutil
 import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -68,8 +69,23 @@ class PreparedTantivyFields:
     body: str
 
 
+@lru_cache(maxsize=65_536)
+def _content_bm25_tokens(content: str) -> tuple[str, ...]:
+    return tuple(tokenize(content))
+
+
+@lru_cache(maxsize=65_536)
+def _path_bm25_tokens(file_path: str) -> tuple[str, ...]:
+    path = Path(file_path)
+    stem = path.stem
+    dir_parts = [part for part in path.parent.parts if part not in (".", "/")]
+    dir_text = " ".join(dir_parts[-3:])
+    return tuple(tokenize(f"{stem} {stem} {dir_text}"))
+
+
 def _prepare_tantivy_fields(chunk: Chunk) -> PreparedTantivyFields:
-    return PreparedTantivyFields(body=" ".join(tokenize(enrich_for_bm25(chunk))))
+    tokens = [*_content_bm25_tokens(chunk.content), *_path_bm25_tokens(chunk.file_path)]
+    return PreparedTantivyFields(body=" ".join(tokens))
 
 
 def _tantivy_document_from_fields(
