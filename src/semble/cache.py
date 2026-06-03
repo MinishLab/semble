@@ -6,12 +6,13 @@ import shutil
 import subprocess
 import sys
 from collections.abc import Sequence
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from pathspec import GitIgnoreSpec
 
+from semble.concurrency import git_metadata_worker_count, index_worker_quota, run_with_index_worker
 from semble.index.types import PersistencePath
 from semble.types import ContentType
 from semble.utils import is_git_url, resolve_model_name
@@ -52,6 +53,20 @@ def _walk_files(path: Path, extensions: Sequence[str]) -> Any:
 get_extensions = _get_extensions
 get_file_status = _get_file_status
 walk_files = _walk_files
+
+
+def _concurrent_ordered_map(items: Sequence[Any], fn: Any, key: Any | None = None) -> list[Any]:
+    if not items:
+        return []
+    indexed_items = list(enumerate(items))
+    if key is not None:
+        indexed_items.sort(key=lambda indexed_item: key(indexed_item[1]), reverse=True)
+    results: list[Any] = [None] * len(indexed_items)
+    with ThreadPoolExecutor(max_workers=min(git_metadata_worker_count(), len(indexed_items))) as executor:
+        futures = {executor.submit(run_with_index_worker, fn, item): index for index, item in indexed_items}
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
+    return results
 
 
 def _default_ignore_spec(source_root: Path) -> Any:
@@ -202,13 +217,15 @@ def build_git_cache_save_metadata(
     def root_metadata(source_root: Path) -> tuple[str | None, bytes | None]:
         return _git_head(source_root), _run_git(source_root, "ls-files", "-z", "-c")
 
-    with ThreadPoolExecutor(max_workers=min(32, len(source_roots))) as executor:
-        root_results = list(executor.map(lambda item: root_metadata(item[0]), source_roots))
+    root_results = _concurrent_ordered_map(source_roots, lambda item: root_metadata(item[0]))
 
     stored_file_set = set(stored_files)
     git_roots = []
     tracked_paths = []
-    for (_, source_rel), (head, tracked_files) in zip(source_roots, root_results):
+    for (_, source_rel), root_result in zip(source_roots, root_results):
+        if root_result is None:
+            return None
+        head, tracked_files = root_result
         if head is None or tracked_files is None:
             return None
         git_roots.append({"path": source_rel, "head": head})
@@ -227,9 +244,10 @@ def refresh_git_cache_metadata(path: Path, git_roots: Sequence[dict[str, str]]) 
     roots = {source_root: source_rel for source_root, source_rel in source_roots}
     if not _add_tracked_gitlink_roots(roots):
         return None
+    ordered_roots = sorted(roots.items(), key=lambda item: (len(item[1]), item[1]))
+    heads = _concurrent_ordered_map(ordered_roots, lambda item: _git_head(item[0]))
     refreshed = []
-    for source_root, source_rel in sorted(roots.items(), key=lambda item: (len(item[1]), item[1])):
-        head = _git_head(source_root)
+    for (_, source_rel), head in zip(ordered_roots, heads):
         if head is None:
             return None
         refreshed.append({"path": source_rel, "head": head})
@@ -318,15 +336,19 @@ def _validate_git_cache_roots(
                 return False, []
             current_files.extend(root_files)
             root_args = root_args[:root_index] + root_args[root_index + 1 :]
-    with ThreadPoolExecutor(max_workers=min(32, len(root_args))) as executor:
-        root_results = list(executor.map(validate_root, root_args))
-    for root_result in root_results:
-        if root_result is None:
-            return None
-        root_is_current, root_files = root_result
-        if not root_is_current:
-            return False, []
-        current_files.extend(root_files)
+    if not root_args:
+        return True, current_files
+    scheduled_args = sorted(root_args, key=lambda args: len(args[3]), reverse=True)
+    with ThreadPoolExecutor(max_workers=min(index_worker_quota(), len(scheduled_args))) as executor:
+        futures = {executor.submit(run_with_index_worker, validate_root, args): args for args in scheduled_args}
+        for future in as_completed(futures):
+            root_result = future.result()
+            if root_result is None:
+                return None
+            root_is_current, root_files = root_result
+            if not root_is_current:
+                return False, []
+            current_files.extend(root_files)
     return True, current_files
 
 
@@ -628,27 +650,33 @@ def _git_cache_source_roots(path: Path, stored_files: list[str]) -> list[tuple[P
 
 def _add_tracked_gitlink_roots(roots: dict[Path, str]) -> bool:
     source_roots = list(roots.items())
-    index = 0
-    while index < len(source_roots):
-        batch = source_roots[index:]
-        index = len(source_roots)
-        with ThreadPoolExecutor(max_workers=min(32, len(batch))) as executor:
-            outputs = list(executor.map(lambda item: _run_git(item[0], "ls-files", "-z", "--stage"), batch))
-        if any(output is None for output in outputs):
-            return False
-        for (source_root, source_rel), output in zip(batch, outputs):
-            if output is None:
-                return False
-            for git_path in _gitlink_paths(output):
-                child_root = source_root / git_path
-                if not (child_root / ".git").exists():
-                    continue
-                child_rel = _join_git_path(source_rel, git_path)
-                resolved_child = child_root.resolve()
-                if resolved_child in roots:
-                    continue
-                roots[resolved_child] = child_rel
-                source_roots.append((resolved_child, child_rel))
+    with ThreadPoolExecutor(max_workers=git_metadata_worker_count()) as executor:
+        pending = {
+            executor.submit(run_with_index_worker, _run_git, source_root, "ls-files", "-z", "--stage"): (
+                source_root,
+                source_rel,
+            )
+            for source_root, source_rel in source_roots
+        }
+        while pending:
+            done, _ = wait(pending, return_when=FIRST_COMPLETED)
+            for future in done:
+                source_root, source_rel = pending.pop(future)
+                output = future.result()
+                if output is None:
+                    return False
+                for git_path in _gitlink_paths(output):
+                    child_root = source_root / git_path
+                    if not (child_root / ".git").exists():
+                        continue
+                    child_rel = _join_git_path(source_rel, git_path)
+                    resolved_child = child_root.resolve()
+                    if resolved_child in roots:
+                        continue
+                    roots[resolved_child] = child_rel
+                    pending[
+                        executor.submit(run_with_index_worker, _run_git, child_root, "ls-files", "-z", "--stage")
+                    ] = (resolved_child, child_rel)
     return True
 
 
@@ -660,8 +688,7 @@ def _git_cache_heads_match(source_roots: list[tuple[Path, str]], git_roots: list
     if not source_roots or set(expected) != {source_rel for _, source_rel in source_roots}:
         return False
 
-    with ThreadPoolExecutor(max_workers=min(32, len(source_roots))) as executor:
-        heads = list(executor.map(lambda root: _git_head(root[0]), source_roots))
+    heads = _concurrent_ordered_map(source_roots, lambda root: _git_head(root[0]))
     if any(head is None for head in heads):
         return None
     return all(head == expected[source_rel] for head, (_, source_rel) in zip(heads, source_roots))

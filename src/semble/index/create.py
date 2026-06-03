@@ -15,6 +15,7 @@ from vicinity.backends.basic import BasicArgs
 
 from semble.cache import build_git_cache_save_metadata
 from semble.chunking import chunk_source
+from semble.concurrency import git_metadata_worker_count, index_worker_quota, run_with_index_worker
 from semble.index.dense import SelectableBasicBackend, embed_chunks
 from semble.index.file_walker import walk_files
 from semble.index.files import FileStatus, detect_language, get_extensions, get_file_status, read_file_text
@@ -121,7 +122,7 @@ def _default_chunk_worker_count() -> int:
     if configured:
         with contextlib.suppress(ValueError):
             return max(1, int(configured))
-    return min(32, max(1, os.cpu_count() or 1))
+    return index_worker_quota()
 
 
 def _default_process_chunk_worker_count() -> int:
@@ -131,7 +132,7 @@ def _default_process_chunk_worker_count() -> int:
             return max(0, int(configured))
     if not _can_use_process_workers():
         return 0
-    return min(8, max(1, os.cpu_count() or 1))
+    return min(8, index_worker_quota())
 
 
 def _can_use_process_workers() -> bool:
@@ -203,7 +204,7 @@ def _collect_chunks_parallel(
     scheduled_files = sorted(enumerate(ordered_files), key=lambda item: _file_schedule_size(item[1]), reverse=True)
     with ThreadPoolExecutor(max_workers=_CHUNK_WORKER_COUNT) as executor:
         futures = {
-            executor.submit(_chunk_file, file_path, display_root, template_cache): index
+            executor.submit(run_with_index_worker, _chunk_file, file_path, display_root, template_cache): index
             for index, file_path in scheduled_files
         }
         for future in as_completed(futures):
@@ -283,9 +284,19 @@ def create_index_build_from_path(
         raise ValueError(f"No supported files found under {path}.")
 
     git_metadata_job = _start_git_metadata_job(path, display_root, sorted(file_sizes))
+    embed_reserved_workers = (
+        git_metadata_worker_count()
+        if git_metadata_job is not None and not git_metadata_job[1].done()
+        else 0
+    )
     try:
-        embeddings = embed_chunks(model, chunks)
-        sparse_index = TantivySparseIndex.build_temporary(chunks)
+        embeddings = embed_chunks(model, chunks, reserved_workers=embed_reserved_workers)
+        sparse_reserved_workers = (
+            git_metadata_worker_count()
+            if git_metadata_job is not None and not git_metadata_job[1].done()
+            else 0
+        )
+        sparse_index = TantivySparseIndex.build_temporary(chunks, reserved_workers=sparse_reserved_workers)
         args = BasicArgs()
         semantic_index = SelectableBasicBackend(embeddings, args)
         git_metadata = _git_metadata_from_job(git_metadata_job)

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import subprocess
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Mapping
+from typing import Any, Callable, Iterable, Mapping, Sequence, TypeVar, cast
 
 from pathspec import GitIgnoreSpec
 
+from semble.concurrency import index_worker_quota, run_with_index_worker
 from semble.index.file_walker import _DEFAULT_IGNORED_DIRS, IgnoreSpec, _is_ignored, _load_ignore_for_dir
 
 
@@ -58,6 +59,27 @@ _SourceRootScanResult = tuple[
 _IGNORE_CONTROL_FILENAMES = (".gitignore", ".sembleignore")
 _IGNORE_CONTROL_SUFFIXES = ("/.gitignore", "/.sembleignore")
 _IGNORE_CONTROL_PATHS = (*_IGNORE_CONTROL_FILENAMES, ":(glob)**/.gitignore", ":(glob)**/.sembleignore")
+_T = TypeVar("_T")
+_R = TypeVar("_R")
+
+
+def _concurrent_ordered_map(
+    items: Sequence[_T],
+    fn: Callable[[_T], _R],
+    key: Callable[[_T], int] | None = None,
+) -> list[_R]:
+    if not items:
+        return []
+    indexed_items = list(enumerate(items))
+    if key is not None:
+        indexed_items.sort(key=lambda indexed_item: key(indexed_item[1]), reverse=True)
+    sentinel: Any = object()
+    results: list[_R | Any] = [sentinel] * len(items)
+    with ThreadPoolExecutor(max_workers=min(index_worker_quota(), len(indexed_items))) as executor:
+        futures = {executor.submit(run_with_index_worker, fn, item): index for index, item in indexed_items}
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
+    return [cast(_R, result) for result in results]
 
 
 def build_git_walk_plan(
@@ -93,57 +115,60 @@ def build_git_walk_plan(
     if not _source_roots_cover_paths(source_roots, previous_path_set):
         return None
 
-    with ThreadPoolExecutor(max_workers=min(32, len(source_roots))) as executor:
-        status_results = list(executor.map(_source_root_status, source_roots))
-        if previous_git_heads is not None:
-            started = time.perf_counter()
-            expanded_source_roots = _discover_dirty_nested_source_roots(
-                root, ignore_specs, source_roots, status_results
-            )
-            timings["git_root_discovery_s"] += time.perf_counter() - started
-            if expanded_source_roots != source_roots:
-                source_roots = expanded_source_roots
-                if not _source_roots_cover_paths(source_roots, previous_path_set):
-                    return None
-                status_results = list(executor.map(_source_root_status, source_roots))
-
-        current_paths: set[str] = set()
-        tracked_paths: set[str] = set()
-        changed_paths: set[str] = set()
-        deleted_paths: set[str] = set()
-        stale_roots: set[str] = set()
-        clean_tracked_blob_shas: dict[str, str] = {}
-        child_roots_by_parent = _child_roots_by_parent(source_roots)
-        previous_paths_by_root = _previous_paths_by_source_root(previous_path_set, source_roots)
-        parent_control_dirs_by_root, control_specs = _parent_ignore_control_dirs_by_source_root(
-            source_roots, root, ignore_specs
+    status_results = _concurrent_ordered_map(source_roots, _source_root_status)
+    if previous_git_heads is not None:
+        started = time.perf_counter()
+        expanded_source_roots = _discover_dirty_nested_source_roots(
+            root, ignore_specs, source_roots, status_results
         )
-        base_ignore_specs = tuple(ignore_specs.specs_by_dir[ignore_specs.root])
-        dirty_ignore_controls = _dirty_ignore_control_paths_by_source_root(
-            source_roots, status_results, previous_write_time
-        )
+        timings["git_root_discovery_s"] += time.perf_counter() - started
+        if expanded_source_roots != source_roots:
+            source_roots = expanded_source_roots
+            if not _source_roots_cover_paths(source_roots, previous_path_set):
+                return None
+            status_results = _concurrent_ordered_map(source_roots, _source_root_status)
 
-        scan_args = [
-            (
-                source_root,
-                root,
-                display_root_resolved,
-                extensions_set,
-                child_roots_by_parent.get(source_root.path, ()),
-                previous_paths_by_root[source_root.path],
-                previous_tracked_path_set,
-                None if previous_git_heads is None else previous_git_heads.get(source_root.rel_path),
-                status_results[index][2],
-                parent_control_dirs_by_root.get(source_root.path, frozenset()),
-                control_specs,
-                base_ignore_specs,
-                status_results[index][0],
-                status_results[index][1],
-                _has_dirty_inherited_ignore_control(source_root.rel_path, dirty_ignore_controls),
-            )
-            for index, source_root in enumerate(source_roots)
-        ]
-        scan_results = list(executor.map(lambda args: _scan_source_root(*args), scan_args))
+    current_paths: set[str] = set()
+    tracked_paths: set[str] = set()
+    changed_paths: set[str] = set()
+    deleted_paths: set[str] = set()
+    stale_roots: set[str] = set()
+    clean_tracked_blob_shas: dict[str, str] = {}
+    child_roots_by_parent = _child_roots_by_parent(source_roots)
+    previous_paths_by_root = _previous_paths_by_source_root(previous_path_set, source_roots)
+    parent_control_dirs_by_root, control_specs = _parent_ignore_control_dirs_by_source_root(
+        source_roots, root, ignore_specs
+    )
+    base_ignore_specs = tuple(ignore_specs.specs_by_dir[ignore_specs.root])
+    dirty_ignore_controls = _dirty_ignore_control_paths_by_source_root(
+        source_roots, status_results, previous_write_time
+    )
+
+    scan_args = [
+        (
+            source_root,
+            root,
+            display_root_resolved,
+            extensions_set,
+            child_roots_by_parent.get(source_root.path, ()),
+            previous_paths_by_root[source_root.path],
+            previous_tracked_path_set,
+            None if previous_git_heads is None else previous_git_heads.get(source_root.rel_path),
+            status_results[index][2],
+            parent_control_dirs_by_root.get(source_root.path, frozenset()),
+            control_specs,
+            base_ignore_specs,
+            status_results[index][0],
+            status_results[index][1],
+            _has_dirty_inherited_ignore_control(source_root.rel_path, dirty_ignore_controls),
+        )
+        for index, source_root in enumerate(source_roots)
+    ]
+    scan_results = _concurrent_ordered_map(
+        scan_args,
+        lambda args: _scan_source_root(*args),
+        key=lambda args: len(args[5]),
+    )
 
     status_time = 0.0
     ls_files_time = 0.0
@@ -239,23 +264,36 @@ def _discover_source_roots(
     if not discover_nested:
         return tuple(sorted(roots.values(), key=lambda source_root: (len(source_root.rel_path), source_root.rel_path)))
 
-    index = 0
-    while index < len(pending):
-        batch = pending[index:]
-        index = len(pending)
-        with ThreadPoolExecutor(max_workers=min(32, len(batch))) as executor:
-            nested_paths = list(
-                executor.map(
-                    lambda source_root: _nested_git_root_paths(source_root.path) if source_root.has_git_marker else (),
-                    batch,
-                )
-            )
-        for source_root, git_paths in zip(batch, nested_paths):
-            for git_path in git_paths:
-                source_rel = _join_git_path(source_root.rel_path, git_path)
-                _add_source_root(roots, pending, root, ignore_specs, root / source_rel, source_rel)
-
+    _discover_nested_roots(roots, pending, root, ignore_specs)
     return tuple(sorted(roots.values(), key=lambda source_root: (len(source_root.rel_path), source_root.rel_path)))
+
+
+def _discover_nested_roots(
+    roots: dict[Path, SourceRoot],
+    pending: list[SourceRoot],
+    root: Path,
+    ignore_specs: IgnoreSpecCache,
+) -> None:
+    with ThreadPoolExecutor(max_workers=index_worker_quota()) as executor:
+        futures = {
+            executor.submit(run_with_index_worker, _nested_git_root_paths, source_root.path): source_root
+            for source_root in pending
+            if source_root.has_git_marker
+        }
+        pending.clear()
+        while futures:
+            done, _ = wait(futures, return_when=FIRST_COMPLETED)
+            for future in done:
+                source_root = futures.pop(future)
+                for git_path in future.result():
+                    source_rel = _join_git_path(source_root.rel_path, git_path)
+                    added: list[SourceRoot] = []
+                    _add_source_root(roots, added, root, ignore_specs, root / source_rel, source_rel)
+                    for added_root in added:
+                        if added_root.has_git_marker:
+                            futures[
+                                executor.submit(run_with_index_worker, _nested_git_root_paths, added_root.path)
+                            ] = added_root
 
 
 def _discover_dirty_nested_source_roots(
@@ -273,30 +311,14 @@ def _discover_dirty_nested_source_roots(
             source_rel = _join_git_path(source_root.rel_path, git_path)
             _add_source_root(roots, pending, root, ignore_specs, root / source_rel, source_rel)
 
-    index = 0
-    while index < len(pending):
-        batch = pending[index:]
-        index = len(pending)
-        with ThreadPoolExecutor(max_workers=min(32, len(batch))) as executor:
-            nested_paths = list(
-                executor.map(
-                    lambda source_root: _nested_git_root_paths(source_root.path) if source_root.has_git_marker else (),
-                    batch,
-                )
-            )
-        for source_root, git_paths in zip(batch, nested_paths):
-            for git_path in git_paths:
-                source_rel = _join_git_path(source_root.rel_path, git_path)
-                _add_source_root(roots, pending, root, ignore_specs, root / source_rel, source_rel)
-
+    _discover_nested_roots(roots, pending, root, ignore_specs)
     return tuple(sorted(roots.values(), key=lambda source_root: (len(source_root.rel_path), source_root.rel_path)))
 
 
 def _git_cache_metadata_for_source_roots(source_roots: tuple[SourceRoot, ...]) -> tuple[dict[str, str], ...] | None:
     if not source_roots or any(not source_root.has_git_marker for source_root in source_roots):
         return None
-    with ThreadPoolExecutor(max_workers=min(32, len(source_roots))) as executor:
-        heads = list(executor.map(lambda source_root: _git_head(source_root.path), source_roots))
+    heads = _concurrent_ordered_map(source_roots, lambda source_root: _git_head(source_root.path))
     return _git_cache_metadata_from_heads(
         source_roots,
         {source_root.rel_path: head for source_root, head in zip(source_roots, heads)},

@@ -10,6 +10,7 @@ import numpy as np
 import numpy.typing as npt
 import tantivy
 
+from semble.concurrency import foreground_worker_count, reserve_index_workers
 from semble.index.chunk_store import LmdbChunkStore
 from semble.tokens import tokenize
 from semble.types import Chunk, FilterSpec, SearchResult
@@ -17,6 +18,10 @@ from semble.types import Chunk, FilterSpec, SearchResult
 _TANTIVY_BODY_FIELD = "body"
 _TANTIVY_BUILD_HEAP_SIZE = 128_000_000
 _TANTIVY_BUILD_THREADS = 4
+
+
+def _tantivy_build_thread_count(reserved_workers: int = 0) -> int:
+    return min(_TANTIVY_BUILD_THREADS, foreground_worker_count(reserved_workers))
 
 
 class SparseIndex(Protocol):
@@ -133,6 +138,7 @@ class TantivyBuildWriter:
     path: Path | None = None
     chunks: list[Chunk] = field(default_factory=list)
     document_count: int = 0
+    reserved_workers: int = 0
     index: Any = field(init=False)
     writer: Any = field(init=False)
 
@@ -145,7 +151,10 @@ class TantivyBuildWriter:
             path=None if self.path is None else str(self.path),
             reuse=False,
         )
-        self.writer = self.index.writer(heap_size=_TANTIVY_BUILD_HEAP_SIZE, num_threads=_TANTIVY_BUILD_THREADS)
+        self.writer = self.index.writer(
+            heap_size=_TANTIVY_BUILD_HEAP_SIZE,
+            num_threads=_tantivy_build_thread_count(self.reserved_workers),
+        )
 
     def add_chunks(self, chunks: Sequence[Chunk]) -> None:
         """Append chunk documents to the build-time Tantivy writer."""
@@ -187,17 +196,24 @@ class TantivySparseIndex:
         self._chunks_by_id = {_chunk_id(chunk, index): chunk for index, chunk in enumerate(self.chunks)}
 
     @classmethod
-    def from_chunks(cls, chunks: Sequence[Chunk], path: Path | None = None) -> "TantivySparseIndex":
+    def from_chunks(
+        cls,
+        chunks: Sequence[Chunk],
+        path: Path | None = None,
+        reserved_workers: int = 0,
+    ) -> "TantivySparseIndex":
         """Build and commit a Tantivy sparse index for chunks."""
-        writer = TantivyBuildWriter(path)
-        writer.add_chunks(chunks)
-        return writer.finish(chunks)
+        workers = _tantivy_build_thread_count(reserved_workers)
+        with reserve_index_workers(workers):
+            writer = TantivyBuildWriter(path=path, reserved_workers=reserved_workers)
+            writer.add_chunks(chunks)
+            return writer.finish(chunks)
 
     @classmethod
-    def build_temporary(cls, chunks: Sequence[Chunk]) -> "TantivySparseIndex":
+    def build_temporary(cls, chunks: Sequence[Chunk], reserved_workers: int = 0) -> "TantivySparseIndex":
         """Build a temporary on-disk index so save can copy instead of rebuilding."""
         path = Path(tempfile.mkdtemp(prefix="semble-tantivy-"))
-        index = cls.from_chunks(chunks, path=path)
+        index = cls.from_chunks(chunks, path=path, reserved_workers=reserved_workers)
         index._temporary_path = path
         return index
 

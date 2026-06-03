@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import contextlib
+import os
+from collections.abc import Generator
 from functools import cache
 from pathlib import Path
 
@@ -11,6 +14,7 @@ from vicinity.backends.basic import CosineBasicBackend
 from vicinity.datatypes import QueryResult
 from vicinity.utils import normalize
 
+from semble.concurrency import foreground_worker_count, reserve_index_workers
 from semble.types import Chunk
 from semble.utils import resolve_model_name
 
@@ -57,25 +61,53 @@ def _can_deduplicate_embeddings(model: StaticModel) -> bool:
     return model_type.__module__ == "model2vec.model" and model_type.__name__ == "StaticModel"
 
 
+@contextlib.contextmanager
+def _model2vec_worker_limit(reserved_workers: int) -> Generator[None, None, None]:
+    workers = foreground_worker_count(reserved_workers)
+    previous = os.environ.get("LOKY_MAX_CPU_COUNT")
+    os.environ["LOKY_MAX_CPU_COUNT"] = str(workers)
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("LOKY_MAX_CPU_COUNT", None)
+        else:
+            os.environ["LOKY_MAX_CPU_COUNT"] = previous
+
+
+def _encode(
+    model: StaticModel,
+    contents: list[str],
+    use_multiprocessing: bool,
+    reserved_workers: int,
+) -> npt.NDArray[np.float32]:
+    with reserve_index_workers(foreground_worker_count(reserved_workers)):
+        with _model2vec_worker_limit(reserved_workers):
+            return np.array(
+                model.encode(contents, use_multiprocessing=use_multiprocessing),
+                dtype=np.float32,
+            )
+
+
 def embed_chunks(
     model: StaticModel,
     chunks: list[Chunk],
     *,
     use_multiprocessing: bool = True,
+    reserved_workers: int = 0,
 ) -> npt.NDArray[np.float32]:
     """Embed chunks using the configured model."""
     if not chunks:
         return np.empty((0, model.dim), dtype=np.float32)
     if not _can_deduplicate_embeddings(model):
-        return np.array(
-            model.encode([c.content for c in chunks], use_multiprocessing=use_multiprocessing),
-            dtype=np.float32,
+        return _encode(
+            model,
+            [c.content for c in chunks],
+            use_multiprocessing,
+            reserved_workers,
         )
     contents, positions = _unique_contents(chunks)
-    embeddings = np.array(
-        model.encode(contents, use_multiprocessing=use_multiprocessing),
-        dtype=np.float32,
-    )
+    embeddings = _encode(model, contents, use_multiprocessing, reserved_workers)
     if len(contents) == len(chunks):
         return embeddings
     return embeddings[np.array(positions, dtype=np.intp)]
