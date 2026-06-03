@@ -73,15 +73,27 @@ A `semble` MCP server is available with two tools:
 
 Always call `mcp__semble__search` before using Grep, Glob, or Read to explore the codebase. Use Grep/Glob/Read only for exact path lookup, exhaustive literal matches, or when the returned chunk lacks enough context.
 
+Pass `--content docs` to search documentation and prose, `--content config` for config files, or `--content all` to search code, docs, and config together.
+
 For CLI fallback or sub-agents without MCP access, use:
 
 ```bash
-semble search "authentication flow" .
-semble search "deployment guide" . --content docs
-semble find-related src/auth.py 42 .
+semble search "authentication flow" ./my-project
+semble search "deployment guide" ./my-project --content docs
+semble search "database host port" ./my-project --content config
+semble find-related src/auth.py 42 ./my-project
+semble search "save model to disk" ./my-project --top-k 10
 ```
 
 The index is built on first run and cached automatically. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble`.
+
+### Workflow
+
+1. Start with `mcp__semble__search` to find relevant chunks.
+2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+3. Inspect full files only when the returned chunk does not give enough context.
+4. Optionally use `mcp__semble__find_related` with a promising result's `file_path` and `line` to discover related implementations.
+5. Use Grep/Glob/Read only when you need exhaustive literal matches or quick confirmation of an exact string.
 {SEMBLE_END}
 """
 
