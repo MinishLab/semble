@@ -5,8 +5,8 @@
 The interactive installer detects your installed agents and configures any combination of three integrations globally:
 
 - **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.
-- **[AGENTS.md](#agentsmd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
-- **Sub-agent**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
+- **[AGENTS.md](#instructions-agentsmd--claudemd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
+- **[Sub-agent](#sub-agent)**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
 
 Install the CLI with [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
 
