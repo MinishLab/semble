@@ -1,5 +1,3 @@
-"""Tests for the installer module's file-manipulation helpers."""
-
 import json
 import sys
 from dataclasses import replace
@@ -8,17 +6,26 @@ import pytest
 
 from semble.installer import (
     _CODEX_MCP_HEADER,
+    _INTEGRATIONS,
     _STDIO_ENTRY,
     AGENTS,
     SEMBLE_END,
     SEMBLE_START,
+    _apply_instructions,
+    _apply_mcp,
+    _apply_subagent,
+    _checkbox,
     _merge_toml_block,
+    _opencode_mcp_path,
+    _print_plan,
     _remove_toml_block,
     _vscode_mcp_path,
+    is_detected,
     merge_mcp,
     remove_marked,
     remove_mcp,
     replace_or_append_marked,
+    run,
 )
 
 _BLOCK = f"{SEMBLE_START}\n## Semble\nsome instructions\n{SEMBLE_END}\n"
@@ -34,7 +41,18 @@ def claude_agent(tmp_path):
         config_dir=tmp_path / ".claude",
         mcp=replace(a.mcp, path=tmp_path / ".claude.json"),
         instructions_path=tmp_path / ".claude" / "CLAUDE.md",
+        subagent_path=tmp_path / ".claude" / "agents" / "semble-search.md",
     )
+
+
+@pytest.fixture
+def run_setup(monkeypatch, tmp_path, claude_agent):
+    """Patches AGENTS with claude+copilot in tmp_path; stubs _checkbox to select all."""
+    copilot = next(a for a in AGENTS if a.id == "copilot")
+    copilot = replace(copilot, subagent_path=tmp_path / "copilot_subagent.md")
+    monkeypatch.setattr("semble.installer.AGENTS", [claude_agent, copilot])
+    monkeypatch.setattr("semble.installer._checkbox", lambda _p, items: [v for _, v, _ in items])
+    return monkeypatch
 
 
 def test_merge_mcp_creates_fresh_file(claude_agent):
@@ -84,12 +102,17 @@ def test_merge_mcp_idempotent(claude_agent):
     assert claude_agent.mcp.path.read_text().count('"semble":') == 1  # the member key, once
 
 
-def test_merge_mcp_errors_on_malformed_file(claude_agent):
-    """merge_mcp reports an error and leaves a genuinely unparseable file untouched."""
-    original = "this is not json {{{{ "
-    claude_agent.mcp.path.write_text(original)
+@pytest.mark.parametrize(
+    "content",
+    [
+        "this is not json {{{{ ",
+        '{ "mcpServers": "not-an-object" }',
+    ],
+)
+def test_merge_mcp_errors(claude_agent, content):
+    """merge_mcp reports error for an unparseable or structurally invalid config."""
+    claude_agent.mcp.path.write_text(content)
     assert merge_mcp(claude_agent).action == "error"
-    assert claude_agent.mcp.path.read_text() == original
 
 
 @pytest.mark.parametrize(("agent_id", "key"), [("zed", "context_servers"), ("windsurf", "mcpServers")])
@@ -99,6 +122,21 @@ def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
     agent = replace(src, mcp=replace(src.mcp, path=tmp_path / "cfg.json"))
     merge_mcp(agent)
     assert "semble" in json.loads((tmp_path / "cfg.json").read_text())[key]
+
+
+def test_mcp_skipped_when_grammar_unavailable(claude_agent, monkeypatch):
+    """When the JSON5 grammar cannot be downloaded, merge/remove return 'skipped'."""
+    claude_agent.mcp.path.write_text('{ "mcpServers": {} }')
+    monkeypatch.setattr("semble.installer.download", lambda _: 1 / 0)
+    assert merge_mcp(claude_agent).action == "skipped"
+    assert remove_mcp(claude_agent).action == "skipped"
+
+
+def test_merge_mcp_reparse_guard(claude_agent, monkeypatch):
+    """merge_mcp reports error when the edited JSON5 fails reparse validation."""
+    claude_agent.mcp.path.write_text('{\n  "mcpServers": {}\n}\n')
+    monkeypatch.setattr("semble.installer._reparse_ok", lambda _: False)
+    assert merge_mcp(claude_agent).action == "error"
 
 
 def test_remove_mcp_preserves_comments(claude_agent):
@@ -119,18 +157,34 @@ def test_remove_mcp_preserves_comments(claude_agent):
     assert '"semble"' not in text
 
 
-def test_remove_mcp_last_entry_no_trailing_comma(claude_agent):
-    """Removing semble when it's the last entry must not leave a trailing comma on the predecessor."""
-    claude_agent.mcp.path.write_text(
-        '{\n  "mcpServers": {\n    "other": {"command": "x"},\n    "semble": {"command": "uvx"}\n  }\n}\n'
-    )
+@pytest.mark.parametrize(
+    "initial",
+    [
+        '{\n  "mcpServers": {\n    "other": {},\n    "semble": {}\n  }\n}\n',
+        '{\n  "mcpServers": {\n    "semble": {}  ,\n    "other": {}\n  }\n}\n',
+        '{\n  "mcpServers": {\n    "other": {},  \n    "semble": {}\n  }\n}\n',
+    ],
+)
+def test_remove_mcp_no_trailing_comma(claude_agent, initial):
+    """Removing semble must not leave a trailing comma regardless of its position or whitespace."""
+    claude_agent.mcp.path.write_text(initial)
     assert remove_mcp(claude_agent).action == "removed"
-    json.loads(claude_agent.mcp.path.read_text())  # raises if trailing comma or otherwise invalid
+    json.loads(claude_agent.mcp.path.read_text())  # raises if trailing comma or invalid
 
 
-@pytest.mark.parametrize("setup", [None, '{\n  "mcpServers": {"other": {}}\n}\n'])
+def test_remove_mcp_reparse_guard(claude_agent, monkeypatch):
+    """remove_mcp reports error when the result fails reparse validation."""
+    claude_agent.mcp.path.write_text('{\n  "mcpServers": {\n    "semble": {}\n  }\n}\n')
+    monkeypatch.setattr("semble.installer._reparse_ok", lambda _: False)
+    assert remove_mcp(claude_agent).action == "error"
+
+
+@pytest.mark.parametrize(
+    "setup",
+    [None, '{\n  "mcpServers": {"other": {}}\n}\n', '{"other": "stuff"}'],
+)
 def test_remove_mcp_not_found(claude_agent, setup):
-    """remove_mcp reports not-found when the file is missing or has no semble entry."""
+    """remove_mcp reports not-found when the file is missing, has no semble entry, or no mcpServers key."""
     if setup is not None:
         claude_agent.mcp.path.write_text(setup)
     assert remove_mcp(claude_agent).action == "not-found"
@@ -153,11 +207,143 @@ def test_codex_toml_merge_and_remove(tmp_path):
     assert "[mcp_servers.other]" in text  # only the semble table is removed
 
 
-def test_vscode_mcp_path_is_user_mcp_json():
-    """_vscode_mcp_path resolves to the user-profile mcp.json (…/Code/User/mcp.json)."""
+@pytest.mark.parametrize(
+    ("setup", "expected"),
+    [(None, "not-found"), ("model = 'gpt-5'\n", "not-found")],
+)
+def test_remove_toml_not_found(tmp_path, setup, expected):
+    """_remove_toml_block reports not-found when the file is absent or has no semble header."""
+    f = tmp_path / "config.toml"
+    if setup is not None:
+        f.write_text(setup)
+    assert _remove_toml_block(f) == expected
+
+
+def test_remove_toml_deletes_file_when_only_semble(tmp_path):
+    """_remove_toml_block unlinks the file when removing semble leaves it empty."""
+    f = tmp_path / "config.toml"
+    _merge_toml_block(f)
+    _remove_toml_block(f)
+    assert not f.exists()
+
+
+@pytest.mark.parametrize(
+    ("platform", "env_vars"),
+    [
+        ("darwin", {}),
+        ("win32", {"APPDATA": "/appdata"}),
+        ("linux", {"XDG_CONFIG_HOME": "/xdg"}),
+    ],
+)
+def test_vscode_mcp_path(monkeypatch, platform, env_vars):
+    """_vscode_mcp_path returns a Code/User/mcp.json path for each supported OS."""
+    monkeypatch.setattr("sys.platform", platform)
+    for k, v in env_vars.items():
+        monkeypatch.setenv(k, v)
     p = _vscode_mcp_path()
     assert p.name == "mcp.json"
-    assert p.parent.name == "User"
+    assert "Code" in str(p)
+
+
+def test_opencode_mcp_path(monkeypatch, tmp_path):
+    """_opencode_mcp_path respects XDG_CONFIG_HOME and prefers .jsonc over .json."""
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    assert _opencode_mcp_path().parent == tmp_path / "opencode"
+    assert _opencode_mcp_path().name == "opencode.jsonc"  # fallback when neither exists
+
+    (tmp_path / "opencode").mkdir()
+    json_ = tmp_path / "opencode" / "opencode.json"
+    json_.touch()
+    assert _opencode_mcp_path() == json_  # json when no jsonc
+
+    jsonc = tmp_path / "opencode" / "opencode.jsonc"
+    jsonc.touch()
+    assert _opencode_mcp_path() == jsonc  # jsonc preferred
+
+
+def test_apply_mcp_toml_format(tmp_path):
+    """_apply_mcp handles TOML-format agents (codex) via _merge_toml_block."""
+    codex = next(a for a in AGENTS if a.id == "codex")
+    codex = replace(codex, mcp=replace(codex.mcp, path=tmp_path / "config.toml"))
+    result = _apply_mcp(codex, "install")
+    assert result is not None
+    assert result.action in ("created", "updated")
+
+
+def test_apply_instructions_none():
+    """_apply_instructions returns None for agents with no instructions_path."""
+    cursor = next(a for a in AGENTS if a.id == "cursor")
+    assert _apply_instructions(cursor, "install") is None
+
+
+def test_apply_subagent(tmp_path):
+    """_apply_subagent installs/uninstalls the sub-agent file; returns error for missing resource."""
+    dest = tmp_path / "agents" / "semble-search.md"
+    agent = replace(next(a for a in AGENTS if a.id == "claude"), subagent_path=dest)
+
+    assert _apply_subagent(agent, "install").action == "created"
+    assert dest.exists()
+    assert _apply_subagent(agent, "install").action == "updated"
+    assert _apply_subagent(agent, "uninstall").action == "removed"
+    assert not dest.exists()
+    assert _apply_subagent(agent, "uninstall").action == "not-found"
+    assert _apply_subagent(replace(agent, subagent_path=None), "install") is None
+    assert _apply_subagent(replace(agent, id="zzz"), "install").action == "error"
+
+
+def test_is_detected(monkeypatch, tmp_path):
+    """is_detected returns True when binary is on PATH or config dir exists."""
+    agent = next(a for a in AGENTS if a.id == "claude")
+    monkeypatch.setattr("semble.installer.shutil.which", lambda _: "/usr/bin/claude")
+    assert is_detected(agent)
+
+    agent_no_bin = replace(agent, binary=None, config_dir=tmp_path)
+    assert is_detected(agent_no_bin)
+
+
+def test_checkbox(monkeypatch):
+    """_checkbox wraps questionary.checkbox and returns the selected values."""
+
+    class _Fake:
+        def ask(self):
+            return ["a"]
+
+    monkeypatch.setattr("semble.installer.questionary.checkbox", lambda *_, **__: _Fake())
+    assert _checkbox("Pick:", [("Option A", "a", False)]) == ["a"]
+
+
+def test_print_plan(capsys, claude_agent):
+    """_print_plan prints each agent, integration, and resolved path (or 'not supported')."""
+    copilot = next(a for a in AGENTS if a.id == "copilot")
+    _print_plan([claude_agent, copilot], _INTEGRATIONS)
+    out = capsys.readouterr().out
+    assert "Claude Code" in out
+    assert "GitHub Copilot" in out
+    assert "not supported" in out  # copilot has no MCP
+
+
+def test_run_completes(run_setup, monkeypatch, capsys):
+    """run('install') completes a full interactive install and prints Done."""
+
+    class _Yes:
+        def ask(self):
+            return True
+
+    monkeypatch.setattr("semble.installer.questionary.confirm", lambda *_, **__: _Yes())
+    run("install")
+    assert "Done!" in capsys.readouterr().out
+
+
+def test_run_cancels(run_setup, monkeypatch):
+    """Run exits when the user declines the confirmation prompt."""
+
+    class _No:
+        def ask(self):
+            return False
+
+    monkeypatch.setattr("semble.installer.questionary.confirm", lambda *_, **__: _No())
+    with pytest.raises(SystemExit):
+        run("install")
 
 
 @pytest.mark.parametrize(

@@ -442,9 +442,6 @@ def remove_marked(path: Path) -> Action:
     after = existing[end_idx + len(SEMBLE_END) :].lstrip("\n")
     updated = (before + "\n" + after).strip("\n") + ("\n" if existing.endswith("\n") else "")
 
-    if updated == existing:
-        return "unchanged"
-
     if updated.strip():
         path.write_text(updated, encoding="utf-8")
     else:
