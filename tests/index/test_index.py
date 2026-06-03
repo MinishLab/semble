@@ -1,6 +1,9 @@
 import hashlib
 import os
 import subprocess
+import sys
+import textwrap
+from concurrent.futures import Future
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -16,7 +19,7 @@ from semble import SembleIndex
 from semble.cache import GIT_CACHE_ROOTS_VERSION, get_validated_cache
 from semble.chunking import chunk_source
 from semble.index.chunk_store import LmdbChunkStore, _int_key
-from semble.index.create import IndexBuild, create_index_build_from_path, create_index_from_path
+from semble.index.create import ChunkTemplateCache, IndexBuild, create_index_build_from_path, create_index_from_path
 from semble.index.dense import SelectableBasicBackend
 from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
 from semble.index.source_inventory import GitWalkPlan
@@ -31,6 +34,21 @@ _GIT_ENV = {
     "GIT_COMMITTER_NAME": "test",
     "GIT_COMMITTER_EMAIL": "t@t.com",
 }
+
+
+class ImmediateExecutor:
+    """Executor test double that records per-file submissions without batching."""
+
+    def __init__(self) -> None:
+        """Create an executor with no recorded submissions."""
+        self.submissions: list[tuple[str, str, str | None]] = []
+
+    def submit(self, fn: Any, source: str, file_path: str, language: str | None) -> Future[Any]:
+        """Run the submitted callable immediately and return a completed future."""
+        future: Future[Any] = Future()
+        self.submissions.append((source, file_path, language))
+        future.set_result(fn(source, file_path, language))
+        return future
 
 
 def _init_git_repo(path: Path) -> None:
@@ -121,6 +139,74 @@ def test_create_index_reuses_exact_source_chunk_templates_without_changing_paths
     assert [chunk.file_path for chunk in chunks] == ["a.py", "b.py"]
     assert [chunk.content for chunk in chunks] == [source, source]
     assert [(chunk.start_line, chunk.end_line) for chunk in chunks] == [(1, 2), (1, 2)]
+
+
+def test_chunk_template_cache_routes_heavy_files_without_batching() -> None:
+    """Heavy chunking uses one future per source template while preserving output paths."""
+    executor = ImmediateExecutor()
+    cache = ChunkTemplateCache(executor, process_min_bytes=1)
+    source = "def shared():\n    return 'same'\n"
+
+    a_chunks, a_hash = cache.chunks_for(source, "a.py", "python")
+    b_chunks, b_hash = cache.chunks_for(source, "b.py", "python")
+
+    assert a_hash == b_hash
+    assert len(executor.submissions) == 1
+    assert executor.submissions[0] == (source, "a.py", "python")
+    assert [chunk.file_path for chunk in a_chunks] == ["a.py"]
+    assert [chunk.file_path for chunk in b_chunks] == ["b.py"]
+    assert [chunk.content for chunk in a_chunks] == [source]
+    assert [chunk.content for chunk in b_chunks] == [source]
+
+
+def test_chunk_template_cache_keeps_light_files_in_thread() -> None:
+    """Small sources stay on the thread path to avoid process overhead."""
+    executor = ImmediateExecutor()
+    cache = ChunkTemplateCache(executor, process_min_bytes=10_000)
+
+    chunks, _ = cache.chunks_for("def local():\n    pass\n", "local.py", "python")
+
+    assert executor.submissions == []
+    assert [chunk.file_path for chunk in chunks] == ["local.py"]
+
+
+def test_chunk_process_workers_do_not_rerun_caller_top_level(tmp_path: Path) -> None:
+    """Process chunking must not re-execute unguarded caller scripts on spawn platforms."""
+    marker = tmp_path / "marker.txt"
+    root = tmp_path / "project"
+    root.mkdir()
+    script = tmp_path / "spawn_repro.py"
+    script.write_text(
+        textwrap.dedent(
+            """
+            import os
+            from pathlib import Path
+
+            marker = Path(os.environ["SEMBLE_TEST_MARKER"])
+            marker.write_text(marker.read_text() + "top\\n" if marker.exists() else "top\\n")
+
+            root = Path(os.environ["SEMBLE_TEST_ROOT"])
+            (root / "big.py").write_text("x = 1\\n" * 20000)
+
+            from semble.index.create import _collect_chunks
+
+            chunks, sizes, hashes = _collect_chunks(root, [".py"], root)
+            print(len(chunks), bool(sizes), bool(hashes))
+            """
+        )
+    )
+
+    env = {
+        **os.environ,
+        "SEMBLE_TEST_MARKER": str(marker),
+        "SEMBLE_TEST_ROOT": str(root),
+        "SEMBLE_CHUNK_PROCESS_WORKERS": "2",
+        "SEMBLE_PROCESS_CHUNK_MIN_BYTES": "1",
+    }
+    result = subprocess.run([sys.executable, str(script)], check=True, capture_output=True, text=True, env=env)
+
+    assert marker.read_text().splitlines() == ["top"]
+    assert result.stdout.count("True True") == 1
 
 
 def test_create_index_build_uses_tantivy_sparse_index_and_reuses_file_sizes(

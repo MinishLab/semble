@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
+import multiprocessing
 import os
 from collections.abc import Iterable, Sequence
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from itertools import repeat
 from pathlib import Path
-from threading import Lock
+from threading import Lock, current_thread, main_thread
 
 from model2vec.model import StaticModel
 from vicinity.backends.basic import BasicArgs
@@ -37,17 +37,51 @@ class CachedChunk:
     language: str | None
 
 
+def _configured_int(name: str, default: int, minimum: int) -> int:
+    configured = os.environ.get(name)
+    if configured:
+        with contextlib.suppress(ValueError):
+            return max(minimum, int(configured))
+    return default
+
+
+_PROCESS_CHUNK_MIN_BYTES = _configured_int("SEMBLE_PROCESS_CHUNK_MIN_BYTES", 100_000, 0)
+
+
+def _chunk_source_template(source: str, file_path: str, language: str | None) -> list[CachedChunk]:
+    chunks = chunk_source(source, file_path, language)
+    return [CachedChunk(chunk.content, chunk.start_line, chunk.end_line, chunk.language) for chunk in chunks]
+
+
 class ChunkTemplateCache:
     """Thread-safe cache for chunks derived from exact duplicate file contents."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        process_executor: ProcessPoolExecutor | None = None,
+        process_min_bytes: int = _PROCESS_CHUNK_MIN_BYTES,
+    ) -> None:
         """Create an empty template cache for one index build."""
         self._templates: dict[tuple[str | None, str], Future[list[CachedChunk]]] = {}
+        self._process_executor = process_executor
+        self._process_min_bytes = process_min_bytes
         self._lock = Lock()
+
+    def _compute_template(
+        self,
+        source: str,
+        file_path: str,
+        language: str | None,
+        source_bytes: bytes,
+    ) -> list[CachedChunk]:
+        if self._process_executor is None or len(source_bytes) < self._process_min_bytes:
+            return _chunk_source_template(source, file_path, language)
+        return self._process_executor.submit(_chunk_source_template, source, file_path, language).result()
 
     def chunks_for(self, source: str, file_path: str, language: str | None) -> tuple[list[Chunk], str]:
         """Return chunks for source and path, reusing templates for exact duplicate content."""
-        file_hash = hashlib.sha256(source.encode("utf-8", errors="surrogatepass")).hexdigest()
+        source_bytes = source.encode("utf-8", errors="surrogatepass")
+        file_hash = hashlib.sha256(source_bytes).hexdigest()
         cache_key = (language, file_hash)
         with self._lock:
             future = self._templates.get(cache_key)
@@ -57,10 +91,7 @@ class ChunkTemplateCache:
                 self._templates[cache_key] = future
         if should_compute:
             try:
-                chunks = chunk_source(source, file_path, language)
-                future.set_result(
-                    [CachedChunk(chunk.content, chunk.start_line, chunk.end_line, chunk.language) for chunk in chunks]
-                )
+                future.set_result(self._compute_template(source, file_path, language, source_bytes))
             except BaseException as exc:
                 future.set_exception(exc)
                 with self._lock:
@@ -93,7 +124,31 @@ def _default_chunk_worker_count() -> int:
     return min(32, max(1, os.cpu_count() or 1))
 
 
+def _default_process_chunk_worker_count() -> int:
+    configured = os.environ.get("SEMBLE_CHUNK_PROCESS_WORKERS")
+    if configured:
+        with contextlib.suppress(ValueError):
+            return max(0, int(configured))
+    if not _can_use_process_workers():
+        return 0
+    return min(8, max(1, os.cpu_count() or 1))
+
+
+def _can_use_process_workers() -> bool:
+    return current_thread() is main_thread() and "fork" in multiprocessing.get_all_start_methods()
+
+
+def _create_process_executor() -> ProcessPoolExecutor | None:
+    if _PROCESS_CHUNK_WORKER_COUNT <= 0 or not _can_use_process_workers():
+        return None
+    context = multiprocessing.get_context("fork")
+    executor = ProcessPoolExecutor(max_workers=_PROCESS_CHUNK_WORKER_COUNT, mp_context=context)
+    list(executor.map(abs, range(_PROCESS_CHUNK_WORKER_COUNT)))
+    return executor
+
+
 _CHUNK_WORKER_COUNT = _default_chunk_worker_count()
+_PROCESS_CHUNK_WORKER_COUNT = _default_process_chunk_worker_count()
 
 
 def _chunk_file(
@@ -132,13 +187,28 @@ def _collect_chunks_serial(
     return _merge_chunk_file_results(_chunk_file(file_path, display_root, template_cache) for file_path in files)
 
 
+def _file_schedule_size(file_path: Path) -> int:
+    with contextlib.suppress(OSError):
+        return file_path.stat().st_size
+    return 0
+
+
 def _collect_chunks_parallel(
     files: Iterable[Path],
     display_root: Path | None,
     template_cache: ChunkTemplateCache | None,
 ) -> ChunkCollection:
+    ordered_files = list(files)
+    results: list[ChunkFileResult | None] = [None] * len(ordered_files)
+    scheduled_files = sorted(enumerate(ordered_files), key=lambda item: _file_schedule_size(item[1]), reverse=True)
     with ThreadPoolExecutor(max_workers=_CHUNK_WORKER_COUNT) as executor:
-        return _merge_chunk_file_results(executor.map(_chunk_file, files, repeat(display_root), repeat(template_cache)))
+        futures = {
+            executor.submit(_chunk_file, file_path, display_root, template_cache): index
+            for index, file_path in scheduled_files
+        }
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
+    return _merge_chunk_file_results(result for result in results if result is not None)
 
 
 def _merge_chunk_file_results(results: Iterable[ChunkFileResult]) -> ChunkCollection:
@@ -188,10 +258,15 @@ def _collect_chunks(
     display_root: Path | None,
 ) -> ChunkCollection:
     files = walk_files(path, extensions)
-    template_cache = ChunkTemplateCache()
-    if _CHUNK_WORKER_COUNT <= 1:
-        return _collect_chunks_serial(files, display_root, template_cache)
-    return _collect_chunks_parallel(files, display_root, template_cache)
+    process_executor = _create_process_executor()
+    try:
+        template_cache = ChunkTemplateCache(process_executor)
+        if _CHUNK_WORKER_COUNT <= 1:
+            return _collect_chunks_serial(files, display_root, template_cache)
+        return _collect_chunks_parallel(files, display_root, template_cache)
+    finally:
+        if process_executor is not None:
+            process_executor.shutdown(wait=True)
 
 
 def create_index_build_from_path(
