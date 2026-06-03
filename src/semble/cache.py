@@ -183,17 +183,57 @@ def _has_chunk_payloads(persistence_path: PersistencePath, metadata: dict | None
 
 def build_git_cache_metadata(path: Path, stored_files: Sequence[str]) -> list[dict[str, str]] | None:
     """Build git HEAD metadata for cache validation."""
+    metadata = build_git_cache_save_metadata(path, stored_files)
+    if metadata is None:
+        return None
+    git_roots, _ = metadata
+    return git_roots
+
+
+def build_git_cache_save_metadata(
+    path: Path,
+    stored_files: Sequence[str],
+) -> tuple[list[dict[str, str]], list[str]] | None:
+    """Build git HEAD and tracked-path metadata for cache validation and rebuilds."""
     source_roots = _git_cache_source_roots(path, list(stored_files))
     if source_roots is None:
         return None
 
+    def root_metadata(source_root: Path) -> tuple[str | None, bytes | None]:
+        return _git_head(source_root), _run_git(source_root, "ls-files", "-z", "-c")
+
+    with ThreadPoolExecutor(max_workers=min(32, len(source_roots))) as executor:
+        root_results = list(executor.map(lambda item: root_metadata(item[0]), source_roots))
+
+    stored_file_set = set(stored_files)
     git_roots = []
-    for source_root, source_rel in source_roots:
+    tracked_paths = []
+    for (_, source_rel), (head, tracked_files) in zip(source_roots, root_results):
+        if head is None or tracked_files is None:
+            return None
+        git_roots.append({"path": source_rel, "head": head})
+        for tracked_path in _git_output_paths(tracked_files):
+            global_path = _join_git_path(source_rel, tracked_path)
+            if global_path in stored_file_set:
+                tracked_paths.append(global_path)
+    return git_roots, sorted(tracked_paths)
+
+
+def refresh_git_cache_metadata(path: Path, git_roots: Sequence[dict[str, str]]) -> list[dict[str, str]] | None:
+    """Refresh HEAD metadata and include tracked gitlink roots below known roots."""
+    source_roots = _git_cache_source_roots_from_metadata(path, list(git_roots))
+    if source_roots is None:
+        return None
+    roots = {source_root: source_rel for source_root, source_rel in source_roots}
+    if not _add_tracked_gitlink_roots(roots):
+        return None
+    refreshed = []
+    for source_root, source_rel in sorted(roots.items(), key=lambda item: (len(item[1]), item[1])):
         head = _git_head(source_root)
         if head is None:
             return None
-        git_roots.append({"path": source_rel, "head": head})
-    return git_roots
+        refreshed.append({"path": source_rel, "head": head})
+    return refreshed
 
 
 def _git_cache_is_current(
@@ -272,8 +312,19 @@ def _git_cache_root_files(
     if status is None:
         return None
     status_items = _local_git_status_items_outside_children(_git_status_items(status), child_roots)
+    if not status_items and trust_git_heads:
+        return _clean_head_root_files(display_root, source_root, source_rel, child_roots, write_time, stored_files)
     if any(
-        _is_dirty_cache_affecting_status(status, git_path, extensions, source_root, stored_files)
+        _is_dirty_cache_affecting_status(
+            status,
+            git_path,
+            extensions,
+            source_root,
+            stored_files,
+            display_root,
+            source_rel,
+            write_time,
+        )
         for status, git_path in status_items
     ):
         return False, []
@@ -324,6 +375,90 @@ def _git_cache_root_files(
     )
 
 
+def _cached_path_is_current(
+    display_root: Path,
+    source_rel: str,
+    path: str,
+    write_time: float,
+    require_valid: bool = True,
+) -> bool:
+    global_path = _join_git_path(source_rel, path)
+    try:
+        file_status = get_file_status(display_root / global_path, write_time)
+    except OSError:
+        return False
+    newer_status, valid_status = _file_status_names()
+    if file_status == newer_status:
+        return False
+    return not require_valid or file_status == valid_status
+
+
+def _dirty_stored_file_is_current(
+    display_root: Path,
+    source_rel: str,
+    git_path: str,
+    write_time: float,
+    stored_files: set[str],
+) -> bool:
+    if git_path.rstrip("/") not in stored_files:
+        return False
+    return _cached_path_is_current(display_root, source_rel, git_path, write_time)
+
+
+def _clean_head_root_files(
+    display_root: Path,
+    source_root: Path,
+    source_rel: str,
+    child_roots: list[str],
+    write_time: float,
+    stored_files: set[str],
+) -> tuple[bool, list[str]] | None:
+    tracked_files = _run_git(source_root, "ls-files", "-z", "-c")
+    ignored_controls = _run_git(
+        source_root,
+        "ls-files",
+        "-z",
+        "-o",
+        "-i",
+        "--exclude-standard",
+        "--",
+        ".gitignore",
+        ".sembleignore",
+        ":(glob)**/.gitignore",
+        ":(glob)**/.sembleignore",
+    )
+    if tracked_files is None or ignored_controls is None:
+        return None
+    if not _git_cache_controls_are_current(
+        display_root,
+        source_rel,
+        child_roots,
+        write_time,
+        tracked_files,
+        ignored_controls,
+    ):
+        return False, []
+
+    tracked_paths = set(_git_output_paths(tracked_files))
+    current_files = []
+    newer_status, valid_status = _file_status_names()
+    for file_path in _local_git_paths_outside_children(sorted(stored_files), child_roots):
+        global_path = _join_git_path(source_rel, file_path)
+        if file_path in tracked_paths:
+            current_files.append(global_path)
+            continue
+        try:
+            file_status = get_file_status(display_root / global_path, write_time)
+        except OSError:
+            return False, []
+        if file_status == newer_status:
+            return False, []
+        if file_status == valid_status:
+            current_files.append(global_path)
+    return True, current_files
+
+
+
 def _git_cache_controls_are_current(
     display_root: Path,
     source_rel: str,
@@ -356,7 +491,10 @@ def _git_cache_current_files(
             current_files.append(global_path)
             continue
         newer_status, valid_status = _file_status_names()
-        file_status = get_file_status(display_root / global_path, write_time)
+        try:
+            file_status = get_file_status(display_root / global_path, write_time)
+        except OSError:
+            continue
         if file_status == newer_status:
             return False, []
         if file_status == valid_status:
@@ -453,21 +591,25 @@ def _add_tracked_gitlink_roots(roots: dict[Path, str]) -> bool:
     source_roots = list(roots.items())
     index = 0
     while index < len(source_roots):
-        source_root, source_rel = source_roots[index]
-        index += 1
-        output = _run_git(source_root, "ls-files", "-z", "--stage")
-        if output is None:
+        batch = source_roots[index:]
+        index = len(source_roots)
+        with ThreadPoolExecutor(max_workers=min(32, len(batch))) as executor:
+            outputs = list(executor.map(lambda item: _run_git(item[0], "ls-files", "-z", "--stage"), batch))
+        if any(output is None for output in outputs):
             return False
-        for git_path in _gitlink_paths(output):
-            child_root = source_root / git_path
-            if not (child_root / ".git").exists():
-                continue
-            child_rel = _join_git_path(source_rel, git_path)
-            resolved_child = child_root.resolve()
-            if resolved_child in roots:
-                continue
-            roots[resolved_child] = child_rel
-            source_roots.append((resolved_child, child_rel))
+        for (source_root, source_rel), output in zip(batch, outputs):
+            if output is None:
+                return False
+            for git_path in _gitlink_paths(output):
+                child_root = source_root / git_path
+                if not (child_root / ".git").exists():
+                    continue
+                child_rel = _join_git_path(source_rel, git_path)
+                resolved_child = child_root.resolve()
+                if resolved_child in roots:
+                    continue
+                roots[resolved_child] = child_rel
+                source_roots.append((resolved_child, child_rel))
     return True
 
 
@@ -602,7 +744,14 @@ def _is_cache_affecting_path(path: str, extensions: set[str], source_root: Path)
 
 
 def _is_dirty_cache_affecting_status(
-    status: str, path: str, extensions: set[str], source_root: Path, stored_files: set[str]
+    status: str,
+    path: str,
+    extensions: set[str],
+    source_root: Path,
+    stored_files: set[str],
+    display_root: Path | None = None,
+    source_rel: str = "",
+    write_time: float | None = None,
 ) -> bool:
     if status == "??":
         if _is_semble_ignored_path(source_root, path):
@@ -612,6 +761,9 @@ def _is_dirty_cache_affecting_status(
         if _is_ignore_file(path) or path.rstrip("/") in stored_files:
             return False
         return Path(path).suffix.lower() in extensions
+    if display_root is not None and write_time is not None:
+        if _dirty_stored_file_is_current(display_root, source_rel, path, write_time, stored_files):
+            return False
     return _is_cache_affecting_path(path, extensions, source_root)
 
 

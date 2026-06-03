@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import os
 from collections.abc import Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import repeat
 from pathlib import Path
 
@@ -23,6 +24,7 @@ from semble.types import Chunk, ContentType
 class ChunkFileResult:
     chunks: list[Chunk]
     file_size: int | None
+    file_hash: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,6 +33,7 @@ class IndexBuild:
     semantic_index: SelectableBasicBackend
     chunks: list[Chunk]
     file_sizes: dict[str, int]
+    file_hashes: dict[str, str] = field(default_factory=dict)
 
 
 def _default_chunk_worker_count() -> int:
@@ -49,38 +52,48 @@ def _chunk_file(file_path: Path, display_root: Path | None) -> ChunkFileResult:
     with contextlib.suppress(OSError):
         file_status = get_file_status(file_path, None)
         if file_status != FileStatus.VALID:
-            return ChunkFileResult([], None)
+            return ChunkFileResult([], None, None)
         source = read_file_text(file_path)
         chunk_path = file_path.relative_to(display_root) if display_root else file_path
         chunks = chunk_source(source, str(chunk_path), language)
-        return ChunkFileResult(chunks, len(source) if chunks else None)
-    return ChunkFileResult([], None)
+        if not chunks:
+            return ChunkFileResult([], None, None)
+        file_hash = hashlib.sha256(source.encode("utf-8", errors="surrogatepass")).hexdigest()
+        return ChunkFileResult(chunks, len(source), file_hash)
+    return ChunkFileResult([], None, None)
 
 
-def _collect_chunks_serial(files: Iterable[Path], display_root: Path | None) -> tuple[list[Chunk], dict[str, int]]:
+ChunkCollection = tuple[list[Chunk], dict[str, int], dict[str, str]]
+
+
+def _collect_chunks_serial(files: Iterable[Path], display_root: Path | None) -> ChunkCollection:
     return _merge_chunk_file_results(_chunk_file(file_path, display_root) for file_path in files)
 
 
-def _collect_chunks_parallel(files: Iterable[Path], display_root: Path | None) -> tuple[list[Chunk], dict[str, int]]:
+def _collect_chunks_parallel(files: Iterable[Path], display_root: Path | None) -> ChunkCollection:
     with ThreadPoolExecutor(max_workers=_CHUNK_WORKER_COUNT) as executor:
         return _merge_chunk_file_results(executor.map(_chunk_file, files, repeat(display_root)))
 
 
-def _merge_chunk_file_results(results: Iterable[ChunkFileResult]) -> tuple[list[Chunk], dict[str, int]]:
+def _merge_chunk_file_results(results: Iterable[ChunkFileResult]) -> ChunkCollection:
     chunks: list[Chunk] = []
     file_sizes: dict[str, int] = {}
+    file_hashes: dict[str, str] = {}
     for result in results:
         chunks.extend(result.chunks)
         if result.file_size is not None and result.chunks:
-            file_sizes.setdefault(result.chunks[0].file_path, result.file_size)
-    return chunks, file_sizes
+            file_path = result.chunks[0].file_path
+            file_sizes.setdefault(file_path, result.file_size)
+            if result.file_hash is not None:
+                file_hashes.setdefault(file_path, result.file_hash)
+    return chunks, file_sizes, file_hashes
 
 
 def _collect_chunks(
     path: Path,
     extensions: Sequence[str],
     display_root: Path | None,
-) -> tuple[list[Chunk], dict[str, int]]:
+) -> ChunkCollection:
     files = walk_files(path, extensions)
     if _CHUNK_WORKER_COUNT <= 1:
         return _collect_chunks_serial(files, display_root)
@@ -95,7 +108,7 @@ def create_index_build_from_path(
 ) -> IndexBuild:
     """Create an index build from a resolved directory, reusing first-read file sizes."""
     normalized = (content,) if isinstance(content, ContentType) else content
-    chunks, file_sizes = _collect_chunks(path, get_extensions(normalized), display_root)
+    chunks, file_sizes, file_hashes = _collect_chunks(path, get_extensions(normalized), display_root)
 
     if not chunks:
         raise ValueError(f"No supported files found under {path}.")
@@ -104,7 +117,7 @@ def create_index_build_from_path(
     sparse_index = TantivySparseIndex.build_temporary(chunks)
     args = BasicArgs()
     semantic_index = SelectableBasicBackend(embeddings, args)
-    return IndexBuild(sparse_index, semantic_index, chunks, file_sizes)
+    return IndexBuild(sparse_index, semantic_index, chunks, file_sizes, file_hashes)
 
 
 def create_index_from_path(

@@ -1,3 +1,4 @@
+import hashlib
 import os
 import subprocess
 from dataclasses import replace
@@ -17,6 +18,7 @@ from semble.index.chunk_store import LmdbChunkStore, _int_key
 from semble.index.create import IndexBuild, create_index_build_from_path, create_index_from_path
 from semble.index.dense import SelectableBasicBackend
 from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
+from semble.index.source_inventory import GitWalkPlan
 from semble.index.sparse import TantivySparseIndex
 from semble.types import ContentType
 from tests.conftest import make_chunk
@@ -108,6 +110,16 @@ def test_create_index_build_uses_tantivy_sparse_and_collects_file_sizes(
     assert isinstance(build.sparse_index, TantivySparseIndex)
     assert build.file_sizes == {"auth.py": len("def authenticate(token):\n    return token\n")}
     assert create_index_from_path(tmp_path, mock_model, display_root=tmp_path)[0].__class__ is TantivySparseIndex
+
+
+def test_create_index_build_records_file_hashes(mock_model: StaticModel, tmp_path: Path) -> None:
+    """Full builds should persist content hashes so changed rebuilds can reuse unchanged work."""
+    source = "def authenticate(token):\n    return token\n"
+    (tmp_path / "auth.py").write_text(source)
+
+    build = create_index_build_from_path(tmp_path, mock_model, display_root=tmp_path)
+
+    assert build.file_hashes == {"auth.py": hashlib.sha256(source.encode("utf-8", errors="surrogatepass")).hexdigest()}
 
 
 def test_include_text_files_deprecated(mock_model: Any, tmp_project: Path) -> None:
@@ -302,6 +314,7 @@ def test_save_writes_git_cache_metadata_for_hot_validation(tmp_path: Path, mock_
     metadata = orjson.loads((save_path / "metadata.json").read_bytes())
     assert metadata["git_roots_version"] == GIT_CACHE_ROOTS_VERSION
     assert metadata["git_roots"] == [{"path": "", "head": _git_head(repo)}]
+    assert metadata["tracked_paths"] == ["auth.py"]
     with patch("semble.cache.find_index_from_cache_folder", return_value=save_path):
         with patch("semble.cache.walk_files", side_effect=AssertionError("git metadata should avoid full walk")):
             assert get_validated_cache(str(repo), "mock-model", [ContentType.CODE]) == save_path
@@ -527,6 +540,128 @@ def test_from_path_uses_cache_when_valid(tmp_project: Path) -> None:
         with patch.object(SembleIndex, "load_from_disk", return_value=fake_cached):
             result = SembleIndex.from_path(tmp_project)
     assert result is fake_cached
+
+
+def test_from_path_rebuilds_changed_files_from_hash_seed(tmp_path: Path, mock_model: StaticModel) -> None:
+    """Changed-source rebuilds should reuse unchanged chunk vectors and embed only changed files."""
+    (tmp_path / "auth.py").write_text("def authenticate(token):\n    return token\n")
+    (tmp_path / "utils.py").write_text("def format_date(dt):\n    return str(dt)\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        original = SembleIndex.from_path(tmp_path)
+    cache_path = tmp_path / "cache"
+    original.save(cache_path)
+    original_hashes = dict(original._file_hashes)
+
+    (tmp_path / "utils.py").write_text("def changed_format(dt):\n    return repr(dt)\n")
+
+    def fake_embed(model: StaticModel, chunks: list[Any]):
+        assert {chunk.file_path for chunk in chunks} == {"utils.py"}
+        return np.zeros((len(chunks), model.dim), dtype=np.float32)
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=None),
+        patch("semble.index.index.get_rebuild_cache", return_value=cache_path),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+        patch("semble.index.index.embed_chunks", side_effect=fake_embed),
+    ):
+        rebuilt = SembleIndex.from_path(tmp_path)
+
+    assert rebuilt.loaded_from_disk is False
+    assert rebuilt.stats.indexed_files == 2
+    assert rebuilt.stats.total_chunks == original.stats.total_chunks
+    assert rebuilt._file_hashes["auth.py"] == original_hashes["auth.py"]
+    assert rebuilt._file_hashes["utils.py"] != original_hashes["utils.py"]
+    assert any(chunk.file_path == "auth.py" for chunk in rebuilt.chunks)
+    assert any("changed_format" in chunk.content for chunk in rebuilt.chunks if chunk.file_path == "utils.py")
+
+
+def test_from_path_rebuilds_changed_files_from_git_plan_without_full_walk(
+    tmp_path: Path,
+    mock_model: StaticModel,
+) -> None:
+    """Git plans should let changed rebuilds avoid full filesystem walks."""
+    (tmp_path / "auth.py").write_text("def authenticate(token):\n    return token\n")
+    (tmp_path / "utils.py").write_text("def format_date(dt):\n    return str(dt)\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        original = SembleIndex.from_path(tmp_path)
+    cache_path = tmp_path / "cache"
+    original.save(cache_path)
+    metadata_path = cache_path / "metadata.json"
+    metadata = orjson.loads(metadata_path.read_bytes())
+    metadata["git_roots"] = [
+        {"path": "", "head": "old-head"},
+        {"path": "empty-nested", "head": "old-empty-head"},
+    ]
+    metadata["git_roots_version"] = GIT_CACHE_ROOTS_VERSION
+    metadata["tracked_paths"] = ["auth.py", "utils.py"]
+    metadata_path.write_bytes(orjson.dumps(metadata))
+    (tmp_path / "utils.py").write_text("def changed_format(dt):\n    return repr(dt)\n")
+    plan = GitWalkPlan(
+        current_paths=("auth.py", "utils.py"),
+        changed_paths=frozenset({"utils.py"}),
+        deleted_paths=frozenset(),
+        source_roots=(),
+        git_cache_metadata=({"path": "", "head": "old-head"},),
+    )
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=None),
+        patch("semble.index.index.get_rebuild_cache", return_value=cache_path),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+        patch("semble.index.index.build_git_walk_plan", return_value=plan),
+        patch("semble.index.index.TantivySparseIndex.build_temporary") as build_temporary,
+        patch("semble.index.index.walk_files", side_effect=AssertionError("git plan should avoid full walk")),
+    ):
+        rebuilt = SembleIndex.from_path(tmp_path)
+
+    build_temporary.assert_not_called()
+    assert rebuilt.stats.indexed_files == 2
+    assert any("changed_format" in chunk.content for chunk in rebuilt.chunks if chunk.file_path == "utils.py")
+    assert rebuilt.search("changed_format", top_k=1)
+    assert rebuilt._git_cache_metadata == (
+        {"path": "", "head": "old-head"},
+        {"path": "empty-nested", "head": "old-empty-head"},
+    )
+
+
+def test_from_path_rejects_git_plan_missing_root_with_cached_files(
+    tmp_path: Path,
+    mock_model: StaticModel,
+) -> None:
+    """Git plans must not ignore missing source roots that still own cached files."""
+    (tmp_path / "auth.py").write_text("def authenticate(token):\n    return token\n")
+    service = tmp_path / "service"
+    service.mkdir()
+    (service / "lib.py").write_text("def service_lib():\n    return 1\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        original = SembleIndex.from_path(tmp_path)
+    cache_path = tmp_path / "cache"
+    original.save(cache_path)
+    metadata_path = cache_path / "metadata.json"
+    metadata = orjson.loads(metadata_path.read_bytes())
+    metadata["git_roots"] = [
+        {"path": "", "head": "old-head"},
+        {"path": "service", "head": "old-service-head"},
+    ]
+    metadata["git_roots_version"] = GIT_CACHE_ROOTS_VERSION
+    metadata_path.write_bytes(orjson.dumps(metadata))
+    plan = GitWalkPlan(
+        current_paths=("auth.py", "service/lib.py"),
+        changed_paths=frozenset(),
+        deleted_paths=frozenset(),
+        source_roots=(),
+        git_cache_metadata=({"path": "", "head": "old-head"},),
+    )
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=None),
+        patch("semble.index.index.get_rebuild_cache", return_value=cache_path),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+        patch("semble.index.index.build_git_walk_plan", return_value=plan),
+        patch("semble.index.index.walk_files", side_effect=AssertionError("must not fallback to full walk")),
+        pytest.raises(AssertionError, match="must not fallback"),
+    ):
+        SembleIndex.from_path(tmp_path)
 
 
 @pytest.mark.parametrize("ref", [None, "v1.0"])

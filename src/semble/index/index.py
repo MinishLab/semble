@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import shutil
 import subprocess
@@ -8,6 +9,7 @@ import uuid
 import warnings
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -16,12 +18,22 @@ import numpy.typing as npt
 import orjson
 from bm25s import BM25
 from model2vec.model import StaticModel
+from vicinity.backends.basic import BasicArgs
 
-from semble.cache import GIT_CACHE_ROOTS_VERSION, build_git_cache_metadata, get_validated_cache
+from semble.cache import (
+    GIT_CACHE_ROOTS_VERSION,
+    build_git_cache_save_metadata,
+    get_rebuild_cache,
+    get_validated_cache,
+    refresh_git_cache_metadata,
+)
+from semble.chunking import chunk_source
 from semble.index.chunk_store import LmdbChunkStore
 from semble.index.create import create_index_build_from_path
-from semble.index.dense import SelectableBasicBackend, load_model
-from semble.index.files import read_file_text
+from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
+from semble.index.file_walker import walk_files
+from semble.index.files import FileStatus, detect_language, get_extensions, get_file_status, read_file_text
+from semble.index.source_inventory import GitWalkPlan, build_git_walk_plan
 from semble.index.sparse import SparseIndex, TantivySparseIndex
 from semble.index.types import PersistencePath
 from semble.search import _search_semantic, search
@@ -35,6 +47,7 @@ _INCLUDE_TEXT_FILES_DEPRECATION_MSG = (
     "include_text_files is deprecated and will be removed in a future version. "
     "Use content=(ContentType.CODE, ContentType.DOCS, ContentType.CONFIG) instead."
 )
+_REBUILD_CACHE_VERSION = 1
 
 
 def _apply_include_text_files(
@@ -185,6 +198,309 @@ class LazyChunkList(Sequence[Chunk]):
         return dict(mapping)
 
 
+def _file_hash(source: str) -> str:
+    return hashlib.sha256(source.encode("utf-8", errors="surrogatepass")).hexdigest()
+
+
+@dataclass(slots=True)
+class _RebuildState:
+    chunks: list[Chunk]
+    vectors: list[npt.NDArray[np.float32]]
+    file_sizes: dict[str, int]
+    file_hashes: dict[str, str]
+    changed_chunks: list[Chunk]
+    changed_positions: list[int]
+    deleted_chunk_ids: set[int]
+    next_chunk_id: int
+
+
+@dataclass(frozen=True, slots=True)
+class _SeedData:
+    file_hashes: dict[str, str]
+    chunks_by_file: dict[str, list[Chunk]]
+    vectors_by_file: dict[str, list[npt.NDArray[np.float32]]]
+    chunk_ids_by_file: dict[str, list[int]]
+    file_sizes: dict[str, int]
+    file_paths: list[str]
+    tracked_paths: list[str] | None
+    git_roots: dict[str, str] | None
+    write_time: float | None
+    next_chunk_id: int
+
+
+@dataclass(frozen=True, slots=True)
+class _RebuiltFile:
+    path: str
+    chunks: list[Chunk]
+    reused: bool
+    size: int | None
+    file_hash: str | None
+
+
+def _empty_rebuild_state(next_chunk_id: int = 0) -> _RebuildState:
+    return _RebuildState([], [], {}, {}, [], [], set(), next_chunk_id)
+
+
+def _seed_file_hashes(metadata: dict) -> dict[str, str]:
+    if metadata.get("rebuild_cache_version") != _REBUILD_CACHE_VERSION:
+        return {}
+    file_hashes = metadata.get("file_hashes", {})
+    if not isinstance(file_hashes, dict):
+        return {}
+    return {str(path): str(file_hash) for path, file_hash in file_hashes.items()}
+
+
+def _seed_chunk_ids(metadata: dict) -> list[int] | None:
+    chunk_ids = metadata.get("chunk_ids")
+    if not isinstance(chunk_ids, list):
+        return None
+    return [int(chunk_id) for chunk_id in chunk_ids]
+
+
+def _chunk_without_id(chunk: Chunk) -> Chunk:
+    if chunk.chunk_id is None:
+        return chunk
+    return Chunk(chunk.content, chunk.file_path, chunk.start_line, chunk.end_line, chunk.language)
+
+
+def _load_seed_chunks(persistence_paths: PersistencePath, chunk_ids: list[int]) -> list[Chunk] | None:
+    if not persistence_paths.chunk_store.exists():
+        return None
+    store = LmdbChunkStore.open(persistence_paths.chunk_store, readonly=True)
+    try:
+        chunks = store.get_chunks(chunk_ids)
+    finally:
+        store.close()
+    if len(chunks) != len(chunk_ids):
+        return None
+    return [_chunk_without_id(chunk) for chunk in chunks]
+
+
+def _seed_git_roots(metadata: dict) -> dict[str, str] | None:
+    if metadata.get("git_roots_version") != GIT_CACHE_ROOTS_VERSION:
+        return None
+    git_roots = metadata.get("git_roots")
+    if not isinstance(git_roots, list):
+        return None
+    return {str(item.get("path", "")): str(item.get("head", "")) for item in git_roots if isinstance(item, dict)}
+
+
+def _seed_tracked_paths(metadata: dict) -> list[str] | None:
+    tracked_paths = metadata.get("tracked_paths")
+    if not isinstance(tracked_paths, list):
+        return None
+    return [str(path) for path in tracked_paths]
+
+
+def _seed_data_from_chunks(
+    metadata: dict,
+    file_hashes: dict[str, str],
+    chunk_ids: list[int],
+    chunks: list[Chunk],
+    vectors: npt.NDArray[np.float32],
+) -> _SeedData:
+    chunks_by_file: dict[str, list[Chunk]] = defaultdict(list)
+    vectors_by_file: dict[str, list[npt.NDArray[np.float32]]] = defaultdict(list)
+    chunk_ids_by_file: dict[str, list[int]] = defaultdict(list)
+    for index, chunk in enumerate(chunks):
+        chunks_by_file[chunk.file_path].append(chunk)
+        vectors_by_file[chunk.file_path].append(vectors[index])
+        chunk_ids_by_file[chunk.file_path].append(chunk_ids[index])
+    file_sizes = {str(key): int(value) for key, value in metadata.get("file_sizes", {}).items()}
+    return _SeedData(
+        file_hashes,
+        chunks_by_file,
+        vectors_by_file,
+        chunk_ids_by_file,
+        file_sizes,
+        [str(path) for path in metadata.get("file_paths", [])],
+        _seed_tracked_paths(metadata),
+        _seed_git_roots(metadata),
+        float(metadata["time"]) if "time" in metadata else None,
+        max(chunk_ids, default=-1) + 1,
+    )
+
+
+def _load_rebuild_seed(seed_path: Path) -> _SeedData | None:
+    persistence_paths = PersistencePath.from_path(seed_path)
+    try:
+        metadata = orjson.loads(persistence_paths.metadata.read_bytes())
+        vectors = SelectableBasicBackend.load(persistence_paths.semantic_index).vectors
+    except (OSError, ValueError, FileNotFoundError):
+        return None
+    file_hashes = _seed_file_hashes(metadata)
+    chunk_ids = _seed_chunk_ids(metadata)
+    if not file_hashes or chunk_ids is None:
+        return None
+    chunks = _load_seed_chunks(persistence_paths, chunk_ids)
+    if chunks is None or len(vectors) != len(chunks):
+        return None
+    return _seed_data_from_chunks(metadata, file_hashes, chunk_ids, chunks, vectors)
+
+
+def _rebuild_file(
+    root: Path,
+    file_path: Path,
+    seed: _SeedData,
+) -> _RebuiltFile | None:
+    language = detect_language(file_path)
+    try:
+        relative_path = file_path.relative_to(root).as_posix()
+        if get_file_status(file_path, None) != FileStatus.VALID:
+            return _RebuiltFile(relative_path, [], False, None, None)
+        source = read_file_text(file_path)
+    except OSError:
+        return None
+    file_hash = _file_hash(source)
+    if seed.file_hashes.get(relative_path) == file_hash:
+        old_chunks = seed.chunks_by_file.get(relative_path)
+        if old_chunks is None:
+            return None
+        return _RebuiltFile(relative_path, old_chunks, True, len(source) if old_chunks else None, file_hash)
+    chunks = chunk_source(source, relative_path, language)
+    return _RebuiltFile(relative_path, chunks, False, len(source) if chunks else None, file_hash if chunks else None)
+
+
+def _chunk_with_id(chunk: Chunk, chunk_id: int) -> Chunk:
+    return replace(chunk, chunk_id=chunk_id)
+
+
+def _append_rebuilt_file(state: _RebuildState, rebuilt: _RebuiltFile, seed: _SeedData, model_dim: int) -> bool:
+    if rebuilt.size is not None and rebuilt.chunks:
+        state.file_sizes[rebuilt.path] = rebuilt.size
+    if rebuilt.file_hash is not None and rebuilt.chunks:
+        state.file_hashes[rebuilt.path] = rebuilt.file_hash
+    if rebuilt.reused:
+        reused_vectors = seed.vectors_by_file.get(rebuilt.path, [])
+        reused_ids = seed.chunk_ids_by_file.get(rebuilt.path, [])
+        if len(reused_vectors) != len(rebuilt.chunks) or len(reused_ids) != len(rebuilt.chunks):
+            return False
+        state.chunks.extend(_chunk_with_id(chunk, chunk_id) for chunk, chunk_id in zip(rebuilt.chunks, reused_ids))
+        state.vectors.extend(reused_vectors)
+        return True
+    state.deleted_chunk_ids.update(seed.chunk_ids_by_file.get(rebuilt.path, ()))
+    for chunk in rebuilt.chunks:
+        chunk_id = state.next_chunk_id
+        state.next_chunk_id += 1
+        state.chunks.append(_chunk_with_id(chunk, chunk_id))
+        state.changed_positions.append(len(state.vectors))
+        state.vectors.append(np.empty(model_dim, dtype=np.float32))
+        state.changed_chunks.append(state.chunks[-1])
+    return True
+
+
+def _collect_rebuild_state(
+    path: Path,
+    content: tuple[ContentType, ...],
+    seed: _SeedData,
+    model_dim: int,
+) -> _RebuildState | None:
+    state = _empty_rebuild_state(seed.next_chunk_id)
+    for file_path in walk_files(path, get_extensions(content)):
+        rebuilt = _rebuild_file(path, file_path, seed)
+        if rebuilt is None or not _append_rebuilt_file(state, rebuilt, seed, model_dim):
+            return None
+    return state if state.chunks else None
+
+
+def _seed_root_has_files(file_paths: Sequence[str], root_path: str) -> bool:
+    if root_path == "":
+        return bool(file_paths)
+    prefix = f"{root_path}/"
+    return any(file_path.startswith(prefix) for file_path in file_paths)
+
+
+def _plan_heads_match(plan: GitWalkPlan, seed: _SeedData) -> bool:
+    if seed.git_roots is None or plan.git_cache_metadata is None:
+        return False
+    current_heads = {str(item.get("path", "")): str(item.get("head", "")) for item in plan.git_cache_metadata}
+    for path, head in seed.git_roots.items():
+        current_head = current_heads.get(path)
+        if current_head is None:
+            if _seed_root_has_files(seed.file_paths, path):
+                return False
+            continue
+        if current_head != head:
+            return False
+    return True
+
+
+def _git_rebuild_plan(path: Path, content: tuple[ContentType, ...], seed: _SeedData) -> GitWalkPlan | None:
+    if seed.git_roots is None:
+        return None
+    plan = build_git_walk_plan(
+        path,
+        get_extensions(content),
+        seed.file_paths,
+        previous_git_heads=seed.git_roots,
+        previous_write_time=seed.write_time,
+        previous_tracked_paths=seed.tracked_paths,
+    )
+    if plan is None or plan.stale_roots or not _plan_heads_match(plan, seed):
+        return None
+    return plan
+
+
+def _append_reused_file(state: _RebuildState, file_path: str, seed: _SeedData) -> bool:
+    chunks = seed.chunks_by_file.get(file_path)
+    vectors = seed.vectors_by_file.get(file_path)
+    chunk_ids = seed.chunk_ids_by_file.get(file_path)
+    if chunks is None or vectors is None or chunk_ids is None:
+        return False
+    if len(chunks) != len(vectors) or len(chunks) != len(chunk_ids):
+        return False
+    state.chunks.extend(_chunk_with_id(chunk, chunk_id) for chunk, chunk_id in zip(chunks, chunk_ids))
+    state.vectors.extend(vectors)
+    if file_path in seed.file_sizes:
+        state.file_sizes[file_path] = seed.file_sizes[file_path]
+    if file_path in seed.file_hashes:
+        state.file_hashes[file_path] = seed.file_hashes[file_path]
+    return True
+
+
+def _walk_order_key(file_path: str) -> tuple[str, ...]:
+    return Path(file_path).parts
+
+
+def _collect_rebuild_state_from_plan(
+    path: Path,
+    seed: _SeedData,
+    plan: GitWalkPlan,
+    model_dim: int,
+) -> _RebuildState | None:
+    state = _empty_rebuild_state(seed.next_chunk_id)
+    for deleted_path in plan.deleted_paths:
+        state.deleted_chunk_ids.update(seed.chunk_ids_by_file.get(deleted_path, ()))
+    changed_paths = set(plan.changed_paths)
+    for relative_path in sorted(plan.current_paths, key=_walk_order_key):
+        if relative_path not in changed_paths:
+            if not _append_reused_file(state, relative_path, seed):
+                return None
+            continue
+        rebuilt = _rebuild_file(path, path / relative_path, seed)
+        if rebuilt is None or not _append_rebuilt_file(state, rebuilt, seed, model_dim):
+            return None
+    return state if state.chunks else None
+
+
+def _embed_changed_chunks(model: StaticModel, state: _RebuildState) -> None:
+    if not state.changed_chunks:
+        return
+    new_vectors = embed_chunks(model, state.changed_chunks)
+    for position, vector in zip(state.changed_positions, new_vectors):
+        state.vectors[position] = vector
+
+
+def _merged_git_cache_metadata(plan: GitWalkPlan, seed: _SeedData) -> tuple[dict[str, str], ...] | None:
+    if seed.git_roots is None or plan.git_cache_metadata is None:
+        return plan.git_cache_metadata
+    metadata = {str(item.get("path", "")): dict(item) for item in plan.git_cache_metadata}
+    for path, head in seed.git_roots.items():
+        if path not in metadata and not _seed_root_has_files(seed.file_paths, path):
+            metadata[path] = {"path": path, "head": head}
+    return tuple(metadata[path] for path in sorted(metadata, key=lambda item: (len(item), item)))
+
+
 class SembleIndex:
     """Fast local code index with hybrid search."""
 
@@ -218,6 +534,9 @@ class SembleIndex:
         self._root: Path | None = root
         self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
         self._file_sizes: dict[str, int] = {}
+        self._file_hashes: dict[str, str] = {}
+        self._git_cache_metadata: tuple[dict[str, str], ...] | None = None
+        self._tracked_paths: tuple[str, ...] | None = None
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
 
@@ -292,6 +611,11 @@ class SembleIndex:
         model, model_path = load_model(model_path)
 
         path = path.resolve()
+        seed_path = get_rebuild_cache(str(path), model_path, normalized)
+        if seed_path is not None:
+            seeded = cls._try_rebuild_from_cache(path, seed_path, model, model_path, normalized)
+            if seeded is not None:
+                return seeded
         build = create_index_build_from_path(
             path,
             model=model,
@@ -309,6 +633,48 @@ class SembleIndex:
             content=normalized,
         )
         index._file_sizes = build.file_sizes
+        index._file_hashes = build.file_hashes
+        return index
+
+    @classmethod
+    def _try_rebuild_from_cache(
+        cls,
+        path: Path,
+        seed_path: Path,
+        model: StaticModel,
+        model_path: str,
+        content: tuple[ContentType, ...],
+    ) -> SembleIndex | None:
+        """Rebuild changed worktrees by reusing unchanged chunks and dense rows."""
+        seed = _load_rebuild_seed(seed_path)
+        if seed is None:
+            return None
+        plan = _git_rebuild_plan(path, content, seed)
+        if plan is None:
+            state = _collect_rebuild_state(path, content, seed, model.dim)
+        else:
+            state = _collect_rebuild_state_from_plan(path, seed, plan, model.dim)
+        if state is None:
+            return None
+        _embed_changed_chunks(model, state)
+        embeddings = np.asarray(state.vectors, dtype=np.float32)
+        semantic_backend = SelectableBasicBackend(embeddings, BasicArgs())
+        chunk_ids = [
+            chunk.chunk_id if chunk.chunk_id is not None else index for index, chunk in enumerate(state.chunks)
+        ]
+        semantic_index = _StableIdSemanticBackend(semantic_backend, chunk_ids)
+        if plan is None:
+            sparse_index = TantivySparseIndex.build_temporary(state.chunks)
+        else:
+            persistence_paths = PersistencePath.from_path(seed_path)
+            sparse_index = TantivySparseIndex.load_copy(persistence_paths.bm25_index, state.chunks)
+            sparse_index.update_chunks(state.chunks, state.deleted_chunk_ids, state.changed_chunks)
+        index = SembleIndex(model, sparse_index, semantic_index, state.chunks, model_path, root=path, content=content)
+        index._file_sizes = state.file_sizes
+        index._file_hashes = state.file_hashes
+        if plan is not None:
+            index._git_cache_metadata = _merged_git_cache_metadata(plan, seed)
+            index._tracked_paths = tuple(sorted(plan.tracked_paths))
         return index
 
     @classmethod
@@ -516,6 +882,9 @@ class SembleIndex:
             loaded_from_disk=True,
         )
         index._file_sizes = {str(key): int(value) for key, value in metadata.get("file_sizes", {}).items()}
+        index._file_hashes = _seed_file_hashes(metadata)
+        tracked_paths = _seed_tracked_paths(metadata)
+        index._tracked_paths = None if tracked_paths is None else tuple(tracked_paths)
         return index
 
     def save(self, path: Path | str) -> None:
@@ -578,13 +947,27 @@ class SembleIndex:
             "chunk_languages": [chunk.language for chunk in self.chunks],
             "chunk_store_id": chunk_store_id,
             "file_sizes": self._file_sizes,
+            "file_hashes": self._file_hashes,
+            "rebuild_cache_version": _REBUILD_CACHE_VERSION,
             "sparse_backend": "tantivy" if isinstance(self._bm25_index, TantivySparseIndex) else "bm25s",
         }
         if self._root is not None:
-            git_roots = build_git_cache_metadata(self._root, file_paths)
+            save_metadata = None
+            git_roots = self._git_cache_metadata
+            if git_roots is None:
+                save_metadata = build_git_cache_save_metadata(self._root, file_paths)
+            else:
+                refreshed_git_roots = refresh_git_cache_metadata(self._root, git_roots)
+                if refreshed_git_roots is not None:
+                    git_roots = tuple(refreshed_git_roots)
+            tracked_paths = self._tracked_paths
+            if save_metadata is not None:
+                git_roots, tracked_paths = save_metadata
             if git_roots is not None:
-                metadata["git_roots"] = git_roots
+                metadata["git_roots"] = list(git_roots)
                 metadata["git_roots_version"] = GIT_CACHE_ROOTS_VERSION
+            if tracked_paths is not None:
+                metadata["tracked_paths"] = sorted(tracked_paths)
         return metadata
 
     def _replace_saved_index(self, path: Path, staging_path: Path, backup_path: Path) -> None:

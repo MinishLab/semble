@@ -20,6 +20,7 @@ from semble.cache import (
     clear_cache,
     find_index_from_cache_folder,
     get_validated_cache,
+    refresh_git_cache_metadata,
     resolve_cache_folder,
     save_index_to_cache,
 )
@@ -541,6 +542,58 @@ def test_get_validated_cache_cached_untracked_file_skips_full_walk(tmp_path: Pat
     assert result == index_path
 
 
+def test_get_validated_cache_cached_dirty_tracked_file_skips_full_walk(tmp_path: Path) -> None:
+    """Cached dirty tracked files should not keep invalidating hot cache forever."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    source = repo / "src.py"
+    source.write_text("print('tracked')\n")
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+    source.write_text("print('cached dirty tracked')\n")
+    index_path = tmp_path / "index"
+    _write_metadata(
+        index_path,
+        "my/model",
+        ["code"],
+        source.stat().st_mtime + 1.0,
+        file_paths=["src.py"],
+        git_roots=[{"path": "", "head": _git_head(repo)}],
+    )
+
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        with patch("semble.cache.walk_files", side_effect=AssertionError("git cache validation should not full-walk")):
+            result = get_validated_cache(str(repo), "my/model", [ContentType.CODE])
+
+    assert result == index_path
+
+
+def test_get_validated_cache_newer_dirty_tracked_file_returns_none_without_full_walk(tmp_path: Path) -> None:
+    """Dirty tracked files newer than metadata should invalidate hot cache."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    source = repo / "src.py"
+    source.write_text("print('tracked')\n")
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+    source.write_text("print('newer dirty tracked')\n")
+    index_path = tmp_path / "index"
+    _write_metadata(
+        index_path,
+        "my/model",
+        ["code"],
+        0.0,
+        file_paths=["src.py"],
+        git_roots=[{"path": "", "head": _git_head(repo)}],
+    )
+
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        with patch("semble.cache.walk_files", side_effect=AssertionError("git cache validation should not full-walk")):
+            result = get_validated_cache(str(repo), "my/model", [ContentType.CODE])
+
+    assert result is None
+
+
 def test_git_cache_head_validation_checks_source_roots_concurrently(tmp_path: Path) -> None:
     """Multi-root HEAD validation should not serialize independent git root checks."""
     root_a = tmp_path / "a"
@@ -621,6 +674,23 @@ def test_build_git_cache_metadata_includes_empty_nested_git_roots(tmp_path: Path
     assert result == [{"path": "", "head": _git_head(repo)}, {"path": "nested", "head": _git_head(nested)}]
 
 
+def test_refresh_git_cache_metadata_restores_empty_tracked_gitlink_roots(tmp_path: Path) -> None:
+    """Refreshing plan metadata should recover tracked empty git roots before saving."""
+    repo = tmp_path / "repo"
+    nested = repo / "nested"
+    nested.mkdir(parents=True)
+    (repo / "src.py").write_text("print('root')\n")
+    (nested / "README.txt").write_text("not indexed as code\n")
+    _init_git_repo(nested)
+    _git_commit_all(nested)
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+
+    result = refresh_git_cache_metadata(repo, [{"path": "", "head": "old-head"}])
+
+    assert result == [{"path": "", "head": _git_head(repo)}, {"path": "nested", "head": _git_head(nested)}]
+
+
 def test_git_cache_validation_checks_source_roots_concurrently(tmp_path: Path) -> None:
     """Multi-root hot validation should not serialize independent git root checks."""
     repo = tmp_path / "repo"
@@ -691,6 +761,77 @@ def test_git_cache_root_files_ignores_submodules_in_status(tmp_path: Path) -> No
 
     assert result == (True, ["src.py"])
     assert ("status", "--porcelain=v1", "-z", "--untracked-files=normal", "--ignore-submodules=all") in calls
+
+
+def test_git_cache_root_files_clean_head_skips_file_listing(tmp_path: Path) -> None:
+    """Clean HEAD-matched roots should trust stored files without listing every file."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    calls = []
+
+    def fake_run_git(cwd: Path, *args: str) -> bytes:
+        calls.append(args)
+        if args[0] == "status":
+            return b""
+        if args == ("ls-files", "-z", "-c"):
+            return b"src.py\0"
+        if args[:5] == ("ls-files", "-z", "-o", "-i", "--exclude-standard"):
+            return b""
+        raise AssertionError(args)
+
+    with patch("semble.cache._run_git", side_effect=fake_run_git):
+        result = cache_module._git_cache_root_files(repo, repo, "", [], {".py"}, 0.0, {"src.py"}, True)
+
+    assert result == (True, ["src.py"])
+    assert ("ls-files", "-z", "-c") in calls
+    assert ("ls-files", "-z", "-o", "--exclude-standard") not in calls
+
+
+def test_git_cache_root_files_clean_head_checks_ignored_controls(tmp_path: Path) -> None:
+    """Clean HEAD fast-path must still invalidate newer ignored control files."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    ignore_file = repo / ".sembleignore"
+    ignore_file.write_text("generated.py\n")
+    calls = []
+
+    def fake_run_git(cwd: Path, *args: str) -> bytes:
+        calls.append(args)
+        if args[0] == "status":
+            return b""
+        if args == ("ls-files", "-z", "-c"):
+            return b"src.py\0"
+        if args[:5] == ("ls-files", "-z", "-o", "-i", "--exclude-standard"):
+            return b".sembleignore\0"
+        raise AssertionError(args)
+
+    with patch("semble.cache._run_git", side_effect=fake_run_git):
+        result = cache_module._git_cache_root_files(repo, repo, "", [], {".py"}, 0.0, {"src.py"}, True)
+
+    assert result == (False, [])
+
+
+def test_get_validated_cache_missing_stored_untracked_file_returns_none(tmp_path: Path) -> None:
+    """Deleted untracked files from a prior cache should invalidate instead of crashing."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "src.py").write_text("print('tracked')\n")
+    _init_git_repo(repo)
+    _git_commit_all(repo)
+    index_path = tmp_path / "index"
+    _write_metadata(
+        index_path,
+        "my/model",
+        ["code"],
+        float("inf"),
+        file_paths=["src.py", "probe.py"],
+        git_roots=[{"path": "", "head": _git_head(repo)}],
+    )
+
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        result = get_validated_cache(str(repo), "my/model", [ContentType.CODE])
+
+    assert result is None
 
 
 def test_get_validated_cache_nested_git_repo_skips_full_walk(tmp_path: Path) -> None:
