@@ -30,18 +30,20 @@ Semble is a code search library built for agents. It returns the exact code snip
 
 Your agent queries Semble in natural language (e.g. `"How is authentication handled?"`) and gets back only the relevant code snippets, without grepping or reading full files.
 
-The fastest way to get started is the interactive installer. Install the CLI with [uv](https://docs.astral.sh/uv/getting-started/installation/), then run `semble install`:
+The fastest way to get started is the interactive installer. Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
 
 ```bash
 uv tool install semble
-semble install           # configure your agents (run `semble uninstall` to undo)
+semble install
 ```
 
-`semble install` detects your installed agents/harnesses (Claude Code, Codex, OpenCode, etc) and configures any combination of three integrations globally:
+`semble install` detects installed coding agents such as Claude Code, Codex, and OpenCode, and then lets you choose which integrations to enable:
 
-- **MCP server**: exposes Semble as a native tool your agent can call directly.
-- **AGENTS.md**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
-- **Sub-agent**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
+- **MCP server**: lets the agent call Semble directly as a tool.
+- **Instructions**: adds CLI usage guidance to AGENTS.md / CLAUDE.md.
+- **Sub-agent**: installs a dedicated `semble-search` sub-agent.
+
+To undo the setup, run `semble uninstall`.
 
 For manual setup instructions (MCP config per agent, AGENTS.md snippet, sub-agent files), see the [installation docs](docs/installation.md).
 
