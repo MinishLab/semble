@@ -214,6 +214,15 @@ def test_codex_toml_merge_and_remove(tmp_path):
     assert "[mcp_servers.other]" in text  # only the semble table is removed
 
 
+def test_codex_toml_merge_replaces_section_with_inline_comment(tmp_path):
+    """_merge_toml_block replaces an existing semble table even when the header has a trailing comment."""
+    f = tmp_path / "config.toml"
+    f.write_text('[mcp_servers.semble] # added manually\ncommand = "old"\n')
+    assert _merge_toml_block(f) == "updated"
+    text = f.read_text()
+    assert text.count("[mcp_servers.semble]") == 1
+
+
 @pytest.mark.parametrize(
     ("setup", "expected"),
     [(None, "not-found"), ("model = 'gpt-5'\n", "not-found")],

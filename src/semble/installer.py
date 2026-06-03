@@ -454,7 +454,7 @@ def _strip_toml_section(text: str, header: str) -> str:
     result, skipping = [], False
     for line in text.splitlines(keepends=True):
         stripped = line.strip()
-        if stripped == header:
+        if stripped.split("#")[0].strip() == header:
             skipping = True
             continue
         if skipping and not stripped.startswith("["):
