@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semble.cache import (
+    _get_valid_user_cache_dir,
     _linux_cache_dir,
     _windows_cache_dir,
     clear_cache,
@@ -91,6 +92,12 @@ def test_resolve_cache_folder(platform: str, mock_target: str, expected: Path) -
                 result = resolve_cache_folder()
     mock_fn.assert_called_once_with("semble")
     assert result == expected
+
+
+def test_get_valid_user_cache_dir_relative_path() -> None:
+    """_get_valid_user_cache_dir returns None when SEMBLE_CACHE_LOCATION is a relative path."""
+    with patch.dict("os.environ", {"SEMBLE_CACHE_LOCATION": "relative/path"}):
+        assert _get_valid_user_cache_dir() is None
 
 
 def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
