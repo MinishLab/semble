@@ -4,6 +4,7 @@ import shutil
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import overload
 
 import numpy as np
 import numpy.typing as npt
@@ -52,7 +53,13 @@ class _MatrixRows(Sequence[npt.NDArray[np.float32]]):
     def __len__(self) -> int:
         return len(self._rows)
 
-    def __getitem__(self, index: int | slice) -> npt.NDArray[np.float32] | list[npt.NDArray[np.float32]]:
+    @overload
+    def __getitem__(self, index: int) -> npt.NDArray[np.float32]: ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Sequence[npt.NDArray[np.float32]]: ...
+
+    def __getitem__(self, index: int | slice) -> npt.NDArray[np.float32] | Sequence[npt.NDArray[np.float32]]:
         if isinstance(index, slice):
             return [self[position] for position in range(*index.indices(len(self)))]
         return self._matrix[int(self._rows[index])]
@@ -143,6 +150,16 @@ class TurboVecBasicBackend(SelectableBasicBackend):
         self._load_vectors_if_needed()
         return self._vectors
 
+    @vectors.setter
+    def vectors(self, value: object) -> None:
+        matrix = np.asarray(value, dtype=np.float32)
+        if np.ndim(matrix) != 2:
+            raise ValueError(f"Your array does not have 2 dimensions: {np.ndim(matrix)}")
+        self._vectors = normalize_or_copy(matrix)
+        self._vectors_path = None
+        self._update_precomputed_data()
+        self._rebuild_segments()
+
     @classmethod
     def from_embedding_rows(
         cls,
@@ -217,16 +234,6 @@ class TurboVecBasicBackend(SelectableBasicBackend):
         if all(chunk_id in rows_by_id for chunk_id in chunk_ids):
             return [rows_by_id[chunk_id] for chunk_id in chunk_ids]
         return self._matrix_rows_by_id(chunk_ids)
-
-    @vectors.setter
-    def vectors(self, value: npt.NDArray[np.float32]) -> None:
-        matrix = np.asarray(value, dtype=np.float32)
-        if np.ndim(matrix) != 2:
-            raise ValueError(f"Your array does not have 2 dimensions: {np.ndim(matrix)}")
-        self._vectors = normalize_or_copy(matrix)
-        self._vectors_path = None
-        self._update_precomputed_data()
-        self._rebuild_segments()
 
     def _load_vectors_if_needed(self) -> None:
         if self._vectors_path is None:

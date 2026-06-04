@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import subprocess
 import time
+from collections.abc import Set as AbstractSet
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Callable, Iterable, Mapping, Sequence, TypeVar, cast
 
 from pathspec import GitIgnoreSpec
@@ -43,17 +45,33 @@ class IgnoreSpecCache:
 
 
 _SourceRootStatus = tuple[bytes | None, float, str | None]
-_SourceRootScanResult = tuple[
-    set[str],
-    set[str],
-    set[str],
-    set[str],
-    dict[str, str],
-    str | None,
-    float,
-    float,
-    str | None,
-]
+
+
+@dataclass(frozen=True, slots=True)
+class SourceRootScanResult:
+    files: AbstractSet[str]
+    tracked: AbstractSet[str]
+    changed: AbstractSet[str]
+    deleted: AbstractSet[str]
+    clean_tracked_blob_shas: Mapping[str, str]
+    stale_root: str | None
+    status_time_s: float
+    ls_files_time_s: float
+    head: str | None
+
+    def __post_init__(self) -> None:
+        """Freeze mutable scan payloads and validate basic path-set invariants."""
+        object.__setattr__(self, "files", frozenset(self.files))
+        object.__setattr__(self, "tracked", frozenset(self.tracked))
+        object.__setattr__(self, "changed", frozenset(self.changed))
+        object.__setattr__(self, "deleted", frozenset(self.deleted))
+        object.__setattr__(self, "clean_tracked_blob_shas", MappingProxyType(dict(self.clean_tracked_blob_shas)))
+        if not self.tracked <= self.files:
+            raise ValueError("Tracked source-root paths must be present in files")
+        if not self.changed.isdisjoint(self.deleted):
+            raise ValueError("Changed and deleted source-root paths must not overlap")
+        if self.status_time_s < 0.0 or self.ls_files_time_s < 0.0:
+            raise ValueError("Source-root scan timings must be non-negative")
 
 
 _IGNORE_CONTROL_FILENAMES = (".gitignore", ".sembleignore")
@@ -175,30 +193,19 @@ def build_git_walk_plan(
     broken_roots = 0
     root_heads: dict[str, str] = {}
     for source_root, scan_result in zip(source_roots, scan_results):
-        (
-            files,
-            tracked,
-            changed,
-            deleted,
-            blob_shas,
-            stale_root,
-            root_status_time,
-            root_ls_files_time,
-            root_head,
-        ) = scan_result
-        status_time += root_status_time
-        ls_files_time += root_ls_files_time
-        current_paths.update(files)
-        tracked_paths.update(tracked)
-        changed_paths.update(changed)
-        deleted_paths.update(deleted)
-        clean_tracked_blob_shas.update(blob_shas)
-        if root_head is not None:
-            root_heads[source_root.rel_path] = root_head
-        if stale_root is not None:
+        status_time += scan_result.status_time_s
+        ls_files_time += scan_result.ls_files_time_s
+        current_paths.update(scan_result.files)
+        tracked_paths.update(scan_result.tracked)
+        changed_paths.update(scan_result.changed)
+        deleted_paths.update(scan_result.deleted)
+        clean_tracked_blob_shas.update(scan_result.clean_tracked_blob_shas)
+        if scan_result.head is not None:
+            root_heads[source_root.rel_path] = scan_result.head
+        if scan_result.stale_root is not None:
             broken_roots += 1
-            diagnostics.append(f"broken git root: {stale_root or '.'}")
-            stale_roots.add(stale_root)
+            diagnostics.append(f"broken git root: {scan_result.stale_root or '.'}")
+            stale_roots.add(scan_result.stale_root)
 
     timings["git_status_s"] = status_time
     timings["git_ls_files_s"] = ls_files_time
@@ -314,15 +321,6 @@ def _discover_dirty_nested_source_roots(
     _discover_nested_roots(roots, pending, root, ignore_specs)
     return tuple(sorted(roots.values(), key=lambda source_root: (len(source_root.rel_path), source_root.rel_path)))
 
-
-def _git_cache_metadata_for_source_roots(source_roots: tuple[SourceRoot, ...]) -> tuple[dict[str, str], ...] | None:
-    if not source_roots or any(not source_root.has_git_marker for source_root in source_roots):
-        return None
-    heads = _concurrent_ordered_map(source_roots, lambda source_root: _git_head(source_root.path))
-    return _git_cache_metadata_from_heads(
-        source_roots,
-        {source_root.rel_path: head for source_root, head in zip(source_roots, heads)},
-    )
 
 
 def _git_cache_metadata_from_heads(
@@ -500,7 +498,7 @@ def _previous_paths_in_root(paths: set[str], source_root: str) -> set[str]:
 
 def _previous_paths_by_source_root(paths: set[str], source_roots: tuple[SourceRoot, ...]) -> dict[Path, set[str]]:
     roots_by_rel_path = {source_root.rel_path: source_root.path for source_root in source_roots}
-    paths_by_root = {source_root.path: set() for source_root in source_roots}
+    paths_by_root: dict[Path, set[str]] = {source_root.path: set() for source_root in source_roots}
     for path in paths:
         source_root_path = _source_root_path_for_previous_path(path, roots_by_rel_path)
         if source_root_path is not None:
@@ -594,11 +592,11 @@ def _cached_ignore_spec_for_dir(
         control_specs[directory] = None
         return None
 
-    spec = _load_ignore_for_dir(directory)
-    if spec is None:
+    loaded_spec = _load_ignore_for_dir(directory)
+    if loaded_spec is None:
         control_specs[directory] = None
         return None
-    ignore_spec = IgnoreSpec(directory, spec)
+    ignore_spec = IgnoreSpec(directory, loaded_spec)
     control_specs[directory] = ignore_spec
     return ignore_spec
 
@@ -792,9 +790,9 @@ def _stale_source_root_result(
     previous_paths: set[str],
     status_time: float,
     ls_files_time: float,
-) -> _SourceRootScanResult:
+) -> SourceRootScanResult:
     files = _previous_paths_in_root(previous_paths, source_root.rel_path)
-    return files, set(), set(), set(), {}, source_root.rel_path, status_time, ls_files_time, None
+    return SourceRootScanResult(files, set(), set(), set(), {}, source_root.rel_path, status_time, ls_files_time, None)
 
 
 def _scan_source_root(
@@ -813,7 +811,7 @@ def _scan_source_root(
     status_output: bytes | None,
     status_time: float,
     has_dirty_inherited_ignore_control: bool,
-) -> _SourceRootScanResult:
+) -> SourceRootScanResult:
     if status_output is None:
         return _stale_source_root_result(source_root, previous_paths, status_time, 0.0)
 
@@ -825,7 +823,7 @@ def _scan_source_root(
         if current_head == previous_head:
             if not status_output:
                 current_tracked_paths = previous_paths & previous_tracked_paths
-                return (
+                return SourceRootScanResult(
                     current_tracked_paths,
                     current_tracked_paths,
                     set(),
@@ -850,7 +848,7 @@ def _scan_source_root(
             )
             if dirty_status_paths is not None:
                 files, tracked, changed, deleted = dirty_status_paths
-                return files, tracked, changed, deleted, {}, None, status_time, 0.0, current_head
+                return SourceRootScanResult(files, tracked, changed, deleted, {}, None, status_time, 0.0, current_head)
 
     started = time.perf_counter()
     listed_paths = _run_git(source_root.path, "ls-files", "--stage", "-z", "-c", "-o", "--exclude-standard")
@@ -883,7 +881,17 @@ def _scan_source_root(
     )
     ls_files_time += time.perf_counter() - started
 
-    return files, tracked, status[0], status[1], blob_shas, None, status_time, ls_files_time, current_head
+    return SourceRootScanResult(
+        files,
+        tracked,
+        status[0],
+        status[1],
+        blob_shas,
+        None,
+        status_time,
+        ls_files_time,
+        current_head,
+    )
 
 
 def _dirty_status_paths(

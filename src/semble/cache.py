@@ -26,10 +26,10 @@ if TYPE_CHECKING:
 GIT_CACHE_ROOTS_VERSION = 2
 
 
-def _get_extensions(content: Sequence[ContentType]) -> tuple[str, ...]:
+def _get_extensions(content: Sequence[ContentType]) -> set[str]:
     from semble.index.files import get_extensions as cold_get_extensions
 
-    return cold_get_extensions(content)
+    return set(cold_get_extensions(content))
 
 
 def _get_file_status(file_path: Path, write_time: float | None = None) -> object:
@@ -75,7 +75,7 @@ def _default_ignore_spec(source_root: Path) -> Any:
     return IgnoreSpec(source_root, GitIgnoreSpec.from_lines(sorted(_DEFAULT_IGNORED_DIRS), backend="simple"))
 
 
-def _is_ignored_path(path: Path, specs: Sequence[Any]) -> tuple[bool, Any | None]:
+def _is_ignored_path(path: Path, specs: list[Any]) -> tuple[bool, Any | None]:
     from semble.index.file_walker import _is_ignored
 
     return _is_ignored(path, specs)
@@ -956,7 +956,7 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
         return None
 
     current_files = []
-    for file_path in walk_files(path_as_path, extensions=extensions):
+    for file_path in walk_files(path_as_path, extensions=sorted(extensions)):
         newer_status, valid_status = _file_status_names()
         file_status = get_file_status(file_path, write_time)
         if file_status == newer_status:

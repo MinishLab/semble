@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from functools import cache
 from logging import getLogger
 from threading import current_thread, local, main_thread
+from typing import cast
 
 from tree_sitter import Node, Parser
 from tree_sitter_language_pack import DownloadError, LanguageNotFoundError, SupportedLanguage, get_parser
@@ -166,7 +167,7 @@ def chunk(text: str, language: str, desired_length: int) -> list[ChunkBoundary] 
         return []
 
     as_bytes = text.encode("utf-8")
-    parser = _get_thread_parser(language)
+    parser = _get_thread_parser(cast(SupportedLanguage, language))
     if parser is None:
         return None
     root = parser.parse(as_bytes).root_node

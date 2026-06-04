@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Sequence
 from typing import Any
 
 from semble.types import Chunk, SearchResult
@@ -16,7 +17,7 @@ def is_git_url(path: str) -> bool:
     return path.startswith(_GIT_URL_SCHEMES) or _SCP_GIT_URL_RE.match(path) is not None
 
 
-def resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | None:
+def resolve_chunk(chunks: Sequence[Chunk], file_path: str, line: int) -> Chunk | None:
     """Return the chunk containing *line* in *file_path*, or None.
 
     Reconstructs a Chunk from its JSON-primitive MCP tool arguments (file_path + line)

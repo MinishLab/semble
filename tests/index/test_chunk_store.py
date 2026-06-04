@@ -221,7 +221,7 @@ def test_lmdb_chunk_store_persists_embedding_by_key(tmp_path: Path) -> None:
 
 
 def test_lmdb_chunk_store_persists_bm25_document_by_key(tmp_path: Path) -> None:
-    """BM25 term cache belongs in LMDB so removing chunk_cache.json keeps token reuse."""
+    """BM25 term data belongs in LMDB so rebuilds can reuse tokenized documents without a sidecar cache."""
     document = ["authenticate", "token"]
     store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
     store.write_bm25_document("bm25-key", document)

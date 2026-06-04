@@ -1,11 +1,12 @@
 from collections.abc import Sequence
+from typing import Literal
 
 import bm25s
 import numpy as np
 import numpy.typing as npt
 from model2vec import StaticModel
 
-from semble.index.dense import SelectableBasicBackend
+from semble.index.semantic_backend import SemanticBackend
 from semble.index.sparse import Bm25sSparseIndex, SparseIndex
 from semble.ranking import apply_query_boost, boost_multi_chunk_files, rerank_topk, resolve_alpha
 from semble.types import Chunk, FilterSpec, SearchResult
@@ -13,7 +14,8 @@ from semble.types import Chunk, FilterSpec, SearchResult
 _RRF_K = 60
 
 
-ChunkIdentity = tuple[str, int]
+ChunkIdentityKind = Literal["chunk_id", "position"]
+ChunkIdentity = tuple[ChunkIdentityKind, int]
 
 
 def _chunk_id(chunk: Chunk, index: int) -> int:
@@ -127,7 +129,7 @@ def _max_identity_scores(items: Sequence[tuple[ChunkIdentity, float]]) -> dict[C
 def _semantic_id_scores(
     query: str,
     model: StaticModel,
-    semantic_index: SelectableBasicBackend,
+    semantic_index: SemanticBackend,
     chunks: Sequence[Chunk],
     top_k: int,
     filter_spec: FilterSpec | None,
@@ -150,7 +152,7 @@ def _semantic_id_scores(
 def _search_semantic_identity_scores(
     query: str,
     model: StaticModel,
-    semantic_index: SelectableBasicBackend,
+    semantic_index: SemanticBackend,
     chunks: Sequence[Chunk],
     top_k: int,
     filter_spec: FilterSpec | None,
@@ -171,7 +173,7 @@ def _search_semantic_identity_scores(
 def _search_semantic(
     query: str,
     model: StaticModel,
-    semantic_index: SelectableBasicBackend,
+    semantic_index: SemanticBackend,
     chunks: Sequence[Chunk],
     top_k: int,
     filter_spec: FilterSpec | None = None,
@@ -219,6 +221,39 @@ def _search_sparse(
     return sparse_index.search(query, top_k, filter_spec)
 
 
+def _combined_rrf_scores(
+    semantic_scores: dict[ChunkIdentity, float],
+    bm25_scores: dict[ChunkIdentity, float],
+    alpha_weight: float,
+) -> dict[ChunkIdentity, float]:
+    """Combine semantic and sparse identity scores after RRF normalization."""
+    normalized_semantic = _rrf_scores(semantic_scores)
+    normalized_bm25 = _rrf_scores(bm25_scores)
+    return {
+        identity: alpha_weight * normalized_semantic.get(identity, 0.0)
+        + (1.0 - alpha_weight) * normalized_bm25.get(identity, 0.0)
+        for identity in {*normalized_semantic, *normalized_bm25}
+    }
+
+
+def _reranked_results(
+    query: str,
+    chunks: Sequence[Chunk],
+    filter_spec: FilterSpec | None,
+    combined_scores: dict[Chunk, float],
+    top_k: int,
+    alpha_weight: float,
+) -> list[SearchResult]:
+    """Apply common query boosts and code reranking to materialized chunk scores."""
+    if not combined_scores:
+        return []
+    boost_multi_chunk_files(combined_scores)
+    boost_chunks = _query_boost_chunks(chunks, filter_spec, combined_scores)
+    boosted_scores = apply_query_boost(combined_scores, query, boost_chunks)
+    reranked = rerank_topk(boosted_scores, top_k, penalise_paths=alpha_weight < 1.0)
+    return [SearchResult(chunk=chunk, score=score) for chunk, score in reranked]
+
+
 def _search_sparse_identity_scores(
     query: str,
     sparse_index: bm25s.BM25 | SparseIndex,
@@ -246,7 +281,7 @@ def _search_sparse_identity_scores(
 def search(
     query: str,
     model: StaticModel,
-    semantic_index: SelectableBasicBackend,
+    semantic_index: SemanticBackend,
     bm25_index: bm25s.BM25 | SparseIndex,
     chunks: Sequence[Chunk],
     top_k: int,
@@ -289,13 +324,7 @@ def search(
             query_embedding,
         )
         bm25_scores = _search_sparse_identity_scores(query, bm25_index, chunks, candidate_count, filter_spec)
-        normalized_semantic = _rrf_scores(semantic_scores)
-        normalized_bm25 = _rrf_scores(bm25_scores)
-        combined_scores = {
-            identity: alpha_weight * normalized_semantic.get(identity, 0.0)
-            + (1.0 - alpha_weight) * normalized_bm25.get(identity, 0.0)
-            for identity in {*normalized_semantic, *normalized_bm25}
-        }
+        combined_scores = _combined_rrf_scores(semantic_scores, bm25_scores, alpha_weight)
         if not rerank:
             ranked = [
                 (identity, score)
@@ -322,17 +351,7 @@ def search(
             candidate_items = [(chunk_lookup(identity[1]), score) for identity, score in ranked]
         candidate_items.sort(key=lambda item: item[0].start_line)
         combined_scores_by_chunk = {chunk: score for chunk, score in candidate_items}
-        if not combined_scores_by_chunk:
-            return []
-        boost_multi_chunk_files(combined_scores_by_chunk)
-        boost_chunks = _query_boost_chunks(chunks, filter_spec, combined_scores_by_chunk)
-        combined_scores_by_chunk = apply_query_boost(
-            combined_scores_by_chunk,
-            query,
-            boost_chunks,
-        )
-        reranked = rerank_topk(combined_scores_by_chunk, top_k, penalise_paths=alpha_weight < 1.0)
-        return [SearchResult(chunk=chunk, score=score) for chunk, score in reranked]
+        return _reranked_results(query, chunks, filter_spec, combined_scores_by_chunk, top_k, alpha_weight)
 
     semantic = _search_semantic(
         query,
@@ -358,28 +377,17 @@ def search(
     semantic_scores = _scores_by_identity(semantic, chunk_positions)
     bm25_scores = _scores_by_identity(sparse, chunk_positions)
 
-    normalized_semantic = _rrf_scores(semantic_scores)
-    normalized_bm25 = _rrf_scores(bm25_scores)
-
+    combined_identity_scores = _combined_rrf_scores(semantic_scores, bm25_scores, alpha_weight)
     all_candidates = sorted(
-        {*normalized_semantic, *normalized_bm25},
+        combined_identity_scores,
         key=lambda identity: chunks_by_identity[identity].start_line,
     )
-    combined_scores: dict[Chunk, float] = {
-        chunks_by_identity[identity]: alpha_weight * normalized_semantic.get(identity, 0.0)
-        + (1.0 - alpha_weight) * normalized_bm25.get(identity, 0.0)
-        for identity in all_candidates
+    combined_chunk_scores: dict[Chunk, float] = {
+        chunks_by_identity[identity]: combined_identity_scores[identity] for identity in all_candidates
     }
 
     if rerank:
-        # Boost files with multiple relevant chunks.
-        boost_multi_chunk_files(combined_scores)
-        # Boost queries with specific identifiers in them.
-        boost_chunks = _query_boost_chunks(chunks, filter_spec, combined_scores)
-        combined_scores = apply_query_boost(combined_scores, query, boost_chunks)
-        # Rerank the top-k results by applying path-based penalties.
-        ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
-    else:
-        sorted_by_score = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
-        ranked = sorted_by_score[:top_k]
-    return [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]
+        return _reranked_results(query, chunks, filter_spec, combined_chunk_scores, top_k, alpha_weight)
+
+    sorted_by_score = sorted(combined_chunk_scores.items(), key=lambda x: x[1], reverse=True)
+    return [SearchResult(chunk=chunk, score=score) for chunk, score in sorted_by_score[:top_k]]

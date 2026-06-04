@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -179,6 +180,7 @@ def test_chunk_process_workers_do_not_rerun_caller_top_level(tmp_path: Path) -> 
     script.write_text(
         textwrap.dedent(
             """
+            import json
             import os
             from pathlib import Path
 
@@ -191,7 +193,7 @@ def test_chunk_process_workers_do_not_rerun_caller_top_level(tmp_path: Path) -> 
             from semble.index.create import _collect_chunks
 
             chunks, sizes, hashes = _collect_chunks(root, [".py"], root)
-            print(len(chunks), bool(sizes), bool(hashes))
+            print(json.dumps({"chunk_count": len(chunks), "has_sizes": bool(sizes), "has_hashes": bool(hashes)}))
             """
         )
     )
@@ -205,8 +207,12 @@ def test_chunk_process_workers_do_not_rerun_caller_top_level(tmp_path: Path) -> 
     }
     result = subprocess.run([sys.executable, str(script)], check=True, capture_output=True, text=True, env=env)
 
+    payload = json.loads(result.stdout)
+
     assert marker.read_text().splitlines() == ["top"]
-    assert result.stdout.count("True True") == 1
+    assert payload["chunk_count"] > 0
+    assert payload["has_sizes"] is True
+    assert payload["has_hashes"] is True
 
 
 def test_create_index_build_uses_tantivy_sparse_index_and_reuses_file_sizes(
@@ -693,6 +699,42 @@ def test_from_path_uses_cache_when_valid(tmp_project: Path) -> None:
         with patch.object(SembleIndex, "load_from_disk", return_value=fake_cached):
             result = SembleIndex.from_path(tmp_project)
     assert result is fake_cached
+
+
+def test_incremental_rebuild_search_matches_fresh_cold_index(tmp_path: Path, mock_model: StaticModel) -> None:
+    """Changed-file rebuilds should keep search behavior aligned with a fresh cold build."""
+    (tmp_path / "auth.py").write_text("def authenticate(token):\n    return token\n")
+    (tmp_path / "utils.py").write_text("def format_date(dt):\n    return str(dt)\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")):
+        original = SembleIndex.from_path(tmp_path)
+    cache_path = tmp_path / "cache"
+    original.save(cache_path)
+
+    (tmp_path / "utils.py").write_text("def changed_format(dt):\n    return repr(dt)\n")
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=None),
+        patch("semble.index.index.get_rebuild_cache", return_value=cache_path),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+        patch(
+            "semble.index.index.create_index_build_from_path",
+            side_effect=AssertionError("incremental rebuild should not fall back to cold build"),
+        ),
+    ):
+        rebuilt = SembleIndex.from_path(tmp_path)
+
+    with (
+        patch("semble.index.index.get_validated_cache", return_value=None),
+        patch("semble.index.index.get_rebuild_cache", return_value=None),
+        patch("semble.index.index.load_model", return_value=(mock_model, "mock-model")),
+    ):
+        fresh = SembleIndex.from_path(tmp_path)
+
+    rebuilt_results = rebuilt.search("changed_format", top_k=3)
+    fresh_results = fresh.search("changed_format", top_k=3)
+    assert [(r.chunk.file_path, r.chunk.content) for r in rebuilt_results] == [
+        (r.chunk.file_path, r.chunk.content) for r in fresh_results
+    ]
 
 
 def test_from_path_rebuilds_changed_files_from_hash_seed(tmp_path: Path, mock_model: StaticModel) -> None:

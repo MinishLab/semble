@@ -30,6 +30,10 @@ class SparseIndex(Protocol):
         """Return sparse search results ranked by descending relevance."""
         ...
 
+    def save(self, path: Path) -> None:
+        """Persist the sparse index."""
+        ...
+
 
 def _chunk_id(chunk: Chunk, index: int) -> int:
     return chunk.chunk_id if chunk.chunk_id is not None else index
@@ -314,15 +318,15 @@ class TantivySparseIndex:
         """Apply Tantivy delete/add updates for changed chunk IDs."""
         chunk_indices: dict[Chunk, int] | None = None
         writer = self.index.writer(heap_size=15_000_000, num_threads=1)
-        for chunk_id in deleted_chunk_ids:
-            writer.delete_documents("chunk_id", chunk_id)
-        for added_index, chunk in enumerate(added_chunks):
-            chunk_id = chunk.chunk_id
-            if chunk_id is None:
+        for deleted_chunk_id in deleted_chunk_ids:
+            writer.delete_documents("chunk_id", deleted_chunk_id)
+        for chunk in added_chunks:
+            added_chunk_id = chunk.chunk_id
+            if added_chunk_id is None:
                 if chunk_indices is None:
                     chunk_indices = {candidate: index for index, candidate in enumerate(chunks)}
-                chunk_id = _chunk_id(chunk, chunk_indices[chunk])
-            writer.add_document(_tantivy_document(chunk, chunk_id))
+                added_chunk_id = _chunk_id(chunk, chunk_indices[chunk])
+            writer.add_document(_tantivy_document(chunk, added_chunk_id))
         writer.commit()
         self.index.reload()
         self.chunks = chunks

@@ -13,7 +13,6 @@ class PersistencePath:
     bm25_index: Path
     semantic_index: Path
     metadata: Path
-    chunk_cache: Path
 
     def non_existing(self) -> list[Path]:
         """Return required paths that do not exist."""
@@ -31,5 +30,4 @@ class PersistencePath:
             bm25_index=path / "bm25_index",
             semantic_index=path / "semantic_index",
             metadata=path / "metadata.json",
-            chunk_cache=path / "chunk_cache.json",
         )

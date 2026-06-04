@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -74,7 +74,6 @@ class FileManifest:
     source_root: str = ""
     git_path: str | None = None
     tracked: bool = True
-    chunk_cache_keys: list[dict[str, str | bool]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the manifest to a serializable dict."""
@@ -89,7 +88,6 @@ class FileManifest:
             "source_root": self.source_root,
             "git_path": self.git_path,
             "tracked": self.tracked,
-            "chunk_cache_keys": self.chunk_cache_keys,
         }
 
     @classmethod
@@ -97,9 +95,6 @@ class FileManifest:
         """Create a manifest from persisted data."""
         file_path = str(data["file_path"])
         git_path = data.get("git_path", file_path)
-        chunk_cache_keys = data.get("chunk_cache_keys", [])
-        if not isinstance(chunk_cache_keys, list):
-            chunk_cache_keys = []
         return cls(
             file_path=file_path,
             file_hash=str(data["file_hash"]),
@@ -111,22 +106,6 @@ class FileManifest:
             source_root=str(data.get("source_root", "")),
             git_path=None if git_path is None else str(git_path),
             tracked=bool(data.get("tracked", True)),
-            chunk_cache_keys=[
-                {
-                    key: value
-                    for key, value in {
-                        "embedding_key": str(item["embedding_key"]),
-                        "bm25_key": str(item["bm25_key"]),
-                        "reuses_embedding": True if item.get("reuses_embedding", False) else None,
-                        "external_embedding_key": (
-                            None if item.get("external_embedding_key") is None else str(item["external_embedding_key"])
-                        ),
-                    }.items()
-                    if value is not None
-                }
-                for item in chunk_cache_keys
-                if isinstance(item, dict) and "embedding_key" in item and "bm25_key" in item
-            ],
         )
 
 
@@ -247,31 +226,6 @@ class LmdbChunkStore:
         finally:
             source.close()
 
-    def copy_rebuild_cache_from(self, source_path: Path, cache_keys: list[dict[str, str]]) -> None:
-        """Copy raw rebuild-cache payloads from another LMDB store without decoding them."""
-        source = LmdbChunkStore.open(source_path, readonly=True)
-        try:
-            if source.embeddings_db is None or source.bm25_docs_db is None:
-                raise FileNotFoundError("Index chunk store is missing rebuild cache payloads")
-            if self.embeddings_db is None or self.bm25_docs_db is None:
-                raise RuntimeError("Rebuild cache store is not available")
-            with source.env.begin(buffers=True) as source_txn, self.env.begin(write=True) as target_txn:
-                for keys in cache_keys:
-                    embedding_data = source_txn.get(str(keys["embedding_key"]).encode(), db=source.embeddings_db)
-                    if embedding_data is None:
-                        if not keys.get("reuses_embedding"):
-                            raise FileNotFoundError("Index chunk store is missing rebuild cache payloads")
-                    else:
-                        target_txn.put(
-                            str(keys["embedding_key"]).encode(),
-                            bytes(embedding_data),
-                            db=self.embeddings_db,
-                        )
-                    bm25_data = source_txn.get(str(keys["bm25_key"]).encode(), db=source.bm25_docs_db)
-                    if bm25_data is not None:
-                        target_txn.put(str(keys["bm25_key"]).encode(), bytes(bm25_data), db=self.bm25_docs_db)
-        finally:
-            source.close()
 
     def _manifest_for_generation(self, data: bytes, generation: int) -> FileManifest:
         payload = FileManifest.from_dict(orjson.loads(data)).to_dict()
@@ -344,10 +298,10 @@ class LmdbChunkStore:
                 if data is None:
                     continue
                 for file_path in orjson.loads(bytes(data)):
-                    manifest_data = txn.get(str(file_path).encode(), db=self.files_db)
-                    if manifest_data is None:
+                    file_manifest_data = txn.get(str(file_path).encode(), db=self.files_db)
+                    if file_manifest_data is None:
                         continue
-                    manifest = FileManifest.from_dict(orjson.loads(bytes(manifest_data)))
+                    manifest = FileManifest.from_dict(orjson.loads(bytes(file_manifest_data)))
                     if manifest.generation == active_generation:
                         manifests[file_hash] = manifest
                         break
@@ -546,7 +500,7 @@ class LmdbChunkStore:
                 existing = FileManifest.from_dict(orjson.loads(bytes(existing_data)))
                 if existing.file_hash != manifest.file_hash:
                     self._remove_file_hash_path(txn, existing.file_hash, manifest.file_path)
-        txn.put(manifest.file_path.encode(), orjson.dumps(manifest), db=self.files_db)
+        txn.put(manifest.file_path.encode(), orjson.dumps(manifest.to_dict()), db=self.files_db)
         if self.file_hashes_db is None:
             return
         key = manifest.file_hash.encode()

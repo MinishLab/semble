@@ -9,7 +9,7 @@ from model2vec import StaticModel
 from vicinity.backends.basic import BasicArgs
 
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
-from semble.index.index import _StableIdSemanticBackend
+from semble.index.semantic_backend import StableIdSemanticBackend
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
 from semble.types import Chunk, FilterSpec, SearchResult
@@ -269,7 +269,7 @@ def test_stable_id_semantic_backend_returns_empty_for_unmatched_selector(mock_mo
     """Stable-id dense filters should return no results when selected IDs have no dense rows."""
     chunk = Chunk("def current():\n    pass", "current.py", 10, 11, "python", chunk_id=7)
     backend = SelectableBasicBackend(np.ones((1, 256), dtype=np.float32), BasicArgs())
-    semantic = _StableIdSemanticBackend(backend, [7])
+    semantic = StableIdSemanticBackend(backend, [7])
 
     class LazyChunks:
         def __len__(self) -> int:
