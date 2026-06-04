@@ -113,6 +113,35 @@ class _StableIdSemanticBackend:
         self._backend.save(path)
 
 
+StemLookup = tuple[dict[str, list[int]], dict[str, list[int]], dict[int, int]]
+
+
+def _stem_lookup_keys(file_path: str) -> tuple[set[str], set[str]]:
+    stem = Path(file_path).stem.lower()
+    stem_norm = stem.replace("_", "")
+    exact_keys = {stem, stem_norm}
+    symbol_keys = {*exact_keys, stem.rstrip("s"), stem_norm.rstrip("s")}
+    return exact_keys, symbol_keys
+
+
+def _build_stem_lookup(chunk_ids: Sequence[int], file_paths: Sequence[str]) -> StemLookup:
+    exact_stems: dict[str, list[int]] = defaultdict(list)
+    symbol_stems: dict[str, list[int]] = defaultdict(list)
+    position_by_id: dict[int, int] = {}
+    for position, (chunk_id, file_path) in enumerate(zip(chunk_ids, file_paths)):
+        position_by_id[chunk_id] = position
+        exact_keys, symbol_keys = _stem_lookup_keys(file_path)
+        for key in exact_keys:
+            exact_stems[key].append(chunk_id)
+        for key in symbol_keys:
+            symbol_stems[key].append(chunk_id)
+    return dict(exact_stems), dict(symbol_stems), position_by_id
+
+
+def _ordered_unique_chunk_ids(chunk_ids: Sequence[int], position_by_id: dict[int, int]) -> list[int]:
+    return sorted(set(chunk_ids), key=position_by_id.__getitem__)
+
+
 class LazyChunkList(Sequence[Chunk]):
     """Sequence that loads persisted chunks by stable ID only when requested."""
 
@@ -131,6 +160,10 @@ class LazyChunkList(Sequence[Chunk]):
         self._cache: dict[int, Chunk] = {}
         self._file_mapping = self._build_mapping(self.chunk_file_paths)
         self._language_mapping = self._build_language_mapping(self.chunk_languages)
+        self._exact_stems, self._symbol_stems, self._position_by_id = _build_stem_lookup(
+            self._chunk_ids,
+            self.chunk_file_paths,
+        )
 
     def __len__(self) -> int:
         """Return total persisted chunk count."""
@@ -188,6 +221,29 @@ class LazyChunkList(Sequence[Chunk]):
         """Return stable IDs for persisted chunks in selected languages."""
         return [chunk_id for language in languages for chunk_id in self._language_mapping.get(language, [])]
 
+    def chunk_ids_for_symbol_stem(self, symbol_name: str) -> list[int]:
+        """Return stable IDs whose file stem matches a queried symbol name."""
+        name = symbol_name.lower()
+        keys = {name, name.replace("_", ""), name.rstrip("s"), name.replace("_", "").rstrip("s")}
+        chunk_ids = [chunk_id for key in keys for chunk_id in self._symbol_stems.get(key, [])]
+        return _ordered_unique_chunk_ids(chunk_ids, self._position_by_id)
+
+    def chunk_ids_for_embedded_symbol_stem(self, symbol_name: str, min_prefix_len: int) -> list[int]:
+        """Return stable IDs whose file stem exactly or prefix-matches an embedded symbol."""
+        symbol = symbol_name.lower()
+        symbol_norm = symbol.replace("_", "")
+        keys = {symbol, symbol_norm}
+        for size in range(min_prefix_len, len(symbol) + 1):
+            keys.add(symbol[:size])
+        for size in range(min_prefix_len, len(symbol_norm) + 1):
+            keys.add(symbol_norm[:size])
+        chunk_ids = [chunk_id for key in keys for chunk_id in self._exact_stems.get(key, [])]
+        return _ordered_unique_chunk_ids(chunk_ids, self._position_by_id)
+
+    def order_chunk_ids(self, chunk_ids: Sequence[int]) -> list[int]:
+        """Return stable IDs in persisted sequence order."""
+        return _ordered_unique_chunk_ids(chunk_ids, self._position_by_id)
+
     def _build_mapping(self, file_paths: Sequence[str]) -> dict[str, list[int]]:
         mapping: dict[str, list[int]] = defaultdict(list)
         for chunk_id, file_path in zip(self._chunk_ids, file_paths):
@@ -236,6 +292,10 @@ class MergedLazyChunkList(Sequence[Chunk]):
         self._cache: dict[int, Chunk] = dict(changed_chunks_by_id)
         self._file_mapping = self._build_mapping(self.chunk_file_paths)
         self._language_mapping = self._build_language_mapping(self.chunk_languages)
+        self._exact_stems, self._symbol_stems, self._position_by_id = _build_stem_lookup(
+            self._chunk_ids,
+            self.chunk_file_paths,
+        )
 
     def __len__(self) -> int:
         """Return total chunk count."""
@@ -294,6 +354,29 @@ class MergedLazyChunkList(Sequence[Chunk]):
     def language_mapping(self) -> dict[str, list[int]]:
         """Return language-to-chunk-ID mapping."""
         return self._language_mapping
+
+    def chunk_ids_for_symbol_stem(self, symbol_name: str) -> list[int]:
+        """Return stable IDs whose file stem matches a queried symbol name."""
+        name = symbol_name.lower()
+        keys = {name, name.replace("_", ""), name.rstrip("s"), name.replace("_", "").rstrip("s")}
+        chunk_ids = [chunk_id for key in keys for chunk_id in self._symbol_stems.get(key, [])]
+        return _ordered_unique_chunk_ids(chunk_ids, self._position_by_id)
+
+    def chunk_ids_for_embedded_symbol_stem(self, symbol_name: str, min_prefix_len: int) -> list[int]:
+        """Return stable IDs whose file stem exactly or prefix-matches an embedded symbol."""
+        symbol = symbol_name.lower()
+        symbol_norm = symbol.replace("_", "")
+        keys = {symbol, symbol_norm}
+        for size in range(min_prefix_len, len(symbol) + 1):
+            keys.add(symbol[:size])
+        for size in range(min_prefix_len, len(symbol_norm) + 1):
+            keys.add(symbol_norm[:size])
+        chunk_ids = [chunk_id for key in keys for chunk_id in self._exact_stems.get(key, [])]
+        return _ordered_unique_chunk_ids(chunk_ids, self._position_by_id)
+
+    def order_chunk_ids(self, chunk_ids: Sequence[int]) -> list[int]:
+        """Return stable IDs in persisted sequence order."""
+        return _ordered_unique_chunk_ids(chunk_ids, self._position_by_id)
 
     def chunk_ids(self) -> list[int]:
         """Return stable chunk IDs in sequence order."""

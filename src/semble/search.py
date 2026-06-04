@@ -53,6 +53,28 @@ def _filter_spec_to_semantic_selector(
     return np.array(chunk_ids, dtype=np.int_)
 
 
+def _supports_non_candidate_boost(chunks: Sequence[Chunk]) -> bool:
+    return (
+        getattr(chunks, "chunk_ids_for_symbol_stem", None) is not None
+        and getattr(chunks, "chunk_ids_for_embedded_symbol_stem", None) is not None
+        and getattr(chunks, "chunks_by_id", None) is not None
+    )
+
+
+def _query_boost_chunks(
+    chunks: Sequence[Chunk],
+    filter_spec: FilterSpec | None,
+    candidate_scores: dict[Chunk, float],
+) -> Sequence[Chunk]:
+    if filter_spec is not None:
+        return list(candidate_scores)
+    if _supports_non_candidate_boost(chunks):
+        return chunks
+    if getattr(chunks, "chunk_by_id", None) is not None:
+        return list(candidate_scores)
+    return chunks
+
+
 def _semantic_chunks_by_id(chunks: Sequence[Chunk]) -> dict[int, Chunk]:
     return {_chunk_id(chunk, index): chunk for index, chunk in enumerate(chunks)}
 
@@ -292,7 +314,7 @@ def search(
             (identity, score)
             for identity, score in sorted(combined_scores.items(), key=lambda item: (-item[1], item[0]))
             if identity[0] == "chunk_id" and score > 0.0
-        ][:candidate_count]
+        ]
         if chunks_lookup is not None:
             ranked_chunks = chunks_lookup([identity[1] for identity, _ in ranked])
             candidate_items = list(zip(ranked_chunks, [score for _, score in ranked]))
@@ -303,17 +325,34 @@ def search(
         if not combined_scores_by_chunk:
             return []
         boost_multi_chunk_files(combined_scores_by_chunk)
+        boost_chunks = _query_boost_chunks(chunks, filter_spec, combined_scores_by_chunk)
         combined_scores_by_chunk = apply_query_boost(
             combined_scores_by_chunk,
             query,
-            list(combined_scores_by_chunk),
+            boost_chunks,
         )
         reranked = rerank_topk(combined_scores_by_chunk, top_k, penalise_paths=alpha_weight < 1.0)
         return [SearchResult(chunk=chunk, score=score) for chunk, score in reranked]
 
-    semantic = _search_semantic(query, model, semantic_index, chunks, candidate_count, filter_spec, query_embedding)
+    semantic = _search_semantic(
+        query,
+        model,
+        semantic_index,
+        chunks,
+        candidate_count,
+        filter_spec,
+        query_embedding,
+    )
     sparse = [
-        result for result in _search_sparse(query, bm25_index, chunks, candidate_count, filter_spec) if result.score
+        result
+        for result in _search_sparse(
+            query,
+            bm25_index,
+            chunks,
+            candidate_count,
+            filter_spec,
+        )
+        if result.score
     ]
     chunk_positions, chunks_by_identity = _candidate_identity_maps(chunks, [*semantic, *sparse])
     semantic_scores = _scores_by_identity(semantic, chunk_positions)
@@ -336,7 +375,7 @@ def search(
         # Boost files with multiple relevant chunks.
         boost_multi_chunk_files(combined_scores)
         # Boost queries with specific identifiers in them.
-        boost_chunks = list(combined_scores) if getattr(chunks, "chunk_by_id", None) is not None else chunks
+        boost_chunks = _query_boost_chunks(chunks, filter_spec, combined_scores)
         combined_scores = apply_query_boost(combined_scores, query, boost_chunks)
         # Rerank the top-k results by applying path-based penalties.
         ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)

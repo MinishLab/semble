@@ -134,6 +134,29 @@ def is_symbol_query(query: str) -> bool:
     return _SYMBOL_QUERY_RE.match(query.strip()) is not None
 
 
+def _chunks_for_symbol_stem(all_chunks: Sequence[Chunk], symbol_name: str) -> Sequence[Chunk]:
+    chunk_ids_for_stem = getattr(all_chunks, "chunk_ids_for_symbol_stem", None)
+    chunks_by_id = getattr(all_chunks, "chunks_by_id", None)
+    if chunk_ids_for_stem is None or chunks_by_id is None:
+        return all_chunks
+    return chunks_by_id(chunk_ids_for_stem(symbol_name))
+
+
+def _chunks_for_embedded_symbol_stems(
+    all_chunks: Sequence[Chunk],
+    names: set[str],
+    min_prefix_len: int,
+) -> Sequence[Chunk]:
+    chunk_ids_for_stem = getattr(all_chunks, "chunk_ids_for_embedded_symbol_stem", None)
+    chunks_by_id = getattr(all_chunks, "chunks_by_id", None)
+    order_chunk_ids = getattr(all_chunks, "order_chunk_ids", None)
+    if chunk_ids_for_stem is None or chunks_by_id is None:
+        return all_chunks
+    chunk_ids = {chunk_id for name in names for chunk_id in chunk_ids_for_stem(name, min_prefix_len)}
+    ordered_chunk_ids = order_chunk_ids(list(chunk_ids)) if order_chunk_ids is not None else sorted(chunk_ids)
+    return chunks_by_id(ordered_chunk_ids)
+
+
 def _extract_symbol_name(query: str) -> str:
     """Extract the final identifier from a possibly namespace-qualified query.
 
@@ -219,7 +242,7 @@ def _boost_symbol_definitions(
         boosted,
         names,
         boost_unit,
-        all_chunks,
+        _chunks_for_symbol_stem(all_chunks, symbol_name),
         lambda stem: _stem_matches(stem, symbol_name.lower()),
     )
 
@@ -246,7 +269,7 @@ def _boost_embedded_symbols(
             boosted[chunk] += tier
 
     symbols_lower = frozenset(s.lower() for s in names)
-    for chunk in all_chunks:
+    for chunk in _chunks_for_embedded_symbol_stems(all_chunks, names, _EMBEDDED_STEM_MIN_LEN):
         if chunk in boosted:
             continue
         stem = Path(chunk.file_path).stem.lower()

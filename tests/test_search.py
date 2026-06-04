@@ -368,6 +368,148 @@ def test_lazy_rerank_boosts_candidates_without_iterating_all_chunks(mock_model: 
     assert [result.chunk for result in results] == [candidate]
 
 
+def test_lazy_rerank_boosts_symbol_non_candidates_from_stem_lookup(mock_model: Any) -> None:
+    """Lazy hot search should recover symbol-definition non-candidates without scanning every chunk."""
+    candidate = Chunk("type OtherStatus int", "other_status.go", 1, 1, "go", chunk_id=7)
+    non_candidate = Chunk("type PaymentStatus int", "payment_status.go", 1, 1, "go", chunk_id=99)
+
+    class LazyChunks:
+        def __len__(self) -> int:
+            return 100
+
+        def __iter__(self):
+            raise AssertionError("lazy chunks should not be iterated during rerank")
+
+        def __getitem__(self, index: int) -> Chunk:
+            raise AssertionError("lazy chunks should not be indexed during rerank")
+
+        def chunk_by_id(self, chunk_id: int) -> Chunk:
+            return {7: candidate, 99: non_candidate}[chunk_id]
+
+        def chunks_by_id(self, chunk_ids: list[int]) -> list[Chunk]:
+            return [self.chunk_by_id(chunk_id) for chunk_id in chunk_ids]
+
+        def chunk_ids_for_symbol_stem(self, symbol_name: str) -> list[int]:
+            assert symbol_name == "PaymentStatus"
+            return [99]
+
+        def chunk_ids_for_embedded_symbol_stem(self, symbol_name: str, min_prefix_len: int) -> list[int]:
+            return []
+
+    class FakeSemanticIndex:
+        def query(self, vectors: Any, k: int, selector: Any = None) -> list[tuple[np.ndarray, np.ndarray]]:
+            return [(np.array([7]), np.array([0.0]))]
+
+    class FakeSparseIndex:
+        def search_ids(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[tuple[int, float]]:
+            return [(7, 1.0)]
+
+    results = search(
+        "PaymentStatus",
+        mock_model,
+        FakeSemanticIndex(),
+        FakeSparseIndex(),
+        LazyChunks(),
+        top_k=1,
+        alpha=0.3,
+        rerank=True,
+    )
+
+    assert results[0].chunk is non_candidate
+
+
+def test_lazy_rerank_does_not_boost_symbol_non_candidates_outside_filter(mock_model: Any) -> None:
+    """Filtered lazy hot search should not reintroduce stem matches outside the filter."""
+    candidate = Chunk("type OtherStatus int", "other_status.go", 1, 1, "go", chunk_id=7)
+    excluded = Chunk("type PaymentStatus int", "payment_status.go", 1, 1, "go", chunk_id=99)
+
+    class LazyChunks:
+        def __len__(self) -> int:
+            return 100
+
+        def __iter__(self):
+            raise AssertionError("lazy chunks should not be iterated during rerank")
+
+        def __getitem__(self, index: int) -> Chunk:
+            raise AssertionError("lazy chunks should not be indexed during rerank")
+
+        def chunk_by_id(self, chunk_id: int) -> Chunk:
+            return {7: candidate, 99: excluded}[chunk_id]
+
+        def chunks_by_id(self, chunk_ids: list[int]) -> list[Chunk]:
+            return [self.chunk_by_id(chunk_id) for chunk_id in chunk_ids]
+
+        def chunk_ids_for_symbol_stem(self, symbol_name: str) -> list[int]:
+            raise AssertionError("filtered rerank should not consult non-candidate stem lookup")
+
+        def chunk_ids_for_embedded_symbol_stem(self, symbol_name: str, min_prefix_len: int) -> list[int]:
+            raise AssertionError("filtered rerank should not consult non-candidate stem lookup")
+
+    class FakeSemanticIndex:
+        def query(self, vectors: Any, k: int, selector: Any = None) -> list[tuple[np.ndarray, np.ndarray]]:
+            assert selector.tolist() == [7]
+            return [(np.array([7]), np.array([0.0]))]
+
+    class FakeSparseIndex:
+        def search_ids(self, query: str, top_k: int, filter_spec: FilterSpec | None = None) -> list[tuple[int, float]]:
+            assert filter_spec == FilterSpec(chunk_ids=frozenset({7}))
+            return [(7, 1.0)]
+
+    results = search(
+        "PaymentStatus",
+        mock_model,
+        FakeSemanticIndex(),
+        FakeSparseIndex(),
+        LazyChunks(),
+        top_k=1,
+        alpha=0.3,
+        filter_spec=FilterSpec(chunk_ids=frozenset({7})),
+        rerank=True,
+    )
+
+    assert results[0].chunk is candidate
+
+
+def test_lazy_rerank_orders_embedded_symbol_stem_matches_by_persisted_order(mock_model: Any) -> None:
+    """Lazy embedded-symbol non-candidates should keep persisted order across multiple symbol names."""
+    candidate = Chunk("def unrelated(): pass", "candidate.py", 1, 1, "python", chunk_id=7)
+    first = Chunk("class BetaManager:\n    pass", "beta.py", 1, 2, "python", chunk_id=10)
+    second = Chunk("class AlphaManager:\n    pass", "alpha.py", 1, 2, "python", chunk_id=20)
+    chunks_by_id = {7: candidate, 10: first, 20: second}
+    order = {7: 0, 10: 1, 20: 2}
+
+    lazy_chunks = MagicMock()
+    lazy_chunks.__len__.return_value = 100
+    lazy_chunks.__iter__.side_effect = AssertionError("lazy chunks should not be iterated during rerank")
+    lazy_chunks.__getitem__.side_effect = AssertionError("lazy chunks should not be indexed during rerank")
+    lazy_chunks.chunk_by_id.side_effect = chunks_by_id.__getitem__
+    lazy_chunks.chunks_by_id.side_effect = lambda chunk_ids: [chunks_by_id[chunk_id] for chunk_id in chunk_ids]
+    lazy_chunks.chunk_ids_for_symbol_stem.return_value = []
+    lazy_chunks.chunk_ids_for_embedded_symbol_stem.side_effect = lambda symbol_name, min_prefix_len: {
+        "AlphaManager": [20],
+        "BetaManager": [10],
+    }.get(symbol_name, [])
+    lazy_chunks.order_chunk_ids.side_effect = lambda chunk_ids: sorted(set(chunk_ids), key=order.__getitem__)
+
+    semantic_index = MagicMock()
+    semantic_index.query.return_value = [(np.array([7]), np.array([0.0]))]
+    sparse_index = MagicMock()
+    sparse_index.search_ids.return_value = [(7, 1.0)]
+
+    results = search(
+        "find AlphaManager and BetaManager",
+        mock_model,
+        semantic_index,
+        sparse_index,
+        lazy_chunks,
+        top_k=2,
+        alpha=0.3,
+        rerank=True,
+    )
+
+    assert [result.chunk for result in results] == [first, second]
+
+
 @pytest.mark.parametrize(
     ("search_fn", "query", "top_k"),
     [
