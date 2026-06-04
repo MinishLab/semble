@@ -294,7 +294,9 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 ### Sub-agent
 
-For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
+For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Reasonix, Pi), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
+
+> **Pi prerequisite:** Pi sub-agents require the Pi agents extension. Run `pi install npm:pi-agents` once before installing.
 
 | Agent | File | Destination |
 |---|---|---|

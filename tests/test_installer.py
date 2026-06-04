@@ -125,7 +125,13 @@ def test_merge_mcp_errors(claude_agent, content):
 
 @pytest.mark.parametrize(
     ("agent_id", "key"),
-    [("zed", "context_servers"), ("windsurf", "mcpServers"), ("copilot", "mcpServers")],
+    [
+        ("zed", "context_servers"),
+        ("windsurf", "mcpServers"),
+        ("copilot", "mcpServers"),
+        ("reasonix", "mcpServers"),
+        ("pi", "mcpServers"),
+    ],
 )
 def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
     """merge_mcp writes the semble entry under each agent's own top-level MCP key."""
@@ -439,24 +445,6 @@ def test_remove_marked_not_found(tmp_path, initial):
     if initial is not None:
         f.write_text(initial)
     assert remove_marked(f) == "not-found"
-
-
-@pytest.mark.parametrize("agent_id", ["reasonix", "pi"])
-def test_new_agents_mcp_install_remove_idempotent(tmp_path, agent_id):
-    """Reasonix and Pi: merge writes mcpServers.semble; second call is unchanged; remove cleans up."""
-    src = next(a for a in AGENTS if a.id == agent_id)
-    agent = replace(src, mcp=replace(src.mcp, path=tmp_path / "mcp.json"))
-    (tmp_path / "mcp.json").write_text('{"mcpServers": {}}\n')
-
-    assert merge_mcp(agent).action == "updated"
-    data = json.loads((tmp_path / "mcp.json").read_text())
-    assert "semble" in data["mcpServers"]
-
-    assert merge_mcp(agent).action == "unchanged"
-    assert (tmp_path / "mcp.json").read_text().count('"semble":') == 1
-
-    assert remove_mcp(agent).action == "removed"
-    assert "semble" not in json.loads((tmp_path / "mcp.json").read_text()).get("mcpServers", {})
 
 
 @pytest.mark.parametrize("command", ["install", "uninstall"])
