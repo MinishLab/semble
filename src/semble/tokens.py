@@ -48,5 +48,5 @@ def tokenize(text: str) -> list[str]:
     raw_tokens = _TOKEN_RE.findall(text)
     result: list[str] = []
     for tok in raw_tokens:
-        result.extend(split_identifier(tok))
+        result.extend(_split_identifier_cached(tok))
     return result

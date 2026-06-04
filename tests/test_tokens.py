@@ -1,6 +1,16 @@
 from semble import tokens as tokens_module
 
 
+def test_tokenize_matches_public_split_identifier_path() -> None:
+    """Tokenization should match extending each raw token through split_identifier."""
+    text = "getHTTPResponse my_func XMLParser SPPAY_47610"
+    expected: list[str] = []
+    for token in tokens_module._TOKEN_RE.findall(text):
+        expected.extend(tokens_module.split_identifier(token))
+
+    assert tokens_module.tokenize(text) == expected
+
+
 def test_tokenize_reuses_identifier_splits_for_repeated_tokens() -> None:
     """Repeated identifiers in large files should not repeat camel/snake split work."""
     token = "RepeatedIdentifierForSparseCache"
