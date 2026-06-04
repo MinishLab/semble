@@ -97,7 +97,9 @@ def test_resolve_cache_folder(platform: str, mock_target: str, expected: Path) -
 def test_get_valid_user_cache_dir_relative_path() -> None:
     """_get_valid_user_cache_dir returns None when SEMBLE_CACHE_LOCATION is a relative path."""
     with patch.dict("os.environ", {"SEMBLE_CACHE_LOCATION": "relative/path"}):
-        assert _get_valid_user_cache_dir() is None
+        with patch("semble.cache.logger") as mock_logger:
+            assert _get_valid_user_cache_dir() is None
+        mock_logger.warning.assert_called_once()
 
 
 def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
