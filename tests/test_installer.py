@@ -16,9 +16,9 @@ from semble.installer.agents import (
 )
 from semble.installer.config import (
     _CODEX_MCP_HEADER,
-    _merge_toml_block,
-    _remove_toml_block,
+    merge_toml_block,
     remove_marked,
+    remove_toml_block,
     replace_or_append_marked,
 )
 from semble.installer.installer import (
@@ -206,14 +206,14 @@ def test_codex_toml_merge_and_remove(tmp_path):
     """The Codex TOML helpers add/remove [mcp_servers.semble] while preserving other tables and keys."""
     f = tmp_path / "config.toml"
     f.write_text('model = "gpt-5"\n\n[mcp_servers.other]\ncommand = "x"\n')
-    assert _merge_toml_block(f) == "updated"
+    assert merge_toml_block(f) == "updated"
     text = f.read_text()
     assert _CODEX_MCP_HEADER in text
     assert 'model = "gpt-5"' in text
     assert "[mcp_servers.other]" in text
-    assert _merge_toml_block(f) == "unchanged"  # idempotent
+    assert merge_toml_block(f) == "unchanged"  # idempotent
 
-    assert _remove_toml_block(f) == "removed"
+    assert remove_toml_block(f) == "removed"
     text = f.read_text()
     assert _CODEX_MCP_HEADER not in text
     assert "[mcp_servers.other]" in text  # only the semble table is removed
@@ -223,7 +223,7 @@ def test_codex_toml_merge_replaces_section_with_inline_comment(tmp_path):
     """_merge_toml_block replaces an existing semble table even when the header has a trailing comment."""
     f = tmp_path / "config.toml"
     f.write_text('[mcp_servers.semble] # added manually\ncommand = "old"\n')
-    assert _merge_toml_block(f) == "updated"
+    assert merge_toml_block(f) == "updated"
     text = f.read_text()
     assert text.count("[mcp_servers.semble]") == 1
 
@@ -237,14 +237,14 @@ def test_remove_toml_not_found(tmp_path, setup, expected):
     f = tmp_path / "config.toml"
     if setup is not None:
         f.write_text(setup)
-    assert _remove_toml_block(f) == expected
+    assert remove_toml_block(f) == expected
 
 
 def test_remove_toml_deletes_file_when_only_semble(tmp_path):
     """_remove_toml_block unlinks the file when removing semble leaves it empty."""
     f = tmp_path / "config.toml"
-    _merge_toml_block(f)
-    _remove_toml_block(f)
+    merge_toml_block(f)
+    remove_toml_block(f)
     assert not f.exists()
 
 
@@ -265,7 +265,7 @@ def test_remove_toml_strips_sub_tables(tmp_path, content):
     """_remove_toml_block removes sub-tables like [mcp_servers.semble.tools.search], before or after the main header."""
     f = tmp_path / "config.toml"
     f.write_text(content)
-    assert _remove_toml_block(f) == "removed"
+    assert remove_toml_block(f) == "removed"
     text = f.read_text()
     assert "[mcp_servers.semble]" not in text
     assert "[mcp_servers.semble.tools.search]" not in text

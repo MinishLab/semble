@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import os
 import shutil
 import sys
@@ -12,6 +13,8 @@ from semble.index.files import FileStatus, get_extensions, get_file_status
 from semble.index.types import PersistencePath
 from semble.types import ContentType
 from semble.utils import is_git_url, resolve_model_name
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from semble.index import SembleIndex
@@ -48,11 +51,24 @@ def _linux_cache_dir(name: str) -> Path:
     return base / name
 
 
+def _get_valid_user_cache_dir() -> Path | None:
+    """Gets the user cache dir if it is set and is a valid path."""
+    user_cache_location = os.getenv("SEMBLE_CACHE_LOCATION")
+    if user_cache_location is None:
+        return None
+    user_cache_dir = Path(user_cache_location)
+    if not user_cache_dir.is_absolute():
+        logger.warning("SEMBLE_CACHE_LOCATION is not an absolute path: %s", user_cache_location)
+        return None
+
+    return user_cache_dir
+
+
 def resolve_cache_folder() -> Path:
     """Resolves a cache folder, respects SEMBLE_CACHE_LOCATION (highest precedence), XDG_CACHE_HOME."""
     name = "semble"
-    if semble_cache_location := os.getenv("SEMBLE_CACHE_LOCATION"):
-        cache_dir = Path(semble_cache_location)
+    if user_cache_dir := _get_valid_user_cache_dir():
+        cache_dir = user_cache_dir
     elif sys.platform == "win32":
         cache_dir = _windows_cache_dir(name)
     elif sys.platform == "darwin":

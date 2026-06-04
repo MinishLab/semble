@@ -230,7 +230,7 @@ def _strip_toml_section(text: str, header: str) -> str:
     return "".join(result)
 
 
-def _merge_toml_block(path: Path) -> Action:
+def merge_toml_block(path: Path) -> Action:
     """Add (or refresh) the semble [mcp_servers.semble] table in a Codex config.toml as text."""
     path.parent.mkdir(parents=True, exist_ok=True)
     existed = path.exists()
@@ -242,7 +242,7 @@ def _merge_toml_block(path: Path) -> Action:
     return "created" if not existed else "updated"
 
 
-def _remove_toml_block(path: Path) -> Action:
+def remove_toml_block(path: Path) -> Action:
     """Remove the semble [mcp_servers.semble] table from a Codex config.toml, leaving the rest."""
     if not path.exists():
         return "not-found"

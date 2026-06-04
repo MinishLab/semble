@@ -9,19 +9,19 @@ from typing import Callable, NoReturn, Sequence, TypeVar
 import questionary
 
 from semble.installer.agents import (
-    _INSTRUCTIONS,
     AGENTS,
+    INSTRUCTIONS,
     AgentTarget,
     Mode,
     WriteResult,
     is_detected,
 )
 from semble.installer.config import (
-    _merge_toml_block,
-    _remove_toml_block,
     merge_json_member,
+    merge_toml_block,
     remove_json_member,
     remove_marked,
+    remove_toml_block,
     replace_or_append_marked,
 )
 
@@ -51,14 +51,14 @@ class _Integration:
 def merge_mcp(agent: AgentTarget) -> WriteResult:
     """Add the semble MCP entry to the agent's config."""
     assert agent.mcp is not None
-    path = agent.mcp.resolved_path()
+    path = agent.mcp.path
     return WriteResult(path, merge_json_member(path, agent.mcp.key, "semble", agent.mcp.entry))
 
 
 def remove_mcp(agent: AgentTarget) -> WriteResult:
     """Remove the semble MCP entry from the agent's config."""
     assert agent.mcp is not None
-    path = agent.mcp.resolved_path()
+    path = agent.mcp.path
     return WriteResult(path, remove_json_member(path, agent.mcp.key, "semble"))
 
 
@@ -66,9 +66,9 @@ def _apply_mcp(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     """Apply or remove the MCP server integration for one agent."""
     if agent.mcp is None:
         return None
-    path = agent.mcp.resolved_path()
+    path = agent.mcp.path
     if agent.mcp.format == "toml":
-        return WriteResult(path, _merge_toml_block(path) if mode == "install" else _remove_toml_block(path))
+        return WriteResult(path, merge_toml_block(path) if mode == "install" else remove_toml_block(path))
     return merge_mcp(agent) if mode == "install" else remove_mcp(agent)
 
 
@@ -77,7 +77,7 @@ def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     path = agent.instructions_path
     if path is None:
         return None
-    action = replace_or_append_marked(path, _INSTRUCTIONS) if mode == "install" else remove_marked(path)
+    action = replace_or_append_marked(path, INSTRUCTIONS) if mode == "install" else remove_marked(path)
     return WriteResult(path, action)
 
 
