@@ -145,6 +145,18 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
     assert ignored is True
 
 
+def test_walk_files_preserves_path_sort_order(tmp_path: Path) -> None:
+    """Walking yields files in the same order as sorted Path entries."""
+    names = ["z.py", "a.py", "m.py"]
+    for name in names:
+        _touch(tmp_path / name)
+
+    found = list(walk_files(tmp_path, [".py"]))
+    expected = sorted(tmp_path / name for name in names)
+
+    assert found == expected
+
+
 def test_walk_files_skips_symlinks(tmp_path: Path) -> None:
     """Symlinked files and directories are skipped; real paths are still walked."""
     # Real directory with a file
