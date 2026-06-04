@@ -229,3 +229,184 @@ def test_agent_file_tools_are_bash_only() -> None:
     tools = [t.strip() for t in tools_line.removeprefix("tools:").split(",")]
     assert set(tools) == {"Bash", "Read"}, f"Unexpected tools in agent file: {tools}"
     assert not any("mcp__" in t for t in tools)
+
+
+# ---------- _run_clear / clear command tests ----------
+
+
+def _make_valid_index_dir(cache_folder: Path, sha: str = "a" * 64) -> Path:
+    """Create a fake valid index directory with the expected structure."""
+    index_dir = cache_folder / sha / "index"
+    index_dir.mkdir(parents=True)
+    # Create the files that PersistencePath.non_existing checks
+    (index_dir / "chunks.json").write_text("[]")
+    (index_dir / "bm25_index").write_text("")
+    (index_dir / "semantic_index").write_text("")
+    (index_dir / "metadata.json").write_text("{}")
+    return index_dir
+
+
+def test_run_clear_index_with_valid_indexes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('index') finds and reports valid indexes."""
+    from semble.cli import _run_clear
+
+    _make_valid_index_dir(tmp_path, "a" * 64)
+    _make_valid_index_dir(tmp_path, "b" * 64)
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("index")
+
+    out = capsys.readouterr().out
+    assert "Cleared index" in out
+    # Both SHA dirs should appear
+    assert "a" * 64 in out
+    assert "b" * 64 in out
+
+
+def test_run_clear_index_no_indexes_found(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('index') prints a message when no indexes exist."""
+    from semble.cli import _run_clear
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("index")
+
+    out = capsys.readouterr().out
+    assert "No indexes found" in out
+
+
+def test_run_clear_index_skips_non_sha_dirs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('index') ignores directories whose name is not a valid SHA-256."""
+    from semble.cli import _run_clear
+
+    # Create an index dir with a non-SHA parent name
+    bad_dir = tmp_path / "not-a-sha" / "index"
+    bad_dir.mkdir(parents=True)
+    (bad_dir / "chunks.json").write_text("[]")
+    (bad_dir / "bm25_index").write_text("")
+    (bad_dir / "semantic_index").write_text("")
+    (bad_dir / "metadata.json").write_text("{}")
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("index")
+
+    out = capsys.readouterr().out
+    assert "No indexes found" in out
+
+
+def test_run_clear_index_skips_incomplete_indexes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('index') skips indexes with missing persistence files."""
+    from semble.cli import _run_clear
+
+    # Create an index dir with only some files (missing chunks.json, etc.)
+    index_dir = tmp_path / ("c" * 64) / "index"
+    index_dir.mkdir(parents=True)
+    # Don't create any persistence files — non_existing() will return a non-empty list
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("index")
+
+    out = capsys.readouterr().out
+    assert "No indexes found" in out
+
+
+def test_run_clear_savings_removes_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('savings') deletes savings.jsonl when it exists."""
+    from semble.cli import _run_clear
+
+    savings_file = tmp_path / "savings.jsonl"
+    savings_file.write_text('{"tokens": 100}\n')
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("savings")
+
+    assert not savings_file.exists()
+    out = capsys.readouterr().out
+    assert "Cleared savings" in out
+
+
+def test_run_clear_savings_no_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('savings') prints a message when no savings file exists."""
+    from semble.cli import _run_clear
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("savings")
+
+    out = capsys.readouterr().out
+    assert "No savings file found" in out
+
+
+def test_run_clear_all_clears_both(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('all') handles both indexes and savings."""
+    from semble.cli import _run_clear
+
+    _make_valid_index_dir(tmp_path, "d" * 64)
+    savings_file = tmp_path / "savings.jsonl"
+    savings_file.write_text('{"tokens": 50}\n')
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("all")
+
+    out = capsys.readouterr().out
+    assert "Cleared index" in out
+    assert "d" * 64 in out
+    assert "Cleared savings" in out
+    assert not savings_file.exists()
+
+
+def test_run_clear_all_nothing_to_clear(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('all') reports both missing when cache is empty."""
+    from semble.cli import _run_clear
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _run_clear("all")
+
+    out = capsys.readouterr().out
+    assert "No indexes found" in out
+    assert "No savings file found" in out
+
+
+def test_cli_clear_command(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """The `semble clear index` CLI dispatches to _run_clear correctly."""
+    _make_valid_index_dir(tmp_path, "e" * 64)
+    monkeypatch.setattr(sys, "argv", ["semble", "clear", "index"])
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _cli_main()
+
+    out = capsys.readouterr().out
+    assert "Cleared index" in out
+    assert "e" * 64 in out
+
+
+def test_cli_clear_savings_command(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The `semble clear savings` CLI removes the savings file."""
+    savings_file = tmp_path / "savings.jsonl"
+    savings_file.write_text('{"tokens": 200}\n')
+    monkeypatch.setattr(sys, "argv", ["semble", "clear", "savings"])
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _cli_main()
+
+    assert not savings_file.exists()
+    out = capsys.readouterr().out
+    assert "Cleared savings" in out
+
+
+def test_cli_clear_all_command(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The `semble clear all` CLI clears indexes and savings."""
+    _make_valid_index_dir(tmp_path, "f" * 64)
+    savings_file = tmp_path / "savings.jsonl"
+    savings_file.write_text('{"tokens": 300}\n')
+    monkeypatch.setattr(sys, "argv", ["semble", "clear", "all"])
+
+    with patch("semble.cli.resolve_cache_folder", return_value=tmp_path):
+        _cli_main()
+
+    assert not savings_file.exists()
+    out = capsys.readouterr().out
+    assert "Cleared index" in out
+    assert "Cleared savings" in out
