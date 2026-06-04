@@ -441,6 +441,24 @@ def test_remove_marked_not_found(tmp_path, initial):
     assert remove_marked(f) == "not-found"
 
 
+@pytest.mark.parametrize("agent_id", ["reasonix", "pi"])
+def test_new_agents_mcp_install_remove_idempotent(tmp_path, agent_id):
+    """Reasonix and Pi: merge writes mcpServers.semble; second call is unchanged; remove cleans up."""
+    src = next(a for a in AGENTS if a.id == agent_id)
+    agent = replace(src, mcp=replace(src.mcp, path=tmp_path / "mcp.json"))
+    (tmp_path / "mcp.json").write_text('{"mcpServers": {}}\n')
+
+    assert merge_mcp(agent).action == "updated"
+    data = json.loads((tmp_path / "mcp.json").read_text())
+    assert "semble" in data["mcpServers"]
+
+    assert merge_mcp(agent).action == "unchanged"
+    assert (tmp_path / "mcp.json").read_text().count('"semble":') == 1
+
+    assert remove_mcp(agent).action == "removed"
+    assert "semble" not in json.loads((tmp_path / "mcp.json").read_text()).get("mcpServers", {})
+
+
 @pytest.mark.parametrize("command", ["install", "uninstall"])
 def test_cli_dispatches_to_installer_run(monkeypatch, command):
     """`semble install` / `semble uninstall` route to installer.run with the command name."""

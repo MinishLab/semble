@@ -220,6 +220,27 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".config" / "zed" / "settings.json", "context_servers", _ZED_SERVER_CONFIG),
         instructions_path=None,
     ),
+    AgentTarget(
+        id="reasonix",
+        display_name="Reasonix",
+        binary="reasonix",
+        config_dir=_HOME / ".config" / "reasonix",
+        # ~/.reasonix/config.json is the legacy v0.x path still read by v1.x for backwards compat.
+        # The v1.x canonical config is ~/.config/reasonix/config.toml ([[plugins]]), but the JSON
+        # path requires no special TOML handling and works for new users who have never had v0.x.
+        mcp=McpConfig(_HOME / ".reasonix" / "config.json", "mcpServers", _BARE_STDIO_SERVER_CONFIG),
+        instructions_path=_HOME / ".config" / "reasonix" / "REASONIX.md",
+        subagent_path=_HOME / ".reasonix" / "skills" / "semble-search.md",
+    ),
+    AgentTarget(
+        id="pi",
+        display_name="Pi",
+        binary="pi",
+        config_dir=_HOME / ".pi",
+        mcp=McpConfig(_HOME / ".pi" / "agent" / "mcp.json", "mcpServers", _BARE_STDIO_SERVER_CONFIG),
+        instructions_path=None,
+        subagent_path=_HOME / ".pi" / "agents" / "semble-search.md",
+    ),
 ]
 
 

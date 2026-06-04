@@ -21,7 +21,9 @@ To undo:
 semble uninstall
 ```
 
-Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, and Zed.
+Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, and Pi.
+
+> **Pi prerequisite:** Pi requires the MCP extension to be installed before semble can connect. Run `pi install npm:pi-mcp-extension` once, then `semble install`.
 
 ---
 
@@ -198,6 +200,48 @@ Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
 
 </details>
 
+<details>
+<summary>Reasonix</summary>
+
+Add to `~/.reasonix/config.json` (the backwards-compatible MCP config path read by all Reasonix versions):
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Pi</summary>
+
+First install the Pi MCP extension (one-time prerequisite):
+
+```bash
+pi install npm:pi-mcp-extension
+```
+
+Then add to `~/.pi/agent/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
 By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command. For example, in Claude Code:
 
 ```bash
@@ -260,3 +304,5 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Kiro | `kiro.md` | `~/.kiro/agents/semble-search.md` |
 | OpenCode | `opencode.md` | `~/.config/opencode/agents/semble-search.md` |
 | GitHub Copilot | `copilot.md` | `~/.copilot/agents/semble-search.agent.md` |
+| Reasonix | `reasonix.md` | `~/.reasonix/skills/semble-search.md` |
+| Pi | `pi.md` | `~/.pi/agents/semble-search.md` |
