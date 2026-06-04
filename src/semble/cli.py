@@ -138,12 +138,12 @@ def _run_find_related(path: str, file_path: str, line: int, top_k: int, content:
     _maybe_save_index(index, path)
 
 
-def _run_clear(type: _CLEAR_CHOICE) -> None:
+def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
     """Run the `clear` subcommand."""
     cache_folder = resolve_cache_folder()
-    if type == "index" or type == "all":
+    if clear_type == "index" or clear_type == "all":
         indexes = []
-        for path in cache_folder.glob("**/index"):
+        for path in cache_folder.glob("*/index"):
             if not _SHA_256_REGEX.match(path.parent.name):
                 continue
             if PersistencePath.from_path(path).non_existing():
@@ -158,7 +158,7 @@ def _run_clear(type: _CLEAR_CHOICE) -> None:
                 rmtree(index_folder)
                 print(f"Cleared index at `{index_folder}`")
 
-    if type == "savings" or type == "all":
+    if clear_type == "savings" or clear_type == "all":
         path = cache_folder / "savings.jsonl"
         if not path.exists():
             print(f"No savings file found at `{path}`")

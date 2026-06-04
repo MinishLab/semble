@@ -231,9 +231,6 @@ def test_agent_file_tools_are_bash_only() -> None:
     assert not any("mcp__" in t for t in tools)
 
 
-# ---------- _run_clear / clear command tests ----------
-
-
 def _make_valid_index_dir(cache_folder: Path, sha: str = "a" * 64) -> Path:
     """Create a fake valid index directory with the expected structure."""
     index_dir = cache_folder / sha / "index"
@@ -261,6 +258,8 @@ def test_run_clear_index_with_valid_indexes(tmp_path: Path, capsys: pytest.Captu
     # Both SHA dirs should appear
     assert "a" * 64 in out
     assert "b" * 64 in out
+    assert not (tmp_path / ("a" * 64)).exists()
+    assert not (tmp_path / ("b" * 64)).exists()
 
 
 def test_run_clear_index_no_indexes_found(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -350,6 +349,7 @@ def test_run_clear_all_clears_both(tmp_path: Path, capsys: pytest.CaptureFixture
     assert "Cleared index" in out
     assert "d" * 64 in out
     assert "Cleared savings" in out
+    assert not (tmp_path / ("d" * 64)).exists()
     assert not savings_file.exists()
 
 
