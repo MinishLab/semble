@@ -5,13 +5,12 @@ import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Literal
+from typing import Literal
 
 _HOME = Path.home()
 
 Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
 Mode = Literal["install", "uninstall"]
-PathResolver = Callable[[], Path]
 
 SEMBLE_START = "<!-- SEMBLE_START -->"
 SEMBLE_END = "<!-- SEMBLE_END -->"
@@ -39,7 +38,7 @@ _ZED_SERVER_CONFIG: dict[str, object] = {  # Zed requires "source": "custom" for
     "args": ["--from", "semble[mcp]", "semble"],
 }
 
-_INSTRUCTIONS = f"""\
+INSTRUCTIONS = f"""\
 {SEMBLE_START}
 ## Semble Code Search
 
@@ -78,14 +77,10 @@ The index is built on first run and cached automatically. If `semble` is not on 
 class McpConfig:
     """MCP integration config for one agent."""
 
-    path: Path | PathResolver
+    path: Path
     key: str
     entry: dict[str, object]
     format: Literal["json", "toml"] = "json"
-
-    def resolved_path(self) -> Path:
-        """Return the resolved config path."""
-        return self.path() if callable(self.path) else self.path
 
 
 @dataclass(frozen=True)
@@ -110,7 +105,7 @@ class AgentTarget:
 
     def resolved_mcp_path(self) -> Path | None:
         """Return the resolved MCP config path, or None if MCP is unsupported."""
-        return self.mcp.resolved_path() if self.mcp else None
+        return self.mcp.path if self.mcp else None
 
 
 def _opencode_mcp_path() -> Path:
@@ -175,7 +170,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Opencode",
         binary="opencode",
         config_dir=_HOME / ".config" / "opencode",
-        mcp=McpConfig(_opencode_mcp_path, "mcp", _OPENCODE_SERVER_CONFIG),
+        mcp=McpConfig(_opencode_mcp_path(), "mcp", _OPENCODE_SERVER_CONFIG),
         instructions_path=_HOME / ".config" / "opencode" / "AGENTS.md",
         subagent_path=_HOME / ".config" / "opencode" / "agents" / "semble-search.md",
     ),
@@ -201,7 +196,7 @@ AGENTS: list[AgentTarget] = [
         display_name="VS Code",
         binary="code",
         config_dir=None,
-        mcp=McpConfig(_vscode_mcp_path, "servers", _STDIO_SERVER_CONFIG),
+        mcp=McpConfig(_vscode_mcp_path(), "servers", _STDIO_SERVER_CONFIG),
         instructions_path=None,
     ),
     AgentTarget(

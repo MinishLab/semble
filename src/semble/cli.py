@@ -1,19 +1,26 @@
 import argparse
 import asyncio
 import json
+import re
 import sys
 import warnings
 from importlib.util import find_spec
+from shutil import rmtree
+from typing import Literal
 
 from model2vec.utils import get_package_extras
 
-from semble.cache import find_index_from_cache_folder
+from semble.cache import find_index_from_cache_folder, resolve_cache_folder
 from semble.index import SembleIndex
+from semble.index.types import PersistencePath
 from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
 
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "install", "uninstall", "savings", "-h", "--help"})
+_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear"})
+_CLEAR_CHOICE = Literal["all", "index", "savings"]
+
+_SHA_256_REGEX = re.compile(r"^[a-f0-9]{64}$")
 
 
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
@@ -131,6 +138,35 @@ def _run_find_related(path: str, file_path: str, line: int, top_k: int, content:
     _maybe_save_index(index, path)
 
 
+def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
+    """Run the `clear` subcommand."""
+    cache_folder = resolve_cache_folder()
+    if clear_type == "index" or clear_type == "all":
+        indexes = []
+        for path in cache_folder.glob("*/index"):
+            if not _SHA_256_REGEX.match(path.parent.name):
+                continue
+            if PersistencePath.from_path(path).non_existing():
+                continue
+            indexes.append(path)
+
+        if not indexes:
+            print(f"No indexes found to clear in `{cache_folder}`")
+        else:
+            for path in indexes:
+                index_folder = path.parent
+                rmtree(index_folder)
+                print(f"Cleared index at `{index_folder}`")
+
+    if clear_type == "savings" or clear_type == "all":
+        path = cache_folder / "savings.jsonl"
+        if not path.exists():
+            print(f"No savings file found at `{path}`")
+        else:
+            path.unlink()
+            print(f"Cleared savings at `{path}`")
+
+
 def _cli_main() -> None:
     parser = argparse.ArgumentParser(prog="semble")
     sub = parser.add_subparsers(dest="command")
@@ -140,6 +176,9 @@ def _cli_main() -> None:
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     _add_content_args(search_p)
+
+    clear_p = sub.add_parser("clear", help="Clear the index cache.")
+    clear_p.add_argument("type", choices=["all", "index", "savings"], help="Type of cache to clear.")
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")
@@ -162,6 +201,8 @@ def _cli_main() -> None:
         from semble.installer import run
 
         run(args.command)
+    elif args.command == "clear":
+        _run_clear(args.type)
     elif args.command == "search":
         _run_search(args.path, args.query, args.top_k, _resolve_content(args.content, args.include_text_files))
     elif args.command == "find-related":
