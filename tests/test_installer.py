@@ -124,14 +124,15 @@ def test_merge_mcp_errors(claude_agent, content):
 
 
 @pytest.mark.parametrize(
-    ("agent_id", "key"),
-    [
-        ("zed", "context_servers"),
-        ("windsurf", "mcpServers"),
-        ("copilot", "mcpServers"),
-        ("reasonix", "mcpServers"),
-        ("pi", "mcpServers"),
-    ],
+ ("agent_id", "key"),
+ [
+ ("zed", "context_servers"),
+ ("windsurf", "mcpServers"),
+ ("copilot", "mcpServers"),
+ ("reasonix", "mcpServers"),
+ ("pi", "mcpServers"),
+ ("commandcode", "mcpServers"),
+ ],
 )
 def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
     """merge_mcp writes the semble entry under each agent's own top-level MCP key."""
