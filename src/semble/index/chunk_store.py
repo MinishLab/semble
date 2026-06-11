@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -171,7 +171,7 @@ class LmdbChunkStore:
         self._write_keyed_chunks((chunk, chunk.chunk_id) for chunk in chunks)
 
     def write_chunks_with_ids(self, chunks: Sequence[Chunk], chunk_ids: Sequence[int]) -> None:
-        """Persist chunks keyed by supplied IDs without changing chunk payloads."""
+        """Persist chunks keyed by supplied stable IDs and store those IDs in the payload."""
         self._write_keyed_chunks(zip(chunks, chunk_ids))
 
     def _write_keyed_chunks(self, keyed_chunks: Iterator[tuple[Chunk, int | None]]) -> None:
@@ -180,7 +180,8 @@ class LmdbChunkStore:
             for chunk, chunk_id in keyed_chunks:
                 if chunk_id is None:
                     continue
-                txn.put(_int_key(chunk_id), _serialize_chunk(chunk), db=self.chunks_db)
+                keyed_chunk = chunk if chunk.chunk_id == chunk_id else replace(chunk, chunk_id=chunk_id)
+                txn.put(_int_key(chunk_id), _serialize_chunk(keyed_chunk), db=self.chunks_db)
                 next_chunk_id = max(next_chunk_id, chunk_id + 1)
             txn.put(_NEXT_CHUNK_ID, str(next_chunk_id).encode(), db=self.meta_db)
 

@@ -16,6 +16,7 @@ import pytest
 from model2vec import StaticModel
 from vicinity.backends.basic import BasicArgs
 
+import semble.index.create as create_module
 from semble import SembleIndex
 from semble.cache import GIT_CACHE_ROOTS_VERSION, get_validated_cache
 from semble.chunking import chunk_source
@@ -25,7 +26,7 @@ from semble.index.dense import SelectableBasicBackend
 from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
 from semble.index.source_inventory import GitWalkPlan
 from semble.index.sparse import TantivySparseIndex
-from semble.types import ContentType
+from semble.types import Chunk, ContentType
 from tests.conftest import make_chunk
 
 _GIT_ENV = {
@@ -64,6 +65,10 @@ def _git_commit_all(path: Path, message: str = "commit") -> None:
 def _git_head(path: Path) -> str:
     result = subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"], check=True, capture_output=True)
     return result.stdout.decode().strip()
+
+
+def _with_sequential_chunk_ids(chunks: list[Chunk]) -> list[Chunk]:
+    return [replace(chunk, chunk_id=index) for index, chunk in enumerate(chunks)]
 
 
 @pytest.fixture
@@ -213,6 +218,27 @@ def test_chunk_process_workers_do_not_rerun_caller_top_level(tmp_path: Path) -> 
     assert payload["chunk_count"] > 0
     assert payload["has_sizes"] is True
     assert payload["has_hashes"] is True
+
+
+def test_chunk_workers_reserve_process_worker_quota() -> None:
+    """Thread chunk workers should stay within quota after reserving process workers."""
+    with patch.object(create_module, "index_worker_quota", return_value=8):
+        assert create_module._default_process_chunk_worker_count() == 4
+        assert create_module._default_chunk_worker_count(4) == 4
+
+
+def test_configured_chunk_workers_cannot_exceed_remaining_quota() -> None:
+    """Explicit worker env vars should not exceed the shared indexing quota."""
+    with (
+        patch.object(create_module, "index_worker_quota", return_value=2),
+        patch.dict(
+            "os.environ",
+            {"SEMBLE_CHUNK_PROCESS_WORKERS": "8", "SEMBLE_CHUNK_WORKERS": "8"},
+        ),
+    ):
+        process_workers = create_module._default_process_chunk_worker_count()
+        assert process_workers == 1
+        assert create_module._default_chunk_worker_count(process_workers) == 1
 
 
 def test_create_index_build_uses_tantivy_sparse_index_and_reuses_file_sizes(
@@ -392,7 +418,7 @@ def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
     indexed_index.save(tmp_path)
     with patch.object(StaticModel, "from_pretrained"):
         index_2 = SembleIndex.load_from_disk(tmp_path)
-    assert index_2.chunks == indexed_index.chunks
+    assert list(index_2.chunks) == _with_sequential_chunk_ids(indexed_index.chunks)
     assert index_2._root == indexed_index._root
 
 
@@ -441,7 +467,7 @@ def test_loaded_chunks_by_id_batches_payload_reads(
         loaded = SembleIndex.load_from_disk(tmp_path)
 
     chunk_ids = [0, min(1, len(indexed_index.chunks) - 1)]
-    expected = [indexed_index.chunks[chunk_id] for chunk_id in chunk_ids]
+    expected = [replace(indexed_index.chunks[chunk_id], chunk_id=chunk_id) for chunk_id in chunk_ids]
     with patch.object(
         loaded.chunks,
         "chunk_by_id",
@@ -503,7 +529,7 @@ def test_full_save_replaces_lmdb_chunk_store(tmp_path: Path, mock_model: StaticM
 
     store = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
     try:
-        assert store.get_chunk(0) == first
+        assert store.get_chunk(0) == replace(first, chunk_id=0)
         assert store.get_chunk(1) is None
     finally:
         store.close()
@@ -537,8 +563,8 @@ def test_full_save_keeps_existing_lmdb_chunk_store_when_rewrite_fails(tmp_path: 
 
     store = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
     try:
-        assert store.get_chunk(0) == first
-        assert store.get_chunk(1) == stale
+        assert store.get_chunk(0) == replace(first, chunk_id=0)
+        assert store.get_chunk(1) == replace(stale, chunk_id=1)
     finally:
         store.close()
 

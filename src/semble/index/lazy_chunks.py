@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import overload
 
@@ -105,6 +106,8 @@ class BaseLazyChunkList(Sequence[Chunk]):
             store.close()
         if loaded is None:
             raise FileNotFoundError(f"Index chunk store is missing chunk payload for id {chunk_id}")
+        if loaded.chunk_id != chunk_id:
+            loaded = replace(loaded, chunk_id=chunk_id)
         self._cache[chunk_id] = loaded
         return loaded
 
@@ -119,7 +122,10 @@ class BaseLazyChunkList(Sequence[Chunk]):
                 store.close()
             if len(loaded_chunks) != len(missing_ids):
                 raise FileNotFoundError("Index chunk store is missing chunk payloads")
-            self._cache.update(zip(missing_ids, loaded_chunks))
+            for missing_id, loaded_chunk in zip(missing_ids, loaded_chunks):
+                self._cache[missing_id] = (
+                    loaded_chunk if loaded_chunk.chunk_id == missing_id else replace(loaded_chunk, chunk_id=missing_id)
+                )
         return [self._cache[chunk_id] for chunk_id in chunk_ids]
 
     def chunk_ids_for_paths(self, file_paths: frozenset[str]) -> list[int]:

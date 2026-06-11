@@ -4,6 +4,7 @@ import numpy as np
 import orjson
 
 from semble.index.chunk_store import _CHUNK_PAYLOAD_V1, FileManifest, LmdbChunkStore, _int_key
+from semble.index.lazy_chunks import LazyChunkList
 from semble.types import Chunk
 from tests.conftest import make_chunk
 
@@ -52,9 +53,17 @@ def test_lmdb_chunk_store_reads_chunks_by_stable_id(tmp_path: Path) -> None:
     loaded.close()
 
 
-def test_lmdb_chunk_store_writes_chunks_by_explicit_ids_without_mutating_payload(tmp_path: Path) -> None:
-    """Full-save chunk IDs can be storage keys without changing public chunk payloads."""
+def test_lmdb_chunk_store_writes_explicit_ids_into_payload(tmp_path: Path) -> None:
+    """Full-save chunk IDs should be storage keys and visible on loaded chunk payloads."""
     chunk = make_chunk("def authenticate(token):\n    return token", "auth.py")
+    expected = Chunk(
+        content=chunk.content,
+        file_path=chunk.file_path,
+        start_line=chunk.start_line,
+        end_line=chunk.end_line,
+        language=chunk.language,
+        chunk_id=7,
+    )
     store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
     try:
         store.write_chunks_with_ids([chunk], [7])
@@ -63,10 +72,26 @@ def test_lmdb_chunk_store_writes_chunks_by_explicit_ids_without_mutating_payload
 
     loaded = LmdbChunkStore.open(tmp_path / "chunks.lmdb", readonly=True)
     try:
-        assert loaded.get_chunk(7) == chunk
+        assert loaded.get_chunk(7) == expected
         assert loaded.next_chunk_id() == 8
     finally:
         loaded.close()
+
+
+def test_lazy_chunk_list_restores_stable_id_from_legacy_payload(tmp_path: Path) -> None:
+    """Legacy payloads without chunk_id should still materialize with their stable lookup ID."""
+    chunk = make_chunk("def authenticate(token):\n    return token", "auth.py")
+    store = LmdbChunkStore.open(tmp_path / "chunks.lmdb")
+    try:
+        with store.env.begin(write=True) as txn:
+            txn.put(_int_key(7), orjson.dumps(chunk.to_dict()), db=store.chunks_db)
+    finally:
+        store.close()
+
+    lazy_chunks = LazyChunkList([7], tmp_path / "chunks.lmdb", ["auth.py"], ["python"])
+
+    assert lazy_chunks.chunk_by_id(7).chunk_id == 7
+    assert lazy_chunks.chunks_by_id([7])[0].chunk_id == 7
 
 
 def test_lmdb_chunk_store_reads_legacy_json_chunk_payload(tmp_path: Path) -> None:

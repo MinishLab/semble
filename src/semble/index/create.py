@@ -117,22 +117,28 @@ class IndexBuild:
     tracked_paths: tuple[str, ...] | None = None
 
 
-def _default_chunk_worker_count() -> int:
+def _foreground_chunk_worker_count(process_workers: int) -> int:
+    return max(1, index_worker_quota() - max(0, process_workers))
+
+
+def _default_chunk_worker_count(process_workers: int = 0) -> int:
+    available_workers = _foreground_chunk_worker_count(process_workers)
     configured = os.environ.get("SEMBLE_CHUNK_WORKERS")
     if configured:
         with contextlib.suppress(ValueError):
-            return max(1, int(configured))
-    return index_worker_quota()
+            return max(1, min(available_workers, int(configured)))
+    return available_workers
 
 
 def _default_process_chunk_worker_count() -> int:
     configured = os.environ.get("SEMBLE_CHUNK_PROCESS_WORKERS")
+    max_process_workers = max(0, index_worker_quota() - 1)
     if configured:
         with contextlib.suppress(ValueError):
-            return max(0, int(configured))
+            return max(0, min(max_process_workers, int(configured)))
     if not _can_use_process_workers():
         return 0
-    return min(8, index_worker_quota())
+    return min(8, max_process_workers, index_worker_quota() // 2)
 
 
 def _can_use_process_workers() -> bool:
@@ -148,8 +154,8 @@ def _create_process_executor() -> ProcessPoolExecutor | None:
     return executor
 
 
-_CHUNK_WORKER_COUNT = _default_chunk_worker_count()
 _PROCESS_CHUNK_WORKER_COUNT = _default_process_chunk_worker_count()
+_CHUNK_WORKER_COUNT = _default_chunk_worker_count(_PROCESS_CHUNK_WORKER_COUNT)
 
 
 def _chunk_file(
