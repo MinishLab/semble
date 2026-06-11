@@ -4,6 +4,8 @@ from pathlib import Path
 
 from pathspec import GitIgnoreSpec
 
+from semble.index.files import shebang_language_for_file
+
 
 @dataclass(frozen=True)
 class IgnoreSpec:
@@ -49,7 +51,12 @@ def _load_ignore_for_dir(directory: Path) -> GitIgnoreSpec | None:
     return None
 
 
-def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | None = None) -> Iterator[Path]:
+def walk_files(
+    root: Path,
+    extensions: Sequence[str],
+    ignore: Sequence[str] | None = None,
+    shebang_languages: Sequence[str] = (),
+) -> Iterator[Path]:
     """Yield files under root matching extensions, skipping ignored paths.
 
     Directories matching DEFAULT_IGNORED_DIRS plus any names in ignore are always
@@ -58,6 +65,9 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     :param root: Root directory to walk.
     :param extensions: List of file extensions to match.
     :param ignore: Additional patterns to ignore.
+    :param shebang_languages: When non-empty, extensionless files whose shebang
+        maps to one of these languages are also yielded (e.g. a bin/ CLI with
+        ``#!/usr/bin/env python3``).
     :yield: Path to each file under root matching the criteria.
     :ytype: Path
     """
@@ -65,7 +75,7 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     dir_patterns = list(sorted(_DEFAULT_IGNORED_DIRS)) + list(ignore or [])
     base_spec = GitIgnoreSpec.from_lines(dir_patterns, backend="simple")
     s = IgnoreSpec(base=root, spec=base_spec)
-    yield from _walk(root, [s], extensions_set)
+    yield from _walk(root, [s], extensions_set, frozenset(shebang_languages))
 
 
 def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
@@ -108,6 +118,7 @@ def _walk(
     directory: Path,
     inherited_specs: list[IgnoreSpec],
     extensions: frozenset[str],
+    shebang_languages: frozenset[str] = frozenset(),
 ) -> Iterator[Path]:
     """Recursive function for walking files under a directory."""
     spec = _load_ignore_for_dir(directory)
@@ -126,6 +137,12 @@ def _walk(
             continue
 
         if item.is_dir():
-            yield from _walk(item, inherited_specs, extensions)
-        elif item.is_file() and (found or item.suffix.lower() in extensions):
-            yield item
+            yield from _walk(item, inherited_specs, extensions, shebang_languages)
+        elif item.is_file():
+            if found or item.suffix.lower() in extensions:
+                yield item
+            # Fall back to shebang detection for extensionless scripts (e.g. a
+            # bin/ CLI starting with `#!/usr/bin/env python3`) when their
+            # language is one of the requested content types.
+            elif shebang_languages and not item.suffix and shebang_language_for_file(item) in shebang_languages:
+                yield item

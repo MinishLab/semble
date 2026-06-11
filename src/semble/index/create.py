@@ -9,7 +9,15 @@ from vicinity.backends.basic import BasicArgs
 from semble.chunking import chunk_source
 from semble.index.dense import SelectableBasicBackend, embed_chunks
 from semble.index.file_walker import walk_files
-from semble.index.files import FileStatus, detect_language, get_extensions, get_file_status, read_file_text
+from semble.index.files import (
+    FileStatus,
+    detect_language,
+    detect_language_from_shebang,
+    get_extensions,
+    get_file_status,
+    get_shebang_languages,
+    read_file_text,
+)
 from semble.index.sparse import enrich_for_bm25
 from semble.tokens import tokenize
 from semble.types import Chunk, ContentType
@@ -33,13 +41,14 @@ def create_index_from_path(
     chunks: list[Chunk] = []
     normalized = (content,) if isinstance(content, ContentType) else content
     resolved_extensions = get_extensions(normalized)
-    for file_path in walk_files(path, resolved_extensions):
-        language = detect_language(file_path)
+    shebang_languages = get_shebang_languages(normalized)
+    for file_path in walk_files(path, resolved_extensions, shebang_languages=shebang_languages):
         with contextlib.suppress(OSError):
             file_status = get_file_status(file_path, None)
             if file_status != FileStatus.VALID:
                 continue
             source = read_file_text(file_path)
+            language = detect_language(file_path) or detect_language_from_shebang(source)
             chunk_path = file_path.relative_to(display_root) if display_root else file_path
             chunks.extend(chunk_source(source, str(chunk_path), language))
 

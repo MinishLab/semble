@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from semble.index.file_walker import walk_files
-from semble.index.files import FileStatus, get_extensions, get_file_status
+from semble.index.files import FileStatus, get_extensions, get_file_status, get_shebang_languages
 from semble.index.types import PersistencePath
 from semble.types import ContentType
 from semble.utils import is_git_url, resolve_model_name
@@ -124,11 +124,12 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
 
     write_time = metadata["time"]
     extensions = get_extensions(content)
+    shebang_languages = get_shebang_languages(content)
 
     path_as_path = Path(path).resolve()
     stored_files: list[str] = metadata.get("file_paths", [])
     current_files = []
-    for file_path in walk_files(path_as_path, extensions=extensions):
+    for file_path in walk_files(path_as_path, extensions=extensions, shebang_languages=shebang_languages):
         file_status = get_file_status(file_path, write_time)
         if file_status == FileStatus.NEWER:
             return None

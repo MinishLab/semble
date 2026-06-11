@@ -169,3 +169,32 @@ def test_walk_files_skips_symlinks(tmp_path: Path) -> None:
     # Symlink-based paths are absent
     assert "wrapper/src/linked/mod.py" not in found
     assert "link_to_original.py" not in found
+
+
+def test_walk_files_includes_shebang_scripts(tmp_path: Path) -> None:
+    """Extensionless scripts are yielded when their shebang language is requested."""
+    _touch(tmp_path / "bin" / "run-py", "#!/usr/bin/env -S uv run python3\nprint('hi')\n")
+    _touch(tmp_path / "bin" / "run-sh", "#!/usr/bin/env bash\necho hi\n")
+    _touch(tmp_path / "bin" / "run-rb", "#!/usr/bin/env ruby\nputs 1\n")
+    _touch(tmp_path / "bin" / "notes", "just text, no shebang\n")
+    _touch(tmp_path / "src" / "a.py")
+
+    found = {
+        p.relative_to(tmp_path).as_posix()
+        for p in walk_files(tmp_path, [".py"], shebang_languages=frozenset({"python", "bash"}))
+    }
+
+    assert found == {"src/a.py", "bin/run-py", "bin/run-sh"}
+    # ruby is not in the requested shebang languages; the plain file has no shebang.
+    assert "bin/run-rb" not in found
+    assert "bin/notes" not in found
+
+
+def test_walk_files_without_shebang_languages_excludes_extensionless(tmp_path: Path) -> None:
+    """Default behaviour is unchanged: without shebang_languages, extensionless files are skipped."""
+    _touch(tmp_path / "bin" / "run-py", "#!/usr/bin/env python3\nprint('hi')\n")
+    _touch(tmp_path / "src" / "a.py")
+
+    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
+
+    assert found == {"src/a.py"}

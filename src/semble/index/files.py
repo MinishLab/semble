@@ -1,7 +1,8 @@
+import re
 from collections import defaultdict
 from collections.abc import Sequence
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from semble.types import ContentType
 
@@ -439,6 +440,38 @@ _DATA_LANGUAGES = {
     "tsv",
 }
 
+# Interpreter basename (lower-cased, version suffix stripped) -> language, used
+# to classify extensionless scripts by their shebang line when there is no file
+# extension to key on. Values must be languages present in
+# _EXTENSION_TO_LANGUAGE so the chunker can parse them.
+_SHEBANG_INTERPRETER_TO_LANGUAGE: dict[str, str] = {
+    "python": "python",
+    "bash": "bash",
+    "sh": "bash",
+    "dash": "bash",
+    "ksh": "bash",
+    "ash": "bash",
+    "zsh": "zsh",
+    "fish": "fish",
+    "node": "javascript",
+    "nodejs": "javascript",
+    "bun": "javascript",
+    "deno": "typescript",
+    "ruby": "ruby",
+    "perl": "perl",
+    "php": "php",
+    "lua": "lua",
+    "luajit": "lua",
+    "rscript": "r",
+    "pwsh": "powershell",
+    "powershell": "powershell",
+    "tclsh": "tcl",
+    "wish": "tcl",
+    "awk": "awk",
+    "gawk": "awk",
+    "groovy": "groovy",
+}
+
 
 def _inv_mapping(mapping: dict[str, str]) -> dict[str, list[str]]:
     """Invert a mapping, taking into account duplicate values."""
@@ -474,6 +507,60 @@ def get_extensions(types: Sequence[ContentType]) -> list[str]:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))
 
     return sorted(all_extensions)
+
+
+_SHEBANG_VERSION_SUFFIX = re.compile(r"[0-9][0-9.]*$")
+_SHEBANG_PEEK_BYTES = 256
+
+
+def detect_language_from_shebang(text: str) -> str | None:
+    """Detect a language from a script's shebang line, if present.
+
+    Handles plain interpreters (``#!/bin/bash``), ``env`` indirection
+    (``#!/usr/bin/env python3``) and ``env -S`` launcher wrappers
+    (``#!/usr/bin/env -S uv run --quiet python3``). The interpreter is taken to
+    be the last shebang token whose basename maps to a known language, so
+    wrapper commands (``env``, ``uv``, ``run``) and flags are skipped.
+
+    :param text: The file's text, or at least its first line.
+    :return: The detected language, or None when there is no usable shebang.
+    """
+    first_line = text.split("\n", 1)[0]
+    if not first_line.startswith("#!"):
+        return None
+    language: str | None = None
+    for token in first_line[2:].split():
+        if token.startswith("-"):
+            continue
+        name = PurePosixPath(token.strip("'\"")).name.lower()
+        mapped = _SHEBANG_INTERPRETER_TO_LANGUAGE.get(name) or _SHEBANG_INTERPRETER_TO_LANGUAGE.get(
+            _SHEBANG_VERSION_SUFFIX.sub("", name)
+        )
+        if mapped is not None:
+            language = mapped
+    return language
+
+
+def get_shebang_languages(types: Sequence[ContentType]) -> frozenset[str]:
+    """Languages reachable via a shebang that fall under the requested content types.
+
+    Used to gate shebang-based inclusion of extensionless scripts so it honours
+    the same content-type selection as extension-based indexing.
+    """
+    languages: set[str] = set()
+    for content_type in types:
+        languages.update(_CONTENT_TYPE_LANGUAGES[content_type])
+    return frozenset(languages & set(_SHEBANG_INTERPRETER_TO_LANGUAGE.values()))
+
+
+def shebang_language_for_file(file_path: Path) -> str | None:
+    """Read a file's first line and detect its language from the shebang, if any."""
+    try:
+        with file_path.open("r", encoding="utf-8", errors="ignore") as handle:
+            first_line = handle.readline(_SHEBANG_PEEK_BYTES)
+    except OSError:
+        return None
+    return detect_language_from_shebang(first_line)
 
 
 class FileStatus(str, Enum):
