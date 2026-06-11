@@ -519,7 +519,6 @@ def _clean_head_root_files(
     return True, current_files
 
 
-
 def _git_cache_controls_are_current(
     display_root: Path,
     source_rel: str,

@@ -136,9 +136,7 @@ def build_git_walk_plan(
     status_results = _concurrent_ordered_map(source_roots, _source_root_status)
     if previous_git_heads is not None:
         started = time.perf_counter()
-        expanded_source_roots = _discover_dirty_nested_source_roots(
-            root, ignore_specs, source_roots, status_results
-        )
+        expanded_source_roots = _discover_dirty_nested_source_roots(root, ignore_specs, source_roots, status_results)
         timings["git_root_discovery_s"] += time.perf_counter() - started
         if expanded_source_roots != source_roots:
             source_roots = expanded_source_roots
@@ -298,9 +296,9 @@ def _discover_nested_roots(
                     _add_source_root(roots, added, root, ignore_specs, root / source_rel, source_rel)
                     for added_root in added:
                         if added_root.has_git_marker:
-                            futures[
-                                executor.submit(run_with_index_worker, _nested_git_root_paths, added_root.path)
-                            ] = added_root
+                            futures[executor.submit(run_with_index_worker, _nested_git_root_paths, added_root.path)] = (
+                                added_root
+                            )
 
 
 def _discover_dirty_nested_source_roots(
@@ -320,7 +318,6 @@ def _discover_dirty_nested_source_roots(
 
     _discover_nested_roots(roots, pending, root, ignore_specs)
     return tuple(sorted(roots.values(), key=lambda source_root: (len(source_root.rel_path), source_root.rel_path)))
-
 
 
 def _git_cache_metadata_from_heads(

@@ -291,16 +291,12 @@ def create_index_build_from_path(
 
     git_metadata_job = _start_git_metadata_job(path, display_root, sorted(file_sizes))
     embed_reserved_workers = (
-        git_metadata_worker_count()
-        if git_metadata_job is not None and not git_metadata_job[1].done()
-        else 0
+        git_metadata_worker_count() if git_metadata_job is not None and not git_metadata_job[1].done() else 0
     )
     try:
         embeddings = embed_chunks(model, chunks, reserved_workers=embed_reserved_workers)
         sparse_reserved_workers = (
-            git_metadata_worker_count()
-            if git_metadata_job is not None and not git_metadata_job[1].done()
-            else 0
+            git_metadata_worker_count() if git_metadata_job is not None and not git_metadata_job[1].done() else 0
         )
         sparse_index = TantivySparseIndex.build_temporary(chunks, reserved_workers=sparse_reserved_workers)
         args = BasicArgs()

@@ -227,7 +227,6 @@ class LmdbChunkStore:
         finally:
             source.close()
 
-
     def _manifest_for_generation(self, data: bytes, generation: int) -> FileManifest:
         payload = FileManifest.from_dict(orjson.loads(data)).to_dict()
         payload["generation"] = generation
