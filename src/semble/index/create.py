@@ -326,7 +326,6 @@ def create_index_from_path(
     :param model: The model to use for indexing.
     :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
-    :raises ValueError: if no items were found, no index can be created.
     :return: A sparse index, vicinity index and list of chunks
     """
     build = create_index_build_from_path(path, model, content, display_root)

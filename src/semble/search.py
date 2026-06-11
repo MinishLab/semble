@@ -304,6 +304,7 @@ def search(
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :param filter_spec: Optional backend-neutral filters for language, path, or chunk IDs.
     :param rerank: Whether to perform code-tuned reranking. On by default for code search, off for docs search.
+    :param query_embedding: Optional precomputed embedding for this query.
     :return: List of search results sorted by combined score descending.
     """
     alpha_weight = resolve_alpha(query, alpha)
