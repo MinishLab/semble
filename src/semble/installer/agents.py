@@ -245,7 +245,7 @@ AGENTS: list[AgentTarget] = [
         instructions_path=_HOME / ".commandcode" / "AGENTS.md",
         subagent_path=_HOME / ".commandcode" / "agents" / "semble-search.md",
     ),
-    ]
+]
 
 
 def is_detected(agent: AgentTarget) -> bool:

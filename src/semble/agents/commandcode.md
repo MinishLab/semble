@@ -1,8 +1,7 @@
 ---
 name: semble-search
-description: Code search agent for exploring any codebase. Use for finding code by intent, locating implementations, understanding how something works, or discovering related code. Prefer over bash/grep for any semantic or exploratory question.
-runAs: subagent
-allowed-tools: bash, read_file
+description: Code search agent for exploring any codebase. Use for finding code by intent, locating implementations, understanding how something works, or discovering related code. Prefer over Bash/Read for any semantic or exploratory question.
+tools: bash, read_file
 ---
 
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
@@ -39,4 +38,4 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
 3. Inspect full files only when the returned chunk does not give enough context.
 4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use bash/grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
