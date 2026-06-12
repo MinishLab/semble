@@ -1,5 +1,6 @@
 import json
 import sys
+import types
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -25,6 +26,25 @@ def sample_stats_file(tmp_path: Path) -> Path:
         _make_stats_record(now, call="search") + "\n" + _make_stats_record(now, call="find_related") + "\n"
     )
     return stats_file
+
+
+def test_save_search_stats_skips_on_lock_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """save_search_stats silently skips the write when locking fails."""
+    chunk = make_chunk("hello", "src/foo.py")
+    result = SearchResult(chunk=chunk, score=0.9)
+    stats_file = tmp_path / "stats.jsonl"
+    stats_file.touch()
+    monkeypatch.setattr("semble.stats._get_stats_file", lambda: stats_file)
+
+    mock_fcntl = types.ModuleType("fcntl")
+    mock_fcntl.LOCK_EX = 2  # type: ignore[attr-defined]
+    mock_fcntl.LOCK_NB = 4  # type: ignore[attr-defined]
+    mock_fcntl.flock = MagicMock(side_effect=OSError)  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "fcntl", mock_fcntl)
+
+    save_search_stats([result], CallType.SEARCH, {"src/foo.py": 42})
+
+    assert stats_file.read_text() == ""
 
 
 def test_save_search_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

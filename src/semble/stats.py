@@ -62,12 +62,11 @@ def save_search_stats(
             try:
                 import fcntl
 
-                fcntl.flock(f, fcntl.LOCK_EX)
-            except (ImportError, OSError):  # pragma: no cover
-                pass  # Locking unavailable or failed; proceed without it
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except (ImportError, OSError):
+                return  # Cannot safely acquire lock; skip stats for this call
             f.write(json.dumps(record) + "\n")
     except OSError:
-        # If we can't write to the stats file, just skip the stats for this call
         pass
 
 
