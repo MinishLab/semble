@@ -21,7 +21,7 @@ To undo:
 semble uninstall
 ```
 
-Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, Pi, and Command Code.
+Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, Pi, Command Code, and Antigravity.
 
 > **Pi prerequisite:** Pi requires the MCP extension to be installed before semble can connect. Run `pi install npm:pi-mcp-extension` once, then `semble install`.
 
@@ -243,6 +243,24 @@ Then add to `~/.pi/agent/mcp.json`:
 </details>
 
 <details>
+<summary>Antigravity</summary>
+
+Add to `~/.gemini/config/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
 <summary>Command Code</summary>
 
 Add to `~/.commandcode/mcp.json`:
@@ -318,7 +336,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 ### Sub-agent
 
-For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Reasonix, Pi, Command Code), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
+For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Reasonix, Pi, Command Code, Antigravity), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
 
 > **Pi prerequisite:** Pi sub-agents require the Pi agents extension. Run `pi install npm:pi-agents` once before installing.
 
@@ -333,3 +351,4 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Reasonix | `reasonix.md` | `~/.reasonix/skills/semble-search.md` |
 | Pi | `pi.md` | `~/.pi/agents/semble-search.md` |
 | Command Code | `commandcode.md` | `~/.commandcode/agents/semble-search.md` |
+| Antigravity | `antigravity.md` | `~/.gemini/skills/semble-search.md` |
