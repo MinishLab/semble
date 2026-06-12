@@ -59,8 +59,15 @@ def save_search_stats(
         stats_file = _get_stats_file()
         stats_file.parent.mkdir(parents=True, exist_ok=True)
         with stats_file.open("a") as f:
+            try:
+                import fcntl
+            except ImportError:
+                pass  # Windows has no fcntl, proceed without lock
+            else:
+                fcntl.flock(f, fcntl.LOCK_EX)
             f.write(json.dumps(record) + "\n")
     except OSError:
+        # If we can't write to the stats file, just skip the stats for this call
         pass
 
 
