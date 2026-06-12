@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -13,8 +12,6 @@ from semble.types import CallType, SearchResult
 
 logger = logging.getLogger(__name__)
 
-_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
-
 
 def _get_stats_file() -> Path:
     """Safely create a stats file."""
@@ -22,62 +19,13 @@ def _get_stats_file() -> Path:
 
 
 def _use_color() -> bool:
-    """Return True when ANSI color codes should be emitted."""
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("TERM") == "dumb":
-        return False
-    return sys.stdout.isatty()
+    """Return whether ANSI colors should be emitted."""
+    return "NO_COLOR" not in os.environ and os.environ.get("TERM") != "dumb" and sys.stdout.isatty()
 
 
-def _vis_len(s: str) -> int:
-    """Visible length of a string, ignoring ANSI escape sequences."""
-    return len(_ANSI_RE.sub("", s))
-
-
-def _align_left(s: str, width: int) -> str:
-    """Pad `s` on the right so its visible width matches `width` (left-aligned)."""
-    pad = max(0, width - _vis_len(s))
-    return s + " " * pad
-
-
-def _align_right(s: str, width: int) -> str:
-    """Pad `s` on the left so its visible width matches `width` (right-aligned)."""
-    pad = max(0, width - _vis_len(s))
-    return " " * pad + s
-
-
-class _C:
-    """ANSI color helpers; no-op when color is disabled."""
-
-    __slots__ = ("enabled",)
-
-    def __init__(self, enabled: bool) -> None:
-        self.enabled = enabled
-
-    def _wrap(self, code: str, text: str) -> str:
-        return f"\033[{code}m{text}\033[0m" if self.enabled else text
-
-    def title(self, text: str) -> str:
-        return self._wrap("1;36", text)
-
-    def dim(self, text: str) -> str:
-        return self._wrap("38;5;244", text)
-
-    def label(self, text: str) -> str:
-        return self._wrap("1", text)
-
-    def num(self, text: str) -> str:
-        return self._wrap("1;33", text)
-
-    def good(self, text: str) -> str:
-        return self._wrap("32", text)
-
-    def bad(self, text: str) -> str:
-        return self._wrap("31", text)
-
-    def mid(self, text: str) -> str:
-        return self._wrap("33", text)
+def _color(code: str, text: str, enabled: bool) -> str:
+    """Apply an ANSI color code when enabled."""
+    return f"\033[{code}m{text}\033[0m" if enabled else text
 
 
 @dataclass
@@ -180,27 +128,10 @@ def _format_calls(calls: int) -> str:
     return f"{calls / 1_000:.1f}k" if calls >= 1_000 else str(calls)
 
 
-def _ratio_color(pct: int, c: _C) -> str:
-    """Pick a color for a savings ratio percentage."""
-    if pct >= 80:
-        return c.good(f"{pct}%")
-    if pct >= 50:
-        return c.mid(f"{pct}%")
-    return c.bad(f"{pct}%")
-
-
-def _row(c: _C, cols: list[tuple[str, int, str]]) -> str:
-    """Build a table row with 2-space gutters between columns."""
-    gutter = "  "
-    parts: list[str] = []
-    for i, (align, width, text) in enumerate(cols):
-        if i > 0:
-            parts.append(gutter)
-        if align == "left":
-            parts.append(_align_left(text, width))
-        else:
-            parts.append(_align_right(text, width))
-    return "".join(parts)
+def _color_ratio(pct: int, enabled: bool) -> str:
+    """Color a savings percentage according to its value."""
+    code = "32" if pct >= 80 else "33" if pct >= 50 else "31"
+    return _color(code, f"{pct}%", enabled)
 
 
 def format_savings_report(path: Path | None = None) -> str:
@@ -211,72 +142,72 @@ def format_savings_report(path: Path | None = None) -> str:
         return "No stats yet. Run a search first."
 
     summary = build_savings_summary(path)
-    c = _C(_use_color())
+    color = _use_color()
     bar_width = 24
-    border_w = 64
-    heavy_line = "  " + c.dim("═" * border_w)
-    light_line = "  " + c.dim("─" * border_w)
+    border_width = 72
+    heavy_line = "  " + _color("38;5;244", "═" * border_width, color)
+    light_line = "  " + _color("38;5;244", "─" * border_width, color)
 
     all_time = summary.buckets["All time"]
     total_saved_tokens = all_time.saved_chars // 4
     overall_pct = round(all_time.saved_chars / all_time.file_chars * 100) if all_time.file_chars else 0
+    efficiency_filled = round(overall_pct / 100 * bar_width)
+    efficiency_bar = _color("32", "█" * efficiency_filled, color)
+    efficiency_bar += _color("38;5;244", "░" * (bar_width - efficiency_filled), color)
 
-    lines: list[str] = ["", "  " + c.title("Semble Token Savings"), heavy_line, ""]
-
-    total_label = c.label("Total saved:")
-    total_value = c.num(_format_token_count(total_saved_tokens) + " tokens")
-    pct_value = _ratio_color(overall_pct, c)
-    lines.append(f"  {total_label}  {total_value}  {c.dim('(')}{pct_value}{c.dim(')')}")
-
-    calls_label = c.label("Total calls:")
-    calls_value = c.num(_format_calls(all_time.calls))
-    lines.append(f"  {calls_label}  {calls_value}")
-
-    eff_label = c.label("Efficiency:")
-    eff_filled = round(overall_pct / 100 * bar_width)
-    eff_bar = c.good("█" * eff_filled) + c.dim("░" * (bar_width - eff_filled))
-    lines.append(f"  {eff_label}  {eff_bar}  {pct_value}")
-    lines.append("")
-
-    lines.append("  " + c.label("By Period"))
-    lines.append(light_line)
-    period_cols = [("left", 14, "Period"), ("right", 8, "Calls"), ("right", 14, "Saved")]
-    lines.append("  " + _row(c, period_cols) + "  " + c.dim("Ratio"))
-    lines.append(light_line)
+    lines = [
+        "",
+        "  " + _color("1;36", "Semble Token Savings", color),
+        heavy_line,
+        "",
+        f"  {_color('1', 'Total saved:', color)}  "
+        f"{_color('1;33', _format_token_count(total_saved_tokens) + ' tokens', color)}  "
+        f"({_color_ratio(overall_pct, color)})",
+        f"  {_color('1', 'Total calls:', color)}  {_color('1;33', _format_calls(all_time.calls), color)}",
+        f"  {_color('1', 'Efficiency:', color)}  {efficiency_bar}  {_color_ratio(overall_pct, color)}",
+        "",
+        "  " + _color("1", "By Period", color),
+        light_line,
+        f"  {'Period':<14}  {'Calls':>8}  {'Saved':>14}  Ratio",
+        light_line,
+    ]
     for label, bucket in summary.buckets.items():
         saved_tokens = bucket.saved_chars // 4
-        saved_str = c.num(_format_token_count(saved_tokens) + " tokens")
-        calls_str = c.num(_format_calls(bucket.calls))
+        saved_str = _format_token_count(saved_tokens) + " tokens"
+        calls_str = _format_calls(bucket.calls)
         if bucket.file_chars > 0:
             ratio = bucket.saved_chars / bucket.file_chars
             filled = round(ratio * bar_width)
-            row_bar = c.good("█" * filled) + c.dim("░" * (bar_width - filled))
-            pct = round(ratio * 100)
-            pct_str = _ratio_color(pct, c)
+            row_bar = _color("32", "█" * filled, color) + _color("38;5;244", "░" * (bar_width - filled), color)
+            ratio_str = _color_ratio(round(ratio * 100), color)
         else:
-            row_bar = c.dim("░" * bar_width)
-            pct_str = c.dim("–")
-        data_cols = [("left", 14, c.label(label)), ("right", 8, calls_str), ("right", 14, saved_str)]
-        lines.append("  " + _row(c, data_cols) + "  " + row_bar + "  " + pct_str)
+            row_bar = _color("38;5;244", "░" * bar_width, color)
+            ratio_str = _color("38;5;244", "–", color)
+        lines.append(
+            f"  {_color('1', f'{label:<14}', color)}  {_color('1;33', f'{calls_str:>8}', color)}  "
+            f"{_color('1;33', f'{saved_str:>14}', color)}  {row_bar}  {ratio_str}"
+        )
 
     if summary.call_type_counts:
-        lines.append("")
-        lines.append("  " + c.label("By Call Type"))
-        lines.append(light_line)
-        call_cols = [("left", 4, "#"), ("left", 16, "Call type"), ("right", 8, "Calls")]
-        lines.append("  " + _row(c, call_cols) + "  " + c.dim("Share"))
-        lines.append(light_line)
+        lines += [
+            "",
+            "  " + _color("1", "By Call Type", color),
+            light_line,
+            f"  {'#':<4}  {'Call type':<16}  {'Calls':>8}  Share",
+            light_line,
+        ]
         top = sorted(summary.call_type_counts.items(), key=lambda kv: -kv[1])
-        total = max(1, sum(summary.call_type_counts.values()))
-        max_bar = 16
+        total = sum(summary.call_type_counts.values())
         for i, (call_type, count) in enumerate(top, start=1):
             share = count / total
-            filled = max(1, round(share * max_bar)) if share > 0 else 0
-            bar = c.good("█" * filled) + c.dim("░" * (max_bar - filled))
-            calls_str = c.num(_format_calls(count))
-            share_str = c.dim(f"{share * 100:>4.0f}%")
-            data_cols = [("left", 4, c.dim(f"{i}.")), ("left", 16, call_type), ("right", 8, calls_str)]
-            lines.append("  " + _row(c, data_cols) + "  " + bar + "  " + share_str)
+            filled = max(1, round(share * 16))
+            bar = _color("32", "█" * filled, color) + _color("38;5;244", "░" * (16 - filled), color)
+            rank = f"{i}."
+            lines.append(
+                f"  {_color('38;5;244', f'{rank:<4}', color)}  {call_type:<16}  "
+                f"{_color('1;33', f'{_format_calls(count):>8}', color)}  {bar}  "
+                f"{_color('38;5;244', f'{share * 100:>4.0f}%', color)}"
+            )
 
     lines.append(heavy_line)
     lines.append("")

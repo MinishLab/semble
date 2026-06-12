@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from semble.cli import _cli_main
-from semble.stats import build_savings_summary, format_savings_report, save_search_stats
+from semble.stats import _use_color, build_savings_summary, format_savings_report, save_search_stats
 from semble.types import CallType, SearchResult
 from tests.conftest import make_chunk
 
@@ -49,10 +49,34 @@ def test_savings_no_file(tmp_path: Path) -> None:
 
 
 def test_savings_output(sample_stats_file: Path) -> None:
-    """format_savings_report displays period buckets and a call-type table."""
+    """format_savings_report displays aligned period and call-type tables."""
     result = format_savings_report(path=sample_stats_file)
-    for s in ["Savings", "Today", "By Period", "By Call Type", "search", "find_related"]:
-        assert s in result
+    lines = result.splitlines()
+    border_width = len(next(line for line in lines if "═" in line))
+    period_line = next(line for line in lines if line.lstrip().startswith("Today"))
+    call_type_line = next(line for line in lines if line.lstrip().startswith("1."))
+
+    assert "\033[" not in result
+    assert period_line.split() == ["Today", "2", "~9.5k", "tokens", "███████████████████████░", "95%"]
+    assert call_type_line.split() == ["1.", "search", "1", "████████░░░░░░░░", "50%"]
+    assert all(len(line) <= border_width for line in lines if "tokens  █" in line)
+
+
+def test_savings_output_uses_color_in_tty(sample_stats_file: Path) -> None:
+    """format_savings_report colors the presentation when supported."""
+    with patch("semble.stats._use_color", return_value=True):
+        result = format_savings_report(path=sample_stats_file)
+
+    assert "\033[1;36mSemble Token Savings\033[0m" in result
+    assert "\033[32m███████████████████████\033[0m" in result
+    assert "\033[1;33m  ~9.5k tokens\033[0m" in result
+
+
+def test_no_color_disables_color_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """NO_COLOR disables colors regardless of its value."""
+    monkeypatch.setenv("NO_COLOR", "")
+    with patch("semble.stats.sys.stdout.isatty", return_value=True):
+        assert not _use_color()
 
 
 def test_savings_output_millions(tmp_path: Path) -> None:
