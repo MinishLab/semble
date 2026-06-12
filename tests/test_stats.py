@@ -16,17 +16,6 @@ def _make_stats_record(ts: float, call: str = "search", snippet_chars: int = 1_0
     return json.dumps({"ts": ts, "call": call, "results": 3, "snippet_chars": snippet_chars, "file_chars": file_chars})
 
 
-@pytest.fixture
-def sample_stats_file(tmp_path: Path) -> Path:
-    """Stats file with one search and one find_related record from today."""
-    stats_file = tmp_path / "stats.jsonl"
-    now = datetime.now(timezone.utc).timestamp()
-    stats_file.write_text(
-        _make_stats_record(now, call="search") + "\n" + _make_stats_record(now, call="find_related") + "\n"
-    )
-    return stats_file
-
-
 def test_save_search_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """save_search_stats deduplicates file paths and silences write errors."""
     chunk = make_chunk("hello", "src/foo.py")
