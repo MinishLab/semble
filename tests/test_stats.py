@@ -51,13 +51,13 @@ def test_savings_no_file(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("verbose", "expected"),
     [
-        (False, ["Savings", "Today"]),
-        (True, ["Savings", "Today", "Usage Breakdown", "search", "find_related"]),
+        (False, ["Savings", "Today", "By Period", "By Call Type", "search", "find_related"]),
+        (True, ["Savings", "Today", "By Call Type", "Per-Call-Type Savings", "search", "find_related"]),
     ],
     ids=["default", "verbose"],
 )
 def test_savings_output(sample_stats_file: Path, verbose: bool, expected: list[str]) -> None:
-    """format_savings_report displays period buckets; --verbose adds call-type breakdown."""
+    """format_savings_report displays period buckets and a call-type table; --verbose adds per-type savings."""
     result = format_savings_report(path=sample_stats_file, verbose=verbose)
     for s in expected:
         assert s in result

@@ -127,12 +127,29 @@ semble savings --verbose # also show breakdown by call type
 ```
   Semble Token Savings
   ════════════════════════════════════════════════════════════════
-  Period        Calls   Savings
+
+  Total saved:  ~714.2M tokens  (94%)
+  Total calls:  14.3k
+  Efficiency:  ███████████████████████░  94%
+
+  By Period
   ────────────────────────────────────────────────────────────────
-  Today         42      [███████████████░]  ~58.4k tokens (95%)
-  Last 7 days   287     [██████████████░░]  ~312.4k tokens (90%)
-  All time      1.4k    [██████████████░░]  ~1.2M tokens (89%)
+  Period             Calls           Saved  Ratio
+  ────────────────────────────────────────────────────────────────
+  Today                198    ~1.4M tokens  ███████████████████████░  95%
+  Last 7 days        13.1k  ~707.2M tokens  ███████████████████████░  94%
+  All time           14.3k  ~714.2M tokens  ███████████████████████░  94%
+
+  By Call Type
+  ────────────────────────────────────────────────────────────────
+  #     Call type            Calls  Share
+  ────────────────────────────────────────────────────────────────
+  1.    search               14.1k  ████████████████    99%
+  2.    find_related           205  █░░░░░░░░░░░░░░░     1%
+  ════════════════════════════════════════════════════════════════
 ```
+
+The report is colourised when stdout is a TTY and respects `NO_COLOR`.
 
 Savings are calculated as follows: for each call, semble records the total character count of the unique files containing returned chunks and the character count of the snippets returned. Estimated tokens saved is `(file chars − snippet chars) / 4` (4 chars per token). This is a conservative estimate: the baseline is reading matched files in full, which is how coding agents often explore unfamiliar code.
 

@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -10,10 +13,71 @@ from semble.types import CallType, SearchResult
 
 logger = logging.getLogger(__name__)
 
+_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
+
 
 def _get_stats_file() -> Path:
     """Safely create a stats file."""
     return resolve_cache_folder() / "savings.jsonl"
+
+
+def _use_color() -> bool:
+    """Return True when ANSI color codes should be emitted."""
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    return sys.stdout.isatty()
+
+
+def _vis_len(s: str) -> int:
+    """Visible length of a string, ignoring ANSI escape sequences."""
+    return len(_ANSI_RE.sub("", s))
+
+
+def _align_left(s: str, width: int) -> str:
+    """Pad `s` on the right so its visible width matches `width` (left-aligned)."""
+    pad = max(0, width - _vis_len(s))
+    return s + " " * pad
+
+
+def _align_right(s: str, width: int) -> str:
+    """Pad `s` on the left so its visible width matches `width` (right-aligned)."""
+    pad = max(0, width - _vis_len(s))
+    return " " * pad + s
+
+
+class _C:
+    """ANSI color helpers; no-op when color is disabled."""
+
+    __slots__ = ("enabled",)
+
+    def __init__(self, enabled: bool) -> None:
+        self.enabled = enabled
+
+    def _wrap(self, code: str, text: str) -> str:
+        return f"\033[{code}m{text}\033[0m" if self.enabled else text
+
+    def title(self, text: str) -> str:
+        return self._wrap("1;36", text)
+
+    def dim(self, text: str) -> str:
+        return self._wrap("38;5;244", text)
+
+    def label(self, text: str) -> str:
+        return self._wrap("1", text)
+
+    def num(self, text: str) -> str:
+        return self._wrap("1;33", text)
+
+    def good(self, text: str) -> str:
+        return self._wrap("32", text)
+
+    def bad(self, text: str) -> str:
+        return self._wrap("31", text)
+
+    def mid(self, text: str) -> str:
+        return self._wrap("33", text)
 
 
 @dataclass
@@ -35,6 +99,7 @@ class BucketStats:
 class SavingsSummary:
     buckets: dict[str, BucketStats]
     call_type_counts: dict[str, int]
+    call_type_saved_chars: dict[str, int]
 
 
 def save_search_stats(
@@ -78,6 +143,7 @@ def build_savings_summary(path: Path | None = None) -> SavingsSummary:
         "All time": BucketStats(),
     }
     call_type_counts: defaultdict[str, int] = defaultdict(int)
+    call_type_saved_chars: defaultdict[str, int] = defaultdict(int)
 
     with path.open() as f:
         for line in f:
@@ -90,6 +156,7 @@ def build_savings_summary(path: Path | None = None) -> SavingsSummary:
             file_chars = record["file_chars"]
             call_type = record["call"]
             call_type_counts[call_type] += 1
+            call_type_saved_chars[call_type] += max(0, file_chars - snippet_chars)
             dt = datetime.fromtimestamp(record["ts"], tz=timezone.utc)
             in_today = dt.date() == today
             in_last_7 = dt.date() > seven_days_ago
@@ -99,7 +166,48 @@ def build_savings_summary(path: Path | None = None) -> SavingsSummary:
             if in_today:
                 buckets["Today"].add(snippet_chars, file_chars)
 
-    return SavingsSummary(buckets=buckets, call_type_counts=dict(call_type_counts))
+    return SavingsSummary(
+        buckets=buckets,
+        call_type_counts=dict(call_type_counts),
+        call_type_saved_chars=dict(call_type_saved_chars),
+    )
+
+
+def _format_token_count(tokens: int) -> str:
+    """Format a token count with k/M suffix, keeping the ~ prefix for estimates."""
+    if tokens >= 1_000_000:
+        return f"~{tokens / 1_000_000:.1f}M"
+    if tokens >= 1_000:
+        return f"~{tokens / 1_000:.1f}k"
+    return f"~{tokens}"
+
+
+def _format_calls(calls: int) -> str:
+    """Format a call count with k suffix for thousands."""
+    return f"{calls / 1_000:.1f}k" if calls >= 1_000 else str(calls)
+
+
+def _ratio_color(pct: int, c: _C) -> str:
+    """Pick a color for a savings ratio percentage."""
+    if pct >= 80:
+        return c.good(f"{pct}%")
+    if pct >= 50:
+        return c.mid(f"{pct}%")
+    return c.bad(f"{pct}%")
+
+
+def _row(c: _C, cols: list[tuple[str, int, str]]) -> str:
+    """Build a table row with 2-space gutters between columns."""
+    gutter = "  "
+    parts: list[str] = []
+    for i, (align, width, text) in enumerate(cols):
+        if i > 0:
+            parts.append(gutter)
+        if align == "left":
+            parts.append(_align_left(text, width))
+        else:
+            parts.append(_align_right(text, width))
+    return "".join(parts)
 
 
 def format_savings_report(path: Path | None = None, *, verbose: bool = False) -> str:
@@ -110,39 +218,85 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
         return "No stats yet. Run a search first."
 
     summary = build_savings_summary(path)
-    bar_width = 16
-    heavy_line = "  " + "═" * 64
-    light_line = "  " + "─" * 64
+    c = _C(_use_color())
+    bar_width = 24
+    border_w = 64
+    heavy_line = "  " + c.dim("═" * border_w)
+    light_line = "  " + c.dim("─" * border_w)
 
-    lines = [
-        "",
-        "  Semble Token Savings",
-        heavy_line,
-        f"  {'Period':<12}  {'Calls':<6}  Savings",
-        light_line,
-    ]
+    all_time = summary.buckets["All time"]
+    total_saved_tokens = all_time.saved_chars // 4
+    overall_pct = round(all_time.saved_chars / all_time.file_chars * 100) if all_time.file_chars else 0
+
+    lines: list[str] = ["", "  " + c.title("Semble Token Savings"), heavy_line, ""]
+
+    total_label = c.label("Total saved:")
+    total_value = c.num(_format_token_count(total_saved_tokens) + " tokens")
+    pct_value = _ratio_color(overall_pct, c)
+    lines.append(f"  {total_label}  {total_value}  {c.dim('(')}{pct_value}{c.dim(')')}")
+
+    calls_label = c.label("Total calls:")
+    calls_value = c.num(_format_calls(all_time.calls))
+    lines.append(f"  {calls_label}  {calls_value}")
+
+    eff_label = c.label("Efficiency:")
+    eff_filled = round(overall_pct / 100 * bar_width)
+    eff_bar = c.good("█" * eff_filled) + c.dim("░" * (bar_width - eff_filled))
+    lines.append(f"  {eff_label}  {eff_bar}  {pct_value}")
+    lines.append("")
+
+    lines.append("  " + c.label("By Period"))
+    lines.append(light_line)
+    period_cols = [("left", 14, "Period"), ("right", 8, "Calls"), ("right", 14, "Saved")]
+    lines.append("  " + _row(c, period_cols) + "  " + c.dim("Ratio"))
+    lines.append(light_line)
     for label, bucket in summary.buckets.items():
-        saved_tokens = bucket.saved_chars // 4  # standard ~4 chars/token approximation
-        if saved_tokens >= 1_000_000:
-            saved_str = f"~{saved_tokens / 1_000_000:.1f}M"
-        elif saved_tokens >= 1000:
-            saved_str = f"~{saved_tokens / 1000:.1f}k"
-        else:
-            saved_str = f"~{saved_tokens}"
-        calls_str = f"{bucket.calls / 1000:.1f}k" if bucket.calls >= 1000 else str(bucket.calls)
+        saved_tokens = bucket.saved_chars // 4
+        saved_str = c.num(_format_token_count(saved_tokens) + " tokens")
+        calls_str = c.num(_format_calls(bucket.calls))
         if bucket.file_chars > 0:
             ratio = bucket.saved_chars / bucket.file_chars
             filled = round(ratio * bar_width)
-            bar = "█" * filled + "░" * (bar_width - filled)
+            row_bar = c.good("█" * filled) + c.dim("░" * (bar_width - filled))
             pct = round(ratio * 100)
-            lines.append(f"  {label:<12}  {calls_str:<6}  [{bar}]  {saved_str} tokens ({pct}%)")
+            pct_str = _ratio_color(pct, c)
         else:
-            lines.append(f"  {label:<12}  {calls_str:<6}  [{'░' * bar_width}]  {saved_str} tokens")
+            row_bar = c.dim("░" * bar_width)
+            pct_str = c.dim("–")
+        data_cols = [("left", 14, c.label(label)), ("right", 8, calls_str), ("right", 14, saved_str)]
+        lines.append("  " + _row(c, data_cols) + "  " + row_bar + "  " + pct_str)
+
+    if summary.call_type_counts:
+        lines.append("")
+        lines.append("  " + c.label("By Call Type"))
+        lines.append(light_line)
+        call_cols = [("left", 4, "#"), ("left", 16, "Call type"), ("right", 8, "Calls")]
+        lines.append("  " + _row(c, call_cols) + "  " + c.dim("Share"))
+        lines.append(light_line)
+        top = sorted(summary.call_type_counts.items(), key=lambda kv: -kv[1])
+        total = max(1, sum(summary.call_type_counts.values()))
+        max_bar = 16
+        for i, (call_type, count) in enumerate(top, start=1):
+            share = count / total
+            filled = max(1, round(share * max_bar)) if share > 0 else 0
+            bar = c.good("█" * filled) + c.dim("░" * (max_bar - filled))
+            calls_str = c.num(_format_calls(count))
+            share_str = c.dim(f"{share * 100:>4.0f}%")
+            data_cols = [("left", 4, c.dim(f"{i}.")), ("left", 16, call_type), ("right", 8, calls_str)]
+            lines.append("  " + _row(c, data_cols) + "  " + bar + "  " + share_str)
+
     if verbose and summary.call_type_counts:
-        lines += ["", "  Usage Breakdown", light_line, f"  {'Call type':<16}  Calls"]
+        lines.append("")
+        lines.append("  " + c.label("Per-Call-Type Savings"))
+        lines.append(light_line)
+        vcols = [("left", 16, "Call type"), ("right", 8, "Calls"), ("right", 14, "Saved")]
+        lines.append("  " + _row(c, vcols))
+        lines.append(light_line)
         for call_type, count in sorted(summary.call_type_counts.items()):
-            count_str = f"{count / 1000:.1f}k" if count >= 1000 else str(count)
-            lines.append(f"  {call_type:<16}  {count_str}")
-        lines.append(heavy_line)
+            count_str = c.num(_format_calls(count))
+            saved_str = c.num(_format_token_count(summary.call_type_saved_chars.get(call_type, 0) // 4) + " tokens")
+            lines.append("  " + _row(c, [("left", 16, call_type), ("right", 8, count_str), ("right", 14, saved_str)]))
+
+    lines.append(heavy_line)
     lines.append("")
     return "\n".join(lines)
