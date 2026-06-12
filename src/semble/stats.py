@@ -3,7 +3,10 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from functools import cache
+from importlib import import_module
 from pathlib import Path
+from types import ModuleType
 
 from semble.cache import resolve_cache_folder
 from semble.types import CallType, SearchResult
@@ -37,6 +40,15 @@ class SavingsSummary:
     call_type_counts: dict[str, int]
 
 
+@cache
+def _import_fcntl() -> ModuleType | None:
+    """Return fcntl when available, otherwise None."""
+    try:
+        return import_module("fcntl")
+    except ImportError:  # pragma: no cover
+        return None
+
+
 def save_search_stats(
     results: list[SearchResult],
     call_type: CallType,
@@ -59,12 +71,12 @@ def save_search_stats(
         stats_file = _get_stats_file()
         stats_file.parent.mkdir(parents=True, exist_ok=True)
         with stats_file.open("a") as f:
+            fcntl = _import_fcntl()
             try:
-                import fcntl
-
-                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except ImportError:  # pragma: no cover
-                pass  # Windows has no fcntl, write unlocked
+                if fcntl is not None:
+                    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:  # pragma: no cover
+                return  # another process holds the lock; skip this record
             except OSError:  # pragma: no cover
                 return  # lock contention or unsupported filesystem; skip
             f.write(json.dumps(record) + "\n")
