@@ -48,18 +48,10 @@ def test_savings_no_file(tmp_path: Path) -> None:
     assert "No stats yet" in format_savings_report(path=tmp_path / "nonexistent.jsonl")
 
 
-@pytest.mark.parametrize(
-    ("verbose", "expected"),
-    [
-        (False, ["Savings", "Today", "By Period", "By Call Type", "search", "find_related"]),
-        (True, ["Savings", "Today", "By Call Type", "Per-Call-Type Savings", "search", "find_related"]),
-    ],
-    ids=["default", "verbose"],
-)
-def test_savings_output(sample_stats_file: Path, verbose: bool, expected: list[str]) -> None:
-    """format_savings_report displays period buckets and a call-type table; --verbose adds per-type savings."""
-    result = format_savings_report(path=sample_stats_file, verbose=verbose)
-    for s in expected:
+def test_savings_output(sample_stats_file: Path) -> None:
+    """format_savings_report displays period buckets and a call-type table."""
+    result = format_savings_report(path=sample_stats_file)
+    for s in ["Savings", "Today", "By Period", "By Call Type", "search", "find_related"]:
         assert s in result
 
 
@@ -100,22 +92,14 @@ def test_savings_tolerates_bad_json(tmp_path: Path) -> None:
     assert "Savings" in format_savings_report(path=stats_file)
 
 
-@pytest.mark.parametrize(
-    ("argv", "expected"),
-    [
-        (["semble", "savings"], "No stats yet"),
-        (["semble", "savings", "--verbose"], "No stats yet"),
-    ],
-    ids=["default", "verbose"],
-)
 def test_savings_cli_dispatch(
-    argv: list[str], expected: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Savings subcommand dispatches to format_savings_report, with and without --verbose."""
-    monkeypatch.setattr(sys, "argv", argv)
+    """Savings subcommand dispatches to format_savings_report."""
+    monkeypatch.setattr(sys, "argv", ["semble", "savings"])
     monkeypatch.setattr("semble.stats._get_stats_file", lambda: tmp_path / "nonexistent.jsonl")
     _cli_main()
-    assert expected in capsys.readouterr().out
+    assert "No stats yet" in capsys.readouterr().out
 
 
 def test_savings_buckets_exclude_old_records(tmp_path: Path) -> None:

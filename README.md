@@ -120,8 +120,7 @@ Semble also always skips a set of well-known non-source directories regardless o
 `semble savings` shows how many tokens semble has saved across all your searches:
 
 ```bash
-semble savings           # summary by period
-semble savings --verbose # also show breakdown by call type
+semble savings
 ```
 
 ```
@@ -149,7 +148,6 @@ semble savings --verbose # also show breakdown by call type
   ════════════════════════════════════════════════════════════════
 ```
 
-The report is colourised when stdout is a TTY and respects `NO_COLOR`.
 
 Savings are calculated as follows: for each call, semble records the total character count of the unique files containing returned chunks and the character count of the snippets returned. Estimated tokens saved is `(file chars − snippet chars) / 4` (4 chars per token). This is a conservative estimate: the baseline is reading matched files in full, which is how coding agents often explore unfamiliar code.
 

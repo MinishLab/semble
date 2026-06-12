@@ -187,8 +187,7 @@ def _cli_main() -> None:
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     _add_content_args(related_p)
 
-    savings_p = sub.add_parser("savings", help="Show token savings and usage stats.")
-    savings_p.add_argument("--verbose", action="store_true", help="Also show usage breakdown by call type.")
+    sub.add_parser("savings", help="Show token savings and usage stats.")
 
     sub.add_parser("install", help="Interactively configure semble across coding agents.")
     sub.add_parser("uninstall", help="Interactively remove semble configuration from coding agents.")
@@ -196,7 +195,7 @@ def _cli_main() -> None:
     args = parser.parse_args()
 
     if args.command == "savings":
-        print(format_savings_report(verbose=args.verbose))
+        print(format_savings_report())
     elif args.command in ("install", "uninstall"):
         from semble.installer import run
 

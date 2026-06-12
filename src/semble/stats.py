@@ -99,7 +99,6 @@ class BucketStats:
 class SavingsSummary:
     buckets: dict[str, BucketStats]
     call_type_counts: dict[str, int]
-    call_type_saved_chars: dict[str, int]
 
 
 def save_search_stats(
@@ -143,7 +142,6 @@ def build_savings_summary(path: Path | None = None) -> SavingsSummary:
         "All time": BucketStats(),
     }
     call_type_counts: defaultdict[str, int] = defaultdict(int)
-    call_type_saved_chars: defaultdict[str, int] = defaultdict(int)
 
     with path.open() as f:
         for line in f:
@@ -156,7 +154,6 @@ def build_savings_summary(path: Path | None = None) -> SavingsSummary:
             file_chars = record["file_chars"]
             call_type = record["call"]
             call_type_counts[call_type] += 1
-            call_type_saved_chars[call_type] += max(0, file_chars - snippet_chars)
             dt = datetime.fromtimestamp(record["ts"], tz=timezone.utc)
             in_today = dt.date() == today
             in_last_7 = dt.date() > seven_days_ago
@@ -166,11 +163,7 @@ def build_savings_summary(path: Path | None = None) -> SavingsSummary:
             if in_today:
                 buckets["Today"].add(snippet_chars, file_chars)
 
-    return SavingsSummary(
-        buckets=buckets,
-        call_type_counts=dict(call_type_counts),
-        call_type_saved_chars=dict(call_type_saved_chars),
-    )
+    return SavingsSummary(buckets=buckets, call_type_counts=dict(call_type_counts))
 
 
 def _format_token_count(tokens: int) -> str:
@@ -210,7 +203,7 @@ def _row(c: _C, cols: list[tuple[str, int, str]]) -> str:
     return "".join(parts)
 
 
-def format_savings_report(path: Path | None = None, *, verbose: bool = False) -> str:
+def format_savings_report(path: Path | None = None) -> str:
     """Return a formatted token-savings report."""
     if path is None:
         path = _get_stats_file()
@@ -284,18 +277,6 @@ def format_savings_report(path: Path | None = None, *, verbose: bool = False) ->
             share_str = c.dim(f"{share * 100:>4.0f}%")
             data_cols = [("left", 4, c.dim(f"{i}.")), ("left", 16, call_type), ("right", 8, calls_str)]
             lines.append("  " + _row(c, data_cols) + "  " + bar + "  " + share_str)
-
-    if verbose and summary.call_type_counts:
-        lines.append("")
-        lines.append("  " + c.label("Per-Call-Type Savings"))
-        lines.append(light_line)
-        vcols = [("left", 16, "Call type"), ("right", 8, "Calls"), ("right", 14, "Saved")]
-        lines.append("  " + _row(c, vcols))
-        lines.append(light_line)
-        for call_type, count in sorted(summary.call_type_counts.items()):
-            count_str = c.num(_format_calls(count))
-            saved_str = c.num(_format_token_count(summary.call_type_saved_chars.get(call_type, 0) // 4) + " tokens")
-            lines.append("  " + _row(c, [("left", 16, call_type), ("right", 8, count_str), ("right", 14, saved_str)]))
 
     lines.append(heavy_line)
     lines.append("")
