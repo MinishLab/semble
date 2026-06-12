@@ -61,7 +61,7 @@ def save_search_stats(
         with stats_file.open("a") as f:
             try:
                 import fcntl
-            except ImportError:
+            except ImportError:  # pragma: no cover
                 pass  # Windows has no fcntl, proceed without lock
             else:
                 fcntl.flock(f, fcntl.LOCK_EX)
