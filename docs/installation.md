@@ -351,4 +351,4 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Reasonix | `reasonix.md` | `~/.reasonix/skills/semble-search.md` |
 | Pi | `pi.md` | `~/.pi/agents/semble-search.md` |
 | Command Code | `commandcode.md` | `~/.commandcode/agents/semble-search.md` |
-| Antigravity | `antigravity.md` | `~/.gemini/skills/semble-search.md` |
+| Antigravity | `antigravity.md` | `~/.gemini/config/skills/semble-search/SKILL.md` |
