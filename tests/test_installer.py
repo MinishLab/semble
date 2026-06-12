@@ -132,6 +132,7 @@ def test_merge_mcp_errors(claude_agent, content):
         ("reasonix", "mcpServers"),
         ("pi", "mcpServers"),
         ("commandcode", "mcpServers"),
+        ("antigravity", "mcpServers"),
     ],
 )
 def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
