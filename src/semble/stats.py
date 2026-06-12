@@ -61,10 +61,10 @@ def save_search_stats(
         with stats_file.open("a") as f:
             try:
                 import fcntl
-            except ImportError:  # pragma: no cover
-                pass  # Windows has no fcntl, proceed without lock
-            else:
+
                 fcntl.flock(f, fcntl.LOCK_EX)
+            except (ImportError, OSError):  # pragma: no cover
+                pass  # Locking unavailable or failed; proceed without it
             f.write(json.dumps(record) + "\n")
     except OSError:
         # If we can't write to the stats file, just skip the stats for this call
