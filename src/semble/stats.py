@@ -63,8 +63,10 @@ def save_search_stats(
                 import fcntl
 
                 fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except (ImportError, OSError):  # pragma: no cover
-                return  # Cannot safely acquire lock; skip stats for this call
+            except ImportError:  # pragma: no cover
+                pass  # Windows has no fcntl, write unlocked
+            except OSError:  # pragma: no cover
+                return  # lock contention or unsupported filesystem; skip
             f.write(json.dumps(record) + "\n")
     except OSError:
         pass
