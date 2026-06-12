@@ -184,7 +184,7 @@ def run(mode: Mode) -> None:
 
     agent_items = [
         (f"{a.display_name}{'  (detected)' if (detected := is_detected(a)) else ''}", a, detected and install)
-        for a in AGENTS
+        for a in sorted(AGENTS, key=lambda a: not is_detected(a))
     ]
     chosen_agents = _checkbox(
         f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
