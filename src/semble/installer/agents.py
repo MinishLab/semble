@@ -248,11 +248,11 @@ AGENTS: list[AgentTarget] = [
     AgentTarget(
         id="antigravity",
         display_name="Antigravity",
-        binary="antigravity",
+        binary="agy",
         config_dir=_HOME / ".gemini" / "config",
         mcp=McpConfig(_HOME / ".gemini" / "config" / "mcp_config.json", "mcpServers", _STDIO_SERVER_CONFIG),
         instructions_path=_HOME / ".gemini" / "GEMINI.md",
-        subagent_path=_HOME / ".gemini" / "agents" / "semble-search.md",
+        subagent_path=_HOME / ".gemini" / "skills" / "semble-search.md",
     ),
 ]
 
