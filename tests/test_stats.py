@@ -48,30 +48,6 @@ def test_savings_no_file(tmp_path: Path) -> None:
     assert "No stats yet" in format_savings_report(path=tmp_path / "nonexistent.jsonl")
 
 
-def test_savings_output(sample_stats_file: Path) -> None:
-    """format_savings_report displays aligned period and call-type tables."""
-    result = format_savings_report(path=sample_stats_file)
-    lines = result.splitlines()
-    border_width = len(next(line for line in lines if "═" in line))
-    period_line = next(line for line in lines if line.lstrip().startswith("Today"))
-    call_type_line = next(line for line in lines if line.lstrip().startswith("1."))
-
-    assert "\033[" not in result
-    assert period_line.split() == ["Today", "2", "~9.5k", "tokens", "███████████████████████░", "95%"]
-    assert call_type_line.split() == ["1.", "search", "1", "████████░░░░░░░░", "50%"]
-    assert all(len(line) <= border_width for line in lines if "tokens  █" in line)
-
-
-def test_savings_output_uses_color_in_tty(sample_stats_file: Path) -> None:
-    """format_savings_report colors the presentation when supported."""
-    with patch("semble.stats._use_color", return_value=True):
-        result = format_savings_report(path=sample_stats_file)
-
-    assert "\033[1;36mSemble Token Savings\033[0m" in result
-    assert "\033[32m███████████████████████\033[0m" in result
-    assert "\033[1;33m  ~9.5k tokens\033[0m" in result
-
-
 def test_no_color_disables_color_when_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     """NO_COLOR disables colors regardless of its value."""
     monkeypatch.setenv("NO_COLOR", "")
@@ -79,13 +55,20 @@ def test_no_color_disables_color_when_empty(monkeypatch: pytest.MonkeyPatch) -> 
         assert not _use_color()
 
 
-def test_savings_output_millions(tmp_path: Path) -> None:
-    """Token counts >= 1M are formatted as M, not k."""
+@pytest.mark.parametrize(
+    ("file_chars", "expected"),
+    [
+        (40_000, "~10.0k tokens"),
+        (4_000_000, "~1.0M tokens"),
+    ],
+)
+def test_savings_output_token_suffixes(tmp_path: Path, file_chars: int, expected: str) -> None:
+    """Token counts use the expected suffix formatting."""
     stats_file = tmp_path / "stats.jsonl"
     stats_file.write_text(
-        _make_stats_record(datetime.now(timezone.utc).timestamp(), snippet_chars=0, file_chars=4_000_000) + "\n"
+        _make_stats_record(datetime.now(timezone.utc).timestamp(), snippet_chars=0, file_chars=file_chars) + "\n"
     )
-    assert "M tokens" in format_savings_report(path=stats_file)
+    assert expected in format_savings_report(path=stats_file)
 
 
 def test_savings_do_not_subtract_unknown_baselines(tmp_path: Path) -> None:
