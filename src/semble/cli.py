@@ -15,7 +15,7 @@ from semble.index import SembleIndex
 from semble.index.types import PersistencePath
 from semble.stats import format_savings_report
 from semble.types import ContentType
-from semble.utils import format_results, is_git_url, resolve_chunk
+from semble.utils import format_results_snippet, is_git_url, resolve_chunk
 
 _CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear"})
 _CLEAR_CHOICE = Literal["all", "index", "savings"]
@@ -112,16 +112,18 @@ def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
         sys.exit(1)
 
 
-def _run_search(path: str, query: str, top_k: int, content: list[ContentType]) -> None:
+def _run_search(path: str, query: str, top_k: int, content: list[ContentType], snippet_lines: int | None) -> None:
     """Handle the `search` subcommand."""
     index = _load_index(path, content)
     results = index.search(query, top_k=top_k)
-    out = format_results(query, results) if results else {"error": "No results found."}
+    out = format_results_snippet(query, results, snippet_lines) if results else {"error": "No results found."}
     print(json.dumps(out))
     _maybe_save_index(index, path)
 
 
-def _run_find_related(path: str, file_path: str, line: int, top_k: int, content: list[ContentType]) -> None:
+def _run_find_related(
+    path: str, file_path: str, line: int, top_k: int, content: list[ContentType], snippet_lines: int | None
+) -> None:
     """Handle the `find-related` subcommand."""
     index = _load_index(path, content)
     chunk = resolve_chunk(index.chunks, file_path, line)
@@ -129,8 +131,9 @@ def _run_find_related(path: str, file_path: str, line: int, top_k: int, content:
         print(f"No chunk found at {file_path}:{line}.", file=sys.stderr)
         sys.exit(1)
     results = index.find_related(chunk, top_k=top_k)
+    label = f"Chunks related to {file_path}:{line}"
     out = (
-        format_results(f"Chunks related to {file_path}:{line}", results)
+        format_results_snippet(label, results, snippet_lines)
         if results
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )
@@ -175,6 +178,13 @@ def _cli_main() -> None:
     search_p.add_argument("query", help="Natural language or code query.")
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
+    search_p.add_argument(
+        "--snippet-lines",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Lines of source per result (default: full chunk). 5 = signature only, 0 = no code.",
+    )
     _add_content_args(search_p)
 
     clear_p = sub.add_parser("clear", help="Clear the index cache.")
@@ -185,6 +195,13 @@ def _cli_main() -> None:
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
     related_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
+    related_p.add_argument(
+        "--snippet-lines",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Lines of source per result (default: full chunk). 5 = signature only, 0 = no code.",
+    )
     _add_content_args(related_p)
 
     sub.add_parser("savings", help="Show token savings and usage stats.")
@@ -203,8 +220,19 @@ def _cli_main() -> None:
     elif args.command == "clear":
         _run_clear(args.type)
     elif args.command == "search":
-        _run_search(args.path, args.query, args.top_k, _resolve_content(args.content, args.include_text_files))
+        _run_search(
+            args.path,
+            args.query,
+            args.top_k,
+            _resolve_content(args.content, args.include_text_files),
+            args.snippet_lines,
+        )
     elif args.command == "find-related":
         _run_find_related(
-            args.path, args.file_path, args.line, args.top_k, _resolve_content(args.content, args.include_text_files)
+            args.path,
+            args.file_path,
+            args.line,
+            args.top_k,
+            _resolve_content(args.content, args.include_text_files),
+            args.snippet_lines,
         )

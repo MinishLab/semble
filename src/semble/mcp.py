@@ -16,7 +16,7 @@ from semble.cache import save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import ContentType
-from semble.utils import format_results, is_git_url, resolve_chunk
+from semble.utils import format_results_snippet, is_git_url, resolve_chunk
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,16 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         query: Annotated[str, Field(description="Natural language or code query.")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
         top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
+        snippet_lines: Annotated[
+            int | None,
+            Field(
+                description=(
+                    "Lines of source to include per result. "
+                    "Default (10): signature + body start, enough to confirm the location. "
+                    "0: file path and line range only. None: full chunk (~30-50 lines)."
+                ),
+            ),
+        ] = 10,
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
@@ -80,7 +90,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.search(query, top_k=top_k)
         if not results:
             return json.dumps({"error": "No results found."})
-        return json.dumps(format_results(query, results))
+        return json.dumps(format_results_snippet(query, results, snippet_lines))
 
     @server.tool()
     async def find_related(
@@ -91,6 +101,14 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         line: Annotated[int, Field(description="Line number (1-indexed).")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
         top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1)] = 5,
+        snippet_lines: Annotated[
+            int | None,
+            Field(
+                description=(
+                    "Lines of source per result. Default 10 = signature+body. 0 = location only. None = full chunk."
+                )
+            ),
+        ] = 10,
     ) -> str:
         """Find code chunks semantically similar to a specific location in a file.
 
@@ -110,7 +128,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.find_related(chunk, top_k=top_k)
         if not results:
             return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
-        return json.dumps(format_results(f"Chunks related to {file_path}:{line}", results))
+        label = f"Chunks related to {file_path}:{line}"
+        return json.dumps(format_results_snippet(label, results, snippet_lines))
 
     return server
 

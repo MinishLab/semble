@@ -37,6 +37,30 @@ def format_results(query: str, results: list[SearchResult]) -> dict[str, Any]:
     return {"query": query, "results": [r.to_dict() for r in results]}
 
 
+def format_results_snippet(query: str, results: list[SearchResult], snippet_lines: int | None) -> dict[str, Any]:
+    """Render results, optionally truncating chunk content to the first snippet_lines lines.
+
+    snippet_lines=None → full content (same as format_results).
+    snippet_lines=0    → no content, only file path and line range.
+    snippet_lines=N>0  → first N lines (function signature without body).
+    """
+    if snippet_lines is None:
+        return format_results(query, results)
+    formatted = []
+    for r in results:
+        entry: dict[str, Any] = {
+            "file_path": r.chunk.file_path,
+            "start_line": r.chunk.start_line,
+            "end_line": r.chunk.end_line,
+            "score": r.score,
+        }
+        if snippet_lines > 0:
+            lines = r.chunk.content.splitlines()
+            entry["snippet"] = "\n".join(lines[:snippet_lines])
+        formatted.append(entry)
+    return {"query": query, "results": formatted}
+
+
 def resolve_model_name() -> str:
     """Resolve a model name to a configurable."""
     return os.environ.get("SEMBLE_MODEL_NAME", DEFAULT_MODEL_NAME)
