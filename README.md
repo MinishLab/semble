@@ -243,7 +243,7 @@ After fusing, results are reranked with a set of code-aware signals:
 
 Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
 
-Indexes are cached to disk automatically on the first search. On subsequent runs, Semble walks the file tree and compares modification times; if any file was added, removed, or changed, the index is fully rebuilt. In MCP mode, a file watcher detects changes and triggers a rebuild automatically so the index is always current within the same session.
+Indexes are cached to disk automatically on the first search. On subsequent runs, Semble walks the file tree and compares modification times; if any file was added, removed, or changed, or if the indexing settings change (e.g., after a semble upgrade), the index is fully rebuilt. In MCP mode, a file watcher detects changes and triggers a rebuild automatically so the index is always current within the same session.
 
 ## Acknowledgements
 
