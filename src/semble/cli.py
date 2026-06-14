@@ -15,7 +15,7 @@ from semble.index import SembleIndex
 from semble.index.types import PersistencePath
 from semble.stats import format_savings_report
 from semble.types import ContentType
-from semble.utils import format_results_snippet, is_git_url, resolve_chunk
+from semble.utils import format_results, is_git_url, resolve_chunk
 
 _CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear"})
 _CLEAR_CHOICE = Literal["all", "index", "savings"]
@@ -116,7 +116,7 @@ def _run_search(path: str, query: str, top_k: int, content: list[ContentType], s
     """Handle the `search` subcommand."""
     index = _load_index(path, content)
     results = index.search(query, top_k=top_k)
-    out = format_results_snippet(query, results, snippet_lines) if results else {"error": "No results found."}
+    out = format_results(query, results, snippet_lines) if results else {"error": "No results found."}
     print(json.dumps(out))
     _maybe_save_index(index, path)
 
@@ -133,7 +133,7 @@ def _run_find_related(
     results = index.find_related(chunk, top_k=top_k)
     label = f"Chunks related to {file_path}:{line}"
     out = (
-        format_results_snippet(label, results, snippet_lines)
+        format_results(label, results, snippet_lines)
         if results
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )

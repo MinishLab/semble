@@ -86,21 +86,36 @@ def test_is_git_url(path: str, expected: bool) -> None:
     assert is_git_url(path) is expected
 
 
-def test_format_results() -> None:
-    """_format_results: empty list → header only; with results → numbered fenced blocks with scores."""
-    empty_out = format_results("query", [])
+@pytest.mark.parametrize(
+    ("snippet_lines", "has_content", "content_key"),
+    [
+        (None, True, "content"),
+        (3, True, "content"),
+        (0, False, None),
+    ],
+    ids=["full", "truncated", "location_only"],
+)
+def test_format_results(snippet_lines: int | None, has_content: bool, content_key: str | None) -> None:
+    """format_results: consistent flat schema regardless of snippet_lines."""
+    empty_out = format_results("query", [], snippet_lines)
     assert empty_out == {"query": "query", "results": []}
 
-    chunks = [make_chunk(f"def fn_{i}(): pass", f"f{i}.py") for i in range(3)]
+    chunks = [make_chunk(f"line1\nline2\nline3\nline4\ndef fn_{i}(): pass", f"f{i}.py") for i in range(3)]
     results = [SearchResult(chunk=c, score=round(0.1 * (i + 1), 3)) for i, c in enumerate(chunks)]
-    out = format_results("foo", results)
+    out = format_results("foo", results, snippet_lines)
     assert out["query"] == "foo"
-    contents = set(x["chunk"]["content"] for x in out["results"])
-    scores = set(x["score"] for x in out["results"])
-    for chunk in chunks:
-        assert chunk.content in contents
-    for score in [0.1, 0.2, 0.3]:
-        assert score in scores
+    for entry in out["results"]:
+        assert "file_path" in entry
+        assert "start_line" in entry
+        assert "end_line" in entry
+        assert "score" in entry
+        assert "chunk" not in entry
+        if has_content:
+            assert content_key in entry
+            if snippet_lines is not None:
+                assert entry[content_key].count("\n") < snippet_lines
+        else:
+            assert "content" not in entry
 
 
 @pytest.mark.anyio

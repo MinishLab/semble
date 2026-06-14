@@ -16,7 +16,7 @@ from semble.cache import save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import ContentType
-from semble.utils import format_results_snippet, is_git_url, resolve_chunk
+from semble.utils import format_results, is_git_url, resolve_chunk
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.search(query, top_k=top_k)
         if not results:
             return json.dumps({"error": "No results found."})
-        return json.dumps(format_results_snippet(query, results, snippet_lines))
+        return json.dumps(format_results(query, results, snippet_lines))
 
     @server.tool()
     async def find_related(
@@ -130,7 +130,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         if not results:
             return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
         label = f"Chunks related to {file_path}:{line}"
-        return json.dumps(format_results_snippet(label, results, snippet_lines))
+        return json.dumps(format_results(label, results, snippet_lines))
 
     return server
 
