@@ -64,7 +64,7 @@ The index is built on first run and cached automatically. If `semble` is not on 
 
 ### Workflow
 
-1. Call `mcp__semble__search` with a query describing what the code does or its name. The tool returns 3 results by default, each with 5 lines of context (enough to confirm the location).
+1. Call `mcp__semble__search` with a query describing what the code does or its name. The tool returns results with 5 lines of context each (enough to confirm the location).
 2. Navigate directly to the top result's file and line. Read only the function or class at that location.
 3. Make the edit. Do not re-search or grep for the same content.
 4. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.

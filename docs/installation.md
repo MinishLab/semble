@@ -310,8 +310,8 @@ The index is built on first run (and cached for subsequent runs) and invalidated
 **Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
 
 ​```bash
-semble search "id_for_label BoundWidget" ./my-project --snippet-lines 5
-# → django/forms/boundfield.py:228  class BoundWidget:  (score: 0.95)
+semble search "validate email format" ./my-project --snippet-lines 5
+# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ​```
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:

@@ -67,7 +67,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     async def search(
         query: Annotated[str, Field(description="Natural language or code query.")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
-        top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 3,
+        top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
         snippet_lines: Annotated[
             int | None,
             Field(

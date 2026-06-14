@@ -19,8 +19,8 @@ Results are cached automatically on first run and invalidated when files change.
 **Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
 
 ```bash
-semble search "id_for_label BoundWidget" ./my-project --snippet-lines 5
-# → django/forms/boundfield.py:228  class BoundWidget:  (score: 0.95)
+semble search "validate email format" ./my-project --snippet-lines 5
+# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ```
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
@@ -47,8 +47,8 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 2. **Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
 
 ```bash
-semble search "id_for_label BoundWidget" ./my-project --snippet-lines 5
-# → django/forms/boundfield.py:228  class BoundWidget:  (score: 0.95)
+semble search "validate email format" ./my-project --snippet-lines 5
+# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ```
 
 Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
