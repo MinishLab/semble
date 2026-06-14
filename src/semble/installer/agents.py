@@ -46,7 +46,7 @@ A `semble` MCP server is available with two tools:
 - `mcp__semble__search` — search the codebase with a natural-language or code query.
 - `mcp__semble__find_related` — find code similar to a specific file and line.
 
-Always call `mcp__semble__search` before using Grep, Glob, or Read to explore the codebase. After semble returns the file and line, navigate there directly — do not grep for the same content again.
+Use `mcp__semble__search` to find where something is implemented — instead of using Grep or Glob to discover files. After semble returns the file and line, navigate there directly and read that file. Do not grep for the same content again.
 
 Pass `--content docs` to search documentation and prose, `--content config` for config files, or `--content all` to search code, docs, and config together.
 
@@ -64,11 +64,12 @@ The index is built on first run and cached automatically. If `semble` is not on 
 
 ### Workflow
 
-1. Start with `mcp__semble__search` to find relevant chunks.
-2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Navigate directly to the returned file and line — do not re-search or grep for the same content.
-4. Optionally use `mcp__semble__find_related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use Grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
+1. Call `mcp__semble__search` with a query describing what the code does or its name. The tool returns 3 results by default, each with 5 lines of context (enough to confirm the location).
+2. Navigate directly to the top result's file and line. Read only the function or class at that location.
+3. Make the edit. Do not re-search or grep for the same content.
+4. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+5. Optionally use `mcp__semble__find_related` with `file_path` and `line` to discover similar code elsewhere.
+6. Use Grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
 {SEMBLE_END}
 """
 
