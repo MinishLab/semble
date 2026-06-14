@@ -132,7 +132,10 @@ def _write_metadata(
     content_type: list[str],
     write_time: float,
     file_paths: list[str] | None = None,
+    chunk_size: int | None = None,
 ) -> None:
+    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
+
     path.mkdir(parents=True, exist_ok=True)
     (path / "chunks.json").write_text("[]")
     (path / "bm25_index").write_text("")
@@ -144,6 +147,7 @@ def _write_metadata(
                 "content_type": content_type,
                 "time": write_time,
                 "file_paths": file_paths if file_paths is not None else [],
+                "chunk_size": chunk_size if chunk_size is not None else _DESIRED_CHUNK_LENGTH_CHARS,
             }
         )
     )
@@ -180,6 +184,40 @@ def test_get_validated_cache_metadata_mismatch(
     _write_metadata(index_path, stored_model, stored_content, 0.0)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         assert get_validated_cache("/path", req_model, req_content) is None
+
+
+def test_get_validated_cache_chunk_size_mismatch_returns_none(tmp_path: Path) -> None:
+    """Cache built with a different chunk_size is not reused."""
+    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
+
+    index_path = tmp_path / "index"
+    _write_metadata(index_path, "my/model", ["code"], float("inf"), chunk_size=_DESIRED_CHUNK_LENGTH_CHARS + 100)
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
+
+
+def test_get_validated_cache_missing_chunk_size_returns_none(tmp_path: Path) -> None:
+    """Old cache metadata without chunk_size field is not reused (transparent rebuild)."""
+    index_path = tmp_path / "index"
+    # Write metadata as old semble would — no chunk_size field
+    index_path.mkdir(parents=True, exist_ok=True)
+    (index_path / "chunks.json").write_text("[]")
+    (index_path / "bm25_index").write_text("")
+    (index_path / "semantic_index").write_text("")
+    import json as _json
+
+    (index_path / "metadata.json").write_text(
+        _json.dumps(
+            {
+                "model_path": "my/model",
+                "content_type": ["code"],
+                "time": float("inf"),
+                "file_paths": [],
+            }
+        )
+    )
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
 
 
 def test_get_validated_cache_legacy_metadata_returns_none(tmp_path: Path) -> None:

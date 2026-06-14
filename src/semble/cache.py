@@ -95,9 +95,14 @@ def save_index_to_cache(index: "SembleIndex", path: str) -> None:
 
 def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:
     """Return True if the stored metadata is compatible with the requested parameters."""
+    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
+
     try:
         content_type = tuple(ContentType(s) for s in metadata["content_type"])
-        return metadata["model_path"] == model_path and set(content_type) == set(content)
+        # chunk_size is absent in indexes built before this field was added; treat None as mismatch
+        # so old caches are transparently rebuilt with the current chunk size.
+        chunk_size_ok = metadata.get("chunk_size") == _DESIRED_CHUNK_LENGTH_CHARS
+        return metadata["model_path"] == model_path and set(content_type) == set(content) and chunk_size_ok
     except (KeyError, ValueError):
         return False
 

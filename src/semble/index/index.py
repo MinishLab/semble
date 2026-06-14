@@ -347,6 +347,8 @@ class SembleIndex:
         with open(persistence_paths.chunks, "wb") as f:
             data = orjson.dumps(chunks_as_dict)
             f.write(data)
+        from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
+
         root_str = None if self._root is None else str(self._root)
         metadata = {
             "root_path": root_str,
@@ -354,6 +356,7 @@ class SembleIndex:
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
             "file_paths": sorted(self._file_mapping),
+            "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
         }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
