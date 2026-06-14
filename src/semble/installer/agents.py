@@ -46,7 +46,7 @@ A `semble` MCP server is available with two tools:
 - `mcp__semble__search` — search the codebase with a natural-language or code query.
 - `mcp__semble__find_related` — find code similar to a specific file and line.
 
-Always call `mcp__semble__search` before using Grep, Glob, or Read to explore the codebase. Use Grep/Glob/Read only for exact path lookup, exhaustive literal matches, or when the returned chunk lacks enough context.
+Always call `mcp__semble__search` before using Grep, Glob, or Read to explore the codebase. After semble returns the file and line, navigate there directly — do not grep for the same content again.
 
 Pass `--content docs` to search documentation and prose, `--content config` for config files, or `--content all` to search code, docs, and config together.
 
@@ -66,9 +66,9 @@ The index is built on first run and cached automatically. If `semble` is not on 
 
 1. Start with `mcp__semble__search` to find relevant chunks.
 2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Inspect full files only when the returned chunk does not give enough context.
+3. Navigate directly to the returned file and line — do not re-search or grep for the same content.
 4. Optionally use `mcp__semble__find_related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use Grep/Glob/Read only when you need exhaustive literal matches or quick confirmation of an exact string.
+5. Use Grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
 {SEMBLE_END}
 """
 

@@ -55,10 +55,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         "semble",
         instructions=(
             "Instant code search for any local or remote git repository. "
-            "Call `search` to find relevant code; call `find_related` on a result to discover similar code elsewhere. "
+            "Call `search` once with a focused query — it returns the file path and exact line. "
+            "Navigate directly to that file at the given line; do not grep for the same content. "
+            "Use `find_related` to discover similar code elsewhere in the same repo. "
             "When working in a local project, pass the project root as `repo`. "
-            "For remote repos, pass an explicit https:// URL. Never guess or infer URLs. "
-            "Prefer these tools over Grep, Glob, or Read for any question about how code works."
+            "For remote repos, pass an explicit https:// URL. Never guess or infer URLs."
         ),
     )
 
@@ -66,17 +67,17 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
     async def search(
         query: Annotated[str, Field(description="Natural language or code query.")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
-        top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
+        top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 3,
         snippet_lines: Annotated[
             int | None,
             Field(
                 description=(
                     "Lines of source to include per result. "
-                    "Default (10): signature + body start, enough to confirm the location. "
-                    "0: file path and line range only. None: full chunk (~30-50 lines)."
+                    "Default (5): function/class signature, enough to confirm the location. "
+                    "0: file path and line range only. None: full chunk (~15-25 lines)."
                 ),
             ),
-        ] = 10,
+        ] = 5,
     ) -> str:
         """Search a codebase with a natural-language or code query.
 
@@ -104,11 +105,9 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         snippet_lines: Annotated[
             int | None,
             Field(
-                description=(
-                    "Lines of source per result. Default 10 = signature+body. 0 = location only. None = full chunk."
-                )
+                description=("Lines of source per result. Default 5 = signature. 0 = location only. None = full chunk.")
             ),
-        ] = 10,
+        ] = 5,
     ) -> str:
         """Find code chunks semantically similar to a specific location in a file.
 
