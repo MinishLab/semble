@@ -79,10 +79,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             ),
         ] = 5,
     ) -> str:
-        """Search a codebase with a natural-language or code query.
+        """Search once with a focused query describing what the code does or its name.
 
-        Pass a git URL or local path as `repo` to index it on demand; indexes are cached for the session.
-        Use this to find where something is implemented, understand a library, or locate related code.
+        Write queries using function/class names or behavior descriptions, not error messages.
+        Returns file paths and line numbers — navigate directly there, do not repeat the search.
+        Pass a git URL or local path as `repo`; indexes are cached for the session.
         """
         try:
             index = await _get_index(repo, default_source, cache)
@@ -109,10 +110,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             ),
         ] = 5,
     ) -> str:
-        """Find code chunks semantically similar to a specific location in a file.
+        """Find code similar to a known location.
 
-        Use after `search` to explore related implementations or callers.
-        Pass file_path and line from a prior search result.
+        Useful for discovering all implementations of an interface, all callers of a function,
+        or all tests for a class. Use after `search` when you need related code beyond the primary result.
+        Pass `file_path` and `line` from a prior search result.
         """
         try:
             index = await _get_index(repo, default_source, cache)

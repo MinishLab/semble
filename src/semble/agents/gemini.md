@@ -16,6 +16,13 @@ semble search "save model to disk" ./my-project --top-k 10
 
 Results are cached automatically on first run and invalidated when files change.
 
+**Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
+
+```bash
+semble search "id_for_label BoundWidget" ./my-project --snippet-lines 5
+# → django/forms/boundfield.py:228  class BoundWidget:  (score: 0.95)
+```
+
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 
 ```bash
@@ -37,7 +44,14 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ### Workflow
 
 1. Start with `semble search` to find relevant chunks. The index is built and cached automatically.
-2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Inspect full files only when the returned chunk does not give enough context.
+2. **Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
+
+```bash
+semble search "id_for_label BoundWidget" ./my-project --snippet-lines 5
+# → django/forms/boundfield.py:228  class BoundWidget:  (score: 0.95)
+```
+
+Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+3. Navigate directly to the returned file and line — do not re-search or grep for the same content.
 4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use grep only when you need exhaustive literal matches or quick confirmation of an exact string.
+5. Use grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).

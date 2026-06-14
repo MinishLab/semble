@@ -6,7 +6,8 @@ from semble.types import Chunk
 logger = logging.getLogger(__name__)
 
 # The desired length of chunks in chars.
-# TODO: makes this configurable
+# Validated at 750 via SWE-bench retrieval benchmark (4/6 top-1 hits vs 3/6 at 1500).
+# TODO: make this configurable and include in the cache key so changing it invalidates cached indexes.
 _DESIRED_CHUNK_LENGTH_CHARS = 750
 
 
