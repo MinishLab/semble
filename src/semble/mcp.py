@@ -73,11 +73,11 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
             Field(
                 description=(
                     "Lines of source to include per result. "
-                    "Default (5): function/class signature, enough to confirm the location. "
+                    "Default (10): function/class signature + first body lines, enough to confirm the location. "
                     "0: file path and line range only. None: full chunk (~15-25 lines)."
                 ),
             ),
-        ] = 5,
+        ] = 10,
     ) -> str:
         """Search once with a focused query describing what the code does or its name.
 
@@ -106,9 +106,12 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         snippet_lines: Annotated[
             int | None,
             Field(
-                description=("Lines of source per result. Default 5 = signature. 0 = location only. None = full chunk.")
+                description=(
+                    "Lines of source per result. "
+                    "Default 10 = signature + first body lines. 0 = location only. None = full chunk."
+                )
             ),
-        ] = 5,
+        ] = 10,
     ) -> str:
         """Find code similar to a known location.
 

@@ -15,10 +15,10 @@ semble search "save model to disk" ./my-project --top-k 10
 
 Results are cached automatically on first run and invalidated when files change.
 
-**Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
+**Token-efficient searches:** use `--snippet-lines 10` to get only function signatures — enough to confirm the location without reading full chunks.
 
 ```bash
-semble search "validate email format" ./my-project --snippet-lines 5
+semble search "validate email format" ./my-project --snippet-lines 10
 # → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ```
 
@@ -43,10 +43,10 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ### Workflow
 
 1. Start with `semble search` to find relevant chunks. The index is built and cached automatically.
-2. **Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
+2. **Token-efficient searches:** use `--snippet-lines 10` to get only function signatures — enough to confirm the location without reading full chunks.
 
 ```bash
-semble search "validate email format" ./my-project --snippet-lines 5
+semble search "validate email format" ./my-project --snippet-lines 10
 # → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ```
 

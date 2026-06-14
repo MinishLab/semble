@@ -307,10 +307,10 @@ semble search "save model to disk" ./my-project --top-k 10
 
 The index is built on first run (and cached for subsequent runs) and invalidated automatically when files change.
 
-**Token-efficient searches:** use `--snippet-lines 5` to get only function signatures — enough to confirm the location without reading full chunks.
+**Token-efficient searches:** use `--snippet-lines 10` to get only function signatures — enough to confirm the location without reading full chunks.
 
 ​```bash
-semble search "validate email format" ./my-project --snippet-lines 5
+semble search "validate email format" ./my-project --snippet-lines 10
 # → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ​```
 

@@ -14,10 +14,10 @@ semble search "save model to disk" ./my-project --top-k 10
 
 Results are cached automatically on first run and invalidated when files change.
 
-**Token-efficient workflow:** use `--snippet-lines 5` for initial searches — you get the function/class signature to navigate without paying for full chunks. Only omit it when you need to read the actual body before editing.
+**Token-efficient workflow:** use `--snippet-lines 10` for initial searches — you get the function/class signature to navigate without paying for full chunks. Only omit it when you need to read the actual body before editing.
 
 ```bash
-semble search "validate email format" ./my-project --snippet-lines 5
+semble search "validate email format" ./my-project --snippet-lines 10
 # → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
 ```
 

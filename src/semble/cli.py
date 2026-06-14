@@ -183,7 +183,7 @@ def _cli_main() -> None:
         type=int,
         default=None,
         metavar="N",
-        help="Lines of source per result (default: full chunk). 5 = signature only, 0 = no code.",
+        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
     )
     _add_content_args(search_p)
 
@@ -200,7 +200,7 @@ def _cli_main() -> None:
         type=int,
         default=None,
         metavar="N",
-        help="Lines of source per result (default: full chunk). 5 = signature only, 0 = no code.",
+        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
     )
     _add_content_args(related_p)
 
