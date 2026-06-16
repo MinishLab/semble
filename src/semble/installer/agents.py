@@ -53,7 +53,7 @@ Pass `--content docs` to search documentation and prose, `--content config` for 
 For CLI fallback or sub-agents without MCP access, use:
 
 ```bash
-semble search "authentication flow" ./my-project
+semble search "authentication flow" ./my-project --snippet-lines 10
 semble search "deployment guide" ./my-project --content docs
 semble search "database host port" ./my-project --content config
 semble find-related src/auth.py 42 ./my-project

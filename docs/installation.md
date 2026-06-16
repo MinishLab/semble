@@ -300,19 +300,12 @@ Add the snippet below to your `AGENTS.md` or `CLAUDE.md` so your agent knows whe
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
 
 ​```bash
-semble search "authentication flow" ./my-project
-semble search "save_pretrained" ./my-project
-semble search "save model to disk" ./my-project --top-k 10
+semble search "authentication flow" ./my-project --snippet-lines 10  # signatures only, fast
+semble search "save_pretrained" ./my-project                          # full chunk content
+semble search "save model to disk" ./my-project --top-k 10           # more results
 ​```
 
 The index is built on first run (and cached for subsequent runs) and invalidated automatically when files change.
-
-**Token-efficient searches:** use `--snippet-lines 10` to get only function signatures — enough to confirm the location without reading full chunks.
-
-​```bash
-semble search "validate email format" ./my-project --snippet-lines 10
-# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
-​```
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 

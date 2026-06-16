@@ -7,19 +7,12 @@ tools: Bash, Read
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
 
 ```bash
-semble search "authentication flow" ./my-project
-semble search "save_pretrained" ./my-project
-semble search "save model to disk" ./my-project --top-k 10
+semble search "authentication flow" ./my-project --snippet-lines 10  # signatures only, fast
+semble search "save_pretrained" ./my-project                          # full chunk content
+semble search "save model to disk" ./my-project --top-k 10           # more results
 ```
 
 Results are cached automatically on first run and invalidated when files change.
-
-**Token-efficient workflow:** use `--snippet-lines 10` for initial searches — you get the function/class signature to navigate without paying for full chunks. Only omit it when you need to read the actual body before editing.
-
-```bash
-semble search "validate email format" ./my-project --snippet-lines 10
-# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
-```
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 

@@ -7,19 +7,12 @@ tools: bash, read_file
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
 
 ```bash
-semble search "authentication flow" ./my-project
-semble search "save_pretrained" ./my-project
-semble search "save model to disk" ./my-project --top-k 10
+semble search "authentication flow" ./my-project --snippet-lines 10  # signatures only, fast
+semble search "save_pretrained" ./my-project                          # full chunk content
+semble search "save model to disk" ./my-project --top-k 10           # more results
 ```
 
 Results are cached automatically on first run and invalidated when files change.
-
-**Token-efficient searches:** use `--snippet-lines 10` to get only function signatures — enough to confirm the location without reading full chunks.
-
-```bash
-semble search "validate email format" ./my-project --snippet-lines 10
-# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
-```
 
 Use `--content docs` to search documentation and prose, `--content config` for config files (yaml, toml, etc.), or `--content all` to search code, docs, and config:
 
@@ -42,14 +35,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 ### Workflow
 
 1. Start with `semble search` to find relevant chunks. The index is built and cached automatically.
-2. **Token-efficient searches:** use `--snippet-lines 10` to get only function signatures — enough to confirm the location without reading full chunks.
-
-```bash
-semble search "validate email format" ./my-project --snippet-lines 10
-# → src/auth/validators.py:14  def validate_email(value: str) -> bool:  (score: 0.91)
-```
-
-Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
+2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
 3. Navigate directly to the returned file and line — do not re-search or grep for the same content.
 4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
 5. Use grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).

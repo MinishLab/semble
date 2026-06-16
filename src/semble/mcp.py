@@ -55,7 +55,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         "semble",
         instructions=(
             "Instant code search for any local or remote git repository. "
-            "Call `search` once with a focused query — it returns the file path and exact line. "
+            "Call `search` once with a focused query, it returns the file path and exact line. "
             "Navigate directly to that file at the given line; do not grep for the same content. "
             "Use `find_related` to discover similar code elsewhere in the same repo. "
             "When working in a local project, pass the project root as `repo`. "
