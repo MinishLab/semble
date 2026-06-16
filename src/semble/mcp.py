@@ -74,7 +74,9 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
                 description=(
                     "Lines of source to include per result. "
                     "Default (10): function/class signature + first body lines, enough to confirm the location. "
-                    "0: file path and line range only. None: full chunk (~15-25 lines)."
+                    "0: file path and line range only. None: full chunk (~10-20 lines). "
+                    "If the snippet does not contain enough context to confirm you have the right location, "
+                    "call again with snippet_lines=None."
                 ),
             ),
         ] = 10,
