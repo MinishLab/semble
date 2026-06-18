@@ -87,7 +87,7 @@ def test_is_git_url(path: str, expected: bool) -> None:
 
 
 @pytest.mark.parametrize(
-    ("snippet_lines", "has_content", "content_key"),
+    ("max_snippet_lines", "has_content", "content_key"),
     [
         (None, True, "content"),
         (3, True, "content"),
@@ -95,14 +95,14 @@ def test_is_git_url(path: str, expected: bool) -> None:
     ],
     ids=["full", "truncated", "location_only"],
 )
-def test_format_results(snippet_lines: int | None, has_content: bool, content_key: str | None) -> None:
-    """format_results: consistent flat schema regardless of snippet_lines."""
-    empty_out = format_results("query", [], snippet_lines)
+def test_format_results(max_snippet_lines: int | None, has_content: bool, content_key: str | None) -> None:
+    """format_results: consistent flat schema regardless of max_snippet_lines."""
+    empty_out = format_results("query", [], max_snippet_lines)
     assert empty_out == {"query": "query", "results": []}
 
     chunks = [make_chunk(f"line1\nline2\nline3\nline4\ndef fn_{i}(): pass", f"f{i}.py") for i in range(3)]
     results = [SearchResult(chunk=c, score=round(0.1 * (i + 1), 3)) for i, c in enumerate(chunks)]
-    out = format_results("foo", results, snippet_lines)
+    out = format_results("foo", results, max_snippet_lines)
     assert out["query"] == "foo"
     for entry in out["results"]:
         assert "file_path" in entry
@@ -112,8 +112,8 @@ def test_format_results(snippet_lines: int | None, has_content: bool, content_ke
         assert "chunk" not in entry
         if has_content:
             assert content_key in entry
-            if snippet_lines is not None:
-                assert entry[content_key].count("\n") < snippet_lines
+            if max_snippet_lines is not None:
+                assert entry[content_key].count("\n") < max_snippet_lines
         else:
             assert "content" not in entry
 

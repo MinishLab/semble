@@ -112,17 +112,17 @@ def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
         sys.exit(1)
 
 
-def _run_search(path: str, query: str, top_k: int, content: list[ContentType], snippet_lines: int | None) -> None:
+def _run_search(path: str, query: str, top_k: int, content: list[ContentType], max_snippet_lines: int | None) -> None:
     """Handle the `search` subcommand."""
     index = _load_index(path, content)
     results = index.search(query, top_k=top_k)
-    out = format_results(query, results, snippet_lines) if results else {"error": "No results found."}
+    out = format_results(query, results, max_snippet_lines) if results else {"error": "No results found."}
     print(json.dumps(out))
     _maybe_save_index(index, path)
 
 
 def _run_find_related(
-    path: str, file_path: str, line: int, top_k: int, content: list[ContentType], snippet_lines: int | None
+    path: str, file_path: str, line: int, top_k: int, content: list[ContentType], max_snippet_lines: int | None
 ) -> None:
     """Handle the `find-related` subcommand."""
     index = _load_index(path, content)
@@ -133,7 +133,7 @@ def _run_find_related(
     results = index.find_related(chunk, top_k=top_k)
     label = f"Chunks related to {file_path}:{line}"
     out = (
-        format_results(label, results, snippet_lines)
+        format_results(label, results, max_snippet_lines)
         if results
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )
@@ -179,7 +179,7 @@ def _cli_main() -> None:
     search_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     search_p.add_argument(
-        "--snippet-lines",
+        "--max-snippet-lines",
         type=int,
         default=None,
         metavar="N",
@@ -196,7 +196,7 @@ def _cli_main() -> None:
     related_p.add_argument("path", nargs="?", default=".", help="Local path or git URL (default: current directory).")
     related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
     related_p.add_argument(
-        "--snippet-lines",
+        "--max-snippet-lines",
         type=int,
         default=None,
         metavar="N",
@@ -225,7 +225,7 @@ def _cli_main() -> None:
             args.query,
             args.top_k,
             _resolve_content(args.content, args.include_text_files),
-            args.snippet_lines,
+            args.max_snippet_lines,
         )
     elif args.command == "find-related":
         _run_find_related(
@@ -234,5 +234,5 @@ def _cli_main() -> None:
             args.line,
             args.top_k,
             _resolve_content(args.content, args.include_text_files),
-            args.snippet_lines,
+            args.max_snippet_lines,
         )

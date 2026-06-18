@@ -68,7 +68,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         query: Annotated[str, Field(description="Natural language or code query.")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
         top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
-        snippet_lines: Annotated[
+        max_snippet_lines: Annotated[
             int | None,
             Field(
                 description=(
@@ -76,7 +76,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
                     "Default (10): function/class signature + first body lines, enough to confirm the location. "
                     "0: file path and line range only. None: full chunk (~10-20 lines). "
                     "If the snippet does not contain enough context to confirm you have the right location, "
-                    "call again with snippet_lines=None."
+                    "call again with max_snippet_lines=None."
                 ),
             ),
         ] = 10,
@@ -94,7 +94,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         results = index.search(query, top_k=top_k)
         if not results:
             return json.dumps({"error": "No results found."})
-        return json.dumps(format_results(query, results, snippet_lines))
+        return json.dumps(format_results(query, results, max_snippet_lines))
 
     @server.tool()
     async def find_related(
@@ -105,7 +105,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         line: Annotated[int, Field(description="Line number (1-indexed).")],
         repo: Annotated[str | None, Field(description=_REPO_DESCRIPTION)] = None,
         top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1)] = 5,
-        snippet_lines: Annotated[
+        max_snippet_lines: Annotated[
             int | None,
             Field(
                 description=(
@@ -135,7 +135,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
         if not results:
             return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
         label = f"Chunks related to {file_path}:{line}"
-        return json.dumps(format_results(label, results, snippet_lines))
+        return json.dumps(format_results(label, results, max_snippet_lines))
 
     return server
 

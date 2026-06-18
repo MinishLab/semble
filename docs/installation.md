@@ -300,7 +300,7 @@ Add the snippet below to your `AGENTS.md` or `CLAUDE.md` so your agent knows whe
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
 
 ​```bash
-semble search "authentication flow" ./my-project --snippet-lines 10  # signatures only, fast
+semble search "authentication flow" ./my-project --max-snippet-lines 10  # first 10 lines only, concise
 semble search "save_pretrained" ./my-project                          # full chunk content
 semble search "save model to disk" ./my-project --top-k 10           # more results
 ​```

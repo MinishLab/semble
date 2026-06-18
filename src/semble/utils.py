@@ -32,12 +32,12 @@ def resolve_chunk(chunks: list[Chunk], file_path: str, line: int) -> Chunk | Non
     return fallback
 
 
-def format_results(query: str, results: list[SearchResult], snippet_lines: int | None = None) -> dict[str, Any]:
+def format_results(query: str, results: list[SearchResult], max_snippet_lines: int | None = None) -> dict[str, Any]:
     """Render results as a flat JSONable object.
 
-    snippet_lines=None → full content per result.
-    snippet_lines=0    → file path and line range only, no content.
-    snippet_lines=N>0  → first N lines of content.
+    max_snippet_lines=None → full content per result.
+    max_snippet_lines=0    → file path and line range only, no content.
+    max_snippet_lines=N>0  → first N lines of content.
     """
     formatted = []
     for r in results:
@@ -47,11 +47,11 @@ def format_results(query: str, results: list[SearchResult], snippet_lines: int |
             "end_line": r.chunk.end_line,
             "score": r.score,
         }
-        if snippet_lines is None:
+        if max_snippet_lines is None:
             entry["content"] = r.chunk.content
-        elif snippet_lines > 0:
+        elif max_snippet_lines > 0:
             lines = r.chunk.content.splitlines()
-            entry["content"] = "\n".join(lines[:snippet_lines])
+            entry["content"] = "\n".join(lines[:max_snippet_lines])
         formatted.append(entry)
     return {"query": query, "results": formatted}
 
