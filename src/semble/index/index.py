@@ -22,7 +22,7 @@ from semble.index.files import read_file_text
 from semble.index.types import PersistencePath
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
-from semble.types import CallType, Chunk, ContentType, IndexStats, SearchResult
+from semble.types import DEFAULT_DESIRED_CHUNK_LENGTH_CHARS, CallType, Chunk, ContentType, IndexStats, SearchResult
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 _DEFAULT_CONTENT: tuple[ContentType, ...] = (ContentType.CODE,)
@@ -57,9 +57,10 @@ class SembleIndex:
         semantic_index: SelectableBasicBackend,
         chunks: list[Chunk],
         model_path: str,
-        root: Path | None = None,
-        content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
-        loaded_from_disk: bool = False,
+        root: Path | None,
+        content: ContentType | Sequence[ContentType],
+        loaded_from_disk: bool,
+        desired_chunk_length: int,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -71,6 +72,7 @@ class SembleIndex:
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
         :param loaded_from_disk: Whether the index was loaded from disk (cache hit); controls CLI messaging.
+        :param desired_chunk_length: Target chunk size in characters used when building this index.
         """
         self.model = model
         self.chunks: list[Chunk] = chunks
@@ -82,6 +84,7 @@ class SembleIndex:
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
+        self._desired_chunk_length: int = desired_chunk_length
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -128,6 +131,7 @@ class SembleIndex:
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
         model_path: str | None = None,
+        desired_chunk_length: int = DEFAULT_DESIRED_CHUNK_LENGTH_CHARS,
     ) -> SembleIndex:
         """Create and index a SembleIndex from a directory.
 
@@ -135,6 +139,7 @@ class SembleIndex:
         :param content: Content types to index, e.g. ContentType.CODE or [ContentType.CODE, ContentType.DOCS].
         :param include_text_files: Deprecated. Pass a content sequence directly instead.
         :param model_path: Path to the model to use. If None, the default model will be used.
+        :param desired_chunk_length: Target chunk size in characters. Defaults to SEMBLE_CHUNK_SIZE env var or 750.
         :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
@@ -146,7 +151,7 @@ class SembleIndex:
             raise NotADirectoryError(f"Path is not a directory: {path}")
 
         normalized = _apply_include_text_files(content, include_text_files)
-        cache_path = get_validated_cache(str(path), model_path, normalized)
+        cache_path = get_validated_cache(str(path), model_path, normalized, desired_chunk_length)
         if cache_path:
             return cls.load_from_disk(cache_path)
         model, model_path = load_model(model_path)
@@ -157,9 +162,20 @@ class SembleIndex:
             model=model,
             content=normalized,
             display_root=path,
+            desired_chunk_length=desired_chunk_length,
         )
 
-        return SembleIndex(model, bm25, vicinity, chunks, model_path, root=path, content=normalized)
+        return SembleIndex(
+            model=model,
+            bm25_index=bm25,
+            semantic_index=vicinity,
+            chunks=chunks,
+            model_path=model_path,
+            root=path,
+            content=normalized,
+            loaded_from_disk=False,
+            desired_chunk_length=desired_chunk_length,
+        )
 
     @classmethod
     def from_git(
@@ -169,6 +185,7 @@ class SembleIndex:
         model_path: str | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
+        desired_chunk_length: int = DEFAULT_DESIRED_CHUNK_LENGTH_CHARS,
     ) -> SembleIndex:
         """Clone a git repository and index it.
 
@@ -182,12 +199,13 @@ class SembleIndex:
         :param model_path: Path to the model to use. If None, the default model will be used.
         :param content: Content types to index, e.g. (ContentType.CODE,) or (ContentType.CODE, ContentType.DOCS).
         :param include_text_files: Deprecated. Pass content=(ContentType.CODE, ContentType.DOCS, ...) instead.
+        :param desired_chunk_length: Target chunk size in characters. Defaults to SEMBLE_CHUNK_SIZE env var or 750.
         :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
         normalized = _apply_include_text_files(content, include_text_files)
         cache_key = f"{url}@{ref}" if ref else url
-        cache_path = get_validated_cache(cache_key, model_path, normalized)
+        cache_path = get_validated_cache(cache_key, model_path, normalized, desired_chunk_length)
         if cache_path:
             return cls.load_from_disk(cache_path)
 
@@ -212,17 +230,20 @@ class SembleIndex:
                 model=model,
                 content=normalized,
                 display_root=resolved_path,
+                desired_chunk_length=desired_chunk_length,
             )
 
-            return SembleIndex(
-                model,
-                bm25,
-                vicinity,
-                chunks,
-                model_path,
-                root=resolved_path,
-                content=normalized,
-            )
+        return SembleIndex(
+            model=model,
+            bm25_index=bm25,
+            semantic_index=vicinity,
+            chunks=chunks,
+            model_path=model_path,
+            root=resolved_path,
+            content=normalized,
+            loaded_from_disk=False,
+            desired_chunk_length=desired_chunk_length,
+        )
 
     def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
         """Return chunks semantically similar to the given chunk or search result.
@@ -305,7 +326,7 @@ class SembleIndex:
             missing = ", ".join(str(p) for p in non_existent)
             raise FileNotFoundError(f"Index not found at {path}. Missing: {missing}")
 
-        bm_25_index = BM25.load(persistence_paths.bm25_index)
+        bm25_index = BM25.load(persistence_paths.bm25_index)
         semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
         with open(persistence_paths.metadata, "rb") as f:
             metadata = orjson.loads(f.read())
@@ -318,20 +339,22 @@ class SembleIndex:
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]
         content = tuple(ContentType(s) for s in metadata.get("content_type", ["code"]))
+        desired_chunk_length = metadata.get("chunk_length", DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
         if root_path:
             root_path = Path(root_path)
 
         model, model_path = load_model(model_path)
 
         return cls(
-            model,
-            bm_25_index,
-            semantic_index,
-            chunks,
-            model_path,
+            model=model,
+            bm25_index=bm25_index,
+            semantic_index=semantic_index,
+            chunks=chunks,
+            model_path=model_path,
             root=root_path,
             content=content,
             loaded_from_disk=True,
+            desired_chunk_length=desired_chunk_length,
         )
 
     def save(self, path: Path | str) -> None:
@@ -347,7 +370,6 @@ class SembleIndex:
         with open(persistence_paths.chunks, "wb") as f:
             data = orjson.dumps(chunks_as_dict)
             f.write(data)
-        from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
 
         root_str = None if self._root is None else str(self._root)
         metadata = {
@@ -356,7 +378,7 @@ class SembleIndex:
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
             "file_paths": sorted(self._file_mapping),
-            "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
+            "chunk_length": self._desired_chunk_length,
         }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)

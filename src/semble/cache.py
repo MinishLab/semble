@@ -93,21 +93,23 @@ def save_index_to_cache(index: "SembleIndex", path: str) -> None:
         index.save(find_index_from_cache_folder(path))
 
 
-def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:
+def _metadata_matches(
+    metadata: dict, model_path: str, content: Sequence[ContentType], desired_chunk_length: int
+) -> bool:
     """Return True if the stored metadata is compatible with the requested parameters."""
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
-
     try:
         content_type = tuple(ContentType(s) for s in metadata["content_type"])
-        # chunk_size is absent in indexes built before this field was added; treat None as mismatch
+        # chunk_length is absent in indexes built before this field was added; treat None as mismatch
         # so old caches are transparently rebuilt with the current chunk size.
-        chunk_size_ok = metadata.get("chunk_size") == _DESIRED_CHUNK_LENGTH_CHARS
+        chunk_size_ok = metadata.get("chunk_length") == desired_chunk_length
         return metadata["model_path"] == model_path and set(content_type) == set(content) and chunk_size_ok
     except (KeyError, ValueError):
         return False
 
 
-def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:
+def get_validated_cache(
+    path: str, model_path: str | None, content: Sequence[ContentType], desired_chunk_length: int
+) -> Path | None:
     """Validates the cache folder and returns the index path."""
     index_path = find_index_from_cache_folder(path)
     if not index_path.exists():
@@ -121,7 +123,7 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
         model_path = resolve_model_name()
     with open(persistence_path.metadata) as f:
         metadata = json.load(f)
-    if not _metadata_matches(metadata, model_path, content):
+    if not _metadata_matches(metadata, model_path, content, desired_chunk_length):
         return None
 
     if is_git_url(str(path)):

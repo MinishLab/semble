@@ -8,7 +8,7 @@ from model2vec import StaticModel
 from semble import SembleIndex
 from semble.index.create import create_index_from_path
 from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
-from semble.types import ContentType
+from semble.types import DEFAULT_DESIRED_CHUNK_LENGTH_CHARS, ContentType
 from tests.conftest import make_chunk
 
 
@@ -31,7 +31,7 @@ def test_index_markdown_inclusion(
     mock_model: StaticModel, tmp_project: Path, content: list[ContentType], md_in_results: bool
 ) -> None:
     """Markdown files are excluded for code-only and included when docs is requested."""
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=content)
+    _, _, chunks = create_index_from_path(tmp_project, mock_model, content, None, DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 
@@ -65,14 +65,14 @@ def test_from_git_include_text_files_deprecated(mock_model: Any, tmp_project: Pa
 def test_index_empty_returns_zero_chunks(mock_model: StaticModel, tmp_path: Path) -> None:
     """Indexing an empty directory yields zero files and chunks."""
     with pytest.raises(ValueError):
-        create_index_from_path(tmp_path, mock_model)
+        create_index_from_path(tmp_path, mock_model, (ContentType.CODE,), None, DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
 
 
 def test_oversized_file_is_skipped(mock_model: StaticModel, tmp_path: Path) -> None:
     """Files exceeding _MAX_FILE_BYTES are silently skipped during indexing."""
     (tmp_path / "big.py").write_bytes(b"x" * (_MAX_FILE_BYTES + 1))
     with pytest.raises(ValueError):  # no indexable content remains
-        create_index_from_path(tmp_path, mock_model)
+        create_index_from_path(tmp_path, mock_model, (ContentType.CODE,), None, DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
 
 
 def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:
@@ -138,7 +138,17 @@ def test_search_rerank_default_by_content_type(
     mock_model: Any, content: list[ContentType], expect_rerank: bool
 ) -> None:
     """Reranking is on by default when code is indexed, off for non-code-only content."""
-    index = SembleIndex(mock_model, MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")], "", content=content)
+    index = SembleIndex(
+        mock_model,
+        MagicMock(),
+        MagicMock(),
+        [make_chunk("x = 1", "f.py")],
+        "",
+        None,
+        content,
+        False,
+        DEFAULT_DESIRED_CHUNK_LENGTH_CHARS,
+    )
     with patch("semble.index.index.search", return_value=[]) as mock_search:
         index.search("function", top_k=3)
     assert mock_search.call_args.kwargs["rerank"] == expect_rerank

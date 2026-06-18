@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import os
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, TypeAlias
@@ -7,6 +9,23 @@ from typing import Any, TypeAlias
 import numpy as np
 import numpy.typing as npt
 
+logger = logging.getLogger(__name__)
+
+_CHUNK_SIZE_DEFAULT = 750
+
+
+def _parse_chunk_size_env() -> int:
+    value = os.environ.get("SEMBLE_CHUNK_SIZE")
+    if value is None:
+        return _CHUNK_SIZE_DEFAULT
+    try:
+        return int(value)
+    except ValueError:
+        logger.error("SEMBLE_CHUNK_SIZE=%r is not a valid integer; using default %d", value, _CHUNK_SIZE_DEFAULT)
+        return _CHUNK_SIZE_DEFAULT
+
+
+DEFAULT_DESIRED_CHUNK_LENGTH_CHARS: int = _parse_chunk_size_env()
 EmbeddingMatrix: TypeAlias = npt.NDArray[np.float32]
 
 

@@ -17,7 +17,7 @@ from semble.cache import (
     resolve_cache_folder,
     save_index_to_cache,
 )
-from semble.types import ContentType
+from semble.types import DEFAULT_DESIRED_CHUNK_LENGTH_CHARS, ContentType, _parse_chunk_size_env
 
 
 def test_find_index_from_cache_folder_local_path(tmp_path: Path) -> None:
@@ -115,6 +115,20 @@ def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
     assert custom.exists()
 
 
+@pytest.mark.parametrize(
+    ("env_value", "expected"),
+    [
+        ("500", 500),
+        ("not_a_number", 750),
+        ("", 750),
+    ],
+)
+def test_parse_chunk_size_env(env_value: str, expected: int) -> None:
+    """Valid integers are accepted; invalid values fall back to the default."""
+    with patch.dict("os.environ", {"SEMBLE_CHUNK_SIZE": env_value}):
+        assert _parse_chunk_size_env() == expected
+
+
 def test_clear_cache(tmp_path: Path) -> None:
     """clear_cache removes the index directory when it exists and is a no-op otherwise."""
     index_path = tmp_path / "index"
@@ -132,10 +146,8 @@ def _write_metadata(
     content_type: list[str],
     write_time: float,
     file_paths: list[str] | None = None,
-    chunk_size: int | None = None,
+    chunk_length: int | None = None,
 ) -> None:
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
-
     path.mkdir(parents=True, exist_ok=True)
     (path / "chunks.json").write_text("[]")
     (path / "bm25_index").write_text("")
@@ -147,7 +159,7 @@ def _write_metadata(
                 "content_type": content_type,
                 "time": write_time,
                 "file_paths": file_paths if file_paths is not None else [],
-                "chunk_size": chunk_size if chunk_size is not None else _DESIRED_CHUNK_LENGTH_CHARS,
+                "chunk_length": chunk_length if chunk_length is not None else DEFAULT_DESIRED_CHUNK_LENGTH_CHARS,
             }
         )
     )
@@ -156,12 +168,12 @@ def _write_metadata(
 def test_get_validated_cache_invalid_index(tmp_path: Path) -> None:
     """Returns None when the index directory is missing or incomplete."""
     with patch("semble.cache.find_index_from_cache_folder", return_value=tmp_path / "missing"):
-        assert get_validated_cache("/path", None, [ContentType.CODE]) is None
+        assert get_validated_cache("/path", None, [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
     index_path = tmp_path / "index"
     index_path.mkdir()
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", None, [ContentType.CODE]) is None
+        assert get_validated_cache("/path", None, [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
 
 @pytest.mark.parametrize(
@@ -183,17 +195,17 @@ def test_get_validated_cache_metadata_mismatch(
     index_path = tmp_path / "index"
     _write_metadata(index_path, stored_model, stored_content, 0.0)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", req_model, req_content) is None
+        assert get_validated_cache("/path", req_model, req_content, DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
 
 def test_get_validated_cache_chunk_size_mismatch_returns_none(tmp_path: Path) -> None:
     """Cache built with a different chunk_size is not reused."""
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
-
     index_path = tmp_path / "index"
-    _write_metadata(index_path, "my/model", ["code"], float("inf"), chunk_size=_DESIRED_CHUNK_LENGTH_CHARS + 100)
+    _write_metadata(
+        index_path, "my/model", ["code"], float("inf"), chunk_length=DEFAULT_DESIRED_CHUNK_LENGTH_CHARS + 100
+    )
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
 
 def test_get_validated_cache_missing_chunk_size_returns_none(tmp_path: Path) -> None:
@@ -217,7 +229,7 @@ def test_get_validated_cache_missing_chunk_size_returns_none(tmp_path: Path) -> 
         )
     )
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
 
 def test_get_validated_cache_legacy_metadata_returns_none(tmp_path: Path) -> None:
@@ -229,7 +241,7 @@ def test_get_validated_cache_legacy_metadata_returns_none(tmp_path: Path) -> Non
     (index_path / "semantic_index").write_text("")
     (index_path / "metadata.json").write_text(json.dumps({"model_path": "my/model", "time": 0.0}))
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
 
 def test_get_validated_cache_resolves_default_model(tmp_path: Path) -> None:
@@ -238,7 +250,7 @@ def test_get_validated_cache_resolves_default_model(tmp_path: Path) -> None:
     _write_metadata(index_path, "default/model", ["code"], 0.0)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.resolve_model_name", return_value="other/model"):
-            assert get_validated_cache("/path", None, [ContentType.CODE]) is None
+            assert get_validated_cache("/path", None, [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) is None
 
 
 def test_get_validated_cache_git_url_returns_immediately(tmp_path: Path) -> None:
@@ -247,7 +259,7 @@ def test_get_validated_cache_git_url_returns_immediately(tmp_path: Path) -> None
     _write_metadata(index_path, "my/model", ["code"], 0.0)
     url = "https://github.com/org/repo.git"
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        result = get_validated_cache(url, "my/model", [ContentType.CODE])
+        result = get_validated_cache(url, "my/model", [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
     assert result == index_path
 
 
@@ -274,7 +286,9 @@ def test_get_validated_cache_mtime(
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.get_extensions", return_value={".py"}):
             with patch("semble.cache.walk_files", return_value=files):
-                result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
+                result = get_validated_cache(
+                    str(tmp_path), "my/model", [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS
+                )
     assert result == (index_path if expected == "index" else None)
 
 
@@ -299,5 +313,7 @@ def test_get_validated_cache_manifest_mismatch(
     _write_metadata(index_path, "my/model", ["code"], float("inf"), file_paths=stored_files)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.walk_files", return_value=walk_return):
-            result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
+            result = get_validated_cache(
+                str(tmp_path), "my/model", [ContentType.CODE], DEFAULT_DESIRED_CHUNK_LENGTH_CHARS
+            )
     assert result is None

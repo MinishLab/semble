@@ -18,8 +18,9 @@ from semble.types import Chunk, ContentType
 def create_index_from_path(
     path: Path,
     model: StaticModel,
-    content: ContentType | Sequence[ContentType] = (ContentType.CODE,),
-    display_root: Path | None = None,
+    content: ContentType | Sequence[ContentType],
+    display_root: Path | None,
+    desired_chunk_length: int,
 ) -> tuple[bm25s.BM25, SelectableBasicBackend, list[Chunk]]:
     """Create an index from a resolved directory, optionally storing chunk paths relative to display_root.
 
@@ -27,6 +28,7 @@ def create_index_from_path(
     :param model: The model to use for indexing.
     :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
+    :param desired_chunk_length: Target chunk size in characters.
     :raises ValueError: if no items were found, no index can be created.
     :return: A bm25 index, vicinity index and list of chunks
     """
@@ -41,7 +43,7 @@ def create_index_from_path(
                 continue
             source = read_file_text(file_path)
             chunk_path = file_path.relative_to(display_root) if display_root else file_path
-            chunks.extend(chunk_source(source, str(chunk_path), language))
+            chunks.extend(chunk_source(source, str(chunk_path), language, desired_chunk_length))
 
     if chunks:
         embeddings = embed_chunks(model, chunks)

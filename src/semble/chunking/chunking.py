@@ -5,22 +5,18 @@ from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
 
-# The desired length of chunks in chars.
-# TODO: make this configurable
-_DESIRED_CHUNK_LENGTH_CHARS = 750
 
-
-def chunk_source(source: str, file_path: str, language: str | None) -> list[Chunk]:
+def chunk_source(source: str, file_path: str, language: str | None, desired_length: int) -> list[Chunk]:
     """Chunk pre-read source text."""
     if not source.strip():
         return []
     chunk_boundaries = None
     if language is not None and is_supported_language(language):
-        chunk_boundaries = chunk(source, language, _DESIRED_CHUNK_LENGTH_CHARS)
+        chunk_boundaries = chunk(source, language, desired_length)
     # This is an if because the error state of the parser above
     # is a None.
     if chunk_boundaries is None:
-        chunk_boundaries = chunk_lines(source, _DESIRED_CHUNK_LENGTH_CHARS)
+        chunk_boundaries = chunk_lines(source, desired_length)
 
     chunks: list[Chunk] = []
     for boundary in chunk_boundaries:

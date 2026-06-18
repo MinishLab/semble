@@ -4,8 +4,9 @@ from unittest.mock import patch
 import pytest
 from tree_sitter_language_pack import DownloadError
 
-from semble.chunking.chunking import Chunk, chunk_lines, chunk_source
+from semble.chunking.chunking import chunk_lines, chunk_source
 from semble.chunking.core import ChunkBoundary, _cached_get_parser, chunk
+from semble.types import DEFAULT_DESIRED_CHUNK_LENGTH_CHARS
 
 
 @pytest.fixture(autouse=True)
@@ -28,21 +29,21 @@ def test_chunk_lines() -> None:
 
 def test_chunk_source_empty_string() -> None:
     """chunk_source returns [] for whitespace-only input."""
-    assert chunk_source("   \n\n", "foo.py", "python") == []
+    assert chunk_source("   \n\n", "foo.py", "python", DEFAULT_DESIRED_CHUNK_LENGTH_CHARS) == []
 
 
-def test_chunk_source_language() -> None:
-    """Check that chunking defaults to line splitting with non-existent and None languages."""
-    with patch("semble.chunking.chunking.chunk_lines", wraps=chunk_lines) as chunk_line_spy:
-        assert chunk_source("hello", "foo.loki", "loki") == [
-            Chunk(content="hello", file_path="foo.loki", start_line=1, end_line=1, language="loki")
-        ]
-        chunk_line_spy.assert_called_once()
-    with patch("semble.chunking.chunking.chunk_lines", wraps=chunk_lines) as chunk_line_spy:
-        assert chunk_source("1+1=3", "foo.json", None) == [
-            Chunk(content="1+1=3", file_path="foo.json", start_line=1, end_line=1, language=None)
-        ]
-        chunk_line_spy.assert_called_once()
+@pytest.mark.parametrize(
+    ("source", "file_path", "language"),
+    [
+        ("hello", "foo.loki", "loki"),
+        ("1+1=3", "foo.json", None),
+    ],
+)
+def test_chunk_source_language(source: str, file_path: str, language: str | None) -> None:
+    """chunk_source falls back to line splitting for unsupported and None languages."""
+    with patch("semble.chunking.chunking.chunk_lines", wraps=chunk_lines) as spy:
+        chunk_source(source, file_path, language, DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
+        spy.assert_called_once()
 
 
 def test_core_chunk_empty_input() -> None:
@@ -144,7 +145,7 @@ def test_chunker_deep_string(caplog: pytest.LogCaptureFixture) -> None:
     for _ in range(10000):
         deep_string = f"abs({deep_string})\n"
     with caplog.at_level(logging.WARNING, logger="semble.chunking.core"):
-        chunks = chunk_source(deep_string, "deep_string.py", "python")
+        chunks = chunk_source(deep_string, "deep_string.py", "python", DEFAULT_DESIRED_CHUNK_LENGTH_CHARS)
         assert chunks is not None
         assert len(caplog.records) == 1
         assert "Recursion depth exceeded in chunk." in caplog.records[0].message

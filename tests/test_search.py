@@ -11,7 +11,7 @@ from vicinity.backends.basic import BasicArgs
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
-from semble.types import Chunk
+from semble.types import Chunk, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -160,3 +160,9 @@ def test_selectable_basic_backend_rejects_k_below_one(
     """SelectableBasicBackend.query guards against k < 1."""
     with pytest.raises(ValueError, match="k should be >= 1"):
         semantic.query(embeddings[:1], k=0)
+
+
+def test_search_result_to_dict(chunks: list[Chunk]) -> None:
+    """SearchResult.to_dict serialises chunk and score."""
+    result = SearchResult(chunk=chunks[0], score=0.9)
+    assert result.to_dict() == {"chunk": chunks[0].to_dict(), "score": 0.9}
