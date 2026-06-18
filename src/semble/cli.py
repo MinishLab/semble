@@ -115,7 +115,7 @@ def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
 def _run_search(path: str, query: str, top_k: int, content: list[ContentType], max_snippet_lines: int | None) -> None:
     """Handle the `search` subcommand."""
     index = _load_index(path, content)
-    results = index.search(query, top_k=top_k)
+    results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
     out = format_results(query, results, max_snippet_lines) if results else {"error": "No results found."}
     print(json.dumps(out))
     _maybe_save_index(index, path)
@@ -130,7 +130,7 @@ def _run_find_related(
     if chunk is None:
         print(f"No chunk found at {file_path}:{line}.", file=sys.stderr)
         sys.exit(1)
-    results = index.find_related(chunk, top_k=top_k)
+    results = index.find_related(chunk, top_k=top_k, max_snippet_lines=max_snippet_lines)
     label = f"Chunks related to {file_path}:{line}"
     out = (
         format_results(label, results, max_snippet_lines)

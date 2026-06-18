@@ -65,10 +65,18 @@ def save_search_stats(
     results: list[SearchResult],
     call_type: CallType,
     file_sizes: dict[str, int],
+    max_snippet_lines: int | None = None,
 ) -> None:
     """Save stats about a search or find_related call to the stats file."""
     try:
-        snippet_chars = sum(len(result.chunk.content) for result in results)
+        snippet_chars = sum(
+            len("\n".join(result.chunk.content.splitlines()[:max_snippet_lines]))
+            if max_snippet_lines and max_snippet_lines > 0
+            else 0
+            if max_snippet_lines == 0
+            else len(result.chunk.content)
+            for result in results
+        )
         file_chars = sum(
             file_sizes[path] for path in {result.chunk.file_path for result in results} if path in file_sizes
         )
