@@ -119,7 +119,7 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
 
     if model_path is None:
         model_path = resolve_model_name()
-    with open(persistence_path.metadata) as f:
+    with open(persistence_path.metadata, encoding="utf-8") as f:
         metadata = json.load(f)
     if not _metadata_matches(metadata, model_path, content):
         return None

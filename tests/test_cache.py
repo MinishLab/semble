@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import json
 import sys
 from pathlib import Path
@@ -184,6 +185,47 @@ def test_get_validated_cache_metadata_mismatch(
     _write_metadata(index_path, stored_model, stored_content, 0.0)
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         assert get_validated_cache("/path", req_model, req_content) is None
+
+
+def test_get_validated_cache_reads_utf8_metadata_with_non_ascii_file_paths(tmp_path: Path) -> None:
+    """Cache metadata is always UTF-8, even when the system default encoding is not."""
+    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
+
+    index_path = tmp_path / "index"
+    index_path.mkdir(parents=True)
+    (index_path / "chunks.json").write_text("[]")
+    (index_path / "bm25_index").write_text("")
+    (index_path / "semantic_index").write_text("")
+
+    non_ascii_path = "docs\\测试检查清单.md"
+    with pytest.raises(UnicodeDecodeError):
+        non_ascii_path.encode("utf-8").decode("cp936")
+
+    (index_path / "metadata.json").write_text(
+        json.dumps(
+            {
+                "model_path": "my/model",
+                "content_type": ["docs"],
+                "time": 0.0,
+                "file_paths": [non_ascii_path],
+                "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    real_open = builtins.open
+
+    def open_with_cp936_default(file: object, mode: str = "r", *args: object, **kwargs: object):
+        if Path(file) == index_path / "metadata.json" and "b" not in mode and "encoding" not in kwargs:
+            kwargs["encoding"] = "cp936"
+        return real_open(file, mode, *args, **kwargs)
+
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        with patch("builtins.open", side_effect=open_with_cp936_default):
+            result = get_validated_cache("https://github.com/org/repo.git", "my/model", [ContentType.DOCS])
+    assert result == index_path
 
 
 def test_get_validated_cache_chunk_size_mismatch_returns_none(tmp_path: Path) -> None:
