@@ -35,6 +35,6 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 1. Start with `semble search` to find relevant chunks. The index is built and cached automatically.
 2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
-3. Navigate directly to the returned file and line ; do not re-search or grep for the same content.
+3. Navigate directly to the returned file and line. Do not re-search or grep for the same content.
 4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
 5. Use grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
