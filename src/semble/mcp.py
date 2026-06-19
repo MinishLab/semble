@@ -78,6 +78,7 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
                     "If the snippet does not contain enough context to confirm you have the right location, "
                     "call again with max_snippet_lines=None."
                 ),
+                ge=0,
             ),
         ] = 10,
     ) -> str:
@@ -111,7 +112,8 @@ def create_server(cache: _IndexCache, default_source: str | None = None) -> Fast
                 description=(
                     "Lines of source per result. "
                     "Default 10 = signature + first body lines. 0 = location only. None = full chunk."
-                )
+                ),
+                ge=0,
             ),
         ] = 10,
     ) -> str:
