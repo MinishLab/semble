@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import atexit
 import json
 import shutil
+import signal
+import sys
 import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager, nullcontext
@@ -16,6 +19,36 @@ _AGENTS_MD_BACKUP = _GLOBAL_AGENTS_MD.parent / f"{_GLOBAL_AGENTS_MD.name}.benchm
 _TOOLS = "Bash,Read,Glob,Grep,Edit,Write"
 
 
+def _restore_global_agents_md() -> None:
+    """Restore ``AGENTS.md`` from the backup file, if one exists."""
+    if _AGENTS_MD_BACKUP.exists():
+        _GLOBAL_AGENTS_MD.write_text(_AGENTS_MD_BACKUP.read_text())
+        _AGENTS_MD_BACKUP.unlink()
+
+
+def _recover_stale_backup() -> None:
+    """Self-heal a backup left behind by a previous run that was killed mid-suspend."""
+    if _AGENTS_MD_BACKUP.exists():
+        print(
+            f"[claude backend] found stale {_AGENTS_MD_BACKUP.name} from a previous run "
+            "(likely killed mid-run) — restoring AGENTS.md before continuing",
+            file=sys.stderr,
+        )
+        _restore_global_agents_md()
+
+
+def _signal_restore_handler(signum: int, frame: object) -> None:
+    _restore_global_agents_md()
+    signal.signal(signum, signal.SIG_DFL)
+    signal.raise_signal(signum)
+
+
+_recover_stale_backup()
+for _sig in (signal.SIGTERM, signal.SIGINT):
+    signal.signal(_sig, _signal_restore_handler)
+atexit.register(_restore_global_agents_md)
+
+
 @contextmanager
 def _suspended_global_agents_md() -> Iterator[None]:
     """Temporarily empty the global ``AGENTS.md``/``CLAUDE.md`` content.
@@ -24,9 +57,10 @@ def _suspended_global_agents_md() -> Iterator[None]:
     (``uvx --from semble[mcp] semble``), which leaks semble usage into the
     without-semble baseline despite ``--strict-mcp-config``. Swapping ``CLAUDE_CONFIG_DIR``
     instead would break OAuth/keychain auth, so we suspend the shared file's content in
-    place. A backup file is left behind if the process is killed mid-run so it can be
-    recovered; the caller is responsible for not running this concurrently with another
-    process that reads the same file (e.g. a live codex run's with-semble variant).
+    place. If the process is killed mid-run (SIGTERM/SIGINT trigger an immediate restore;
+    a SIGKILL is self-healed by ``_recover_stale_backup`` on the next run), the caller is
+    responsible for not running this concurrently with another process that reads the same
+    file (e.g. a live codex run's with-semble variant).
     """
     if not _GLOBAL_AGENTS_MD.exists() or _AGENTS_MD_BACKUP.exists():
         yield
@@ -37,8 +71,7 @@ def _suspended_global_agents_md() -> Iterator[None]:
         _GLOBAL_AGENTS_MD.write_text("")
         yield
     finally:
-        _GLOBAL_AGENTS_MD.write_text(_AGENTS_MD_BACKUP.read_text())
-        _AGENTS_MD_BACKUP.unlink()
+        _restore_global_agents_md()
 
 
 def _tool_call_entry(name: str, inp: dict) -> str:
