@@ -1,0 +1,91 @@
+[
+  {
+    "instance_id": "pytest-dev__pytest-11143",
+    "gold_files": [
+      "src/_pytest/assertion/rewrite.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble",
+        "backend": "claude",
+        "model": "claude-haiku-4-5-20251001",
+        "tool_calls": [
+          "ToolSearch",
+          "claude_mcp:semble/search(snippet=default)[q=docstring detection assertion rewrite first expression]",
+          "claude_mcp:semble/search(snippet=default)[q=strip module docstring number constant first statement]",
+          "Read",
+          "claude_mcp:semble/search(snippet=default)[q=is_rewrite_disabled method implementation]",
+          "claude_mcp:semble/search(snippet=default)[q=def is_rewrite_disabled]",
+          "Grep",
+          "semble_bash [SEMBLE_BYPASS]",
+          "Read",
+          "Edit",
+          "Read"
+        ],
+        "cost_usd": 0.09197160000000001,
+        "input_tokens": 415650,
+        "output_tokens": 4025,
+        "num_turns": 12,
+        "touched_files": [
+          "src/_pytest/assertion/rewrite.py"
+        ],
+        "patch": "diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py\nindex 157903faf..9bf79f1e1 100644\n--- a/src/_pytest/assertion/rewrite.py\n+++ b/src/_pytest/assertion/rewrite.py\n@@ -676,6 +676,7 @@ class AssertionRewriter(ast.NodeVisitor):\n                 expect_docstring\n                 and isinstance(item, ast.Expr)\n                 and isinstance(item.value, ast.Constant)\n+                and isinstance(item.value.value, str)\n             ):\n                 doc = item.value.value\n                 if self.is_rewrite_disabled(doc):\n",
+        "gold_hit": true,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "claude",
+        "model": "claude-haiku-4-5-20251001",
+        "tool_calls": [
+          "semble_bash [SEMBLE_BYPASS]",
+          "Glob",
+          "semble_bash [SEMBLE_BYPASS]",
+          "Read",
+          "Read",
+          "semble_bash [SEMBLE_BYPASS]",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Read",
+          "Edit",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Read",
+          "Read",
+          "Bash",
+          "Bash",
+          "Read",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Bash",
+          "Read",
+          "Bash"
+        ],
+        "cost_usd": 0.36827340000000003,
+        "input_tokens": 1954025,
+        "output_tokens": 14866,
+        "num_turns": 37,
+        "touched_files": [
+          "src/_pytest/assertion/rewrite.py"
+        ],
+        "patch": "diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py\nindex 157903faf..9bf79f1e1 100644\n--- a/src/_pytest/assertion/rewrite.py\n+++ b/src/_pytest/assertion/rewrite.py\n@@ -676,6 +676,7 @@ class AssertionRewriter(ast.NodeVisitor):\n                 expect_docstring\n                 and isinstance(item, ast.Expr)\n                 and isinstance(item.value, ast.Constant)\n+                and isinstance(item.value.value, str)\n             ):\n                 doc = item.value.value\n                 if self.is_rewrite_disabled(doc):\n",
+        "gold_hit": true,
+        "error": null
+      }
+    ]
+  }
+]

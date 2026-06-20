@@ -1,0 +1,32 @@
+[
+  {
+    "instance_id": "pytest-dev__pytest-11143",
+    "gold_files": [
+      "src/_pytest/assertion/rewrite.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble_mcp_smoke",
+        "backend": "claude",
+        "model": "claude-haiku-4-5-20251001",
+        "tool_calls": [
+          "ToolSearch",
+          "claude_mcp:semble/search(snippet=default)[q=docstring detection rewrite first expression]",
+          "Read",
+          "Edit",
+          "Read"
+        ],
+        "cost_usd": 0.08990490000000001,
+        "input_tokens": 166697,
+        "output_tokens": 3029,
+        "num_turns": 6,
+        "touched_files": [
+          "src/_pytest/assertion/rewrite.py"
+        ],
+        "patch": "diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py\nindex 157903faf..9bf79f1e1 100644\n--- a/src/_pytest/assertion/rewrite.py\n+++ b/src/_pytest/assertion/rewrite.py\n@@ -676,6 +676,7 @@ class AssertionRewriter(ast.NodeVisitor):\n                 expect_docstring\n                 and isinstance(item, ast.Expr)\n                 and isinstance(item.value, ast.Constant)\n+                and isinstance(item.value.value, str)\n             ):\n                 doc = item.value.value\n                 if self.is_rewrite_disabled(doc):\n",
+        "gold_hit": true,
+        "error": null
+      }
+    ]
+  }
+]
