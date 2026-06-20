@@ -6,6 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from swebench.harness.constants import KEY_INSTANCE_ID, KEY_MODEL
+from swebench.harness.utils import get_predictions_from_file
+
 from benchmarks.swe.backends.base import WITH_SEMBLE, WITHOUT_SEMBLE
 from benchmarks.swe.stats import mcnemar_exact_p
 
@@ -24,12 +27,12 @@ def _check_docker() -> None:
 
 def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -> dict[str, bool]:
     """Run the harness and return ``{instance_id: resolved}`` map."""
-    lines = [ln for ln in predictions_path.read_text().splitlines() if ln.strip()]
-    if not lines:
+    predictions = get_predictions_from_file(str(predictions_path), _DATASET, "test")
+    if not predictions:
         print(f"  Skipping {run_id} — no predictions in {predictions_path.name}")
         return {}
 
-    pred_ids = {json.loads(ln)["instance_id"] for ln in lines}
+    pred_ids = {p[KEY_INSTANCE_ID] for p in predictions}
     ids_to_run = [i for i in instance_ids if i in pred_ids]
     if not ids_to_run:
         print(f"  Skipping {run_id} — none of the requested instance IDs have patches")
@@ -57,7 +60,7 @@ def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -
     print(f"\nRunning harness: {run_id}  ({len(ids_to_run)} instances)")
     subprocess.run(cmd, check=True, cwd=_PROJECT_ROOT)
 
-    model_name = json.loads(lines[0])["model_name_or_path"]
+    model_name = predictions[0][KEY_MODEL]
     result_file = _PROJECT_ROOT / f"{model_name}.{run_id}.json"
     if not result_file.exists():
         candidates = list(_PROJECT_ROOT.glob(f"*.{run_id}.json"))
@@ -100,16 +103,15 @@ def _collect_instance_ids(*pred_paths: Path) -> list[str]:
     """Union of all instance IDs found across the given prediction files."""
     ids: set[str] = set()
     for p in pred_paths:
-        for line in p.read_text().splitlines():
-            if line.strip():
-                ids.add(json.loads(line)["instance_id"])
+        for pred in get_predictions_from_file(str(p), _DATASET, "test"):
+            ids.add(pred[KEY_INSTANCE_ID])
     return sorted(ids)
 
 
 def _model_slug(pred_path: Path, fallback: str) -> str:
     """Model name to scope the harness run_id by, so different backend runs don't share harness logs."""
-    first_line = next((ln for ln in pred_path.read_text().splitlines() if ln.strip()), None)
-    return json.loads(first_line)["model_name_or_path"] if first_line else fallback
+    preds = get_predictions_from_file(str(pred_path), _DATASET, "test")
+    return preds[0][KEY_MODEL] if preds else fallback
 
 
 def _fmt_resolved(v: bool | None) -> str:

@@ -12,7 +12,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from benchmarks.swe.gitutils import changed_files, git_reset
+from swebench.harness.utils import get_modified_files
+
+from benchmarks.swe.gitutils import git_reset
 
 _PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 _TIMEOUT = 480  # seconds per agent run
@@ -182,7 +184,7 @@ class Backend(ABC):
             return RunResult(variant=variant, backend=self.name, model=self.model, error=str(exc))
 
     def _finalize(self, variant: str, parsed: ParsedRun, diff: str, *, empty_output: bool) -> RunResult:
-        touched = changed_files(diff)
+        touched = get_modified_files(diff)
         tool_calls = parsed.tool_calls
         error = "empty output after retries" if empty_output else None
         return RunResult(

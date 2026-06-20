@@ -49,6 +49,7 @@ benchmark = [
     "matplotlib>=3.7",
     "tiktoken>=0.7",
     "openai>=1.50",
+    "swebench>=2.0",
 ]
 dev = [
     "pytest>=8.0",

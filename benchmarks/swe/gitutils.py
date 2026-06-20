@@ -31,8 +31,3 @@ def git_reset(repo: Path, commit: str) -> None:
     """Hard-reset ``repo`` to ``commit`` and remove all untracked/ignored files."""
     subprocess.run(["git", "reset", "--hard", commit], cwd=repo, capture_output=True)
     subprocess.run(["git", "clean", "-fdx"], cwd=repo, capture_output=True)
-
-
-def changed_files(diff_text: str) -> list[str]:
-    """Paths touched by a unified diff — used for both gold-patch parsing and ``git diff`` output."""
-    return [line[6:] for line in diff_text.splitlines() if line.startswith("+++ b/")]

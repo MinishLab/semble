@@ -7,6 +7,8 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from swebench.harness.constants import KEY_INSTANCE_ID, KEY_MODEL, KEY_PREDICTION
+
 from benchmarks.swe.backends import (
     _BACKENDS,
     WITH_SEMBLE,
@@ -133,14 +135,13 @@ def run(
     experiment: str | None = None,
     with_semble_only: bool = False,
     seed: int = DEFAULT_SEED,
-    refresh_cache: bool = False,
 ) -> None:
     """Run *backend* over SWE-bench Lite tasks, with and without semble, and save results."""
     REPOS_DIR.mkdir(exist_ok=True)
     RESULTS_DIR.mkdir(exist_ok=True)
 
     print(f"Backend: {backend.label()}")
-    tasks = resolve_tasks(n_tasks, repo, instance_ids, seed, refresh_cache)
+    tasks = resolve_tasks(n_tasks, repo, instance_ids, seed)
     if not tasks:
         print(f"No tasks for repo={repo!r}")
         return
@@ -275,9 +276,9 @@ def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | No
         result_variant = variant_name(variant == WITH_SEMBLE, experiment)
         predictions = [
             {
-                "instance_id": t.instance_id,
-                "model_patch": r.patch,
-                "model_name_or_path": f"{model_slug}-{variant}",
+                KEY_INSTANCE_ID: t.instance_id,
+                KEY_PREDICTION: r.patch,
+                KEY_MODEL: f"{model_slug}-{variant}",
             }
             for t in merged
             for r in t.results
@@ -320,9 +321,6 @@ def main() -> None:
     )
     p.add_argument("--seed", type=int, default=DEFAULT_SEED, help="Seed for random task sampling")
     p.add_argument(
-        "--refresh-cache", action="store_true", help="Re-fetch the SWE-bench Lite task list from HuggingFace"
-    )
-    p.add_argument(
         "--resume", action="store_true", help="Skip tasks already successfully completed for this backend+model"
     )
     p.add_argument(
@@ -351,7 +349,6 @@ def main() -> None:
         experiment=args.experiment,
         with_semble_only=args.with_semble_only,
         seed=args.seed,
-        refresh_cache=args.refresh_cache,
     )
 
 

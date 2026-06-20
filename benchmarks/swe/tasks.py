@@ -1,38 +1,51 @@
 from __future__ import annotations
 
-import json
 import random
-import urllib.request
-from dataclasses import dataclass
-from pathlib import Path
 
-from benchmarks.swe.gitutils import changed_files
+from swebench.harness.constants import SWEbenchInstance
+from swebench.harness.utils import get_modified_files, load_swebench_dataset
 
-RESULTS_DIR = Path(__file__).parent / "results"
-_HF_CHUNK = (
-    "https://datasets-server.huggingface.co/rows"
-    "?dataset=princeton-nlp%2FSWE-bench_Lite&config=default&split=test"
-    "&offset={offset}&length=100"
-)
+_DATASET = "princeton-nlp/SWE-bench_Lite"
 DEFAULT_REPO = "pytest-dev/pytest"
 DEFAULT_SEED = 42
-_HF_CACHE = RESULTS_DIR / "swe_bench_lite_tasks.json"
 
 
-@dataclass(frozen=True)
 class SWETask:
-    """A single SWE-bench Lite task."""
+    """Thin wrapper around a :class:`SWEbenchInstance` dict with computed helpers."""
 
-    instance_id: str
-    repo: str
-    base_commit: str
-    problem_statement: str
-    patch: str
+    def __init__(self, instance: SWEbenchInstance) -> None:
+        """Wrap a raw ``SWEbenchInstance`` dict."""
+        self._instance = instance
+
+    @property
+    def instance_id(self) -> str:
+        """The unique instance identifier."""
+        return self._instance["instance_id"]
+
+    @property
+    def repo(self) -> str:
+        """The GitHub ``owner/repo`` string."""
+        return self._instance["repo"]
+
+    @property
+    def base_commit(self) -> str:
+        """The commit hash the task starts from."""
+        return self._instance["base_commit"]
+
+    @property
+    def problem_statement(self) -> str:
+        """The full issue text to feed to the agent."""
+        return self._instance["problem_statement"]
+
+    @property
+    def patch(self) -> str:
+        """The gold patch (unified diff)."""
+        return self._instance["patch"]
 
     @property
     def gold_files(self) -> list[str]:
         """Paths touched by the gold patch."""
-        return changed_files(self.patch)
+        return get_modified_files(self._instance["patch"])
 
     @property
     def short_label(self) -> str:
@@ -42,58 +55,32 @@ class SWETask:
                 return line.strip()[:200]
         return self.problem_statement[:200]
 
-    @classmethod
-    def from_hf_row(cls, row: dict) -> SWETask:
-        """Construct from a HuggingFace dataset row."""
-        return cls(
-            instance_id=row["instance_id"],
-            repo=row["repo"],
-            base_commit=row["base_commit"],
-            problem_statement=row["problem_statement"],
-            patch=row["patch"],
-        )
+    @property
+    def raw(self) -> SWEbenchInstance:
+        """The underlying ``SWEbenchInstance`` dict, for direct field access."""
+        return self._instance
 
 
-def fetch_tasks(
-    n: int, repo: str = DEFAULT_REPO, seed: int = DEFAULT_SEED, refresh_cache: bool = False
-) -> list[SWETask]:
+def fetch_tasks(n: int, repo: str = DEFAULT_REPO, seed: int = DEFAULT_SEED) -> list[SWETask]:
     """Fetch SWE-bench Lite tasks, seeded-randomly sampled.
 
     *repo* accepts a single repo, a comma-separated list, or ``"all"``.
     """
-    if refresh_cache and _HF_CACHE.exists():
-        _HF_CACHE.unlink()
-    if _HF_CACHE.exists():
-        all_rows = json.loads(_HF_CACHE.read_text())
-    else:
-        all_rows = []
-        for offset in range(0, 300, 100):
-            with urllib.request.urlopen(_HF_CHUNK.format(offset=offset), timeout=30) as r:
-                all_rows += [row["row"] for row in json.loads(r.read())["rows"]]
-        RESULTS_DIR.mkdir(exist_ok=True)
-        _HF_CACHE.write_text(json.dumps(all_rows))
-
+    instances = load_swebench_dataset(_DATASET, split="test")
     if repo == "all":
-        pool = list(all_rows)
+        pool = instances
     else:
         repos = {r.strip() for r in repo.split(",")}
-        pool = [r for r in all_rows if r["repo"] in repos]
-
+        pool = [inst for inst in instances if inst["repo"] in repos]
     random.Random(seed).shuffle(pool)
-    return [SWETask.from_hf_row(row) for row in pool[:n]]
+    return [SWETask(inst) for inst in pool[:n]]
 
 
-def resolve_tasks(
-    n_tasks: int, repo: str, instance_ids: list[str] | None, seed: int, refresh_cache: bool
-) -> list[SWETask]:
+def resolve_tasks(n_tasks: int, repo: str, instance_ids: list[str] | None, seed: int) -> list[SWETask]:
     """Fetch either a specific set of instance IDs or a fresh random sample."""
     if instance_ids:
         print(f"Fetching tasks for {len(instance_ids)} specific instance IDs...")
-        tasks = fetch_tasks(300, "all", seed=seed, refresh_cache=refresh_cache)
-        tasks = [t for t in tasks if t.instance_id in set(instance_ids)]
-        missing = set(instance_ids) - {t.instance_id for t in tasks}
-        if missing:
-            print(f"WARNING: {len(missing)} IDs not found: {missing}")
-        return tasks
+        instances = load_swebench_dataset(_DATASET, split="test", instance_ids=instance_ids)
+        return [SWETask(inst) for inst in instances]
     print(f"Fetching {n_tasks} randomly sampled tasks from SWE-bench Lite (repo={repo}, seed={seed})...")
-    return fetch_tasks(n_tasks, repo, seed=seed, refresh_cache=refresh_cache)
+    return fetch_tasks(n_tasks, repo, seed=seed)
