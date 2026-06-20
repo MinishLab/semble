@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 from benchmarks.swe.backends.base import _TIMEOUT, Backend, prepare_temp_home, run_with_timeout, subprocess_env
-from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff
+from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff, is_semble_shell_invocation
 
 _CODEX_CONFIG = Path.home() / ".codex" / "config.toml"
 
@@ -29,7 +29,7 @@ def _item_entry(item: dict) -> str | None:
     if item_type == "command_execution":
         cmd = item.get("command", "")
         entry = f"codex_bash:{cmd[:120]}"
-        if "semble" in cmd:
+        if is_semble_shell_invocation(cmd):
             entry += " [SEMBLE_BYPASS]"
         return entry
     if item_type == "file_change":

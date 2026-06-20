@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 from benchmarks.swe.backends.base import _TIMEOUT, Backend, prepare_temp_home, run_with_timeout, subprocess_env
-from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff
+from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff, is_semble_shell_invocation
 
 _OPENCODE_CONFIG = Path.home() / ".config" / "opencode" / "opencode.json"
 
@@ -23,7 +23,7 @@ def _tool_use_entry(tool: str, inp: dict) -> str:
     if tool == "bash":
         cmd = inp.get("command", "")
         entry = f"opencode_bash:{cmd[:120]}"
-        if "semble" in cmd:
+        if is_semble_shell_invocation(cmd):
             entry += " [SEMBLE_BYPASS]"
         return entry
     return f"opencode_{tool}"

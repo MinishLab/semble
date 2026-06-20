@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import os
 import random
+import re
 import shutil
 import subprocess
 import tempfile
@@ -141,6 +142,20 @@ def is_semble_tool_call(entry: str) -> bool:
 def is_bypass_call(entry: str) -> bool:
     """Return True if a tool-call entry string represents a shell-out bypass to the semble CLI."""
     return "[SEMBLE_BYPASS]" in entry
+
+
+_SEMBLE_INVOCATION_RE = re.compile(r"(?<![\w/.-])semble(?![\w/.-])")
+
+
+def is_semble_shell_invocation(command: str) -> bool:
+    """Return True if *command* actually invokes the ``semble`` CLI (not just a path mention).
+
+    A naive ``"semble" in command`` substring check false-positives on any command
+    referencing an absolute path inside this project (e.g. ``.../oss/semble/...``),
+    since the project itself is named ``semble``. This matches ``semble`` as a
+    standalone token instead, excluding path/word characters on either side.
+    """
+    return bool(_SEMBLE_INVOCATION_RE.search(command))
 
 
 def clone_at_commit(repo: str, commit: str, dest: Path) -> None:

@@ -8,7 +8,7 @@ from contextlib import contextmanager, nullcontext
 from pathlib import Path
 
 from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
-from benchmarks.swe.utils import ParsedRun, git_diff
+from benchmarks.swe.utils import ParsedRun, git_diff, is_semble_shell_invocation
 
 _GLOBAL_AGENTS_MD = (Path.home() / ".claude" / "CLAUDE.md").resolve()
 _AGENTS_MD_BACKUP = _GLOBAL_AGENTS_MD.parent / f"{_GLOBAL_AGENTS_MD.name}.benchmark_backup"
@@ -45,7 +45,7 @@ def _tool_call_entry(name: str, inp: dict) -> str:
     """Format a single Claude ``tool_use`` block as a console/log-friendly entry string."""
     if name == "Bash":
         cmd = inp.get("command", "")
-        return "semble_bash [SEMBLE_BYPASS]" if "semble" in cmd else "Bash"
+        return "semble_bash [SEMBLE_BYPASS]" if is_semble_shell_invocation(cmd) else "Bash"
     if name.startswith("mcp__semble__"):
         tool = name.rsplit("__", 1)[-1]
         snippet = inp.get("snippet_lines", "default")
