@@ -9,9 +9,10 @@ import urllib.request
 from dataclasses import asdict
 from pathlib import Path
 
-from .backends import _BACKENDS, Backend, ClaudeBackend, CodexBackend, OpencodeBackend, RunResult
-from .backends.base import _is_semble_tool_call
-from .gitutils import _changed_files, _clone_at_commit
+from benchmarks.swe.backends import _BACKENDS, Backend, ClaudeBackend, CodexBackend, OpencodeBackend, RunResult
+from benchmarks.swe.backends.base import is_semble_tool_call
+from benchmarks.swe.gitutils import changed_files, clone_at_commit
+from benchmarks.swe.stats import bootstrap_ci
 
 REPOS_DIR = Path(__file__).parent / "repos"
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -44,7 +45,7 @@ def _fetch_tasks(
 ) -> list[dict]:
     """Fetch SWE-bench Lite tasks, seeded-randomly sampled.
 
-    `repo` accepts a single repo, a comma-separated list, or "all".
+    *repo* accepts a single repo, a comma-separated list, or ``"all"``.
     """
     if refresh_cache and _HF_CACHE.exists():
         _HF_CACHE.unlink()
@@ -82,7 +83,7 @@ def _hits_gold(touched: list[str], gold: list[str]) -> bool:
 
 
 def _completed_variants(backend: Backend) -> dict[str, set[str]]:
-    """Return {instance_id: {variant, ...}} for successful, non-empty results from this backend+model."""
+    """Return ``{instance_id: {variant, ...}}`` for successful, non-empty results from this backend+model."""
     out: dict[str, set[str]] = {}
     path = RESULTS_DIR / "swe_agent.json"
     if not path.exists():
@@ -120,7 +121,7 @@ def _print_run_result(r: RunResult) -> None:
     if r.error:
         print(f"    ERROR: {r.error}")
         return
-    semble_calls = sum(1 for t in r.tool_calls if _is_semble_tool_call(t))
+    semble_calls = sum(1 for t in r.tool_calls if is_semble_tool_call(t))
     bypass_note = "  [BYPASS]" if r.bypass else ""
     print(
         f"    turns={r.num_turns}  cost=${r.cost_usd:.3f}  out={r.output_tokens}  "
@@ -153,7 +154,7 @@ def _run_variants(
 
         print(f"  [{run_label}] running...", flush=True)
         r = backend.run(prompt, dest, commit, with_semble=with_semble)
-        r.variant = variant  # override hardcoded "with_semble"/"without_semble" in backends
+        r.variant = variant
         r.gold_hit = _hits_gold(r.touched_files, gold)
         _print_run_result(r)
         results.append(r)
@@ -171,7 +172,7 @@ def run(
     seed: int = _DEFAULT_SEED,
     refresh_cache: bool = False,
 ) -> None:
-    """Run `backend` over SWE-bench Lite tasks, with and without semble, and save results."""
+    """Run *backend* over SWE-bench Lite tasks, with and without semble, and save results."""
     REPOS_DIR.mkdir(exist_ok=True)
     RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -194,7 +195,7 @@ def run(
         task_repo = task["repo"]
         commit = task["base_commit"]
         problem = task["problem_statement"]
-        gold = _changed_files(task["patch"])
+        gold = changed_files(task["patch"])
         if not gold:
             continue
 
@@ -210,7 +211,7 @@ def run(
         print(f"  issue: {_short_label(problem)!r}")
         print("  clone...", end=" ", flush=True)
         try:
-            _clone_at_commit(task_repo, commit, dest)
+            clone_at_commit(task_repo, commit, dest)
             print("ok")
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             print(f"FAILED: {exc}")
@@ -236,22 +237,6 @@ def run(
     _save_outputs(all_rows, backend.label(), experiment=experiment)
 
 
-def _bootstrap_ci(values: list[float], n_resamples: int = 10_000, seed: int = _DEFAULT_SEED) -> tuple[float, float]:
-    """95% percentile bootstrap CI for the mean of `values`. Stdlib-only (no scipy dep)."""
-    if len(values) < 2:
-        return (float("nan"), float("nan"))
-    rng = random.Random(seed)
-    n = len(values)
-    means = []
-    for _ in range(n_resamples):
-        sample = [values[rng.randrange(n)] for _ in range(n)]
-        means.append(sum(sample) / n)
-    means.sort()
-    lo = means[int(0.025 * n_resamples)]
-    hi = means[int(0.975 * n_resamples) - 1]
-    return (lo, hi)
-
-
 def _print_summary(rows: list[dict], model_label: str, experiment: str | None = None) -> None:
     with_variant = f"with_semble_{experiment}" if experiment else "with_semble"
     with_r = [r for row in rows for r in row["results"] if r["variant"] == with_variant and not r["error"]]
@@ -264,7 +249,7 @@ def _print_summary(rows: list[dict], model_label: str, experiment: str | None = 
         return sum(vals) / len(vals) if vals else 0.0
 
     def avg_semble_calls(items: list[dict]) -> float:
-        vals = [sum(1 for t in r["tool_calls"] if _is_semble_tool_call(t)) for r in items]
+        vals = [sum(1 for t in r["tool_calls"] if is_semble_tool_call(t)) for r in items]
         return sum(vals) / len(vals) if vals else 0.0
 
     n = len(rows)
@@ -276,8 +261,8 @@ def _print_summary(rows: list[dict], model_label: str, experiment: str | None = 
     print(f"  {'Metric':<25}  {'With Semble':>12}  {'Without':>9}")
     print(f"  {'-' * 25}  {'-' * 12}  {'-' * 9}")
     if with_r and without_r:
-        cost_w_ci = _bootstrap_ci([r["cost_usd"] for r in with_r])
-        cost_wo_ci = _bootstrap_ci([r["cost_usd"] for r in without_r])
+        cost_w_ci = bootstrap_ci([r["cost_usd"] for r in with_r])
+        cost_wo_ci = bootstrap_ci([r["cost_usd"] for r in without_r])
         print(f"  {'avg cost (USD)':<25}  {avg(with_r, 'cost_usd'):>12.3f}  {avg(without_r, 'cost_usd'):>9.3f}")
         print(f"  {'  95% CI':<25}  [{cost_w_ci[0]:.3f},{cost_w_ci[1]:.3f}]  [{cost_wo_ci[0]:.3f},{cost_wo_ci[1]:.3f}]")
         print(
@@ -293,7 +278,7 @@ def _print_summary(rows: list[dict], model_label: str, experiment: str | None = 
         if min(len(with_r), len(without_r)) < 30:
             print("  Sample too small for any of the above to be statistically meaningful —")
             print("  treat as directional only. Use evaluate.py's resolve rate + McNemar test")
-            print("  for the metric that actually matters, on ≥30+ paired tasks.")
+            print("  for the metric that actually matters, on >=30+ paired tasks.")
     elif with_r:
         print(f"  {'avg cost (USD)':<25}  {avg(with_r, 'cost_usd'):>12.3f}")
         print(f"  {'avg output tokens':<25}  {avg(with_r, 'output_tokens'):>12.0f}")
@@ -308,7 +293,6 @@ def _print_summary(rows: list[dict], model_label: str, experiment: str | None = 
 
 def _save_outputs(rows: list[dict], model_label: str, experiment: str | None = None) -> None:
     out = RESULTS_DIR / (f"swe_agent_{experiment}.json" if experiment else "swe_agent.json")
-    # Merge with existing results (upsert by instance_id + backend/variant combo)
     existing: dict[str, dict] = {}
     if out.exists():
         for entry in json.loads(out.read_text()):
@@ -325,7 +309,7 @@ def _save_outputs(rows: list[dict], model_label: str, experiment: str | None = N
             existing[iid] = row
     merged = list(existing.values())
     out.write_text(json.dumps(merged, indent=2))
-    print(f"\nFull results → {out}  ({len(merged)} instances)")
+    print(f"\nFull results -> {out}  ({len(merged)} instances)")
 
     suffix = f"_{experiment}" if experiment else ""
     model_slug = model_label.replace("/", "-")
@@ -355,7 +339,8 @@ def _save_outputs(rows: list[dict], model_label: str, experiment: str | None = N
         print(f"  # (and {len(ids) - 5} more)")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Parse CLI arguments and run the SWE-bench agent benchmark."""
     p = argparse.ArgumentParser()
     p.add_argument("--backend", default="claude", choices=list(_BACKENDS))
     p.add_argument(
@@ -410,3 +395,7 @@ if __name__ == "__main__":
         seed=args.seed,
         refresh_cache=args.refresh_cache,
     )
+
+
+if __name__ == "__main__":
+    main()

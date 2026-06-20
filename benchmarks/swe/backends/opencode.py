@@ -6,14 +6,14 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..gitutils import _git_diff
-from .base import _PROJECT_ROOT, _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.gitutils import git_diff
 
 _OPENCODE_CONFIG = Path.home() / ".config" / "opencode" / "opencode.json"
 
 
 def _tool_use_entry(tool: str, inp: dict) -> str:
-    """Format a single opencode tool_use part as a console/log-friendly entry string."""
+    """Format a single opencode ``tool_use`` part as a console/log-friendly entry string."""
     if tool in ("semble_search", "semble_find_related"):
         query = inp.get("query", "")
         snippet = inp.get("snippet_lines", "default")
@@ -31,24 +31,23 @@ def _tool_use_entry(tool: str, inp: dict) -> str:
 
 
 class OpencodeBackend(Backend):
-    """opencode (opencode go) backend using `opencode run --format json`."""
+    """opencode (opencode go) backend using ``opencode run --format json``."""
 
     name = "opencode"
     default_model = "opencode-go/deepseek-v4-pro"
 
     def label(self) -> str:
-        """Human-readable backend/model identifier, without a redundant "opencode/" prefix."""
-        # Model names like "opencode-go/deepseek-v4-pro" already contain the backend namespace.
+        """Human-readable backend/model identifier, without a redundant ``opencode/`` prefix."""
         if self.model.startswith(("opencode/", "opencode-go/")):
             return self.model
         return f"{self.name}/{self.model}"
 
     def _disable_semble_in_config(self, text: str) -> str:
-        """Flip enabled: true → false in the semble MCP block.
+        """Flip ``enabled: true`` to ``false`` in the semble MCP block.
 
-        opencode.json is JSONC (allows // comments) so we use text replacement
-        rather than json.loads. We operate only within a window after "semble"
-        to avoid hitting an unrelated "enabled" field elsewhere in the config.
+        opencode.json is JSONC (allows ``//`` comments) so we use text replacement
+        rather than ``json.loads``. We operate only within a window after ``"semble"``
+        to avoid hitting an unrelated ``"enabled"`` field elsewhere in the config.
         """
         start = text.find('"semble"')
         if start == -1:
@@ -58,11 +57,11 @@ class OpencodeBackend(Backend):
         return text[:start] + patched + text[window_end:]
 
     def _replace_semble_command(self, text: str) -> str:
-        """Swap the semble MCP command to use local branch via uv run.
+        """Swap the semble MCP command to use local branch via ``uv run``.
 
         opencode.json is JSONC so we use targeted text replacement.
-        Old: ["uvx", "--from", "semble[mcp]", "semble"]
-        New: ["uv", "run", "--directory", "<project_root>", "semble"]
+        Old: ``["uvx", "--from", "semble[mcp]", "semble"]``
+        New: ``["uv", "run", "--directory", "<project_root>", "semble"]``
         """
         old_cmd = '"command": ["uvx", "--from", "semble[mcp]", "semble"]'
         new_cmd = f'"command": ["uv", "run", "--directory", "{_PROJECT_ROOT}", "semble"]'
@@ -81,7 +80,7 @@ class OpencodeBackend(Backend):
         return text[:start] + patched + text[window_end:]
 
     def _make_temp_home(self, *, with_semble: bool) -> tuple[Path | None, dict[str, str]]:
-        """Returns (tempdir, env_overrides). tempdir is None when no temp needed."""
+        """Return ``(tempdir, env_overrides)``. *tempdir* is ``None`` when no temp is needed."""
         if with_semble and not self.local_semble:
             return None, {}
         if not _OPENCODE_CONFIG.exists():
@@ -99,7 +98,7 @@ class OpencodeBackend(Backend):
         return temp_home, {"XDG_CONFIG_HOME": str(temp_home)}
 
     def _parse(self, raw: str) -> dict:
-        """Aggregate tool calls, cost, and token usage out of opencode's `run --format json` output."""
+        """Aggregate tool calls, cost, and token usage out of opencode's ``run --format json`` output."""
         tool_calls: list[str] = []
         total_cost = 0.0
         total_input = 0
@@ -163,7 +162,7 @@ class OpencodeBackend(Backend):
                     timeout=_TIMEOUT,
                 )
             parsed = self._parse(proc.stdout + proc.stderr)
-            diff = _git_diff(repo)
+            diff = git_diff(repo)
             return parsed, diff
         finally:
             if temp_home is not None:

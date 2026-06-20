@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import argparse
 import json
-import math
 import subprocess
 import sys
 from pathlib import Path
+
+from benchmarks.swe.stats import mcnemar_exact_p
 
 RESULTS_DIR = Path(__file__).parent / "results"
 _PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -11,6 +14,7 @@ _DATASET = "princeton-nlp/SWE-bench_Lite"
 
 
 def _check_docker() -> None:
+    """Exit if Docker is not running."""
     try:
         subprocess.run(["docker", "info"], capture_output=True, check=True, timeout=10)
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -18,7 +22,7 @@ def _check_docker() -> None:
 
 
 def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -> dict[str, bool]:
-    """Run the harness and return {instance_id: resolved} map."""
+    """Run the harness and return ``{instance_id: resolved}`` map."""
     lines = [ln for ln in predictions_path.read_text().splitlines() if ln.strip()]
     if not lines:
         print(f"  Skipping {run_id} — no predictions in {predictions_path.name}")
@@ -52,7 +56,6 @@ def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -
     print(f"\nRunning harness: {run_id}  ({len(ids_to_run)} instances)")
     subprocess.run(cmd, check=True, cwd=_PROJECT_ROOT)
 
-    # Harness writes {model_name_or_path}.{run_id}.json in cwd
     model_name = json.loads(lines[0])["model_name_or_path"]
     result_file = _PROJECT_ROOT / f"{model_name}.{run_id}.json"
     if not result_file.exists():
@@ -72,27 +75,16 @@ def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -
     }
 
 
-def _mcnemar_exact_p(b: int, c: int) -> float:
-    """Exact two-sided McNemar test on discordant pairs (b vs c), stdlib-only."""
-    n = b + c
-    if n == 0:
-        return 1.0
-    k = min(b, c)
-    tail = sum(math.comb(n, i) for i in range(k + 1)) * (0.5**n)
-    return min(1.0, 2 * tail)
-
-
 def _paired_summary(results: dict[str, dict[str, bool]], instance_ids: list[str]) -> None:
     """McNemar's test on paired with/without resolve outcomes."""
     paired = [iid for iid in instance_ids if iid in results["with_semble"] and iid in results["without_semble"]]
     if not paired:
         return
-    # b = resolved with, not without; c = resolved without, not with
     b = sum(1 for iid in paired if results["with_semble"][iid] and not results["without_semble"][iid])
     c = sum(1 for iid in paired if results["without_semble"][iid] and not results["with_semble"][iid])
     both = sum(1 for iid in paired if results["with_semble"][iid] and results["without_semble"][iid])
     neither = len(paired) - b - c - both
-    p = _mcnemar_exact_p(b, c)
+    p = mcnemar_exact_p(b, c)
     print(f"\n  Paired comparison (n={len(paired)} tasks with both variants evaluated):")
     print(f"    resolved by both:        {both}")
     print(f"    resolved by neither:     {neither}")
@@ -104,6 +96,7 @@ def _paired_summary(results: dict[str, dict[str, bool]], instance_ids: list[str]
 
 
 def _collect_instance_ids(*pred_paths: Path) -> list[str]:
+    """Union of all instance IDs found across the given prediction files."""
     ids: set[str] = set()
     for p in pred_paths:
         for line in p.read_text().splitlines():
@@ -169,10 +162,11 @@ def run(instance_ids: list[str] | None = None, experiment: str | None = None) ->
 
     out = RESULTS_DIR / f"swe_resolve{suffix}.json"
     out.write_text(json.dumps({"instances": all_ids, "results": results}, indent=2))
-    print(f"\nSaved → {out}")
+    print(f"\nSaved -> {out}")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Parse CLI arguments and run the SWE-bench evaluation harness."""
     p = argparse.ArgumentParser()
     p.add_argument("--instance-ids", nargs="*", help="Specific IDs to evaluate (default: all in prediction files)")
     p.add_argument(
@@ -182,3 +176,7 @@ if __name__ == "__main__":
     )
     args = p.parse_args()
     run(args.instance_ids, args.experiment)
+
+
+if __name__ == "__main__":
+    main()

@@ -6,14 +6,14 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..gitutils import _git_diff
-from .base import _PROJECT_ROOT, _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.gitutils import git_diff
 
 _CODEX_CONFIG = Path.home() / ".codex" / "config.toml"
 
 
 def _item_entry(item: dict) -> str | None:
-    """Format a single Codex item.completed payload as a console/log-friendly entry string."""
+    """Format a single Codex ``item.completed`` payload as a console/log-friendly entry string."""
     item_type = item.get("type", "")
     if item_type == "mcp_tool_call":
         server = item.get("server", "")
@@ -37,16 +37,15 @@ def _item_entry(item: dict) -> str | None:
 
 
 class CodexBackend(Backend):
-    """Codex (OpenAI) backend using `codex exec --json`."""
+    """Codex (OpenAI) backend using ``codex exec --json``."""
 
     name = "codex"
     default_model = "gpt-5.4-mini"
-    # Approximate pricing per 1M tokens
     _PRICE_INPUT = 0.15  # $/1M input tokens
     _PRICE_OUTPUT = 0.60  # $/1M output tokens
 
     def _strip_semble_section(self, text: str) -> str:
-        """Return config content with [mcp_servers.semble] section removed."""
+        """Return config content with ``[mcp_servers.semble]`` section removed."""
         lines = text.splitlines()
         out: list[str] = []
         skip = False
@@ -61,7 +60,7 @@ class CodexBackend(Backend):
         return "\n".join(out) + "\n"
 
     def _replace_semble_command(self, text: str) -> str:
-        """Swap the semble MCP command to use local branch via uv run."""
+        """Swap the semble MCP command to use local branch via ``uv run``."""
         lines = text.splitlines()
         out: list[str] = []
         in_semble = False
@@ -81,7 +80,7 @@ class CodexBackend(Backend):
         return "\n".join(out) + "\n"
 
     def _make_temp_home(self, *, with_semble: bool) -> tuple[Path | None, dict[str, str]]:
-        """Returns (tempdir, env_overrides). tempdir is None when no temp needed."""
+        """Return ``(tempdir, env_overrides)``. *tempdir* is ``None`` when no temp is needed."""
         if with_semble and not self.local_semble:
             return None, {}
 
@@ -102,7 +101,7 @@ class CodexBackend(Backend):
         return temp_home, {"CODEX_HOME": str(temp_home)}
 
     def _parse(self, raw: str) -> dict:
-        """Aggregate tool calls, cost, and token usage out of Codex's `exec --json` output."""
+        """Aggregate tool calls, cost, and token usage out of Codex's ``exec --json`` output."""
         tool_calls: list[str] = []
         total_input = 0
         total_output = 0
@@ -168,7 +167,7 @@ class CodexBackend(Backend):
                     timeout=_TIMEOUT,
                 )
             parsed = self._parse(proc.stdout + proc.stderr)
-            diff = _git_diff(repo)
+            diff = git_diff(repo)
             return parsed, diff
         finally:
             if temp_home is not None:

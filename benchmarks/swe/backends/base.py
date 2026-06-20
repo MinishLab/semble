@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..gitutils import _changed_files, _git_reset
+from benchmarks.swe.gitutils import changed_files, git_reset
 
 _PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 _TIMEOUT = 480  # seconds per agent run
@@ -24,6 +24,8 @@ _LOCAL_SEMBLE_CMD = ["uv", "run", "--directory", str(_PROJECT_ROOT), "semble"]
 
 @dataclass
 class RunResult:
+    """Outcome of a single agent run on one SWE-bench task variant."""
+
     variant: str
     backend: str = ""
     model: str = ""
@@ -39,7 +41,8 @@ class RunResult:
     error: str | None = None
 
 
-def _is_semble_tool_call(entry: str) -> bool:
+def is_semble_tool_call(entry: str) -> bool:
+    """Return True if a tool-call entry string originated from an semble MCP call or bypass."""
     return (
         entry.startswith("claude_mcp:semble/")
         or entry.startswith("codex_mcp:semble/")
@@ -54,7 +57,7 @@ def _is_bypass_call(entry: str) -> bool:
 
 @contextmanager
 def _isolated_cache_env() -> Iterator[dict[str, str]]:
-    """A fresh SEMBLE_CACHE_LOCATION per run, so with/without variants never share a warm index."""
+    """A fresh ``SEMBLE_CACHE_LOCATION`` per run, so with/without variants never share a warm index."""
     tmp = Path(tempfile.mkdtemp(prefix="semble_cache_"))
     try:
         yield {"SEMBLE_CACHE_LOCATION": str(tmp)}
@@ -63,7 +66,7 @@ def _isolated_cache_env() -> Iterator[dict[str, str]]:
 
 
 def _path_without_semble() -> str:
-    """PATH with the directory containing the `semble` binary removed (best-effort bypass prevention)."""
+    """``PATH`` with the directory containing the ``semble`` binary removed (best-effort bypass prevention)."""
     semble_bin = shutil.which("semble")
     path_entries = os.environ.get("PATH", "").split(os.pathsep)
     if semble_bin:
@@ -90,7 +93,7 @@ def _kill_process_tree(proc: subprocess.Popen) -> None:
 
 
 def _run_with_timeout(cmd: list[str], *, cwd: Path, env: dict[str, str], timeout: int) -> subprocess.CompletedProcess:
-    """Like subprocess.run with a timeout, but kills the whole process group on expiry."""
+    """Like ``subprocess.run`` with a timeout, but kills the whole process group on expiry."""
     proc = subprocess.Popen(
         cmd,
         cwd=cwd,
@@ -136,7 +139,7 @@ class Backend(ABC):
         return f"{self.name}/{self.model}"
 
     def run(self, prompt: str, repo: Path, commit: str, *, with_semble: bool) -> RunResult:
-        """Run the agent on `prompt`, retrying on empty output, and reset `repo` to `commit` afterward."""
+        """Run the agent on ``prompt``, retrying on empty output, and reset ``repo`` to ``commit`` afterward."""
         variant = "with_semble" if with_semble else "without_semble"
         try:
             for attempt in range(3):
@@ -144,21 +147,21 @@ class Backend(ABC):
                     print(f"    retry {attempt} (empty output — sleeping {_RETRY_SLEEP}s)...")
                     time.sleep(_RETRY_SLEEP)
                 parsed, diff = self._run_once(prompt, repo, with_semble=with_semble)
-                _git_reset(repo, commit)
+                git_reset(repo, commit)
                 if parsed["rate_limited"]:
                     return RunResult(variant=variant, backend=self.name, error=self._rate_limit_msg)
                 if self._attempt_succeeded(parsed):
                     break
             return self._finalize(variant, parsed, diff, empty_output=not self._attempt_succeeded(parsed))
         except subprocess.TimeoutExpired:
-            _git_reset(repo, commit)
+            git_reset(repo, commit)
             return RunResult(variant=variant, backend=self.name, model=self.model, error=f"timed out after {_TIMEOUT}s")
         except Exception as exc:
-            _git_reset(repo, commit)
+            git_reset(repo, commit)
             return RunResult(variant=variant, backend=self.name, model=self.model, error=str(exc))
 
     def _finalize(self, variant: str, parsed: dict, diff: str, *, empty_output: bool) -> RunResult:
-        touched = _changed_files(diff)
+        touched = changed_files(diff)
         tool_calls = parsed["tool_calls"]
         error = "empty output after retries" if empty_output else None
         return RunResult(

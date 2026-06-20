@@ -5,14 +5,14 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from ..gitutils import _git_diff
-from .base import _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.gitutils import git_diff
 
 _TOOLS = "Bash,Read,Glob,Grep,Edit,Write"
 
 
 def _tool_call_entry(name: str, inp: dict) -> str:
-    """Format a single Claude tool_use block as a console/log-friendly entry string."""
+    """Format a single Claude ``tool_use`` block as a console/log-friendly entry string."""
     if name == "Bash":
         cmd = inp.get("command", "")
         return "semble_bash [SEMBLE_BYPASS]" if "semble" in cmd else "Bash"
@@ -28,7 +28,7 @@ def _tool_call_entry(name: str, inp: dict) -> str:
 
 
 class ClaudeBackend(Backend):
-    """Claude Code backend, semble wired in via an ephemeral --mcp-config."""
+    """Claude Code backend, semble wired in via an ephemeral ``--mcp-config``."""
 
     name = "claude"
     default_model = "claude-haiku-4-5-20251001"
@@ -38,7 +38,7 @@ class ClaudeBackend(Backend):
         return parsed["cost_usd"] > 0 or parsed["num_turns"] > 1
 
     def _make_mcp_config(self, *, with_semble: bool, repo: Path) -> Path:
-        """Write a temp --mcp-config file (empty mcpServers when with_semble is False)."""
+        """Write a temp ``--mcp-config`` file (empty ``mcpServers`` when *with_semble* is False)."""
         tmp = Path(tempfile.mkdtemp(prefix="claude_mcp_"))
         config_path = tmp / "mcp.json"
         servers: dict[str, object] = {}
@@ -49,7 +49,7 @@ class ClaudeBackend(Backend):
         return config_path
 
     def _parse(self, raw: str) -> dict:
-        """Aggregate tool calls, cost, and token usage out of Claude's stream-json output."""
+        """Aggregate tool calls, cost, and token usage out of Claude's ``stream-json`` output."""
         tool_calls: list[str] = []
         cost_usd = 0.0
         input_tokens = 0
@@ -66,7 +66,6 @@ class ClaudeBackend(Backend):
                 continue
             t = d.get("type")
             if t == "rate_limit_event":
-                # "allowed" means the request went through fine — it's an informational event
                 if d.get("rate_limit_info", {}).get("status") != "allowed":
                     rate_limited = True
             elif t == "assistant":
@@ -117,7 +116,7 @@ class ClaudeBackend(Backend):
             with _subprocess_env({}, with_semble=with_semble) as env:
                 proc = _run_with_timeout(cmd, cwd=repo, env=env, timeout=_TIMEOUT)
             parsed = self._parse(proc.stdout + proc.stderr)
-            diff = _git_diff(repo)
+            diff = git_diff(repo)
             return parsed, diff
         finally:
             shutil.rmtree(mcp_config.parent, ignore_errors=True)
