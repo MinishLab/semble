@@ -1743,6 +1743,453 @@
         "gold_hit": true,
         "bypass": false,
         "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"RST\\\\(\\\" astropy/io/ascii -S\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"class RST|header_rows|ascii.rst|fixed_width\" astropy/io/ascii -S'",
+          "codex_bash:/bin/zsh -lc 'rg -n \"header_rows\" astropy/io/ascii -S'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' astropy/io/ascii/rst.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' astropy/io/ascii/fixedwidth.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '260,560p' astropy/io/ascii/fixedwidth.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"ascii\\\\.rst|RST\\\\b|reStructuredText\\\" astropy/io/ascii/tests -S\"",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom pathlib import Path\np=Path('astropy/io/ascii/rst.py')\nprint(p.read_text())\nPY\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '150,220p' astropy/io/ascii/tests/test_rst.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '540,640p' astropy/io/ascii/tests/test_fixedwidth.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' astropy/io/ascii/tests/test_rst.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' astropy/io/ascii/tests/test_fixedwidth.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom io import StringIO\nfrom astropy.table import QTable\nimport astropy.units as u\nfrom as",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"from astropy.table import QTable|QTable\\\\(\\\" astropy/io/ascii/tests -S\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"units as u|\\\\.unit =\\\" astropy/io/ascii/tests/test_rst.py astropy/io/ascii/tests -S\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' astropy/io/ascii/tests/test_rst.py\"",
+          "codex_bash:/bin/zsh -lc 'tail -n 40 astropy/io/ascii/tests/test_rst.py'",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- astropy/io/ascii/rst.py astropy/io/ascii/tests/test_rst.py'",
+          "codex_bash:/bin/zsh -lc 'python -m py_compile astropy/io/ascii/rst.py astropy/io/ascii/tests/test_rst.py'"
+        ],
+        "cost_usd": 0.141109,
+        "input_tokens": 867236,
+        "output_tokens": 18373,
+        "num_turns": 1,
+        "touched_files": [
+          "astropy/io/ascii/rst.py",
+          "astropy/io/ascii/tests/test_rst.py"
+        ],
+        "patch": "diff --git a/astropy/io/ascii/rst.py b/astropy/io/ascii/rst.py\nindex abdeba8efb..8f345b1248 100644\n--- a/astropy/io/ascii/rst.py\n+++ b/astropy/io/ascii/rst.py\n@@ -57,10 +57,14 @@ class RST(FixedWidth):\n     data_class = SimpleRSTData\n     header_class = SimpleRSTHeader\n \n-    def __init__(self):\n-        super().__init__(delimiter_pad=None, bookend=False)\n+    def __init__(self, header_rows=None):\n+        super().__init__(\n+            delimiter_pad=None, bookend=False, header_rows=header_rows\n+        )\n \n     def write(self, lines):\n         lines = super().write(lines)\n-        lines = [lines[1]] + lines + [lines[1]]\n+        lines = [lines[len(self.header.header_rows)]] + lines + [\n+            lines[len(self.header.header_rows)]\n+        ]\n         return lines\ndiff --git a/astropy/io/ascii/tests/test_rst.py b/astropy/io/ascii/tests/test_rst.py\nindex 84d6fed401..26618c6c4e 100644\n--- a/astropy/io/ascii/tests/test_rst.py\n+++ b/astropy/io/ascii/tests/test_rst.py\n@@ -2,7 +2,9 @@\n \n from io import StringIO\n \n+from astropy import units as u\n from astropy.io import ascii\n+from astropy.table import QTable\n \n from .common import assert_almost_equal, assert_equal\n \n@@ -185,3 +187,21 @@ Col1      Col2 Col3 Col4\n ==== ========= ==== ====\n \"\"\",\n     )\n+\n+\n+def test_write_header_rows():\n+    \"\"\"Write a table with multiple RST header rows.\"\"\"\n+    tbl = QTable({\"a\": [1, 2] * u.m, \"b\": [3, 4] * u.s})\n+    out = StringIO()\n+    ascii.write(tbl, out, format=\"ascii.rst\", header_rows=[\"name\", \"unit\"])\n+    assert_equal_splitlines(\n+        out.getvalue(),\n+        \"\"\"\\\n+= =\n+a b\n+m s\n+= =\n+1 2\n+= =\n+\"\"\",\n+    )\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "instance_id": "sympy__sympy-11870",
+    "gold_files": [
+      "sympy/functions/elementary/trigonometric.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble_wk1",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk sed -n '429,560p' sympy/simplify/trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"rtk sed -n '560,650p' sympy/simplify/trigsimp.py\"",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk uv run python - <<'PY'\nfrom sympy import I, exp, trigsimp, symbols\nk = symbols('k')\nf = 1/2 * (-I*exp(",
+          "codex_bash:/bin/zsh -lc 'rtk grep -n \"exptrigsimp\" sympy/simplify/trigsimp.py'",
+          "codex_bash:/bin/zsh -lc \"rtk grep -n \\\"_eval_rewrite_as_sinc\\\\|rewrite(sinc\\\\|sinc(\\\" sympy/functions/elementary/trigonometric.py s",
+          "codex_bash:/bin/zsh -lc 'rtk rg -n -F \"_eval_rewrite_as_sinc\" sympy/functions/elementary/trigonometric.py sympy/simplify sympy/func",
+          "codex_bash:/bin/zsh -lc \"rtk sed -n '1688,1715p' sympy/functions/special/error_functions.py\"",
+          "codex_bash:/bin/zsh -lc \"rtk sed -n '1,70p' sympy/simplify/trigsimp.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'rtk git diff -- sympy/simplify/trigsimp.py'",
+          "codex_bash:/bin/zsh -lc 'rtk uv run python -m py_compile sympy/simplify/trigsimp.py'",
+          "codex_bash:/bin/zsh -lc \"rtk nl -ba sympy/simplify/trigsimp.py | sed -n '470,525p'\""
+        ],
+        "cost_usd": 0.319607,
+        "input_tokens": 2033094,
+        "output_tokens": 24405,
+        "num_turns": 1,
+        "touched_files": [
+          "sympy/simplify/trigsimp.py"
+        ],
+        "patch": "diff --git a/sympy/simplify/trigsimp.py b/sympy/simplify/trigsimp.py\nindex 34a3bab3fc..cec24d33ca 100644\n--- a/sympy/simplify/trigsimp.py\n+++ b/sympy/simplify/trigsimp.py\n@@ -474,6 +474,8 @@ def trigsimp(expr, **opts):\n     from sympy.simplify.fu import fu\n \n     expr = sympify(expr)\n+    if expr.has(exp):\n+        expr = exptrigsimp(expr)\n \n     try:\n         return expr._eval_trigsimp(**opts)\n@@ -510,7 +512,15 @@ def traverse(e):\n         'old': lambda x: trigsimp_old(x, **opts),\n                    }[method]\n \n-    return trigsimpfunc(expr)\n+    rv = trigsimpfunc(expr)\n+\n+    num, den = rv.as_numer_denom()\n+    coeff, num = num.as_coeff_Mul()\n+    if num.func is sin and den == num.args[0]:\n+        from sympy.functions import sinc\n+        return coeff*sinc(den)\n+\n+    return rv\n \n \n def exptrigsimp(expr):\n",
+        "gold_hit": false,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' /Users/thomasvandongen/Projects/oss/skills/skills/debug-systematic/SKILL.md\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"trigsimp|exp_to_trig|sinc\\\\(\\\" sympy -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc 'git status --short'",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom sympy import symbols, I, exp, trigsimp, sinc\nk = symbols('k')\nf = S = None\nf = 1/2 * ",
+          "codex_bash:/bin/zsh -lc \"sed -n '516,620p' sympy/simplify/trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1738,1795p' sympy/functions/elementary/trigonometric.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1795,1845p' sympy/functions/elementary/trigonometric.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '428,520p' sympy/simplify/trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"exptrigsimp\\\\(\\\" sympy/simplify -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '560,630p' sympy/simplify/simplify.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"def TR2i|TR2i\\\\(\\\" sympy/simplify/fu.py sympy/simplify -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' sympy/simplify/fu.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"sinc\\\\(\\\" sympy -g'*.py' | head -n 80\"",
+          "codex_bash:/bin/zsh -lc 'python -m pip install mpmath -q'",
+          "codex_bash:/bin/zsh -lc 'python -m pip install mpmath --break-system-packages -q'",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom sympy.simplify.trigsimp import exptrigsimp\nimport inspect\nprint(inspect.getsource(exp",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom sympy import symbols, I, exp, trigsimp, sinc, sin\nfrom sympy.simplify.trigsimp import",
+          "codex_bash:/bin/zsh -lc 'python3.11 -V'",
+          "codex_bash:/bin/zsh -lc 'python3.10 -V'",
+          "codex_bash:/bin/zsh -lc 'python3.9 -V'",
+          "codex_bash:/bin/zsh -lc \"python3.11 - <<'PY'\nfrom sympy.simplify.trigsimp import exptrigsimp\nimport inspect\nprint(inspect.getsource",
+          "codex_bash:/bin/zsh -lc \"python3.11 - <<'PY'\nfrom sympy import symbols, I, exp, trigsimp, sinc, sin\nfrom sympy.simplify.trigsimp im",
+          "codex_bash:/bin/zsh -lc \"python3.9 - <<'PY'\nfrom sympy import symbols, I, exp, trigsimp, sinc, sin\nfrom sympy.simplify.trigsimp imp",
+          "codex_bash:/bin/zsh -lc \"python3.9 - <<'PY'\nfrom sympy.simplify.trigsimp import exptrigsimp\nimport inspect\nprint(inspect.getsource(",
+          "codex_bash:/bin/zsh -lc 'python3.9 -m pip install mpmath -q --user'",
+          "codex_bash:/bin/zsh -lc 'python3.9 -m pip install mpmath --break-system-packages -q'",
+          "codex_bash:/bin/zsh -lc \"python3.9 - <<'PY'\nfrom sympy.simplify.trigsimp import exptrigsimp\nimport inspect\nprint(inspect.getsource(",
+          "codex_bash:/bin/zsh -lc \"python3.9 - <<'PY'\nfrom sympy import symbols, I, exp, trigsimp, sinc, sin\nfrom sympy.simplify.trigsimp imp",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"exp\\\\(I|I\\\\*exp|exp\\\\(-I|sin\\\\(.*exp|cos\\\\(.*exp\\\" sympy/simplify sympy/functions -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '620,740p' sympy/simplify/tests/test_trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '350,410p' sympy/simplify/tests/test_trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '410,450p' sympy/simplify/tests/test_trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"exp2trig|trig.*exp|exp.*trig\\\" sympy/simplify sympy/functions -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,80p' sympy/simplify/trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"python3.9 - <<'PY'\nfrom sympy import symbols, I, exp, sin, cos\nk = symbols('k')\nf = 1/2 * (-I*exp(I*k) + I",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,40p' sympy/simplify/tests/test_trigsimp.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '470,520p' sympy/simplify/trigsimp.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- sympy/simplify/trigsimp.py sympy/simplify/tests/test_trigsimp.py'",
+          "codex_bash:/bin/zsh -lc \"python3.9 - <<'PY'\nfrom sympy import symbols, I, exp, trigsimp, sin, S\nk = symbols('k')\nf1 = S.Half*(-I*ex"
+        ],
+        "cost_usd": 0.44685,
+        "input_tokens": 2824545,
+        "output_tokens": 38613,
+        "num_turns": 1,
+        "touched_files": [
+          "sympy/simplify/tests/test_trigsimp.py",
+          "sympy/simplify/trigsimp.py"
+        ],
+        "patch": "diff --git a/sympy/simplify/tests/test_trigsimp.py b/sympy/simplify/tests/test_trigsimp.py\nindex 67694b477b..6ce5a61e55 100644\n--- a/sympy/simplify/tests/test_trigsimp.py\n+++ b/sympy/simplify/tests/test_trigsimp.py\n@@ -63,6 +63,8 @@ def test_trigsimp1a():\n     assert trigsimp(tanh(2)*cos(3)*exp(2)/sinh(2)) == cos(3)*exp(2)/cosh(2)\n     assert trigsimp(coth(2)*cos(3)*exp(2)/cosh(2)) == cos(3)*exp(2)/sinh(2)\n     assert trigsimp(coth(2)*cos(3)*exp(2)*tanh(2)) == cos(3)*exp(2)\n+    assert trigsimp(S.Half*(-I*exp(I*k) + I*exp(-I*k))) == sin(k)\n+    assert trigsimp(S.Half/k*(-I*exp(I*k) + I*exp(-I*k))) == sin(k)/k\n \n \n def test_trigsimp2():\ndiff --git a/sympy/simplify/trigsimp.py b/sympy/simplify/trigsimp.py\nindex 34a3bab3fc..7b0f675c0d 100644\n--- a/sympy/simplify/trigsimp.py\n+++ b/sympy/simplify/trigsimp.py\n@@ -480,6 +480,12 @@ def trigsimp(expr, **opts):\n     except AttributeError:\n         pass\n \n+    # Complex exponentials often need to be rewritten explicitly before the\n+    # trigonometric simplifier can see cancellations like\n+    # exp(I*x) - exp(-I*x) -> 2*I*sin(x).\n+    if expr.has(I) and expr.has(exp):\n+        expr = expand_mul(expr.rewrite(cos))\n+\n     old = opts.pop('old', False)\n     if not old:\n         opts.pop('deep', None)\n",
+        "gold_hit": false,
+        "bypass": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "instance_id": "sympy__sympy-15345",
+    "gold_files": [
+      "sympy/printing/mathematica.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble_wk1",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc 'rtk read sympy/printing/mathematica.py'",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk uv run python - <<'PY'\nfrom sympy import symbols, Max\nfrom sympy.printing.mathematica import mathemati",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc 'rtk read sympy/printing/codeprinter.py'",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc 'rtk ls sympy/printing/tests'",
+          "codex_bash:/bin/zsh -lc 'rtk read sympy/printing/tests/test_mathematica.py'",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"rtk uv run python - <<'PY'\nfrom sympy import symbols, Max, Min\nfrom sympy.printing.mathematica import math"
+        ],
+        "cost_usd": 0.305582,
+        "input_tokens": 1998295,
+        "output_tokens": 9729,
+        "num_turns": 1,
+        "touched_files": [
+          "sympy/printing/mathematica.py",
+          "sympy/printing/tests/test_mathematica.py"
+        ],
+        "patch": "diff --git a/sympy/printing/mathematica.py b/sympy/printing/mathematica.py\nindex ea7e3a2d94..5f248c3aad 100644\n--- a/sympy/printing/mathematica.py\n+++ b/sympy/printing/mathematica.py\n@@ -101,6 +101,12 @@ def _print_Function(self, expr):\n                     return \"%s[%s]\" % (mfunc, self.stringify(expr.args, \", \"))\n         return expr.func.__name__ + \"[%s]\" % self.stringify(expr.args, \", \")\n \n+    def _print_Max(self, expr):\n+        return \"Max[%s]\" % self.stringify(expr.args, \", \")\n+\n+    def _print_Min(self, expr):\n+        return \"Min[%s]\" % self.stringify(expr.args, \", \")\n+\n     def _print_Integral(self, expr):\n         if len(expr.variables) == 1 and not expr.limits[0][1:]:\n             args = [expr.args[0], expr.variables[0]]\ndiff --git a/sympy/printing/tests/test_mathematica.py b/sympy/printing/tests/test_mathematica.py\nindex dd636d0623..a722480972 100644\n--- a/sympy/printing/tests/test_mathematica.py\n+++ b/sympy/printing/tests/test_mathematica.py\n@@ -2,7 +2,7 @@\n                         Rational, Integer, Tuple, Derivative)\n from sympy.integrals import Integral\n from sympy.concrete import Sum\n-from sympy.functions import exp, sin, cos, conjugate\n+from sympy.functions import exp, sin, cos, conjugate, Max\n \n from sympy import mathematica_code as mcode\n \n@@ -28,6 +28,7 @@ def test_Function():\n     assert mcode(f(x, y, z)) == \"f[x, y, z]\"\n     assert mcode(sin(x) ** cos(x)) == \"Sin[x]^Cos[x]\"\n     assert mcode(conjugate(x)) == \"Conjugate[x]\"\n+    assert mcode(Max(x, 2)) == \"Max[2, x]\"\n \n \n def test_Pow():\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"mathematica_code|Max\\\\(\\\" sympy -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"class .*Mathematica|MathematicaCodePrinter|MCodePrinter|mathematica\\\" sympy -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' sympy/printing/mathematica.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,160p' sympy/printing/tests/test_mathematica.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,180p' sympy/printing/ccode.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"def _print_Max|_print_Min|known_functions.*Max|Max\\\\[\\\" sympy/printing -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '450,520p' sympy/printing/pycode.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '80,120p' sympy/printing/lambdarepr.py\"",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom sympy import symbols, Max, mathematica_code\nx = symbols('x')\nprint(Max(x,2))\nprint(re",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- sympy/printing/mathematica.py sympy/printing/tests/test_mathematica.py'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' sympy/printing/tests/test_mathematica.py\""
+        ],
+        "cost_usd": 0.094084,
+        "input_tokens": 592528,
+        "output_tokens": 8674,
+        "num_turns": 1,
+        "touched_files": [
+          "sympy/printing/mathematica.py",
+          "sympy/printing/tests/test_mathematica.py"
+        ],
+        "patch": "diff --git a/sympy/printing/mathematica.py b/sympy/printing/mathematica.py\nindex ea7e3a2d94..d347e790d7 100644\n--- a/sympy/printing/mathematica.py\n+++ b/sympy/printing/mathematica.py\n@@ -101,6 +101,9 @@ def _print_Function(self, expr):\n                     return \"%s[%s]\" % (mfunc, self.stringify(expr.args, \", \"))\n         return expr.func.__name__ + \"[%s]\" % self.stringify(expr.args, \", \")\n \n+    def _print_Max(self, expr):\n+        return \"Max[%s]\" % self.stringify(expr.args, \", \")\n+\n     def _print_Integral(self, expr):\n         if len(expr.variables) == 1 and not expr.limits[0][1:]:\n             args = [expr.args[0], expr.variables[0]]\ndiff --git a/sympy/printing/tests/test_mathematica.py b/sympy/printing/tests/test_mathematica.py\nindex dd636d0623..a722480972 100644\n--- a/sympy/printing/tests/test_mathematica.py\n+++ b/sympy/printing/tests/test_mathematica.py\n@@ -2,7 +2,7 @@\n                         Rational, Integer, Tuple, Derivative)\n from sympy.integrals import Integral\n from sympy.concrete import Sum\n-from sympy.functions import exp, sin, cos, conjugate\n+from sympy.functions import exp, sin, cos, conjugate, Max\n \n from sympy import mathematica_code as mcode\n \n@@ -28,6 +28,7 @@ def test_Function():\n     assert mcode(f(x, y, z)) == \"f[x, y, z]\"\n     assert mcode(sin(x) ** cos(x)) == \"Sin[x]^Cos[x]\"\n     assert mcode(conjugate(x)) == \"Conjugate[x]\"\n+    assert mcode(Max(x, 2)) == \"Max[2, x]\"\n \n \n def test_Pow():\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "instance_id": "mwaskom__seaborn-3010",
+    "gold_files": [
+      "seaborn/_stats/regression.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble_wk1",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc 'rtk read seaborn/_stats/regression.py'",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"uv run python - <<'PY'\nimport seaborn.objects as so\n\nplot = so.Plot([1, 2, 3, None, 4], [1, 2, 3, 4, 5]).a",
+          "codex_bash:/bin/zsh -lc \"uv run python - <<'PY'\nimport pandas as pd\nfrom seaborn._stats.regression import PolyFit\n\nstat = PolyFit()",
+          "codex_bash:/bin/zsh -lc 'rtk git status --short'",
+          "codex_bash:/bin/zsh -lc 'rtk git diff -- seaborn/_stats/regression.py'",
+          "codex_bash:/bin/zsh -lc 'rm -f uv.lock'",
+          "codex_bash:/bin/zsh -lc 'rtk git status --short'"
+        ],
+        "cost_usd": 0.111673,
+        "input_tokens": 728770,
+        "output_tokens": 3929,
+        "num_turns": 1,
+        "touched_files": [
+          "seaborn/_stats/regression.py"
+        ],
+        "patch": "diff --git a/seaborn/_stats/regression.py b/seaborn/_stats/regression.py\nindex 7b7ddc8d..7b6ae635 100644\n--- a/seaborn/_stats/regression.py\n+++ b/seaborn/_stats/regression.py\n@@ -21,6 +21,7 @@ class PolyFit(Stat):\n \n     def _fit_predict(self, data):\n \n+        data = data[[\"x\", \"y\"]].dropna()\n         x = data[\"x\"]\n         y = data[\"y\"]\n         if x.nunique() <= self.order:\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"class PolyFit|def _fit_predict|missing|dropna|polyfit\\\" seaborn/_stats seaborn/_core -g '*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' seaborn/_stats/regression.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,140p' seaborn/_stats/histogram.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,140p' seaborn/_stats/aggregation.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,200p' seaborn/_stats/base.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' seaborn/_core/groupby.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"nl -ba seaborn/_stats/regression.py | sed -n '1,80p'\""
+        ],
+        "cost_usd": 0.049887,
+        "input_tokens": 323699,
+        "output_tokens": 2221,
+        "num_turns": 1,
+        "touched_files": [
+          "seaborn/_stats/regression.py"
+        ],
+        "patch": "diff --git a/seaborn/_stats/regression.py b/seaborn/_stats/regression.py\nindex 7b7ddc8d..7359b027 100644\n--- a/seaborn/_stats/regression.py\n+++ b/seaborn/_stats/regression.py\n@@ -21,6 +21,7 @@ class PolyFit(Stat):\n \n     def _fit_predict(self, data):\n \n+        data = data.dropna(subset=[\"x\", \"y\"])\n         x = data[\"x\"]\n         y = data[\"y\"]\n         if x.nunique() <= self.order:\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-24334",
+    "gold_files": [
+      "lib/matplotlib/axis.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble_wk1",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk read lib/matplotlib/axis.py | sed -n '1830,1915p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read lib/matplotlib/axis.py | sed -n '1915,1985p'\"",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk read lib/matplotlib/axis.py | sed -n '1835,1885p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read lib/matplotlib/axis.py | sed -n '1760,1835p'\"",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'rtk uv run python -m py_compile lib/matplotlib/axis.py'",
+          "codex_bash:/bin/zsh -lc 'rtk git diff -- lib/matplotlib/axis.py'",
+          "codex_bash:/bin/zsh -lc 'rtk git status --short'",
+          "codex_bash:/bin/zsh -lc 'rtk rm -f uv.lock'",
+          "codex_bash:/bin/zsh -lc 'rtk git status --short'",
+          "codex_bash:/bin/zsh -lc \"rtk nl -ba lib/matplotlib/axis.py | sed -n '2016,2028p'\""
+        ],
+        "cost_usd": 0.226814,
+        "input_tokens": 1483163,
+        "output_tokens": 7233,
+        "num_turns": 1,
+        "touched_files": [
+          "lib/matplotlib/axis.py"
+        ],
+        "patch": "diff --git a/lib/matplotlib/axis.py b/lib/matplotlib/axis.py\nindex af0815d41d..9674b1d1fa 100644\n--- a/lib/matplotlib/axis.py\n+++ b/lib/matplotlib/axis.py\n@@ -2021,6 +2021,8 @@ class Axis(martist.Artist):\n         other limits, you should set the limits explicitly after setting the\n         ticks.\n         \"\"\"\n+        if kwargs:\n+            mtext.Text(0, 0, \"\").update(kwargs)\n         result = self._set_tick_locations(ticks, minor=minor)\n         if labels is not None:\n             self.set_ticklabels(labels, minor=minor, **kwargs)\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"set_ticks\\\\(\\\" lib/matplotlib -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"def set_ticks|set_xticks|ticklabels|Text properties\\\" lib/matplotlib -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' lib/matplotlib/axes/_secondary_axes.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1840,2045p' lib/matplotlib/axis.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"check.*Text|Text properties|Artist properties|_get_text|normalize_kwargs|kwargs.*Text\\\" lib/matplo",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' lib/matplotlib/axis.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '200,280p' lib/matplotlib/text.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1170,1225p' lib/matplotlib/artist.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- lib/matplotlib/axis.py'",
+          "codex_bash:/bin/zsh -lc 'git status --short'"
+        ],
+        "cost_usd": 0.055602,
+        "input_tokens": 356775,
+        "output_tokens": 3476,
+        "num_turns": 1,
+        "touched_files": [
+          "lib/matplotlib/axis.py"
+        ],
+        "patch": "diff --git a/lib/matplotlib/axis.py b/lib/matplotlib/axis.py\nindex af0815d41d..91c97e467a 100644\n--- a/lib/matplotlib/axis.py\n+++ b/lib/matplotlib/axis.py\n@@ -2021,6 +2021,7 @@ class Axis(martist.Artist):\n         other limits, you should set the limits explicitly after setting the\n         ticks.\n         \"\"\"\n+        kwargs = cbook.normalize_kwargs(kwargs, mtext.Text)\n         result = self._set_tick_locations(ticks, minor=minor)\n         if labels is not None:\n             self.set_ticklabels(labels, minor=minor, **kwargs)\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      }
+    ]
+  },
+  {
+    "instance_id": "sympy__sympy-14396",
+    "gold_files": [
+      "sympy/polys/polyoptions.py"
+    ],
+    "results": [
+      {
+        "variant": "with_semble_wk1",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk grep -n \\\"_re_\\\\|valid domain specification\\\\|Composite\\\" sympy/polys/polyoptions.py\"",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/polyoptions.py | sed -n '430,500p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/polyoptions.py | sed -n '380,430p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk grep -n \\\"poly_ring\\\\|frac_field\\\\|algebraic_field\\\" sympy/polys -g'*.py'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/domains/old_polynomialring.py | sed -n '100,150p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/domains/old_fractionfield.py | sed -n '110,170p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/domains/domain.py | sed -n '1,220p'\"",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_mcp:semble/search(snippet=default)",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/tests/test_polyoptions.py | sed -n '1,260p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk read sympy/polys/polyoptions.py | sed -n '396,490p'\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"rtk uv run python - <<'PY'\nfrom sympy import Poly, symbols\nfrom sympy.polys.polyoptions import Domain\n\nx, ",
+          "codex_bash:/bin/zsh -lc 'rtk read .python-version'",
+          "codex_bash:/bin/zsh -lc \"rtk read pyproject.toml | sed -n '1,80p'\"",
+          "codex_bash:/bin/zsh -lc \"rtk uv run --python 3.8 python - <<'PY'\nfrom sympy import Poly, symbols\nfrom sympy.polys.polyoptions impor",
+          "codex_bash:/bin/zsh -lc 'rtk git diff -- sympy/polys/polyoptions.py sympy/polys/tests/test_polyoptions.py'",
+          "codex_bash:/bin/zsh -lc 'rtk git status --short'",
+          "codex_bash:/bin/zsh -lc 'rtk uv run python -m py_compile sympy/polys/polyoptions.py sympy/polys/tests/test_polyoptions.py'"
+        ],
+        "cost_usd": 0.29226,
+        "input_tokens": 1875814,
+        "output_tokens": 18146,
+        "num_turns": 1,
+        "touched_files": [
+          "sympy/polys/polyoptions.py",
+          "sympy/polys/tests/test_polyoptions.py"
+        ],
+        "patch": "diff --git a/sympy/polys/polyoptions.py b/sympy/polys/polyoptions.py\nindex 6e504a3057..d09df4566c 100644\n--- a/sympy/polys/polyoptions.py\n+++ b/sympy/polys/polyoptions.py\n@@ -405,8 +405,8 @@ class Domain(with_metaclass(OptionType, Option)):\n     _re_realfield = re.compile(r\"^(R|RR)(_(\\d+))?$\")\n     _re_complexfield = re.compile(r\"^(C|CC)(_(\\d+))?$\")\n     _re_finitefield = re.compile(r\"^(FF|GF)\\((\\d+)\\)$\")\n-    _re_polynomial = re.compile(r\"^(Z|ZZ|Q|QQ)\\[(.+)\\]$\")\n-    _re_fraction = re.compile(r\"^(Z|ZZ|Q|QQ)\\((.+)\\)$\")\n+    _re_polynomial = re.compile(r\"^(.+)\\[(.+)\\]$\")\n+    _re_fraction = re.compile(r\"^(.+)\\((.+)\\)$\")\n     _re_algebraic = re.compile(r\"^(Q|QQ)\\<(.+)\\>$\")\n \n     @classmethod\n@@ -457,10 +457,10 @@ def preprocess(cls, domain):\n \n                 gens = list(map(sympify, gens.split(',')))\n \n-                if ground in ['Z', 'ZZ']:\n-                    return sympy.polys.domains.ZZ.poly_ring(*gens)\n-                else:\n-                    return sympy.polys.domains.QQ.poly_ring(*gens)\n+                try:\n+                    return cls.preprocess(ground).poly_ring(*gens)\n+                except (OptionError, NotImplementedError):\n+                    pass\n \n             r = cls._re_fraction.match(domain)\n \n@@ -469,10 +469,10 @@ def preprocess(cls, domain):\n \n                 gens = list(map(sympify, gens.split(',')))\n \n-                if ground in ['Z', 'ZZ']:\n-                    return sympy.polys.domains.ZZ.frac_field(*gens)\n-                else:\n-                    return sympy.polys.domains.QQ.frac_field(*gens)\n+                try:\n+                    return cls.preprocess(ground).frac_field(*gens)\n+                except (OptionError, NotImplementedError):\n+                    pass\n \n             r = cls._re_algebraic.match(domain)\n \n@@ -480,7 +480,7 @@ def preprocess(cls, domain):\n                 gens = list(map(sympify, r.groups()[1].split(',')))\n                 return sympy.polys.domains.QQ.algebraic_field(*gens)\n \n-        raise OptionError('expected a valid domain specification, got %s' % domain)\n+        raise OptionError('expected a valid domain specification, got %r' % domain)\n \n     @classmethod\n     def postprocess(cls, options):\ndiff --git a/sympy/polys/tests/test_polyoptions.py b/sympy/polys/tests/test_polyoptions.py\nindex cbc9681747..fc7f40bb25 100644\n--- a/sympy/polys/tests/test_polyoptions.py\n+++ b/sympy/polys/tests/test_polyoptions.py\n@@ -6,7 +6,7 @@\n     Frac, Formal, Polys, Include, All, Gen, Symbols, Method)\n \n from sympy.polys.orderings import lex\n-from sympy.polys.domains import FF, GF, ZZ, QQ, EX\n+from sympy.polys.domains import FF, GF, RR, ZZ, QQ, EX\n \n from sympy.polys.polyerrors import OptionError, GeneratorsError\n \n@@ -185,6 +185,7 @@ def test_Domain_preprocess():\n \n     assert Domain.preprocess('ZZ[x,y]') == ZZ[x, y]\n     assert Domain.preprocess('QQ[x,y]') == QQ[x, y]\n+    assert Domain.preprocess('RR[y,z]') == RR[y, z]\n \n     raises(OptionError, lambda: Domain.preprocess('Z()'))\n \n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' /Users/thomasvandongen/Projects/oss/skills/skills/debug-systematic/SKILL.md\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' sympy/polys/polytools.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '400,560p' sympy/polys/polyoptions.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"expected a valid domain specification|algebraic_field|fraction_field|\\\\[.*\\\\]\\\" sympy/polys/polyop",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"RR\\\\[|CC\\\\[|poly_ring\\\\(|frac_field\\\\(|is_Composite|symbols\\\\b|__str__\\\\(\\\" sympy/polys/domains -g",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' sympy/polys/domains/domain.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"domain='RR\\\\[|domain=\\\\'RR\\\\[|RR\\\\[y,z\\\\]\\\" -g '\"'!*.pyc'\"' sympy\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '360,410p' sympy/polys/domains/domain.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' sympy/polys/domains/polynomialring.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' sympy/polys/domains/fractionfield.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"expected a valid domain specification|expected a valid .* specification|invalid argument.*domain|g",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' sympy/polys/polyerrors.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"polyoptions|domain specification|OptionError|RR\\\\[|CC\\\\[\\\" sympy/polys/tests -g '\"'!*.pyc'\"'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,240p' sympy/polys/tests/test_polyoptions.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' sympy/polys/domains/__init__.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"\\\\bZ\\\\b *=|\\\\bQ\\\\b *=|RR =|CC =|ZZ =|QQ =\\\" sympy/polys/domains/__init__.py sympy/polys/domains -g",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '400,500p' sympy/polys/polyoptions.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,240p' sympy/polys/tests/test_polyoptions.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"nl -ba sympy/polys/polyoptions.py | sed -n '400,500p'\"",
+          "codex_bash:/bin/zsh -lc \"nl -ba sympy/polys/tests/test_polyoptions.py | sed -n '130,220p'\""
+        ],
+        "cost_usd": 0.20444,
+        "input_tokens": 1307897,
+        "output_tokens": 13759,
+        "num_turns": 1,
+        "touched_files": [
+          "sympy/polys/polyoptions.py",
+          "sympy/polys/tests/test_polyoptions.py"
+        ],
+        "patch": "diff --git a/sympy/polys/polyoptions.py b/sympy/polys/polyoptions.py\nindex 6e504a3057..50fbadfccb 100644\n--- a/sympy/polys/polyoptions.py\n+++ b/sympy/polys/polyoptions.py\n@@ -405,10 +405,21 @@ class Domain(with_metaclass(OptionType, Option)):\n     _re_realfield = re.compile(r\"^(R|RR)(_(\\d+))?$\")\n     _re_complexfield = re.compile(r\"^(C|CC)(_(\\d+))?$\")\n     _re_finitefield = re.compile(r\"^(FF|GF)\\((\\d+)\\)$\")\n-    _re_polynomial = re.compile(r\"^(Z|ZZ|Q|QQ)\\[(.+)\\]$\")\n-    _re_fraction = re.compile(r\"^(Z|ZZ|Q|QQ)\\((.+)\\)$\")\n+    _re_polynomial = re.compile(r\"^(Z|ZZ|Q|QQ|R|RR|C|CC)\\[(.+)\\]$\")\n+    _re_fraction = re.compile(r\"^(Z|ZZ|Q|QQ|R|RR|C|CC)\\((.+)\\)$\")\n     _re_algebraic = re.compile(r\"^(Q|QQ)\\<(.+)\\>$\")\n \n+    _ground_domains = {\n+        'Z': sympy.polys.domains.ZZ,\n+        'ZZ': sympy.polys.domains.ZZ,\n+        'Q': sympy.polys.domains.QQ,\n+        'QQ': sympy.polys.domains.QQ,\n+        'R': sympy.polys.domains.RR,\n+        'RR': sympy.polys.domains.RR,\n+        'C': sympy.polys.domains.CC,\n+        'CC': sympy.polys.domains.CC,\n+    }\n+\n     @classmethod\n     def preprocess(cls, domain):\n         if isinstance(domain, sympy.polys.domains.Domain):\n@@ -454,25 +465,21 @@ def preprocess(cls, domain):\n \n             if r is not None:\n                 ground, gens = r.groups()\n+                ground = cls._ground_domains[ground]\n \n                 gens = list(map(sympify, gens.split(',')))\n \n-                if ground in ['Z', 'ZZ']:\n-                    return sympy.polys.domains.ZZ.poly_ring(*gens)\n-                else:\n-                    return sympy.polys.domains.QQ.poly_ring(*gens)\n+                return ground.poly_ring(*gens)\n \n             r = cls._re_fraction.match(domain)\n \n             if r is not None:\n                 ground, gens = r.groups()\n+                ground = cls._ground_domains[ground]\n \n                 gens = list(map(sympify, gens.split(',')))\n \n-                if ground in ['Z', 'ZZ']:\n-                    return sympy.polys.domains.ZZ.frac_field(*gens)\n-                else:\n-                    return sympy.polys.domains.QQ.frac_field(*gens)\n+                return ground.frac_field(*gens)\n \n             r = cls._re_algebraic.match(domain)\n \n@@ -480,7 +487,10 @@ def preprocess(cls, domain):\n                 gens = list(map(sympify, r.groups()[1].split(',')))\n                 return sympy.polys.domains.QQ.algebraic_field(*gens)\n \n-        raise OptionError('expected a valid domain specification, got %s' % domain)\n+        raise OptionError(\n+            \"expected a valid domain specification, such as 'ZZ[x]' or \"\n+            \"'RR[x]', got %r\" % domain\n+        )\n \n     @classmethod\n     def postprocess(cls, options):\ndiff --git a/sympy/polys/tests/test_polyoptions.py b/sympy/polys/tests/test_polyoptions.py\nindex cbc9681747..1a3c4c6fcd 100644\n--- a/sympy/polys/tests/test_polyoptions.py\n+++ b/sympy/polys/tests/test_polyoptions.py\n@@ -6,7 +6,7 @@\n     Frac, Formal, Polys, Include, All, Gen, Symbols, Method)\n \n from sympy.polys.orderings import lex\n-from sympy.polys.domains import FF, GF, ZZ, QQ, EX\n+from sympy.polys.domains import FF, GF, ZZ, QQ, RR, CC, EX\n \n from sympy.polys.polyerrors import OptionError, GeneratorsError\n \n@@ -179,12 +179,16 @@ def test_Domain_preprocess():\n \n     assert Domain.preprocess('ZZ[x]') == ZZ[x]\n     assert Domain.preprocess('QQ[x]') == QQ[x]\n+    assert Domain.preprocess('RR[x]') == RR[x]\n+    assert Domain.preprocess('CC[x]') == CC[x]\n \n     assert Domain.preprocess('Z[x,y]') == ZZ[x, y]\n     assert Domain.preprocess('Q[x,y]') == QQ[x, y]\n \n     assert Domain.preprocess('ZZ[x,y]') == ZZ[x, y]\n     assert Domain.preprocess('QQ[x,y]') == QQ[x, y]\n+    assert Domain.preprocess('RR[y,z]') == RR[y, z]\n+    assert Domain.preprocess('CC[y,z]') == CC[y, z]\n \n     raises(OptionError, lambda: Domain.preprocess('Z()'))\n \n@@ -193,12 +197,16 @@ def test_Domain_preprocess():\n \n     assert Domain.preprocess('ZZ(x)') == ZZ.frac_field(x)\n     assert Domain.preprocess('QQ(x)') == QQ.frac_field(x)\n+    assert Domain.preprocess('RR(x)') == RR.frac_field(x)\n+    assert Domain.preprocess('CC(x)') == CC.frac_field(x)\n \n     assert Domain.preprocess('Z(x,y)') == ZZ.frac_field(x, y)\n     assert Domain.preprocess('Q(x,y)') == QQ.frac_field(x, y)\n \n     assert Domain.preprocess('ZZ(x,y)') == ZZ.frac_field(x, y)\n     assert Domain.preprocess('QQ(x,y)') == QQ.frac_field(x, y)\n+    assert Domain.preprocess('RR(y,z)') == RR.frac_field(y, z)\n+    assert Domain.preprocess('CC(y,z)') == CC.frac_field(y, z)\n \n     assert Domain.preprocess('Q<I>') == QQ.algebraic_field(I)\n     assert Domain.preprocess('QQ<I>') == QQ.algebraic_field(I)\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   }

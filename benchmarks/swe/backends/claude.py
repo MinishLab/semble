@@ -3,12 +3,42 @@ from __future__ import annotations
 import json
 import shutil
 import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 
 from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
 from benchmarks.swe.utils import ParsedRun, git_diff
 
+_GLOBAL_AGENTS_MD = (Path.home() / ".claude" / "CLAUDE.md").resolve()
+_AGENTS_MD_BACKUP = _GLOBAL_AGENTS_MD.parent / f"{_GLOBAL_AGENTS_MD.name}.benchmark_backup"
+
 _TOOLS = "Bash,Read,Glob,Grep,Edit,Write"
+
+
+@contextmanager
+def _suspended_global_agents_md() -> Iterator[None]:
+    """Temporarily empty the global ``AGENTS.md``/``CLAUDE.md`` content.
+
+    It instructs falling back to the ``semble`` CLI when MCP access isn't available
+    (``uvx --from semble[mcp] semble``), which leaks semble usage into the
+    without-semble baseline despite ``--strict-mcp-config``. Swapping ``CLAUDE_CONFIG_DIR``
+    instead would break OAuth/keychain auth, so we suspend the shared file's content in
+    place. A backup file is left behind if the process is killed mid-run so it can be
+    recovered; the caller is responsible for not running this concurrently with another
+    process that reads the same file (e.g. a live codex run's with-semble variant).
+    """
+    if not _GLOBAL_AGENTS_MD.exists() or _AGENTS_MD_BACKUP.exists():
+        yield
+        return
+    original = _GLOBAL_AGENTS_MD.read_text()
+    _AGENTS_MD_BACKUP.write_text(original)
+    try:
+        _GLOBAL_AGENTS_MD.write_text("")
+        yield
+    finally:
+        _GLOBAL_AGENTS_MD.write_text(_AGENTS_MD_BACKUP.read_text())
+        _AGENTS_MD_BACKUP.unlink()
 
 
 def _tool_call_entry(name: str, inp: dict) -> str:
@@ -115,7 +145,8 @@ class ClaudeBackend(Backend):
             str(mcp_config),
         ]
         try:
-            with subprocess_env({}, with_semble=with_semble) as env:
+            suspend = _suspended_global_agents_md() if not with_semble else nullcontext()
+            with suspend, subprocess_env({}, with_semble=with_semble) as env:
                 proc = run_with_timeout(cmd, cwd=repo, env=env, timeout=_TIMEOUT)
             parsed = self._parse(proc.stdout + proc.stderr)
             diff = git_diff(repo)
