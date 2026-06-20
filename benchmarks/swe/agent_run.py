@@ -4,6 +4,7 @@ import argparse
 import json
 import subprocess
 import time
+from collections.abc import Callable
 from dataclasses import asdict
 from pathlib import Path
 
@@ -29,12 +30,21 @@ from benchmarks.swe.utils import (
     is_semble_tool_call,
     prediction_path,
     variant_name,
+    write_text_atomic,
 )
 
 
 def _hits_gold(touched: list[str], gold: list[str]) -> bool:
     """Exact-path overlap with at least one gold file (no basename/suffix matching)."""
     return bool(set(touched) & set(gold))
+
+
+def _target_variants(experiment: str | None = None, *, with_semble_only: bool = False) -> tuple[str, ...]:
+    """Return the variant labels that this run is expected to produce."""
+    variants = [variant_name(True, experiment)]
+    if not with_semble_only:
+        variants.append(variant_name(False, experiment))
+    return tuple(variants)
 
 
 def _completed_variants(backend: Backend, experiment: str | None = None) -> dict[str, set[str]]:
@@ -76,6 +86,7 @@ def _run_variants(
     *,
     experiment: str | None,
     with_semble_only: bool,
+    on_result: Callable[[RunResult], None] | None = None,
 ) -> list[RunResult]:
     """Run the with/without-semble variants for one task against an already-cloned repo."""
     results: list[RunResult] = []
@@ -94,7 +105,76 @@ def _run_variants(
         r.gold_hit = _hits_gold(r.touched_files, task.gold_files)
         _print_run_result(r)
         results.append(r)
+        if on_result is not None:
+            on_result(r)
     return results
+
+
+def _load_merged_results(path: Path) -> dict[str, TaskResult]:
+    """Load existing merged results keyed by instance ID."""
+    if not path.exists():
+        return {}
+    merged: dict[str, TaskResult] = {}
+    for entry in json.loads(path.read_text()):
+        tr = TaskResult.from_dict(entry)
+        merged[tr.instance_id] = tr
+    return merged
+
+
+def _merge_results(existing: dict[str, TaskResult], rows: list[TaskResult]) -> list[TaskResult]:
+    """Merge new task rows into existing results, keyed by backend/model/variant."""
+    for row in rows:
+        iid = row.instance_id
+        if iid in existing:
+            result_map = {(r.backend, r.model, r.variant): r for r in existing[iid].results}
+            for new_r in row.results:
+                result_map[(new_r.backend, new_r.model, new_r.variant)] = new_r
+            existing[iid].results = list(result_map.values())
+        else:
+            existing[iid] = row
+    return list(existing.values())
+
+
+def _prediction_records(
+    rows: list[TaskResult],
+    *,
+    model_slug: str,
+    with_semble: bool,
+    experiment: str | None = None,
+) -> list[dict[str, str]]:
+    """Build SWE-bench prediction records for one variant."""
+    variant = WITH_SEMBLE if with_semble else WITHOUT_SEMBLE
+    result_variant = variant_name(with_semble, experiment)
+    return [
+        {
+            KEY_INSTANCE_ID: t.instance_id,
+            KEY_PREDICTION: r.patch,
+            KEY_MODEL: f"{model_slug}-{variant}",
+        }
+        for t in rows
+        for r in t.results
+        if r.variant == result_variant and not r.error and r.patch and not r.bypass
+    ]
+
+
+def _persist_outputs(
+    rows: list[TaskResult],
+    model_label: str,
+    experiment: str | None = None,
+) -> tuple[list[TaskResult], dict[str, int]]:
+    """Persist merged results and prediction files, returning merged rows and counts."""
+    out = agent_results_path(experiment)
+    merged = _merge_results(_load_merged_results(out), rows)
+    write_text_atomic(out, json.dumps([asdict(t) for t in merged], indent=2))
+
+    model_slug = model_label.replace("/", "-")
+    prediction_counts: dict[str, int] = {}
+    for with_semble, variant in ((True, WITH_SEMBLE), (False, WITHOUT_SEMBLE)):
+        predictions = _prediction_records(merged, model_slug=model_slug, with_semble=with_semble, experiment=experiment)
+        path = prediction_path(with_semble=with_semble, experiment=experiment)
+        write_text_atomic(path, "\n".join(json.dumps(p) for p in predictions) + "\n")
+        prediction_counts[variant] = len(predictions)
+    return merged, prediction_counts
 
 
 def run(
@@ -119,8 +199,9 @@ def run(
     print(f"Got {len(tasks)} tasks.\n")
 
     done = _completed_variants(backend, experiment) if resume else {}
+    wanted = set(_target_variants(experiment, with_semble_only=with_semble_only))
     if done:
-        skippable = sum(1 for iid, vs in done.items() if WITH_SEMBLE in vs and WITHOUT_SEMBLE in vs)
+        skippable = sum(1 for vs in done.values() if wanted <= vs)
         print(f"Resume mode: {skippable} tasks already complete for {backend.label()}\n")
 
     all_rows: list[TaskResult] = []
@@ -133,7 +214,7 @@ def run(
         dest = REPOS_DIR / f"{task.repo.replace('/', '_')}_{task.base_commit}"
 
         done_variants = done.get(iid, set())
-        if WITH_SEMBLE in done_variants and WITHOUT_SEMBLE in done_variants:
+        if wanted <= done_variants:
             print(f"[{task_i + 1}/{len(tasks)}] {iid}  (skipped — already done)")
             continue
 
@@ -148,6 +229,13 @@ def run(
             print(f"FAILED: {exc}")
             continue
 
+        def persist_result(r: RunResult) -> None:
+            _persist_outputs(
+                [TaskResult(instance_id=iid, gold_files=task.gold_files, results=[r])],
+                backend.label(),
+                experiment,
+            )
+
         results = _run_variants(
             backend,
             task,
@@ -155,6 +243,7 @@ def run(
             done_variants,
             experiment=experiment,
             with_semble_only=with_semble_only,
+            on_result=persist_result,
         )
         all_rows.append(TaskResult(instance_id=iid, gold_files=task.gold_files, results=results))
 
@@ -222,41 +311,12 @@ def _print_summary(rows: list[TaskResult], model_label: str, experiment: str | N
 
 def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | None = None) -> None:
     out = agent_results_path(experiment)
-    existing: dict[str, TaskResult] = {}
-    if out.exists():
-        for entry in json.loads(out.read_text()):
-            tr = TaskResult.from_dict(entry)
-            existing[tr.instance_id] = tr
-    for row in rows:
-        iid = row.instance_id
-        if iid in existing:
-            result_map = {(r.backend, r.model, r.variant): r for r in existing[iid].results}
-            for new_r in row.results:
-                key = (new_r.backend, new_r.model, new_r.variant)
-                result_map[key] = new_r
-            existing[iid].results = list(result_map.values())
-        else:
-            existing[iid] = row
-    merged = list(existing.values())
-    out.write_text(json.dumps([asdict(t) for t in merged], indent=2))
+    merged, prediction_counts = _persist_outputs(rows, model_label, experiment)
     print(f"\nFull results -> {out}  ({len(merged)} instances)")
 
-    model_slug = model_label.replace("/", "-")
-    for variant in (WITH_SEMBLE, WITHOUT_SEMBLE):
-        result_variant = variant_name(variant == WITH_SEMBLE, experiment)
-        predictions = [
-            {
-                KEY_INSTANCE_ID: t.instance_id,
-                KEY_PREDICTION: r.patch,
-                KEY_MODEL: f"{model_slug}-{variant}",
-            }
-            for t in merged
-            for r in t.results
-            if r.variant == result_variant and not r.error and r.patch and not r.bypass
-        ]
-        path = prediction_path(with_semble=variant == WITH_SEMBLE, experiment=experiment)
-        path.write_text("\n".join(json.dumps(p) for p in predictions) + "\n")
-        print(f"Predictions ({variant}): {path}  ({len(predictions)} patches)")
+    for with_semble, variant in ((True, WITH_SEMBLE), (False, WITHOUT_SEMBLE)):
+        path = prediction_path(with_semble=with_semble, experiment=experiment)
+        print(f"Predictions ({variant}): {path}  ({prediction_counts[variant]} patches)")
 
     ids = sorted(t.instance_id for t in merged)
     print("\nRun evaluation:")

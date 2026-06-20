@@ -22,6 +22,29 @@ _PYPI_SEMBLE_CMD = ["uvx", "--from", "semble[mcp]", "semble"]
 _LOCAL_SEMBLE_CMD = ["uv", "run", "--directory", str(PROJECT_ROOT), "semble"]
 
 
+def prepare_temp_home(
+    *,
+    prefix: str,
+    env_var: str,
+    config_relpath: Path | None = None,
+    config_text: str | None = None,
+    extra_copies: list[tuple[Path, Path]] | None = None,
+) -> tuple[Path, dict[str, str]]:
+    """Create a temp home/config root and return it with the matching env override."""
+    temp_home = Path(tempfile.mkdtemp(prefix=prefix))
+    if config_relpath is not None and config_text is not None:
+        dest = temp_home / config_relpath
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(config_text)
+    for src, rel_dest in extra_copies or []:
+        if not src.exists():
+            continue
+        dest = temp_home / rel_dest
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dest)
+    return temp_home, {env_var: str(temp_home)}
+
+
 @contextmanager
 def _isolated_cache_env() -> Iterator[dict[str, str]]:
     """A fresh ``SEMBLE_CACHE_LOCATION`` per run, so with/without variants never share a warm index."""

@@ -62,8 +62,33 @@ uv run python -m benchmarks.swe.agent_run --backend claude --tasks 5 --local-sem
    - **With Semble** — semble registered as an MCP server
    - **Without Semble** — no MCP servers registered at all
 4. Records gold file hits, token usage, cost, and the generated patch
-5. Saves results to `results/swe_agent.json` or `results/swe_agent_{EXPERIMENT}.json` (merges with existing runs)
+5. After every completed variant, atomically updates `results/swe_agent.json` or `results/swe_agent_{EXPERIMENT}.json`
 6. Generates SWE-bench prediction JSONL files for `evaluate.py`
+
+### Long-running usage
+
+This runner is intended to survive model/session limits across many restarts.
+
+Recommended pattern:
+
+```bash
+uv run python -m benchmarks.swe.agent_run \
+  --backend codex \
+  --model gpt-5.4-mini \
+  --repo all \
+  --tasks 200 \
+  --resume
+```
+
+If the process stops because the agent hits a limit, just run the same command again with `--resume`.
+
+Durability behavior:
+- Each completed variant is flushed to disk immediately, not only at the end of the full benchmark.
+- Writes to `swe_agent*.json` and `predictions_*.jsonl` are atomic file replacements.
+- Resume skips variants already present for the same `(backend, model, variant)` slot.
+- If the process dies during a variant before that variant returns, only that in-progress variant is lost; earlier completed variants remain on disk.
+
+For experiment runs, keep the same `--experiment NAME` value on every restart.
 
 ### evaluate.py — real test-suite verification
 
@@ -138,3 +163,16 @@ All three backends are MCP-only — semble is either registered as an MCP server
 | Claude | `--mcp-config <temp file with semble entry>` | `--mcp-config <temp file with empty mcpServers>`, both with `--strict-mcp-config` |
 | Codex | `[mcp_servers.semble]` in a temp `config.toml`, `CODEX_HOME` override | Same temp config with the `[mcp_servers.semble]` section stripped |
 | opencode | `mcp.semble.enabled: true` in a temp `opencode.json`, `XDG_CONFIG_HOME` override | Same temp config with `mcp.semble.enabled: false` |
+
+## Validation
+
+Resume/persistence smoke test:
+
+```bash
+uv run pytest tests/test_swe_agent_run.py
+```
+
+This test covers:
+- persisting a completed variant before an interrupted second variant
+- resuming and running only the missing variant
+- overwriting an existing `(backend, model, variant)` result instead of duplicating it

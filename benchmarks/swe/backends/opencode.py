@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 import re
 import shutil
-import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, prepare_temp_home, run_with_timeout, subprocess_env
 from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff
 
 _OPENCODE_CONFIG = Path.home() / ".config" / "opencode" / "opencode.json"
@@ -86,16 +85,17 @@ class OpencodeBackend(Backend):
         if not _OPENCODE_CONFIG.exists():
             return None, {}
 
-        temp_home = Path(tempfile.mkdtemp(prefix="opencode_no_semble_"))
-        config_dir = temp_home / "opencode"
-        config_dir.mkdir(parents=True)
         text = _OPENCODE_CONFIG.read_text()
         if not with_semble:
             text = self._disable_semble_in_config(text)
         elif self.local_semble:
             text = self._replace_semble_command(text)
-        (config_dir / "opencode.json").write_text(text)
-        return temp_home, {"XDG_CONFIG_HOME": str(temp_home)}
+        return prepare_temp_home(
+            prefix="opencode_no_semble_",
+            env_var="XDG_CONFIG_HOME",
+            config_relpath=Path("opencode") / "opencode.json",
+            config_text=text,
+        )
 
     def _parse(self, raw: str) -> ParsedRun:
         """Aggregate tool calls, cost, and token usage out of opencode's ``run --format json`` output."""

@@ -3,10 +3,9 @@ from __future__ import annotations
 import json
 import os
 import shutil
-import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, prepare_temp_home, run_with_timeout, subprocess_env
 from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff
 
 _CODEX_CONFIG = Path.home() / ".codex" / "config.toml"
@@ -84,21 +83,22 @@ class CodexBackend(Backend):
         if with_semble and not self.local_semble:
             return None, {}
 
-        temp_home = Path(tempfile.mkdtemp(prefix="codex_no_semble_"))
         codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
-
+        content: str | None = None
         if _CODEX_CONFIG.exists():
             content = _CODEX_CONFIG.read_text()
             if not with_semble:
                 content = self._strip_semble_section(content)
             elif self.local_semble:
                 content = self._replace_semble_command(content)
-            (temp_home / "config.toml").write_text(content)
         auth_src = codex_home / "auth.json"
-        if auth_src.exists():
-            shutil.copy2(auth_src, temp_home / "auth.json")
-
-        return temp_home, {"CODEX_HOME": str(temp_home)}
+        return prepare_temp_home(
+            prefix="codex_no_semble_",
+            env_var="CODEX_HOME",
+            config_relpath=Path("config.toml"),
+            config_text=content,
+            extra_copies=[(auth_src, Path("auth.json"))],
+        )
 
     def _parse(self, raw: str) -> ParsedRun:
         """Aggregate tool calls, cost, and token usage out of Codex's ``exec --json`` output."""

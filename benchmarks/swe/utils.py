@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import math
+import os
 import random
 import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -61,6 +63,20 @@ def prediction_path(*, with_semble: bool, experiment: str | None = None) -> Path
 def resolve_results_path(experiment: str | None = None) -> Path:
     """Return the harness resolve-results JSON path for the given experiment."""
     return RESULTS_DIR / (f"swe_resolve_{experiment}.json" if experiment else "swe_resolve.json")
+
+
+def write_text_atomic(path: Path, text: str) -> None:
+    """Atomically replace *path* with *text*."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile("w", dir=path.parent, delete=False) as tmp:
+            tmp.write(text)
+            tmp_path = Path(tmp.name)
+        os.replace(tmp_path, path)
+    finally:
+        if tmp_path is not None and tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
 
 
 @dataclass
