@@ -5,8 +5,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _TIMEOUT, Backend, ParsedRun, _run_with_timeout, _subprocess_env
-from benchmarks.swe.gitutils import git_diff
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
+from benchmarks.swe.utils import ParsedRun, git_diff
 
 _TOOLS = "Bash,Read,Glob,Grep,Edit,Write"
 
@@ -113,8 +113,8 @@ class ClaudeBackend(Backend):
             str(mcp_config),
         ]
         try:
-            with _subprocess_env({}, with_semble=with_semble) as env:
-                proc = _run_with_timeout(cmd, cwd=repo, env=env, timeout=_TIMEOUT)
+            with subprocess_env({}, with_semble=with_semble) as env:
+                proc = run_with_timeout(cmd, cwd=repo, env=env, timeout=_TIMEOUT)
             parsed = self._parse(proc.stdout + proc.stderr)
             diff = git_diff(repo)
             return parsed, diff

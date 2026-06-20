@@ -9,12 +9,7 @@ from pathlib import Path
 from swebench.harness.constants import KEY_INSTANCE_ID, KEY_MODEL
 from swebench.harness.utils import get_predictions_from_file
 
-from benchmarks.swe.backends.base import WITH_SEMBLE, WITHOUT_SEMBLE
-from benchmarks.swe.stats import mcnemar_exact_p
-
-RESULTS_DIR = Path(__file__).parent / "results"
-_PROJECT_ROOT = Path(__file__).parent.parent.parent
-_DATASET = "princeton-nlp/SWE-bench_Lite"
+from benchmarks.swe.utils import DATASET, PROJECT_ROOT, RESULTS_DIR, WITH_SEMBLE, WITHOUT_SEMBLE, mcnemar_exact_p
 
 
 def _check_docker() -> None:
@@ -27,7 +22,7 @@ def _check_docker() -> None:
 
 def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -> dict[str, bool]:
     """Run the harness and return ``{instance_id: resolved}`` map."""
-    predictions = get_predictions_from_file(str(predictions_path), _DATASET, "test")
+    predictions = get_predictions_from_file(str(predictions_path), DATASET, "test")
     if not predictions:
         print(f"  Skipping {run_id} — no predictions in {predictions_path.name}")
         return {}
@@ -41,13 +36,11 @@ def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -
     cmd = [
         "uv",
         "run",
-        "--with",
-        "swebench",
         "python",
         "-m",
         "swebench.harness.run_evaluation",
         "--dataset_name",
-        _DATASET,
+        DATASET,
         "--predictions_path",
         str(predictions_path),
         "--max_workers",
@@ -58,12 +51,12 @@ def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -
     ] + ids_to_run
 
     print(f"\nRunning harness: {run_id}  ({len(ids_to_run)} instances)")
-    subprocess.run(cmd, check=True, cwd=_PROJECT_ROOT)
+    subprocess.run(cmd, check=True, cwd=PROJECT_ROOT)
 
     model_name = predictions[0][KEY_MODEL]
-    result_file = _PROJECT_ROOT / f"{model_name}.{run_id}.json"
+    result_file = PROJECT_ROOT / f"{model_name}.{run_id}.json"
     if not result_file.exists():
-        candidates = list(_PROJECT_ROOT.glob(f"*.{run_id}.json"))
+        candidates = list(PROJECT_ROOT.glob(f"*.{run_id}.json"))
         if not candidates:
             print(f"  Warning: result file not found for {run_id}")
             return {}
@@ -103,14 +96,14 @@ def _collect_instance_ids(*pred_paths: Path) -> list[str]:
     """Union of all instance IDs found across the given prediction files."""
     ids: set[str] = set()
     for p in pred_paths:
-        for pred in get_predictions_from_file(str(p), _DATASET, "test"):
+        for pred in get_predictions_from_file(str(p), DATASET, "test"):
             ids.add(pred[KEY_INSTANCE_ID])
     return sorted(ids)
 
 
 def _model_slug(pred_path: Path, fallback: str) -> str:
     """Model name to scope the harness run_id by, so different backend runs don't share harness logs."""
-    preds = get_predictions_from_file(str(pred_path), _DATASET, "test")
+    preds = get_predictions_from_file(str(pred_path), DATASET, "test")
     return preds[0][KEY_MODEL] if preds else fallback
 
 

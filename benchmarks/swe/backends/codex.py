@@ -6,8 +6,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, ParsedRun, _run_with_timeout, _subprocess_env
-from benchmarks.swe.gitutils import git_diff
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
+from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff
 
 _CODEX_CONFIG = Path.home() / ".codex" / "config.toml"
 
@@ -74,7 +74,7 @@ class CodexBackend(Backend):
                     out.append('command = "uv"')
                     continue
                 if line.strip().startswith("args"):
-                    out.append(f'args = ["run", "--directory", "{_PROJECT_ROOT}", "semble"]')
+                    out.append(f'args = ["run", "--directory", "{PROJECT_ROOT}", "semble"]')
                     continue
             out.append(line)
         return "\n".join(out) + "\n"
@@ -149,8 +149,8 @@ class CodexBackend(Backend):
     def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]:
         temp_home, env_overrides = self._make_temp_home(with_semble=with_semble)
         try:
-            with _subprocess_env(env_overrides, with_semble=with_semble) as env:
-                proc = _run_with_timeout(
+            with subprocess_env(env_overrides, with_semble=with_semble) as env:
+                proc = run_with_timeout(
                     [
                         "codex",
                         "exec",

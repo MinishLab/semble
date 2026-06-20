@@ -5,9 +5,7 @@ import random
 from swebench.harness.constants import SWEbenchInstance
 from swebench.harness.utils import get_modified_files, load_swebench_dataset
 
-_DATASET = "princeton-nlp/SWE-bench_Lite"
-DEFAULT_REPO = "pytest-dev/pytest"
-DEFAULT_SEED = 42
+from benchmarks.swe.utils import DATASET, DEFAULT_REPO, DEFAULT_SEED
 
 
 class SWETask:
@@ -66,7 +64,7 @@ def fetch_tasks(n: int, repo: str = DEFAULT_REPO, seed: int = DEFAULT_SEED) -> l
 
     *repo* accepts a single repo, a comma-separated list, or ``"all"``.
     """
-    instances = load_swebench_dataset(_DATASET, split="test")
+    instances = load_swebench_dataset(DATASET, split="test")
     if repo == "all":
         pool = instances
     else:
@@ -80,7 +78,7 @@ def resolve_tasks(n_tasks: int, repo: str, instance_ids: list[str] | None, seed:
     """Fetch either a specific set of instance IDs or a fresh random sample."""
     if instance_ids:
         print(f"Fetching tasks for {len(instance_ids)} specific instance IDs...")
-        instances = load_swebench_dataset(_DATASET, split="test", instance_ids=instance_ids)
+        instances = load_swebench_dataset(DATASET, split="test", instance_ids=instance_ids)
         return [SWETask(inst) for inst in instances]
     print(f"Fetching {n_tasks} randomly sampled tasks from SWE-bench Lite (repo={repo}, seed={seed})...")
     return fetch_tasks(n_tasks, repo, seed=seed)

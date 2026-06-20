@@ -6,13 +6,16 @@ Evaluates whether semble's MCP server helps coding agents (Claude Code, Codex, o
 
 | File | Purpose |
 |------|---------|
-| `agent_run.py` | Runs coding agents on SWE-bench tasks, producing patches and gold-file-hit stats. Supports `claude`, `codex`, and `opencode` backends. |
+| `agent_run.py` | Main run loop, CLI, summary printing, and prediction file generation. |
 | `evaluate.py` | Runs the official SWE-bench Docker test harness on generated patches to get real resolve rates. |
+| `tasks.py` | `SWETask` wrapper plus SWE-bench Lite task loading and sampling. |
+| `utils.py` | Shared constants, result dataclasses, git helpers, and lightweight stats helpers. |
 
 ### Directories
 
 | Directory | Contents |
 |-----------|----------|
+| `backends/` | Backend implementations for `claude`, `codex`, and `opencode`, plus the shared backend base class. |
 | `results/` | `swe_agent.json` (raw results), `predictions_*.jsonl` (SWE-bench format patches), harness output JSONs |
 | `repos/` | Cloned repositories at base commits (gitignored, auto-cloned) |
 
@@ -59,7 +62,7 @@ uv run python -m benchmarks.swe.agent_run --backend claude --tasks 5 --local-sem
    - **With Semble** — semble registered as an MCP server
    - **Without Semble** — no MCP servers registered at all
 4. Records gold file hits, token usage, cost, and the generated patch
-5. Saves results to `results/swe_agent.json` (merges with existing runs)
+5. Saves results to `results/swe_agent.json` or `results/swe_agent_{EXPERIMENT}.json` (merges with existing runs)
 6. Generates SWE-bench prediction JSONL files for `evaluate.py`
 
 ### evaluate.py — real test-suite verification
@@ -72,7 +75,7 @@ uv run python -m benchmarks.swe.evaluate
 uv run python -m benchmarks.swe.evaluate --instance-ids pytest-dev__pytest-11143 pytest-dev__pytest-7220
 ```
 
-Requires Docker (OrbStack works). Pulls SWE-bench Docker images and runs the actual pytest test suite on each patch. Produces `results/swe_resolve.json` with real resolve rates.
+Requires Docker (OrbStack works). Pulls SWE-bench Docker images and runs the actual pytest test suite on each patch. Produces `results/swe_resolve.json` or `results/swe_resolve_{EXPERIMENT}.json` with real resolve rates.
 
 ## Output format
 
@@ -93,6 +96,8 @@ Requires Docker (OrbStack works). Pulls SWE-bench Docker images and runs the act
 {"instance_id": "pytest-dev__pytest-11143", "model_patch": "diff --git ...", "model_name_or_path": "claude-claude-haiku-4-5-20251001-with_semble"}
 ```
 
+For experiment runs, only `predictions_with_semble_{NAME}.jsonl` is suffixed. `predictions_without_semble.jsonl` remains the shared baseline file that `evaluate.py` reads.
+
 ### swe_resolve.json (harness results)
 ```json
 {"instances": [...], "results": {"with_semble": {"pytest-dev__pytest-11143": true, ...}, "without_semble": {...}}}
@@ -100,13 +105,11 @@ Requires Docker (OrbStack works). Pulls SWE-bench Docker images and runs the act
 
 ## Architecture
 
-```
+```text
 agent_run.py
-  ├── Backend (ABC)
-  │   ├── ClaudeBackend    →  claude -p "..." --mcp-config <temp> --strict-mcp-config
-  │   ├── CodexBackend     →  codex exec --json ...  (CODEX_HOME override)
-  │   └── OpencodeBackend  →  opencode run ...  (XDG_CONFIG_HOME override)
-  │
+  ├── uses tasks.py for dataset loading / sampling
+  ├── uses utils.py for shared constants, result types, git helpers, and stats
+  ├── uses backends/ for agent-specific execution
   └── run(backend, tasks, repo, instance_ids)
       ├── Fetch tasks from HuggingFace
       ├── For each task × each variant (with/without):
@@ -115,6 +118,12 @@ agent_run.py
       │   ├── git diff → patch
       │   └── git reset
       └── Save + print summary
+
+backends/
+  ├── base.py         → shared subprocess / timeout / reset logic
+  ├── claude.py       → claude -p ... --mcp-config
+  ├── codex.py        → codex exec --json ... with CODEX_HOME override
+  └── opencode.py     → opencode run ... with XDG_CONFIG_HOME override
 
 evaluate.py
   └── Run swebench.harness.run_evaluation on predictions_*.jsonl

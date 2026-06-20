@@ -9,73 +9,17 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
-from dataclasses import dataclass, field
 from pathlib import Path
 
 from swebench.harness.utils import get_modified_files
 
-from benchmarks.swe.gitutils import git_reset
+from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, RunResult, git_reset, is_bypass_call, variant_name
 
-_PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 _TIMEOUT = 480  # seconds per agent run
 _RETRY_SLEEP = 45  # seconds between retries on empty output
 
 _PYPI_SEMBLE_CMD = ["uvx", "--from", "semble[mcp]", "semble"]
-_LOCAL_SEMBLE_CMD = ["uv", "run", "--directory", str(_PROJECT_ROOT), "semble"]
-
-WITH_SEMBLE = "with_semble"
-WITHOUT_SEMBLE = "without_semble"
-
-
-def variant_name(with_semble: bool, experiment: str | None = None) -> str:
-    """Return the variant tag, appending the experiment suffix to with-semble only."""
-    base = WITH_SEMBLE if with_semble else WITHOUT_SEMBLE
-    return f"{base}_{experiment}" if experiment and with_semble else base
-
-
-@dataclass
-class ParsedRun:
-    """Parsed output from an agent's JSON stream — tool calls, cost, tokens, rate-limit status."""
-
-    tool_calls: list[str] = field(default_factory=list)
-    cost_usd: float = 0.0
-    input_tokens: int = 0
-    output_tokens: int = 0
-    num_turns: int = 0
-    rate_limited: bool = False
-
-
-@dataclass
-class RunResult:
-    """Outcome of a single agent run on one SWE-bench task variant."""
-
-    variant: str
-    backend: str = ""
-    model: str = ""
-    tool_calls: list[str] = field(default_factory=list)
-    cost_usd: float = 0.0
-    input_tokens: int = 0
-    output_tokens: int = 0
-    num_turns: int = 0
-    touched_files: list[str] = field(default_factory=list)
-    patch: str = ""
-    gold_hit: bool = False
-    bypass: bool = False
-    error: str | None = None
-
-
-def is_semble_tool_call(entry: str) -> bool:
-    """Return True if a tool-call entry string originated from an semble MCP call or bypass."""
-    return (
-        entry.startswith("claude_mcp:semble/")
-        or entry.startswith("codex_mcp:semble/")
-        or entry.startswith("opencode_mcp:semble/")
-        or "[SEMBLE_BYPASS]" in entry
-    )
-
-
-def _is_bypass_call(entry: str) -> bool:
-    return "[SEMBLE_BYPASS]" in entry
+_LOCAL_SEMBLE_CMD = ["uv", "run", "--directory", str(PROJECT_ROOT), "semble"]
 
 
 @contextmanager
@@ -99,7 +43,7 @@ def _path_without_semble() -> str:
 
 
 @contextmanager
-def _subprocess_env(env_overrides: dict[str, str], *, with_semble: bool) -> Iterator[dict[str, str]]:
+def subprocess_env(env_overrides: dict[str, str], *, with_semble: bool) -> Iterator[dict[str, str]]:
     """Env for a backend subprocess: isolated cache dir, plus PATH sanitization when semble is excluded."""
     with _isolated_cache_env() as cache_env:
         env = {**os.environ, **env_overrides, **cache_env}
@@ -115,7 +59,7 @@ def _kill_process_tree(proc: subprocess.Popen) -> None:
         pass
 
 
-def _run_with_timeout(cmd: list[str], *, cwd: Path, env: dict[str, str], timeout: int) -> subprocess.CompletedProcess:
+def run_with_timeout(cmd: list[str], *, cwd: Path, env: dict[str, str], timeout: int) -> subprocess.CompletedProcess:
     """Like ``subprocess.run`` with a timeout, but kills the whole process group on expiry."""
     proc = subprocess.Popen(
         cmd,
@@ -198,6 +142,6 @@ class Backend(ABC):
             num_turns=parsed.num_turns,
             touched_files=touched,
             patch=diff,
-            bypass=any(_is_bypass_call(t) for t in tool_calls),
+            bypass=any(is_bypass_call(t) for t in tool_calls),
             error=error,
         )

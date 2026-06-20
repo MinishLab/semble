@@ -6,8 +6,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, ParsedRun, _run_with_timeout, _subprocess_env
-from benchmarks.swe.gitutils import git_diff
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, run_with_timeout, subprocess_env
+from benchmarks.swe.utils import PROJECT_ROOT, ParsedRun, git_diff
 
 _OPENCODE_CONFIG = Path.home() / ".config" / "opencode" / "opencode.json"
 
@@ -64,7 +64,7 @@ class OpencodeBackend(Backend):
         New: ``["uv", "run", "--directory", "<project_root>", "semble"]``
         """
         old_cmd = '"command": ["uvx", "--from", "semble[mcp]", "semble"]'
-        new_cmd = f'"command": ["uv", "run", "--directory", "{_PROJECT_ROOT}", "semble"]'
+        new_cmd = f'"command": ["uv", "run", "--directory", "{PROJECT_ROOT}", "semble"]'
         if old_cmd in text:
             return text.replace(old_cmd, new_cmd, 1)
         start = text.find('"semble"')
@@ -143,8 +143,8 @@ class OpencodeBackend(Backend):
     def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]:
         temp_home, env_overrides = self._make_temp_home(with_semble=with_semble)
         try:
-            with _subprocess_env(env_overrides, with_semble=with_semble) as env:
-                proc = _run_with_timeout(
+            with subprocess_env(env_overrides, with_semble=with_semble) as env:
+                proc = run_with_timeout(
                     [
                         "opencode",
                         "run",

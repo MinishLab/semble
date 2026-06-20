@@ -4,61 +4,30 @@ import argparse
 import json
 import subprocess
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict
 from pathlib import Path
 
 from swebench.harness.constants import KEY_INSTANCE_ID, KEY_MODEL, KEY_PREDICTION
 
-from benchmarks.swe.backends import (
-    _BACKENDS,
+from benchmarks.swe.backends import _BACKENDS, Backend, ClaudeBackend, CodexBackend, OpencodeBackend
+from benchmarks.swe.tasks import SWETask, resolve_tasks
+from benchmarks.swe.utils import (
+    DEFAULT_REPO,
+    DEFAULT_SEED,
+    PROBLEM_MAX_CHARS,
+    PROMPT_BASE,
+    REPOS_DIR,
+    RESULTS_DIR,
+    TASK_SLEEP,
     WITH_SEMBLE,
     WITHOUT_SEMBLE,
-    Backend,
-    ClaudeBackend,
-    CodexBackend,
-    OpencodeBackend,
     RunResult,
+    TaskResult,
+    bootstrap_ci,
+    clone_at_commit,
     is_semble_tool_call,
     variant_name,
 )
-from benchmarks.swe.gitutils import clone_at_commit
-from benchmarks.swe.stats import bootstrap_ci
-from benchmarks.swe.tasks import DEFAULT_REPO, DEFAULT_SEED, SWETask, resolve_tasks
-
-REPOS_DIR = Path(__file__).parent / "repos"
-RESULTS_DIR = Path(__file__).parent / "results"
-_TASK_SLEEP = 30  # seconds between tasks (rate-limit buffer)
-_PROBLEM_MAX_CHARS = 8000
-
-_PROMPT_BASE = """\
-You are a software engineer. Fix the following GitHub issue in the repository at {repo}.
-
-{problem}
-
-Instructions:
-- Explore the repository to understand the relevant code
-- Make the minimal change needed to fix the issue
-- Do NOT run the test suite
-- Do NOT add new test files
-"""
-
-
-@dataclass
-class TaskResult:
-    """Results for a single SWE-bench task across all variants."""
-
-    instance_id: str
-    gold_files: list[str]
-    results: list[RunResult] = field(default_factory=list)
-
-    @classmethod
-    def from_dict(cls, d: dict) -> TaskResult:
-        """Reconstruct from a JSON-serialised dict (for merge/resume)."""
-        return cls(
-            instance_id=d["instance_id"],
-            gold_files=d["gold_files"],
-            results=[RunResult(**r) for r in d["results"]],
-        )
 
 
 def _hits_gold(touched: list[str], gold: list[str]) -> bool:
@@ -66,10 +35,10 @@ def _hits_gold(touched: list[str], gold: list[str]) -> bool:
     return bool(set(touched) & set(gold))
 
 
-def _completed_variants(backend: Backend) -> dict[str, set[str]]:
+def _completed_variants(backend: Backend, experiment: str | None = None) -> dict[str, set[str]]:
     """Return ``{instance_id: {variant, ...}}`` for successful, non-empty results from this backend+model."""
     out: dict[str, set[str]] = {}
-    path = RESULTS_DIR / "swe_agent.json"
+    path = RESULTS_DIR / (f"swe_agent_{experiment}.json" if experiment else "swe_agent.json")
     if not path.exists():
         return out
     for entry in json.loads(path.read_text()):
@@ -115,7 +84,7 @@ def _run_variants(
         if variant in done_variants:
             print(f"  [{run_label}] skipped")
             continue
-        prompt = _PROMPT_BASE.format(repo=dest, problem=task.problem_statement[:_PROBLEM_MAX_CHARS])
+        prompt = PROMPT_BASE.format(repo=dest, problem=task.problem_statement[:PROBLEM_MAX_CHARS])
 
         print(f"  [{run_label}] running...", flush=True)
         r = backend.run(prompt, dest, task.base_commit, with_semble=with_semble)
@@ -147,7 +116,7 @@ def run(
         return
     print(f"Got {len(tasks)} tasks.\n")
 
-    done = _completed_variants(backend) if resume else {}
+    done = _completed_variants(backend, experiment) if resume else {}
     if done:
         skippable = sum(1 for iid, vs in done.items() if WITH_SEMBLE in vs and WITHOUT_SEMBLE in vs)
         print(f"Resume mode: {skippable} tasks already complete for {backend.label()}\n")
@@ -188,8 +157,8 @@ def run(
         all_rows.append(TaskResult(instance_id=iid, gold_files=task.gold_files, results=results))
 
         if task_i < len(tasks) - 1:
-            print(f"  (sleeping {_TASK_SLEEP}s...)\n")
-            time.sleep(_TASK_SLEEP)
+            print(f"  (sleeping {TASK_SLEEP}s...)\n")
+            time.sleep(TASK_SLEEP)
 
     _print_summary(all_rows, backend.label(), experiment=experiment)
     _save_outputs(all_rows, backend.label(), experiment=experiment)
@@ -284,7 +253,8 @@ def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | No
             for r in t.results
             if r.variant == result_variant and not r.error and r.patch and not r.bypass
         ]
-        path = RESULTS_DIR / f"predictions_{variant}{suffix}.jsonl"
+        path_suffix = suffix if variant == WITH_SEMBLE else ""
+        path = RESULTS_DIR / f"predictions_{variant}{path_suffix}.jsonl"
         path.write_text("\n".join(json.dumps(p) for p in predictions) + "\n")
         print(f"Predictions ({variant}): {path}  ({len(predictions)} patches)")
 
