@@ -95,9 +95,9 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
         src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
+        dest.write_text(src, encoding="utf-8")
     except Exception:
         return WriteResult(dest, "error")
-    dest.write_text(src, encoding="utf-8")
     return WriteResult(dest, "updated" if existed else "created")
 
 
