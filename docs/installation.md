@@ -71,13 +71,6 @@ command = "uvx"
 args = ["--from", "semble[mcp]", "semble"]
 ```
 
-For the sub-agent, copy [`codex.toml`](../src/semble/agents/codex.toml) to `~/.codex/agents/semble-search.toml`:
-
-```bash
-mkdir -p ~/.codex/agents
-cp src/semble/agents/codex.toml ~/.codex/agents/semble-search.toml
-```
-
 </details>
 
 <details>
