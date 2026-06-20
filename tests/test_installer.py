@@ -345,6 +345,21 @@ def test_apply_subagent(tmp_path):
     assert _apply_subagent(replace(agent, id="zzz"), "install").action == "error"
 
 
+def test_apply_subagent_codex_toml(tmp_path):
+    """_apply_subagent writes a .toml file for codex (deriving source extension from destination)."""
+    dest = tmp_path / "agents" / "semble-search.toml"
+    codex = next(a for a in AGENTS if a.id == "codex")
+    agent = replace(codex, subagent_path=dest)
+
+    assert _apply_subagent(agent, "install").action == "created"
+    assert dest.exists()
+    text = dest.read_text()
+    assert 'name = "semble_search"' in text
+    assert "developer_instructions" in text
+    assert _apply_subagent(agent, "uninstall").action == "removed"
+    assert not dest.exists()
+
+
 def test_is_detected(monkeypatch, tmp_path):
     """is_detected returns True when binary is on PATH or config dir exists."""
     agent = next(a for a in AGENTS if a.id == "claude")

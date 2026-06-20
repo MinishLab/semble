@@ -191,6 +191,7 @@ AGENTS: list[AgentTarget] = [
         config_dir=_HOME / ".codex",
         mcp=McpConfig(_HOME / ".codex" / "config.toml", "mcp_servers", _STDIO_SERVER_CONFIG, format="toml"),
         instructions_path=_HOME / ".codex" / "AGENTS.md",
+        subagent_path=_HOME / ".codex" / "agents" / "semble-search.toml",
     ),
     AgentTarget(
         id="vscode",
