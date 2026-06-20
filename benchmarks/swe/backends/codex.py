@@ -17,7 +17,9 @@ def _item_entry(item: dict) -> str | None:
     if item_type == "mcp_tool_call":
         server = item.get("server", "")
         tool = item.get("tool", "")
-        params = item.get("params", {})
+        params = item.get("arguments", {})
+        if not isinstance(params, dict):
+            params = {}
         snippet = params.get("snippet_lines", "default")
         query = params.get("query", "")
         entry = f"codex_mcp:{server}/{tool}(snippet={snippet})"
@@ -118,6 +120,8 @@ class CodexBackend(Backend):
             except json.JSONDecodeError:
                 if "429" in line or "rate" in line.lower():
                     rate_limited = True
+                continue
+            if not isinstance(d, dict):
                 continue
 
             t = d.get("type")

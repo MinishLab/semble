@@ -115,6 +115,8 @@ class OpencodeBackend(Backend):
                 if "429" in line or "rate" in line.lower():
                     rate_limited = True
                 continue
+            if not isinstance(d, dict):
+                continue
 
             t = d.get("type")
             if t == "tool_use":

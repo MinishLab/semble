@@ -48,7 +48,7 @@ class ClaudeBackend(Backend):
         config_path.write_text(json.dumps({"mcpServers": servers}))
         return config_path
 
-    def _parse(self, raw: str) -> ParsedRun:
+    def _parse(self, raw: str) -> ParsedRun:  # noqa C901
         """Aggregate tool calls, cost, and token usage out of Claude's ``stream-json`` output."""
         tool_calls: list[str] = []
         cost_usd = 0.0
@@ -63,6 +63,8 @@ class ClaudeBackend(Backend):
             try:
                 d = json.loads(line)
             except json.JSONDecodeError:
+                continue
+            if not isinstance(d, dict):
                 continue
             t = d.get("type")
             if t == "rate_limit_event":
