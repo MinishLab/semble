@@ -9,7 +9,16 @@ from pathlib import Path
 from swebench.harness.constants import KEY_INSTANCE_ID, KEY_MODEL
 from swebench.harness.utils import get_predictions_from_file
 
-from benchmarks.swe.utils import DATASET, PROJECT_ROOT, RESULTS_DIR, WITH_SEMBLE, WITHOUT_SEMBLE, mcnemar_exact_p
+from benchmarks.swe.utils import (
+    DATASET,
+    PROJECT_ROOT,
+    RESULTS_DIR,
+    WITH_SEMBLE,
+    WITHOUT_SEMBLE,
+    mcnemar_exact_p,
+    prediction_path,
+    resolve_results_path,
+)
 
 
 def _check_docker() -> None:
@@ -135,9 +144,8 @@ def run(instance_ids: list[str] | None = None, experiment: str | None = None) ->
     _check_docker()
     RESULTS_DIR.mkdir(exist_ok=True)
 
-    suffix = f"_{experiment}" if experiment else ""
-    pred_with = RESULTS_DIR / f"predictions_with_semble{suffix}.jsonl"
-    pred_without = RESULTS_DIR / "predictions_without_semble.jsonl"
+    pred_with = prediction_path(with_semble=True, experiment=experiment)
+    pred_without = prediction_path(with_semble=False, experiment=experiment)
     for p in (pred_with, pred_without):
         if not p.exists():
             sys.exit(f"Missing {p} — run agent_run.py first")
@@ -156,7 +164,7 @@ def run(instance_ids: list[str] | None = None, experiment: str | None = None) ->
     _print_resolve_table(results, all_ids)
     _paired_summary(results, all_ids)
 
-    out = RESULTS_DIR / f"swe_resolve{suffix}.json"
+    out = resolve_results_path(experiment)
     out.write_text(json.dumps({"instances": all_ids, "results": results}, indent=2))
     print(f"\nSaved -> {out}")
 

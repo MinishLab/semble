@@ -42,6 +42,27 @@ def variant_name(with_semble: bool, experiment: str | None = None) -> str:
     return f"{base}_{experiment}" if experiment and with_semble else base
 
 
+def agent_results_path(experiment: str | None = None) -> Path:
+    """Return the merged agent-results JSON path for the given experiment."""
+    return RESULTS_DIR / (f"swe_agent_{experiment}.json" if experiment else "swe_agent.json")
+
+
+def prediction_path(*, with_semble: bool, experiment: str | None = None) -> Path:
+    """Return the prediction JSONL path for the given variant.
+
+    Experiment suffixes apply only to the with-semble file. The without-semble
+    file remains the shared baseline consumed by ``evaluate.py``.
+    """
+    suffix = f"_{experiment}" if experiment and with_semble else ""
+    variant = WITH_SEMBLE if with_semble else WITHOUT_SEMBLE
+    return RESULTS_DIR / f"predictions_{variant}{suffix}.jsonl"
+
+
+def resolve_results_path(experiment: str | None = None) -> Path:
+    """Return the harness resolve-results JSON path for the given experiment."""
+    return RESULTS_DIR / (f"swe_resolve_{experiment}.json" if experiment else "swe_resolve.json")
+
+
 @dataclass
 class ParsedRun:
     """Parsed output from an agent's JSON stream — tool calls, cost, tokens, rate-limit status."""

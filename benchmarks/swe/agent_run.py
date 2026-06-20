@@ -23,9 +23,11 @@ from benchmarks.swe.utils import (
     WITHOUT_SEMBLE,
     RunResult,
     TaskResult,
+    agent_results_path,
     bootstrap_ci,
     clone_at_commit,
     is_semble_tool_call,
+    prediction_path,
     variant_name,
 )
 
@@ -38,7 +40,7 @@ def _hits_gold(touched: list[str], gold: list[str]) -> bool:
 def _completed_variants(backend: Backend, experiment: str | None = None) -> dict[str, set[str]]:
     """Return ``{instance_id: {variant, ...}}`` for successful, non-empty results from this backend+model."""
     out: dict[str, set[str]] = {}
-    path = RESULTS_DIR / (f"swe_agent_{experiment}.json" if experiment else "swe_agent.json")
+    path = agent_results_path(experiment)
     if not path.exists():
         return out
     for entry in json.loads(path.read_text()):
@@ -219,7 +221,7 @@ def _print_summary(rows: list[TaskResult], model_label: str, experiment: str | N
 
 
 def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | None = None) -> None:
-    out = RESULTS_DIR / (f"swe_agent_{experiment}.json" if experiment else "swe_agent.json")
+    out = agent_results_path(experiment)
     existing: dict[str, TaskResult] = {}
     if out.exists():
         for entry in json.loads(out.read_text()):
@@ -239,7 +241,6 @@ def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | No
     out.write_text(json.dumps([asdict(t) for t in merged], indent=2))
     print(f"\nFull results -> {out}  ({len(merged)} instances)")
 
-    suffix = f"_{experiment}" if experiment else ""
     model_slug = model_label.replace("/", "-")
     for variant in (WITH_SEMBLE, WITHOUT_SEMBLE):
         result_variant = variant_name(variant == WITH_SEMBLE, experiment)
@@ -253,8 +254,7 @@ def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | No
             for r in t.results
             if r.variant == result_variant and not r.error and r.patch and not r.bypass
         ]
-        path_suffix = suffix if variant == WITH_SEMBLE else ""
-        path = RESULTS_DIR / f"predictions_{variant}{path_suffix}.jsonl"
+        path = prediction_path(with_semble=variant == WITH_SEMBLE, experiment=experiment)
         path.write_text("\n".join(json.dumps(p) for p in predictions) + "\n")
         print(f"Predictions ({variant}): {path}  ({len(predictions)} patches)")
 
