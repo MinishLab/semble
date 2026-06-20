@@ -71,6 +71,13 @@ command = "uvx"
 args = ["--from", "semble[mcp]", "semble"]
 ```
 
+For the sub-agent, copy [`codex.toml`](../src/semble/agents/codex.toml) to `~/.codex/agents/semble-search.toml`:
+
+```bash
+mkdir -p ~/.codex/agents
+cp src/semble/agents/codex.toml ~/.codex/agents/semble-search.toml
+```
+
 </details>
 
 <details>
@@ -336,7 +343,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 ### Sub-agent
 
-For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Reasonix, Pi, Command Code, Antigravity), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
+For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, Reasonix, Pi, Command Code, Antigravity), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
 
 > **Pi prerequisite:** Pi sub-agents require the Pi agents extension. Run `pi install npm:pi-agents` once before installing.
 
@@ -348,6 +355,7 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Kiro | `kiro.md` | `~/.kiro/agents/semble-search.md` |
 | OpenCode | `opencode.md` | `~/.config/opencode/agents/semble-search.md` |
 | GitHub Copilot | `copilot.md` | `~/.copilot/agents/semble-search.agent.md` |
+| Codex | `codex.toml` | `~/.codex/agents/semble-search.toml` |
 | Reasonix | `reasonix.md` | `~/.reasonix/skills/semble-search.md` |
 | Pi | `pi.md` | `~/.pi/agents/semble-search.md` |
 | Command Code | `commandcode.md` | `~/.commandcode/agents/semble-search.md` |
