@@ -21,6 +21,27 @@ _RETRY_SLEEP = 45  # seconds between retries on empty output
 _PYPI_SEMBLE_CMD = ["uvx", "--from", "semble[mcp]", "semble"]
 _LOCAL_SEMBLE_CMD = ["uv", "run", "--directory", str(_PROJECT_ROOT), "semble"]
 
+WITH_SEMBLE = "with_semble"
+WITHOUT_SEMBLE = "without_semble"
+
+
+def variant_name(with_semble: bool, experiment: str | None = None) -> str:
+    """Return the variant tag, appending the experiment suffix to with-semble only."""
+    base = WITH_SEMBLE if with_semble else WITHOUT_SEMBLE
+    return f"{base}_{experiment}" if experiment and with_semble else base
+
+
+@dataclass
+class ParsedRun:
+    """Parsed output from an agent's JSON stream — tool calls, cost, tokens, rate-limit status."""
+
+    tool_calls: list[str] = field(default_factory=list)
+    cost_usd: float = 0.0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    num_turns: int = 0
+    rate_limited: bool = False
+
 
 @dataclass
 class RunResult:
@@ -129,10 +150,10 @@ class Backend(ABC):
         return _LOCAL_SEMBLE_CMD if self.local_semble else _PYPI_SEMBLE_CMD
 
     @abstractmethod
-    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[dict, str]: ...
+    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]: ...
 
-    def _attempt_succeeded(self, parsed: dict) -> bool:
-        return parsed["num_turns"] > 0
+    def _attempt_succeeded(self, parsed: ParsedRun) -> bool:
+        return parsed.num_turns > 0
 
     def label(self) -> str:
         """Human-readable backend/model identifier used in console output and result files."""
@@ -140,7 +161,7 @@ class Backend(ABC):
 
     def run(self, prompt: str, repo: Path, commit: str, *, with_semble: bool) -> RunResult:
         """Run the agent on ``prompt``, retrying on empty output, and reset ``repo`` to ``commit`` afterward."""
-        variant = "with_semble" if with_semble else "without_semble"
+        variant = variant_name(with_semble)
         try:
             for attempt in range(3):
                 if attempt > 0:
@@ -148,7 +169,7 @@ class Backend(ABC):
                     time.sleep(_RETRY_SLEEP)
                 parsed, diff = self._run_once(prompt, repo, with_semble=with_semble)
                 git_reset(repo, commit)
-                if parsed["rate_limited"]:
+                if parsed.rate_limited:
                     return RunResult(variant=variant, backend=self.name, error=self._rate_limit_msg)
                 if self._attempt_succeeded(parsed):
                     break
@@ -160,19 +181,19 @@ class Backend(ABC):
             git_reset(repo, commit)
             return RunResult(variant=variant, backend=self.name, model=self.model, error=str(exc))
 
-    def _finalize(self, variant: str, parsed: dict, diff: str, *, empty_output: bool) -> RunResult:
+    def _finalize(self, variant: str, parsed: ParsedRun, diff: str, *, empty_output: bool) -> RunResult:
         touched = changed_files(diff)
-        tool_calls = parsed["tool_calls"]
+        tool_calls = parsed.tool_calls
         error = "empty output after retries" if empty_output else None
         return RunResult(
             variant=variant,
             backend=self.name,
             model=self.model,
             tool_calls=tool_calls,
-            cost_usd=parsed["cost_usd"],
-            input_tokens=parsed["input_tokens"],
-            output_tokens=parsed["output_tokens"],
-            num_turns=parsed["num_turns"],
+            cost_usd=parsed.cost_usd,
+            input_tokens=parsed.input_tokens,
+            output_tokens=parsed.output_tokens,
+            num_turns=parsed.num_turns,
             touched_files=touched,
             patch=diff,
             bypass=any(_is_bypass_call(t) for t in tool_calls),

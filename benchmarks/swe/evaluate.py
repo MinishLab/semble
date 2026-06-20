@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from benchmarks.swe.backends.base import WITH_SEMBLE, WITHOUT_SEMBLE
 from benchmarks.swe.stats import mcnemar_exact_p
 
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -77,12 +78,12 @@ def _run_harness(predictions_path: Path, instance_ids: list[str], run_id: str) -
 
 def _paired_summary(results: dict[str, dict[str, bool]], instance_ids: list[str]) -> None:
     """McNemar's test on paired with/without resolve outcomes."""
-    paired = [iid for iid in instance_ids if iid in results["with_semble"] and iid in results["without_semble"]]
+    paired = [iid for iid in instance_ids if iid in results[WITH_SEMBLE] and iid in results[WITHOUT_SEMBLE]]
     if not paired:
         return
-    b = sum(1 for iid in paired if results["with_semble"][iid] and not results["without_semble"][iid])
-    c = sum(1 for iid in paired if results["without_semble"][iid] and not results["with_semble"][iid])
-    both = sum(1 for iid in paired if results["with_semble"][iid] and results["without_semble"][iid])
+    b = sum(1 for iid in paired if results[WITH_SEMBLE][iid] and not results[WITHOUT_SEMBLE][iid])
+    c = sum(1 for iid in paired if results[WITHOUT_SEMBLE][iid] and not results[WITH_SEMBLE][iid])
+    both = sum(1 for iid in paired if results[WITH_SEMBLE][iid] and results[WITHOUT_SEMBLE][iid])
     neither = len(paired) - b - c - both
     p = mcnemar_exact_p(b, c)
     print(f"\n  Paired comparison (n={len(paired)} tasks with both variants evaluated):")
@@ -122,12 +123,12 @@ def _print_resolve_table(results: dict[str, dict[str, bool]], all_ids: list[str]
     print(f"  {'Instance':<40}  {'With':>5}  {'Without':>8}")
     print(f"  {'-' * 40}  {'-' * 5}  {'-' * 8}")
     for iid in all_ids:
-        w = results["with_semble"].get(iid)
-        wo = results["without_semble"].get(iid)
+        w = results[WITH_SEMBLE].get(iid)
+        wo = results[WITHOUT_SEMBLE].get(iid)
         print(f"  {iid:<40}  {_fmt_resolved(w):>5}  {_fmt_resolved(wo):>8}")
 
     print()
-    for variant, label in [("with_semble", "With Semble"), ("without_semble", "Without Semble")]:
+    for variant, label in [(WITH_SEMBLE, "With Semble"), (WITHOUT_SEMBLE, "Without Semble")]:
         r = results.get(variant, {})
         if r:
             resolved = sum(r.values())
@@ -152,7 +153,7 @@ def run(instance_ids: list[str] | None = None, experiment: str | None = None) ->
     print(f"Evaluating {len(instance_ids)} instances with real SWE-bench harness...")
 
     results: dict[str, dict[str, bool]] = {}
-    for pred_path, variant in [(pred_with, "with_semble"), (pred_without, "without_semble")]:
+    for pred_path, variant in [(pred_with, WITH_SEMBLE), (pred_without, WITHOUT_SEMBLE)]:
         run_id = f"semble_eval_{_model_slug(pred_path, variant)}"
         results[variant] = _run_harness(pred_path, instance_ids, run_id)
 

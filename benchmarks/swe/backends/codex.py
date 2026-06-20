@@ -6,7 +6,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, ParsedRun, _run_with_timeout, _subprocess_env
 from benchmarks.swe.gitutils import git_diff
 
 _CODEX_CONFIG = Path.home() / ".codex" / "config.toml"
@@ -100,7 +100,7 @@ class CodexBackend(Backend):
 
         return temp_home, {"CODEX_HOME": str(temp_home)}
 
-    def _parse(self, raw: str) -> dict:
+    def _parse(self, raw: str) -> ParsedRun:
         """Aggregate tool calls, cost, and token usage out of Codex's ``exec --json`` output."""
         tool_calls: list[str] = []
         total_input = 0
@@ -137,16 +137,16 @@ class CodexBackend(Backend):
         output_tokens = total_output + total_reasoning
         cost_usd = (input_tokens / 1_000_000) * self._PRICE_INPUT + (output_tokens / 1_000_000) * self._PRICE_OUTPUT
 
-        return {
-            "tool_calls": tool_calls,
-            "cost_usd": round(cost_usd, 6),
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "num_turns": num_turns,
-            "rate_limited": rate_limited,
-        }
+        return ParsedRun(
+            tool_calls=tool_calls,
+            cost_usd=round(cost_usd, 6),
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            num_turns=num_turns,
+            rate_limited=rate_limited,
+        )
 
-    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[dict, str]:
+    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]:
         temp_home, env_overrides = self._make_temp_home(with_semble=with_semble)
         try:
             with _subprocess_env(env_overrides, with_semble=with_semble) as env:

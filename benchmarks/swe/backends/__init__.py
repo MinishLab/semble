@@ -1,4 +1,12 @@
-from benchmarks.swe.backends.base import Backend, RunResult, is_semble_tool_call
+from benchmarks.swe.backends.base import (
+    WITH_SEMBLE,
+    WITHOUT_SEMBLE,
+    Backend,
+    ParsedRun,
+    RunResult,
+    is_semble_tool_call,
+    variant_name,
+)
 from benchmarks.swe.backends.claude import ClaudeBackend
 from benchmarks.swe.backends.codex import CodexBackend
 from benchmarks.swe.backends.opencode import OpencodeBackend
@@ -11,10 +19,14 @@ _BACKENDS: dict[str, type[Backend]] = {
 
 __all__ = [
     "Backend",
-    "RunResult",
     "ClaudeBackend",
     "CodexBackend",
     "OpencodeBackend",
-    "is_semble_tool_call",
+    "ParsedRun",
+    "RunResult",
+    "WITH_SEMBLE",
+    "WITHOUT_SEMBLE",
     "_BACKENDS",
+    "is_semble_tool_call",
+    "variant_name",
 ]

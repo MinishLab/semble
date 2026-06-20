@@ -6,7 +6,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.backends.base import _PROJECT_ROOT, _TIMEOUT, Backend, ParsedRun, _run_with_timeout, _subprocess_env
 from benchmarks.swe.gitutils import git_diff
 
 _OPENCODE_CONFIG = Path.home() / ".config" / "opencode" / "opencode.json"
@@ -97,7 +97,7 @@ class OpencodeBackend(Backend):
         (config_dir / "opencode.json").write_text(text)
         return temp_home, {"XDG_CONFIG_HOME": str(temp_home)}
 
-    def _parse(self, raw: str) -> dict:
+    def _parse(self, raw: str) -> ParsedRun:
         """Aggregate tool calls, cost, and token usage out of opencode's ``run --format json`` output."""
         tool_calls: list[str] = []
         total_cost = 0.0
@@ -131,16 +131,16 @@ class OpencodeBackend(Backend):
                 total_output += tokens.get("output", 0) + tokens.get("reasoning", 0)
                 total_cost += part.get("cost", 0.0)
 
-        return {
-            "tool_calls": tool_calls,
-            "cost_usd": round(total_cost, 6),
-            "input_tokens": total_input,
-            "output_tokens": total_output,
-            "num_turns": num_turns,
-            "rate_limited": rate_limited,
-        }
+        return ParsedRun(
+            tool_calls=tool_calls,
+            cost_usd=round(total_cost, 6),
+            input_tokens=total_input,
+            output_tokens=total_output,
+            num_turns=num_turns,
+            rate_limited=rate_limited,
+        )
 
-    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[dict, str]:
+    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]:
         temp_home, env_overrides = self._make_temp_home(with_semble=with_semble)
         try:
             with _subprocess_env(env_overrides, with_semble=with_semble) as env:

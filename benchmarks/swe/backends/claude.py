@@ -5,7 +5,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from benchmarks.swe.backends.base import _TIMEOUT, Backend, _run_with_timeout, _subprocess_env
+from benchmarks.swe.backends.base import _TIMEOUT, Backend, ParsedRun, _run_with_timeout, _subprocess_env
 from benchmarks.swe.gitutils import git_diff
 
 _TOOLS = "Bash,Read,Glob,Grep,Edit,Write"
@@ -34,8 +34,8 @@ class ClaudeBackend(Backend):
     default_model = "claude-haiku-4-5-20251001"
     _rate_limit_msg = "rate limited (5-hour limit)"
 
-    def _attempt_succeeded(self, parsed: dict) -> bool:
-        return parsed["cost_usd"] > 0 or parsed["num_turns"] > 1
+    def _attempt_succeeded(self, parsed: ParsedRun) -> bool:
+        return parsed.cost_usd > 0 or parsed.num_turns > 1
 
     def _make_mcp_config(self, *, with_semble: bool, repo: Path) -> Path:
         """Write a temp ``--mcp-config`` file (empty ``mcpServers`` when *with_semble* is False)."""
@@ -48,7 +48,7 @@ class ClaudeBackend(Backend):
         config_path.write_text(json.dumps({"mcpServers": servers}))
         return config_path
 
-    def _parse(self, raw: str) -> dict:
+    def _parse(self, raw: str) -> ParsedRun:
         """Aggregate tool calls, cost, and token usage out of Claude's ``stream-json`` output."""
         tool_calls: list[str] = []
         cost_usd = 0.0
@@ -84,16 +84,16 @@ class ClaudeBackend(Backend):
                 )
                 output_tokens = usage.get("output_tokens", 0)
 
-        return {
-            "tool_calls": tool_calls,
-            "cost_usd": cost_usd,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "num_turns": num_turns,
-            "rate_limited": rate_limited,
-        }
+        return ParsedRun(
+            tool_calls=tool_calls,
+            cost_usd=cost_usd,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            num_turns=num_turns,
+            rate_limited=rate_limited,
+        )
 
-    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[dict, str]:
+    def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]:
         mcp_config = self._make_mcp_config(with_semble=with_semble, repo=repo)
         cmd = [
             "claude",
