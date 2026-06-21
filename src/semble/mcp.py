@@ -69,6 +69,7 @@ def create_server(cache: _IndexCache) -> FastMCP:
                     "If the snippet does not contain enough context to confirm you have the right location, "
                     "call again with max_snippet_lines=None."
                 ),
+                ge=0,
             ),
         ] = 10,
     ) -> str:
@@ -82,7 +83,7 @@ def create_server(cache: _IndexCache) -> FastMCP:
             index = await _get_index(repo, cache)
         except ValueError as exc:
             return str(exc)
-        results = index.search(query, top_k=top_k)
+        results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
         if not results:
             return json.dumps({"error": "No results found."})
         return json.dumps(format_results(query, results, max_snippet_lines))
@@ -102,7 +103,8 @@ def create_server(cache: _IndexCache) -> FastMCP:
                 description=(
                     "Lines of source per result. "
                     "Default 10 = signature + first body lines. 0 = location only. None = full chunk."
-                )
+                ),
+                ge=0,
             ),
         ] = 10,
     ) -> str:
@@ -122,7 +124,7 @@ def create_server(cache: _IndexCache) -> FastMCP:
                 f"No chunk found at {file_path}:{line}. "
                 "Make sure the file is indexed and the line number is within a known chunk."
             )
-        results = index.find_related(chunk, top_k=top_k)
+        results = index.find_related(chunk, top_k=top_k, max_snippet_lines=max_snippet_lines)
         if not results:
             return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
         label = f"Chunks related to {file_path}:{line}"

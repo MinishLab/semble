@@ -224,18 +224,21 @@ class SembleIndex:
                 content=normalized,
             )
 
-    def find_related(self, source: Chunk | SearchResult, *, top_k: int = 5) -> list[SearchResult]:
+    def find_related(
+        self, source: Chunk | SearchResult, *, top_k: int = 5, max_snippet_lines: int | None = None
+    ) -> list[SearchResult]:
         """Return chunks semantically similar to the given chunk or search result.
 
         :param source: A SearchResult or Chunk to use as the seed.
         :param top_k: Number of similar chunks to return.
+        :param max_snippet_lines: Lines of content to count for savings stats. None = full chunk.
         :return: Ranked list of SearchResult objects, most similar first.
         """
         target = source.chunk if isinstance(source, SearchResult) else source
         selector = self._get_selector_vector(filter_languages=[target.language]) if target.language else None
         results = _search_semantic(target.content, self.model, self._semantic_index, self.chunks, top_k + 1, selector)
         results = [r for r in results if r.chunk != target][:top_k]
-        save_search_stats(results, CallType.FIND_RELATED, self._file_sizes)
+        save_search_stats(results, CallType.FIND_RELATED, self._file_sizes, max_snippet_lines)
         return results
 
     def _get_selector_vector(
@@ -258,6 +261,7 @@ class SembleIndex:
         filter_languages: list[str] | None = None,
         filter_paths: list[str] | None = None,
         rerank: bool | None = None,
+        max_snippet_lines: int | None = None,
     ) -> list[SearchResult]:
         """Search the index and return the top-k most relevant chunks.
 
@@ -271,6 +275,7 @@ class SembleIndex:
             chunks from these files are returned.
         :param rerank: Apply code-tuned reranking (file boost, identifier boost, path penalties).
             Defaults to True when ContentType.CODE was indexed.
+        :param max_snippet_lines: Lines of content to count for savings stats. None = full chunk.
         :return: Ranked list of SearchResult objects, best match first.
         """
         if not self.chunks or not query.strip():
@@ -290,7 +295,7 @@ class SembleIndex:
             selector=selector,
             rerank=resolved_rerank,
         )
-        save_search_stats(results, CallType.SEARCH, self._file_sizes)
+        save_search_stats(results, CallType.SEARCH, self._file_sizes, max_snippet_lines)
         return results
 
     @classmethod
