@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import os
 import shutil
 import signal
@@ -20,6 +21,29 @@ _RETRY_SLEEP = 45  # seconds between retries on empty output
 
 _PYPI_SEMBLE_CMD = ["uvx", "--from", "semble[mcp]", "semble"]
 _LOCAL_SEMBLE_CMD = ["uv", "run", "--directory", str(PROJECT_ROOT), "semble"]
+
+
+@functools.lru_cache(maxsize=1)
+def _pypi_semble_version() -> str:
+    """Resolve the semble version ``uvx`` actually picks up (subject to the ``exclude-newer`` walk-up bug)."""
+    try:
+        proc = subprocess.run(
+            [
+                "uvx",
+                "--from",
+                "semble[mcp]",
+                "python",
+                "-c",
+                "from semble.version import __version__; print(__version__)",
+            ],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        return proc.stdout.strip() or "unknown"
+    except (subprocess.SubprocessError, OSError):
+        return "unknown"
 
 
 def prepare_temp_home(
@@ -118,6 +142,14 @@ class Backend(ABC):
     def _semble_cmd(self) -> list[str]:
         return _LOCAL_SEMBLE_CMD if self.local_semble else _PYPI_SEMBLE_CMD
 
+    @property
+    def _semble_version(self) -> str:
+        if self.local_semble:
+            from semble.version import __version__
+
+            return __version__
+        return _pypi_semble_version()
+
     @abstractmethod
     def _run_once(self, prompt: str, repo: Path, *, with_semble: bool) -> tuple[ParsedRun, str]: ...
 
@@ -142,7 +174,9 @@ class Backend(ABC):
                     return RunResult(variant=variant, backend=self.name, error=self._rate_limit_msg)
                 if self._attempt_succeeded(parsed):
                     break
-            return self._finalize(variant, parsed, diff, empty_output=not self._attempt_succeeded(parsed))
+            return self._finalize(
+                variant, parsed, diff, empty_output=not self._attempt_succeeded(parsed), with_semble=with_semble
+            )
         except subprocess.TimeoutExpired:
             git_reset(repo, commit)
             return RunResult(variant=variant, backend=self.name, model=self.model, error=f"timed out after {_TIMEOUT}s")
@@ -150,7 +184,9 @@ class Backend(ABC):
             git_reset(repo, commit)
             return RunResult(variant=variant, backend=self.name, model=self.model, error=str(exc))
 
-    def _finalize(self, variant: str, parsed: ParsedRun, diff: str, *, empty_output: bool) -> RunResult:
+    def _finalize(
+        self, variant: str, parsed: ParsedRun, diff: str, *, empty_output: bool, with_semble: bool
+    ) -> RunResult:
         touched = get_modified_files(diff)
         tool_calls = parsed.tool_calls
         error = "empty output after retries" if empty_output else None
@@ -158,6 +194,7 @@ class Backend(ABC):
             variant=variant,
             backend=self.name,
             model=self.model,
+            semble_version=self._semble_version if with_semble else "",
             tool_calls=tool_calls,
             cost_usd=parsed.cost_usd,
             input_tokens=parsed.input_tokens,

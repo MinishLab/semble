@@ -139,13 +139,14 @@ def _print_resolve_table(results: dict[str, dict[str, bool]], all_ids: list[str]
             print(f"  {label}: {resolved}/{len(r)} resolved ({resolved / len(r):.0%})")
 
 
-def run(instance_ids: list[str] | None = None, experiment: str | None = None) -> None:
+def run(instance_ids: list[str] | None = None, experiment: str | None = None, model: str | None = None) -> None:
     """Evaluate with/without-semble predictions through the real SWE-bench Docker harness."""
     _check_docker()
     RESULTS_DIR.mkdir(exist_ok=True)
 
-    pred_with = prediction_path(with_semble=True, experiment=experiment)
-    pred_without = prediction_path(with_semble=False, experiment=experiment)
+    model_slug = model.replace("/", "-") if model else None
+    pred_with = prediction_path(with_semble=True, experiment=experiment, model_slug=model_slug)
+    pred_without = prediction_path(with_semble=False, model_slug=model_slug)
     for p in (pred_with, pred_without):
         if not p.exists():
             sys.exit(f"Missing {p} — run agent_run.py first")
@@ -176,10 +177,17 @@ def main() -> None:
     p.add_argument(
         "--experiment",
         default=None,
-        help="Read predictions_with_semble_{NAME}.jsonl instead of the default with-semble predictions",
+        help="Read the with-semble predictions for this --experiment instead of the default run",
+    )
+    p.add_argument(
+        "--model",
+        default=None,
+        help="Backend/model label (e.g. codex/gpt-5.4-mini) used by agent_run.py for this run. "
+        "Required to find the matching predictions_{with,without}_semble_{model}*.jsonl files "
+        "(omit only for legacy unscoped files from before this scoping existed).",
     )
     args = p.parse_args()
-    run(args.instance_ids, args.experiment)
+    run(args.instance_ids, args.experiment, args.model)
 
 
 if __name__ == "__main__":

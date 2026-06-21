@@ -138,11 +138,18 @@ def _merge_results(existing: dict[str, TaskResult], rows: list[TaskResult]) -> l
 def _prediction_records(
     rows: list[TaskResult],
     *,
+    backend_name: str,
+    model: str,
     model_slug: str,
     with_semble: bool,
     experiment: str | None = None,
 ) -> list[dict[str, str]]:
-    """Build SWE-bench prediction records for one variant."""
+    """Build SWE-bench prediction records for one backend+model+variant.
+
+    Results are filtered to *backend_name*/*model* since ``rows`` (the merged results
+    file) accumulates entries from every backend/model that has ever run — without this
+    filter, two backends' patches would end up mixed into the same prediction file.
+    """
     variant = WITH_SEMBLE if with_semble else WITHOUT_SEMBLE
     result_variant = variant_name(with_semble, experiment)
     return [
@@ -153,12 +160,19 @@ def _prediction_records(
         }
         for t in rows
         for r in t.results
-        if r.variant == result_variant and not r.error and r.patch and not r.bypass
+        if r.variant == result_variant
+        and r.backend == backend_name
+        and r.model == model
+        and not r.error
+        and r.patch
+        and not r.bypass
     ]
 
 
 def _persist_outputs(
     rows: list[TaskResult],
+    backend_name: str,
+    model: str,
     model_label: str,
     experiment: str | None = None,
 ) -> tuple[list[TaskResult], dict[str, int]]:
@@ -170,8 +184,15 @@ def _persist_outputs(
     model_slug = model_label.replace("/", "-")
     prediction_counts: dict[str, int] = {}
     for with_semble, variant in ((True, WITH_SEMBLE), (False, WITHOUT_SEMBLE)):
-        predictions = _prediction_records(merged, model_slug=model_slug, with_semble=with_semble, experiment=experiment)
-        path = prediction_path(with_semble=with_semble, experiment=experiment)
+        predictions = _prediction_records(
+            merged,
+            backend_name=backend_name,
+            model=model,
+            model_slug=model_slug,
+            with_semble=with_semble,
+            experiment=experiment,
+        )
+        path = prediction_path(with_semble=with_semble, experiment=experiment, model_slug=model_slug)
         write_text_atomic(path, "\n".join(json.dumps(p) for p in predictions) + "\n")
         prediction_counts[variant] = len(predictions)
     return merged, prediction_counts
@@ -232,6 +253,8 @@ def run(
         def persist_result(r: RunResult) -> None:
             _persist_outputs(
                 [TaskResult(instance_id=iid, gold_files=task.gold_files, results=[r])],
+                backend.name,
+                backend.model,
                 backend.label(),
                 experiment,
             )
@@ -252,7 +275,7 @@ def run(
             time.sleep(TASK_SLEEP)
 
     _print_summary(all_rows, backend.label(), experiment=experiment)
-    _save_outputs(all_rows, backend.label(), experiment=experiment)
+    _save_outputs(all_rows, backend.name, backend.model, backend.label(), experiment=experiment)
 
 
 def _print_summary(rows: list[TaskResult], model_label: str, experiment: str | None = None) -> None:
@@ -309,13 +332,16 @@ def _print_summary(rows: list[TaskResult], model_label: str, experiment: str | N
         print(f"  {'errors':<25}  {errors_w:>12}  {errors_wo:>9}")
 
 
-def _save_outputs(rows: list[TaskResult], model_label: str, experiment: str | None = None) -> None:
+def _save_outputs(
+    rows: list[TaskResult], backend_name: str, model: str, model_label: str, experiment: str | None = None
+) -> None:
     out = agent_results_path(experiment)
-    merged, prediction_counts = _persist_outputs(rows, model_label, experiment)
+    merged, prediction_counts = _persist_outputs(rows, backend_name, model, model_label, experiment)
     print(f"\nFull results -> {out}  ({len(merged)} instances)")
 
+    model_slug = model_label.replace("/", "-")
     for with_semble, variant in ((True, WITH_SEMBLE), (False, WITHOUT_SEMBLE)):
-        path = prediction_path(with_semble=with_semble, experiment=experiment)
+        path = prediction_path(with_semble=with_semble, experiment=experiment, model_slug=model_slug)
         print(f"Predictions ({variant}): {path}  ({prediction_counts[variant]} patches)")
 
     ids = sorted(t.instance_id for t in merged)

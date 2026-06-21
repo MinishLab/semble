@@ -102,7 +102,9 @@ def test_run_resume_continues_after_interrupted_variant(monkeypatch: pytest.Monk
     saved_variants = {r["variant"] for r in results[0]["results"]}
     assert saved_variants == {WITH_SEMBLE, WITHOUT_SEMBLE}
 
-    without_predictions = (tmp_path / "results" / "predictions_without_semble.jsonl").read_text().strip().splitlines()
+    without_predictions = (
+        (tmp_path / "results" / "predictions_without_semble_fake-model-a.jsonl").read_text().strip().splitlines()
+    )
     assert len(without_predictions) == 1
 
 
@@ -143,7 +145,7 @@ def test_save_outputs_overwrites_existing_backend_model_variant(
         ],
     )
 
-    agent_run._save_outputs([updated], "fake/model-a")
+    agent_run._save_outputs([updated], "fake", "model-a", "fake/model-a")
 
     results = _load_results(tmp_path / "results")
     assert len(results) == 1

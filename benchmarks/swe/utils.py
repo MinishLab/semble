@@ -50,15 +50,23 @@ def agent_results_path(experiment: str | None = None) -> Path:
     return RESULTS_DIR / (f"swe_agent_{experiment}.json" if experiment else "swe_agent.json")
 
 
-def prediction_path(*, with_semble: bool, experiment: str | None = None) -> Path:
+def prediction_path(*, with_semble: bool, experiment: str | None = None, model_slug: str | None = None) -> Path:
     """Return the prediction JSONL path for the given variant.
 
-    Experiment suffixes apply only to the with-semble file. The without-semble
-    file remains the shared baseline consumed by ``evaluate.py``.
+    Always scoped by ``model_slug`` (backend+model), so two different backends/models
+    never share a file. The with-semble file is additionally scoped by ``experiment``,
+    since the same backend+model may be re-run multiple times against different semble
+    versions/configs. The without-semble file has no experiment suffix: the baseline is
+    specific to a backend+model, not to an experiment, so it's safely reused across
+    multiple with-semble reruns of the same backend+model.
     """
-    suffix = f"_{experiment}" if experiment and with_semble else ""
     variant = WITH_SEMBLE if with_semble else WITHOUT_SEMBLE
-    return RESULTS_DIR / f"predictions_{variant}{suffix}.jsonl"
+    parts = [f"predictions_{variant}"]
+    if model_slug:
+        parts.append(model_slug)
+    if with_semble and experiment:
+        parts.append(experiment)
+    return RESULTS_DIR / ("_".join(parts) + ".jsonl")
 
 
 def resolve_results_path(experiment: str | None = None) -> Path:
@@ -99,6 +107,7 @@ class RunResult:
     variant: str
     backend: str = ""
     model: str = ""
+    semble_version: str = ""
     tool_calls: list[str] = field(default_factory=list)
     cost_usd: float = 0.0
     input_tokens: int = 0
