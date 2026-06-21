@@ -27,6 +27,7 @@ from benchmarks.swe.utils import (
     agent_results_path,
     bootstrap_ci,
     clone_at_commit,
+    file_lock,
     is_semble_tool_call,
     prediction_path,
     variant_name,
@@ -178,8 +179,9 @@ def _persist_outputs(
 ) -> tuple[list[TaskResult], dict[str, int]]:
     """Persist merged results and prediction files, returning merged rows and counts."""
     out = agent_results_path(experiment)
-    merged = _merge_results(_load_merged_results(out), rows)
-    write_text_atomic(out, json.dumps([asdict(t) for t in merged], indent=2))
+    with file_lock(out):
+        merged = _merge_results(_load_merged_results(out), rows)
+        write_text_atomic(out, json.dumps([asdict(t) for t in merged], indent=2))
 
     model_slug = model_label.replace("/", "-")
     prediction_counts: dict[str, int] = {}

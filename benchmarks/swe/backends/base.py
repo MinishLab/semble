@@ -171,7 +171,7 @@ class Backend(ABC):
                 parsed, diff = self._run_once(prompt, repo, with_semble=with_semble)
                 git_reset(repo, commit)
                 if parsed.rate_limited:
-                    return RunResult(variant=variant, backend=self.name, error=self._rate_limit_msg)
+                    return RunResult(variant=variant, backend=self.name, model=self.model, error=self._rate_limit_msg)
                 if self._attempt_succeeded(parsed):
                     break
             return self._finalize(

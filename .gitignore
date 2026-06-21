@@ -33,6 +33,13 @@ MANIFEST
 *.spec
 
 # Installer logs
+
+# opencode
+.opencode/
+local/
+benchmarks/swe/repos/
+benchmarks/swe/repos_*/
+benchmarks/swe/results_*/
 pip-log.txt
 pip-delete-this-directory.txt
 
@@ -205,3 +212,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+logs
+
+# macOS
+.DS_Store
+
+# SWE benchmark runtime lock files
+benchmarks/swe/results/*.lock

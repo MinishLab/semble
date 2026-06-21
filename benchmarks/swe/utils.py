@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import math
 import os
 import random
@@ -7,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -72,6 +75,19 @@ def prediction_path(*, with_semble: bool, experiment: str | None = None, model_s
 def resolve_results_path(experiment: str | None = None) -> Path:
     """Return the harness resolve-results JSON path for the given experiment."""
     return RESULTS_DIR / (f"swe_resolve_{experiment}.json" if experiment else "swe_resolve.json")
+
+
+@contextlib.contextmanager
+def file_lock(path: Path) -> Iterator[None]:
+    """Cross-process exclusive lock keyed by *path*, to serialize read-merge-write on shared files."""
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(lock_path, "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def write_text_atomic(path: Path, text: str) -> None:
