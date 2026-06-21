@@ -1,8 +1,8 @@
 import asyncio
 import threading
 from pathlib import Path
-from typing import Any, AsyncGenerator
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 from model2vec import StaticModel
@@ -261,21 +261,16 @@ async def test_tool_output(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("with_path", "load_err", "from_path_err", "stdio_yields"),
+    ("load_err", "stdio_yields"),
     [
-        (True, None, None, True),
-        (False, None, None, True),
-        (False, RuntimeError("boom"), None, True),
-        (True, None, RuntimeError("boom"), True),
-        (False, None, None, False),
+        (None, True),
+        (RuntimeError("boom"), True),
+        (None, False),
     ],
-    ids=["pre_index", "no_path", "model_load_fails", "prewarm_fails", "cancel_pending_init"],
+    ids=["model_loads", "model_load_fails", "cancel_pending_init"],
 )
 async def test_serve_runs_stdio(
-    tmp_path: Path,
-    with_path: bool,
     load_err: Exception | None,
-    from_path_err: Exception | None,
     stdio_yields: bool,
 ) -> None:
     """serve() runs stdio and handles all background init outcomes without raising."""
@@ -287,14 +282,11 @@ async def test_serve_runs_stdio(
     load_kwargs = (
         {"side_effect": load_err} if load_err else {"return_value": (MagicMock(spec=StaticModel), "/fake/model")}
     )
-    fp_kwargs = {"side_effect": from_path_err} if from_path_err else {"return_value": MagicMock()}
     with (
         patch("semble.mcp.load_model", **load_kwargs),
-        patch("semble.mcp.SembleIndex.from_path", **fp_kwargs),
-        patch.object(_IndexCache, "start_watcher", new_callable=AsyncMock),
         patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_stdio) as mock_run,
     ):
-        await (serve(str(tmp_path)) if with_path else serve())
+        await serve()
 
     mock_run.assert_called_once()
 
@@ -395,18 +387,3 @@ def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
 def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
     """evict() on an unknown path is a no-op."""
     cache.evict(str(tmp_path))  # should not raise
-
-
-@pytest.mark.anyio
-async def test_watch_loop(cache: _IndexCache, tmp_path: Path) -> None:
-    """_watch_loop rebuilds on change (inner errors swallowed) and exits cleanly on watcher error."""
-
-    async def fake_awatch(_path: str) -> AsyncGenerator:
-        yield set()
-        raise RuntimeError("watcher died")
-
-    with patch("semble.mcp.watchfiles.awatch", fake_awatch):
-        with patch("semble.mcp.SembleIndex.from_path", side_effect=RuntimeError("build failed")):
-            await cache.start_watcher(str(tmp_path))
-            assert cache._watcher_task is not None
-            await cache._watcher_task

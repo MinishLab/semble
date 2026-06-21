@@ -8,7 +8,6 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated
 
-import watchfiles
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
@@ -22,8 +21,7 @@ logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
     "A local directory path or https:// or http:// git URL (e.g. https://github.com/org/repo) to index and "
-    "search. Required when no default index was configured at startup. "
-    "The index is cached after the first call, so repeat queries are fast."
+    "search. The index is cached after the first call, so repeat queries are fast."
 )
 
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
@@ -136,11 +134,11 @@ def create_server(cache: _IndexCache) -> FastMCP:
 async def serve(
     content: Sequence[ContentType] = (ContentType.CODE,),
 ) -> None:
-    """Start an MCP stdio server, optionally pre-indexing a default source."""
+    """Start an MCP stdio server."""
     cache = _IndexCache(content=content)
 
     async def _load_and_prewarm() -> None:
-        """Pre-load the model and optionally pre-index the default source in parallel with starting the server."""
+        """Pre-load the embedding model in parallel with starting the server."""
         try:
             _, cache._model_path = await asyncio.to_thread(load_model)
         except Exception as exc:
@@ -169,7 +167,6 @@ class _IndexCache:
         self._model_ready = asyncio.Event()
         self._content = content
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
-        self._watcher_task: asyncio.Task[None] | None = None
 
     async def _await_model(self) -> str:
         """Block until the model is installed; re-raise the load error if it failed."""
@@ -199,22 +196,6 @@ class _IndexCache:
 
     def evict(self, source: str) -> None:
         self._tasks.pop(self._compute_cache_key(source), None)
-
-    async def start_watcher(self, path: str) -> None:
-        """Start a background task that re-indexes the path whenever files change."""
-        self._watcher_task = asyncio.create_task(self._watch_loop(path))
-
-    async def _watch_loop(self, path: str) -> None:
-        """Watch the given path for changes and evict the cache entry on changes."""
-        try:
-            async for _ in watchfiles.awatch(path):
-                self.evict(path)
-                try:
-                    await self.get(path)
-                except Exception:
-                    logger.warning("Failed to rebuild index for %r after file change", path, exc_info=True)
-        except Exception:
-            pass
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access."""
