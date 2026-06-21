@@ -72,13 +72,6 @@ def _mcp_main() -> None:
         prog="semble",
         description="Instant local code search for agents.",
     )
-    parser.add_argument(
-        "path",
-        nargs="?",
-        default=None,
-        help="Local directory or git URL to pre-index at startup (optional).",
-    )
-    parser.add_argument("--ref", default=None, help="Branch or tag to check out (git URLs only).")
     _add_content_args(parser)
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
@@ -87,7 +80,7 @@ def _mcp_main() -> None:
     from semble.mcp import serve
 
     content = _resolve_content(args.content, args.include_text_files)
-    asyncio.run(serve(args.path, ref=args.ref, content=content))
+    asyncio.run(serve(content))
 
 
 def _resolve_content(content: list[str], include_text_files: bool) -> list[ContentType]:

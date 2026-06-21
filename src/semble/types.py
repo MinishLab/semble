@@ -60,13 +60,6 @@ class SearchResult:
     chunk: Chunk
     score: float
 
-    def to_dict(self) -> dict[str, Any]:
-        """Dump a search result to a dict."""
-        return {
-            "chunk": self.chunk.to_dict(),
-            "score": self.score,
-        }
-
 
 @dataclass(frozen=True, slots=True)
 class IndexStats:

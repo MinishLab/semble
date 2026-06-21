@@ -14,7 +14,6 @@ from tests.conftest import make_chunk
 @pytest.mark.parametrize(
     "argv",
     [
-        ["semble", "/some/path", "--ref", "main"],
         ["semble"],
     ],
 )

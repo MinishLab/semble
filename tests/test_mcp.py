@@ -26,7 +26,6 @@ async def _call_tool(
     index_method: str,
     index_return: list[SearchResult],
     index_chunks: list[Chunk] | None = None,
-    default_source: str | None = "/some/path",
 ) -> str:
     """Patch SembleIndex.from_path with a fake index and invoke the tool, returning the text."""
     fake_index = MagicMock()
@@ -34,7 +33,7 @@ async def _call_tool(
     if index_chunks is not None:
         fake_index.chunks = index_chunks
     with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
-        server = create_server(cache, default_source=default_source)
+        server = create_server(cache)
         result = await server.call_tool(tool, args)
     return _tool_text(result)
 
@@ -180,21 +179,6 @@ async def test_index_cache_ignores_cache_save_failure(cache: _IndexCache, tmp_pa
 @pytest.mark.parametrize(
     ("tool", "args"),
     [
-        ("search", {"query": "foo"}),
-        ("find_related", {"file_path": "src/foo.py", "line": 10}),
-    ],
-)
-async def test_tool_no_repo_no_default(cache: _IndexCache, tool: str, args: dict[str, object]) -> None:
-    """Both tools return an error message when no repo and no default source are given."""
-    server = create_server(cache, default_source=None)
-    result = await server.call_tool(tool, args)
-    assert "No repo specified" in _tool_text(result)
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    ("tool", "args"),
-    [
         ("search", {"query": "foo", "repo": "https://github.com/x/y"}),
         ("find_related", {"file_path": "src/foo.py", "line": 1, "repo": "https://github.com/x/y"}),
     ],
@@ -215,7 +199,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
     [
         pytest.param(
             "search",
-            {"query": "bar"},
+            {"query": "bar", "repo": "/some/path"},
             "search",
             [SearchResult(chunk=make_chunk("def bar(): pass", "src/bar.py"), score=0.9)],
             None,
@@ -224,7 +208,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
         ),
         pytest.param(
             "search",
-            {"query": "nothing"},
+            {"query": "nothing", "repo": "/some/path"},
             "search",
             [],
             None,
@@ -233,7 +217,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
         ),
         pytest.param(
             "find_related",
-            {"file_path": "src/foo.py", "line": 1},
+            {"file_path": "src/foo.py", "line": 1, "repo": "/some/path"},
             "find_related",
             [SearchResult(chunk=make_chunk("class Foo: pass", "src/foo.py"), score=0.8)],
             [make_chunk("class Foo: pass", "src/foo.py")],
@@ -242,7 +226,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
         ),
         pytest.param(
             "find_related",
-            {"file_path": "src/foo.py", "line": 1},
+            {"file_path": "src/foo.py", "line": 1, "repo": "/some/path"},
             "find_related",
             [],
             [make_chunk("class Foo: pass", "src/foo.py")],
@@ -251,7 +235,7 @@ async def test_tool_index_failure(cache: _IndexCache, tool: str, args: dict[str,
         ),
         pytest.param(
             "find_related",
-            {"file_path": "src/unknown.py", "line": 1},
+            {"file_path": "src/unknown.py", "line": 1, "repo": "/some/path"},
             "find_related",
             [],
             [],
@@ -379,7 +363,7 @@ async def test_tool_rejects_unsafe_repo(
     cache: _IndexCache, repo: str, tool: str, extra_args: dict[str, object]
 ) -> None:
     """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) supplied as repo."""
-    server = create_server(cache, default_source=None)
+    server = create_server(cache)
     result = await server.call_tool(tool, {**extra_args, "repo": repo})
     assert "Only https://" in _tool_text(result)
 
