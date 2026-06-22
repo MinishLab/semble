@@ -190,16 +190,32 @@
         "backend": "codex",
         "model": "gpt-5.4-mini",
         "semble_version": "",
-        "tool_calls": [],
-        "cost_usd": 0.0,
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "num_turns": 0,
-        "touched_files": [],
-        "patch": "",
-        "gold_hit": false,
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"If you want to create a recursive relationship|symmetrical=False|through=\\\\\\\"%s\\\\\\\"|through_fields",
+          "codex_bash:/bin/zsh -lc 'rg -n \"Wrong hint about recursive relationship|recursive relationship\" -S .'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1270,1340p' django/db/models/fields/related.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '130,180p' tests/invalid_models_tests/test_relative_fields.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"ManyToManyField\\\\(\\\\\\\"self\\\\\\\"|recursive relationship|through=\\\\\\\".*\\\\\\\"\\\" docs django/tests -S\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1338,1375p' docs/ref/models/fields.txt\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1715,1765p' docs/ref/models/fields.txt\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '330,430p' docs/topics/db/models.txt\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- django/db/models/fields/related.py tests/invalid_models_tests/test_relative_fields.py'",
+          "codex_bash:/bin/zsh -lc 'git status --short'"
+        ],
+        "cost_usd": 0.058314,
+        "input_tokens": 375081,
+        "output_tokens": 3420,
+        "num_turns": 1,
+        "touched_files": [
+          "django/db/models/fields/related.py",
+          "tests/invalid_models_tests/test_relative_fields.py"
+        ],
+        "patch": "diff --git a/django/db/models/fields/related.py b/django/db/models/fields/related.py\nindex 8ddbb5ba68..536b3dd601 100644\n--- a/django/db/models/fields/related.py\n+++ b/django/db/models/fields/related.py\n@@ -1309,7 +1309,7 @@ class ManyToManyField(RelatedField):\n                              \"through_fields keyword argument.\") % (self, from_model_name),\n                             hint=(\n                                 'If you want to create a recursive relationship, '\n-                                'use ForeignKey(\"%s\", symmetrical=False, through=\"%s\").'\n+                                'use ManyToManyField(\"%s\", through=\"%s\").'\n                             ) % (\n                                 RECURSIVE_RELATIONSHIP_CONSTANT,\n                                 relationship_model_name,\n@@ -1329,7 +1329,7 @@ class ManyToManyField(RelatedField):\n                             \"through_fields keyword argument.\" % (self, to_model_name),\n                             hint=(\n                                 'If you want to create a recursive relationship, '\n-                                'use ForeignKey(\"%s\", symmetrical=False, through=\"%s\").'\n+                                'use ManyToManyField(\"%s\", through=\"%s\").'\n                             ) % (\n                                 RECURSIVE_RELATIONSHIP_CONSTANT,\n                                 relationship_model_name,\ndiff --git a/tests/invalid_models_tests/test_relative_fields.py b/tests/invalid_models_tests/test_relative_fields.py\nindex 24f27168c2..6ff5a2fa41 100644\n--- a/tests/invalid_models_tests/test_relative_fields.py\n+++ b/tests/invalid_models_tests/test_relative_fields.py\n@@ -152,7 +152,7 @@ class RelativeFieldTests(SimpleTestCase):\n                 \"keyword argument.\",\n                 hint=(\n                     'If you want to create a recursive relationship, use '\n-                    'ForeignKey(\"self\", symmetrical=False, through=\"AmbiguousRelationship\").'\n+                    'ManyToManyField(\"self\", through=\"AmbiguousRelationship\").'\n                 ),\n                 obj=field,\n                 id='fields.E335',\n",
+        "gold_hit": true,
         "bypass": false,
-        "error": "'str' object has no attribute 'get'"
+        "error": null
       },
       {
         "variant": "with_semble",
@@ -3056,6 +3072,41 @@
         "gold_hit": true,
         "bypass": false,
         "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc 'rg --files | rg \"junit|xml|terminal|report\"'",
+          "codex_bash:/bin/zsh -lc 'rg -n \"hostname|timestamp|testsuite|junitxml|xml\" -S src testing doc .'",
+          "codex_bash:/bin/zsh -lc \"sed -n '466,690p' src/_pytest/junitxml.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/test_junitxml.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1080,1360p' testing/test_junitxml.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,80p' src/_pytest/junitxml.py\"",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nimport inspect, _pytest.junitxml as j\nprint(j.LogXML.pytest_sessionstart)\nPY\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'python -m py_compile src/_pytest/junitxml.py testing/test_junitxml.py'",
+          "codex_bash:/bin/zsh -lc \"nl -ba src/_pytest/junitxml.py | sed -n '1,40p; 520,690p'\"",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/test_junitxml.py | sed -n '1,20p; 110,190p; 1180,1215p'\"",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/test_junitxml.py | sed -n '1260,1310p'\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"test_testsuite_metadata\" testing/test_junitxml.py'",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/test_junitxml.py | sed -n '1328,1352p'\""
+        ],
+        "cost_usd": 0.13655,
+        "input_tokens": 873859,
+        "output_tokens": 9118,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/junitxml.py",
+          "testing/test_junitxml.py"
+        ],
+        "patch": "diff --git a/src/_pytest/junitxml.py b/src/_pytest/junitxml.py\nindex 15c630b1d..b57cf7354 100644\n--- a/src/_pytest/junitxml.py\n+++ b/src/_pytest/junitxml.py\n@@ -12,6 +12,7 @@ import functools\n import os\n import re\n import sys\n+import socket\n import time\n \n import py\n@@ -638,6 +639,7 @@ class LogXML:\n         reporter._add_simple(Junit.error, \"internal error\", excrepr)\n \n     def pytest_sessionstart(self):\n+        self.hostname = socket.gethostname()\n         self.suite_start_time = time.time()\n \n     def pytest_sessionfinish(self):\n@@ -661,9 +663,11 @@ class LogXML:\n             self._get_global_properties_node(),\n             [x.to_xml() for x in self.node_reporters_ordered],\n             name=self.suite_name,\n+            hostname=self.hostname,\n             errors=self.stats[\"error\"],\n             failures=self.stats[\"failure\"],\n             skipped=self.stats[\"skipped\"],\n+            timestamp=time.strftime(\"%Y-%m-%dT%H:%M:%S\", time.localtime(self.suite_start_time)),\n             tests=numtests,\n             time=\"%.3f\" % suite_time_delta,\n         )\ndiff --git a/testing/test_junitxml.py b/testing/test_junitxml.py\nindex 3196f0ebd..4df4885c0 100644\n--- a/testing/test_junitxml.py\n+++ b/testing/test_junitxml.py\n@@ -1,4 +1,5 @@\n import os\n+import re\n from xml.dom import minidom\n \n import py\n@@ -1335,6 +1336,18 @@ def test_set_suite_name(testdir, suite_name):\n     node.assert_attr(name=expected)\n \n \n+def test_testsuite_metadata(testdir):\n+    path = testdir.tmpdir.join(\"test_metadata.xml\")\n+    log = LogXML(str(path), None)\n+\n+    log.pytest_sessionstart()\n+    log.pytest_sessionfinish()\n+\n+    node = DomNode(minidom.parse(str(path))).find_first_by_tag(\"testsuite\")\n+    assert node[\"hostname\"]\n+    assert re.match(r\"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$\", node[\"timestamp\"])\n+\n+\n def test_escaped_skipreason_issue3533(testdir):\n     testdir.makepyfile(\n         \"\"\"\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3172,22 +3223,6 @@
         "patch": "",
         "gold_hit": false,
         "bypass": false,
-        "error": "rate limited (5-hour limit)"
-      },
-      {
-        "variant": "with_semble",
-        "backend": "claude",
-        "model": "claude-haiku-4-5-20251001",
-        "semble_version": "",
-        "tool_calls": [],
-        "cost_usd": 0.0,
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "num_turns": 0,
-        "touched_files": [],
-        "patch": "",
-        "gold_hit": false,
-        "bypass": false,
         "error": "timed out after 480s"
       },
       {
@@ -3205,6 +3240,60 @@
         "gold_hit": false,
         "bypass": false,
         "error": "rate limited (5-hour limit)"
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc 'rg -n \"relpath|basename|fspath|path.*relative|cwd|getcwd|report.*path|format.*path|ReprFileLocation|path r",
+          "codex_bash:/bin/zsh -lc \"pwd && rg --files | sed -n '1,120p'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"ReprFileLocation|bestrelpath|relpath|getrepr|path.*cwd|os\\\\.getcwd|cwd\\\" src/_pytest/_code src/_py",
+          "codex_bash:/bin/zsh -lc \"sed -n '540,830p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '330,390p' src/_pytest/nodes.py && sed -n '880,930p' src/_pytest/config/__init__.py\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"invocation_dir\" src/_pytest'",
+          "codex_bash:/bin/zsh -lc \"sed -n '830,930p' src/_pytest/config/__init__.py && sed -n '360,420p' src/_pytest/main.py && sed -n '230,2",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"def _bestrelpath|bestrelpathcache|bestrelpath\\\\(\\\" src/_pytest\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"FormattedExcinfo\\\\(\\\" src/_pytest\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"getrepr\\\\(\\\" src/_pytest | sed -n '1,200p'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1080,1145p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"git log --oneline -- src/_pytest/_code/code.py | sed -n '1,40p' && git log -S\\\"bestrelpath(path)\\\" --oneli",
+          "codex_bash:/bin/zsh -lc 'git log -S\"invocation_dir\" --oneline -- src/_pytest/_code/code.py src/_pytest/config/__init__.py src/_pyte",
+          "codex_bash:/bin/zsh -lc \"git log --oneline --grep=\\\"cwd\\\\|chdir\\\\|path\\\" -- src/_pytest/_code/code.py src/_pytest/terminal.py src/_",
+          "codex_bash:/bin/zsh -lc \"git log --oneline --grep=\\\"wrong path\\\\|relative to the original\\\\|changed in fixture\\\\|chdir\\\" --all | se",
+          "codex_bash:/bin/zsh -lc \"sed -n '480,545p' src/_pytest/python.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '100,135p' src/_pytest/config/__init__.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '730,770p' src/_pytest/terminal.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,80p' src/_pytest/_code/code.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_edit",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"getrepr\\\\(\\\" src/_pytest\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '892,910p' src/_pytest/config/__init__.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '560,820p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '360,380p' src/_pytest/nodes.py && sed -n '510,545p' src/_pytest/python.py && sed -n '112,126p' src",
+          "codex_bash:/bin/zsh -lc 'python -m py_compile src/_pytest/_code/code.py src/_pytest/nodes.py src/_pytest/python.py src/_pytest/conf",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/_code/code.py src/_pytest/nodes.py src/_pytest/python.py src/_pytest/config/__init"
+        ],
+        "cost_usd": 0.304417,
+        "input_tokens": 1977648,
+        "output_tokens": 12950,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/_code/code.py",
+          "src/_pytest/config/__init__.py",
+          "src/_pytest/nodes.py",
+          "src/_pytest/python.py",
+          "src/_pytest/terminal.py"
+        ],
+        "patch": "diff --git a/src/_pytest/_code/code.py b/src/_pytest/_code/code.py\nindex 7b17d7612..f91537969 100644\n--- a/src/_pytest/_code/code.py\n+++ b/src/_pytest/_code/code.py\n@@ -571,6 +571,7 @@ class ExceptionInfo(Generic[_E]):\n         showlocals: bool = False,\n         style: \"_TracebackStyle\" = \"long\",\n         abspath: bool = False,\n+        startpath: Optional[py.path.local] = None,\n         tbfilter: bool = True,\n         funcargs: bool = False,\n         truncate_locals: bool = True,\n@@ -618,6 +619,7 @@ class ExceptionInfo(Generic[_E]):\n             showlocals=showlocals,\n             style=style,\n             abspath=abspath,\n+            startpath=startpath,\n             tbfilter=tbfilter,\n             funcargs=funcargs,\n             truncate_locals=truncate_locals,\n@@ -651,6 +653,7 @@ class FormattedExcinfo:\n     showlocals = attr.ib(type=bool, default=False)\n     style = attr.ib(type=\"_TracebackStyle\", default=\"long\")\n     abspath = attr.ib(type=bool, default=True)\n+    startpath = attr.ib(type=Optional[py.path.local], default=None)\n     tbfilter = attr.ib(type=bool, default=True)\n     funcargs = attr.ib(type=bool, default=False)\n     truncate_locals = attr.ib(type=bool, default=True)\n@@ -791,7 +794,8 @@ class FormattedExcinfo:\n     def _makepath(self, path):\n         if not self.abspath:\n             try:\n-                np = py.path.local().bestrelpath(path)\n+                basepath = self.startpath or py.path.local()\n+                np = basepath.bestrelpath(path)\n             except OSError:\n                 return path\n             if len(np) < len(str(path)):\ndiff --git a/src/_pytest/config/__init__.py b/src/_pytest/config/__init__.py\nindex bb5034ab1..646245715 100644\n--- a/src/_pytest/config/__init__.py\n+++ b/src/_pytest/config/__init__.py\n@@ -116,7 +116,11 @@ def main(args=None, plugins=None) -> Union[int, ExitCode]:\n             )\n             exc_info.traceback = exc_info.traceback.filter(filter_traceback)\n             exc_repr = (\n-                exc_info.getrepr(style=\"short\", chain=False)\n+                exc_info.getrepr(\n+                    style=\"short\",\n+                    chain=False,\n+                    startpath=config.invocation_dir,\n+                )\n                 if exc_info.traceback\n                 else exc_info.exconly()\n             )\n@@ -897,7 +901,10 @@ class Config:\n         else:\n             style = \"native\"\n         excrepr = excinfo.getrepr(\n-            funcargs=True, showlocals=getattr(option, \"showlocals\", False), style=style\n+            funcargs=True,\n+            showlocals=getattr(option, \"showlocals\", False),\n+            style=style,\n+            startpath=self.invocation_dir,\n         )\n         res = self.hook.pytest_internalerror(excrepr=excrepr, excinfo=excinfo)\n         if not any(res):\ndiff --git a/src/_pytest/nodes.py b/src/_pytest/nodes.py\nindex 4a79bc861..6f18c18db 100644\n--- a/src/_pytest/nodes.py\n+++ b/src/_pytest/nodes.py\n@@ -370,6 +370,7 @@ class Node(metaclass=NodeMeta):\n         return excinfo.getrepr(\n             funcargs=True,\n             abspath=abspath,\n+            startpath=self.session.startdir,\n             showlocals=self.config.getoption(\"showlocals\", False),\n             style=style,\n             tbfilter=False,  # pruned already, or in --fulltrace mode.\ndiff --git a/src/_pytest/python.py b/src/_pytest/python.py\nindex 76fccb4a1..a5139cd2c 100644\n--- a/src/_pytest/python.py\n+++ b/src/_pytest/python.py\n@@ -515,7 +515,11 @@ class Module(nodes.File, PyCollector):\n         try:\n             mod = self.fspath.pyimport(ensuresyspath=importmode)\n         except SyntaxError:\n-            raise self.CollectError(ExceptionInfo.from_current().getrepr(style=\"short\"))\n+            raise self.CollectError(\n+                ExceptionInfo.from_current().getrepr(\n+                    style=\"short\", startpath=self.config.invocation_dir\n+                )\n+            )\n         except self.fspath.ImportMismatchError as e:\n             raise self.CollectError(\n                 \"import file mismatch:\\n\"\n@@ -531,7 +535,9 @@ class Module(nodes.File, PyCollector):\n             if self.config.getoption(\"verbose\") < 2:\n                 exc_info.traceback = exc_info.traceback.filter(filter_traceback)\n             exc_repr = (\n-                exc_info.getrepr(style=\"short\")\n+                exc_info.getrepr(\n+                    style=\"short\", startpath=self.config.invocation_dir\n+                )\n                 if exc_info.traceback\n                 else exc_info.exconly()\n             )\ndiff --git a/src/_pytest/terminal.py b/src/_pytest/terminal.py\nindex 8ecb5a16b..d4e44f194 100644\n--- a/src/_pytest/terminal.py\n+++ b/src/_pytest/terminal.py\n@@ -754,7 +754,9 @@ class TerminalReporter:\n         self.summary_warnings()\n \n     def pytest_keyboard_interrupt(self, excinfo):\n-        self._keyboardinterrupt_memo = excinfo.getrepr(funcargs=True)\n+        self._keyboardinterrupt_memo = excinfo.getrepr(\n+            funcargs=True, startpath=self.config.invocation_dir\n+        )\n \n     def pytest_unconfigure(self):\n         if hasattr(self, \"_keyboardinterrupt_memo\"):\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3291,6 +3380,44 @@
         "gold_hit": false,
         "bypass": false,
         "error": "rate limited (5-hour limit)"
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' /Users/thomasvandongen/Projects/oss/skills/skills/debug-systematic/SKILL.md\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"class Raises|raises\\\\(\\\" src testing -g '*.py'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"__str__|__repr__|ExceptionInfo\\\" src testing -g '*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '680,760p' src/_pytest/python_api.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '374,520p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '520,980p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"str\\\\(excinfo\\\\)|str\\\\(e\\\\)|ExceptionInfo.*__str__|exconly\\\\(\\\" testing src -g '*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '316,360p' testing/code/test_excinfo.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '70,95p' testing/code/test_code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' testing/code/test_excinfo.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"ExceptionInfo.__str__|str\\\\(excinfo\\\\)|for raises contextmanager|traceback-style\\\" docs src testin",
+          "codex_bash:/bin/zsh -lc \"sed -n '40,75p' testing/python/raises.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nimport pytest\n\ntry:\n    with pytest.raises(LookupError) as e:\n        raise LookupError('A",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nimport sys\nsys.path.insert(0, 'src')\nimport pytest\n\nwith pytest.raises(LookupError) as e:\n",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/_code/code.py testing/code/test_excinfo.py'",
+          "codex_bash:/bin/zsh -lc 'git status --short'"
+        ],
+        "cost_usd": 0.147682,
+        "input_tokens": 952974,
+        "output_tokens": 7894,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/_code/code.py",
+          "testing/code/test_excinfo.py"
+        ],
+        "patch": "diff --git a/src/_pytest/_code/code.py b/src/_pytest/_code/code.py\nindex c4ed961ac..977e859e4 100644\n--- a/src/_pytest/_code/code.py\n+++ b/src/_pytest/_code/code.py\n@@ -537,9 +537,7 @@ class ExceptionInfo:\n     def __str__(self):\n         if self._excinfo is None:\n             return repr(self)\n-        entry = self.traceback[-1]\n-        loc = ReprFileLocation(entry.path, entry.lineno + 1, self.exconly())\n-        return str(loc)\n+        return str(self.value)\n \n     def match(self, regexp):\n         \"\"\"\ndiff --git a/testing/code/test_excinfo.py b/testing/code/test_excinfo.py\nindex 3eac94a28..e5e1672bd 100644\n--- a/testing/code/test_excinfo.py\n+++ b/testing/code/test_excinfo.py\n@@ -340,11 +340,10 @@ def test_excinfo_repr():\n \n \n def test_excinfo_str():\n-    excinfo = pytest.raises(ValueError, h)\n-    s = str(excinfo)\n-    assert s.startswith(__file__[:-9])  # pyc file and $py.class\n-    assert s.endswith(\"ValueError\")\n-    assert len(s.split(\":\")) >= 3  # on windows it's 4\n+    with pytest.raises(ValueError) as excinfo:\n+        raise ValueError(\"A\\nB\\nC\")\n+    assert str(excinfo) == str(excinfo.value)\n+    assert str(excinfo) == \"A\\nB\\nC\"\n \n \n def test_excinfo_for_later():\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3363,6 +3490,35 @@
         "gold_hit": false,
         "bypass": false,
         "error": "rate limited (5-hour limit)"
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"pwd && rg -n \\\"Using pytest\\\\.skip outside of a test is not allowed|allow_module_level|pytestmark = pytest",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"allow_module_level|Using pytest\\\\.skip outside of a test is not allowed|pytestmark = pytest.mark.s",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' /Users/thomasvandongen/Projects/oss/skills/skills/debug-systematic/SKILL.md\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '100,260p' src/_pytest/outcomes.py && printf '\\\\n----\\\\n' && sed -n '560,660p' src/_pytest/python.p",
+          "codex_bash:/bin/zsh -lc 'rg -n \"skip_module|allow_module_level|module level skip|skip module\" -S src testing doc*'",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'python -m py_compile src/_pytest/python.py testing/test_skipping.py'",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/python.py testing/test_skipping.py'"
+        ],
+        "cost_usd": 0.072979,
+        "input_tokens": 472256,
+        "output_tokens": 3567,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/python.py",
+          "testing/test_skipping.py"
+        ],
+        "patch": "diff --git a/src/_pytest/python.py b/src/_pytest/python.py\nindex 79dfb7320..25a3a7ffd 100644\n--- a/src/_pytest/python.py\n+++ b/src/_pytest/python.py\n@@ -609,9 +609,10 @@ class Module(nodes.File, PyCollector):\n                 raise\n             raise self.CollectError(\n                 \"Using pytest.skip outside of a test is not allowed. \"\n-                \"To decorate a test function, use the @pytest.mark.skip \"\n-                \"or @pytest.mark.skipif decorators instead, and to skip a \"\n-                \"module use `pytestmark = pytest.mark.{skip,skipif}.\"\n+                \"To skip a module during collection, use \"\n+                \"pytest.skip(..., allow_module_level=True). To decorate a \"\n+                \"test function, use the @pytest.mark.skip or \"\n+                \"@pytest.mark.skipif decorators instead.\"\n             ) from e\n         self.config.pluginmanager.consider_module(mod)\n         return mod\ndiff --git a/testing/test_skipping.py b/testing/test_skipping.py\nindex 53bf953a8..e4cf391a5 100644\n--- a/testing/test_skipping.py\n+++ b/testing/test_skipping.py\n@@ -1341,7 +1341,10 @@ def test_module_level_skip_error(pytester: Pytester) -> None:\n     )\n     result = pytester.runpytest()\n     result.stdout.fnmatch_lines(\n-        [\"*Using pytest.skip outside of a test is not allowed*\"]\n+        [\n+            \"*Using pytest.skip outside of a test is not allowed*\",\n+            \"*pytest.skip(..., allow_module_level=True)*\",\n+        ]\n     )\n \n \n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3437,6 +3593,37 @@
         "gold_hit": false,
         "bypass": false,
         "error": "rate limited (5-hour limit)"
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"pwd && rg -n \\\"getpass\\\\.getuser\\\\(|pytest-of-|basetemp|tmp_path_factory|tmpdir_factory|tmpdir\\\" -S .\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' src/_pytest/tmpdir.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '180,260p' testing/test_tmpdir.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/test_tmpdir.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"sanitize|safe.*path|path.*safe|replace.*\\\\\\\\W|re\\\\.sub\\\\(r\\\\\\\"\\\\\\\\[\\\\\\\\W\\\\]\\\" src/_pytest testing ",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' testing/test_tmpdir.py\"",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/tmpdir.py testing/test_tmpdir.py'",
+          "codex_bash:/bin/zsh -lc \"nl -ba src/_pytest/tmpdir.py | sed -n '104,124p'\"",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/test_tmpdir.py | sed -n '48,76p'\""
+        ],
+        "cost_usd": 0.087134,
+        "input_tokens": 557878,
+        "output_tokens": 5753,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/tmpdir.py",
+          "testing/test_tmpdir.py"
+        ],
+        "patch": "diff --git a/src/_pytest/tmpdir.py b/src/_pytest/tmpdir.py\nindex 29c7e19d7..a01717405 100644\n--- a/src/_pytest/tmpdir.py\n+++ b/src/_pytest/tmpdir.py\n@@ -112,6 +112,7 @@ class TempPathFactory:\n             from_env = os.environ.get(\"PYTEST_DEBUG_TEMPROOT\")\n             temproot = Path(from_env or tempfile.gettempdir()).resolve()\n             user = get_user() or \"unknown\"\n+            user = re.sub(r\"[\\W]\", \"_\", user)\n             # use a sub-directory in the temproot to speed-up\n             # make_numbered_dir() call\n             rootdir = temproot.joinpath(f\"pytest-of-{user}\")\ndiff --git a/testing/test_tmpdir.py b/testing/test_tmpdir.py\nindex d123287aa..5b0383cea 100644\n--- a/testing/test_tmpdir.py\n+++ b/testing/test_tmpdir.py\n@@ -60,6 +60,13 @@ class TestTempdirHandler:\n         assert tmp2.relto(t.getbasetemp()).startswith(\"this\")\n         assert tmp2 != tmp\n \n+    def test_getbasetemp_sanitizes_user_name(self, tmp_path, monkeypatch):\n+        monkeypatch.setenv(\"PYTEST_DEBUG_TEMPROOT\", str(tmp_path))\n+        monkeypatch.setattr(\"_pytest.tmpdir.get_user\", lambda: r\"contoso\\john_doe\")\n+        config = cast(Config, FakeConfig(None))\n+        t = TempPathFactory.from_config(config, _ispytest=True)\n+        assert t.getbasetemp().parent.name == \"pytest-of-contoso_john_doe\"\n+\n     def test_tmppath_relative_basetemp_absolute(self, tmp_path, monkeypatch):\n         \"\"\"#4425\"\"\"\n         monkeypatch.chdir(tmp_path)\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3531,6 +3718,53 @@
         "gold_hit": false,
         "bypass": false,
         "error": "rate limited (5-hour limit)"
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc 'rg --files | rg \"(_pytest|pytest).*(mark|xfail|nodes?|runner|skipping|reports)\"'",
+          "codex_bash:/bin/zsh -lc \"pwd && rg -n \\\"add_marker|xfail|XFail|strict xfail|wasxfail\\\" src _pytest testing -g '\"'!**/__pycache__/**",
+          "codex_bash:/bin/zsh -lc \"sed -n '930,980p' testing/python/fixtures.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '220,340p' src/_pytest/nodes.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '180,320p' src/_pytest/skipping.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1160,1195p' testing/test_skipping.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '360,430p' testing/test_skipping.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' testing/test_skipping.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,240p' src/_pytest/nodes.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' src/_pytest/runner.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/python/fixtures.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"def applymarker|applymarker\\\\(\\\" src/_pytest/fixtures.py src/_pytest -g '\"'!**/__pycache__/**'\"'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '520,590p' src/_pytest/fixtures.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' src/_pytest/store.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' src/_pytest/skipping.py\"",
+          "codex_bash:/bin/zsh -lc 'git log --oneline --decorate -n 30 -- src/_pytest/skipping.py src/_pytest/nodes.py testing/test_skipping.p",
+          "codex_bash:/bin/zsh -lc 'git log -S\"xfailed_key\" --oneline -- src/_pytest/skipping.py'",
+          "codex_bash:/bin/zsh -lc 'git log -S\"dynamic xfail\" --oneline -- testing/test_skipping.py src/_pytest/skipping.py src/_pytest/nodes.",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch c9737ae91 -- src/_pytest/skipping.py'",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch a1f841d5d -- src/_pytest/skipping.py src/_pytest/runner.py'",
+          "codex_bash:/bin/zsh -lc \"sed -n '820,860p' testing/test_mark.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"add_marker\\\\(.*xfail|request\\\\.node\\\\.add_marker|applymarker\\\\(pytest\\\\.mark\\\\.xfail\\\" testing src",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '235,270p' src/_pytest/skipping.py\"",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/skipping.py'",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"nl -ba src/_pytest/skipping.py | sed -n '246,268p'\"",
+          "codex_bash:/bin/zsh -lc 'git status --short'"
+        ],
+        "cost_usd": 0.186236,
+        "input_tokens": 1190037,
+        "output_tokens": 12884,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/skipping.py"
+        ],
+        "patch": "diff --git a/src/_pytest/skipping.py b/src/_pytest/skipping.py\nindex 335e10996..d3916c663 100644\n--- a/src/_pytest/skipping.py\n+++ b/src/_pytest/skipping.py\n@@ -246,16 +246,20 @@ def pytest_runtest_setup(item: Item) -> None:\n \n @hookimpl(hookwrapper=True)\n def pytest_runtest_call(item: Item) -> Generator[None, None, None]:\n-    xfailed = item._store.get(xfailed_key, None)\n-    if xfailed is None:\n-        item._store[xfailed_key] = xfailed = evaluate_xfail_marks(item)\n-\n     if not item.config.option.runxfail:\n+        xfailed = item._store.get(xfailed_key, None)\n+        if xfailed is None:\n+            item._store[xfailed_key] = xfailed = evaluate_xfail_marks(item)\n         if xfailed and not xfailed.run:\n             xfail(\"[NOTRUN] \" + xfailed.reason)\n \n     yield\n \n+    # Re-evaluate after the test body in case a marker was added dynamically\n+    # during call execution.\n+    if not item.config.option.runxfail:\n+        item._store[xfailed_key] = evaluate_xfail_marks(item)\n+\n \n @hookimpl(hookwrapper=True)\n def pytest_runtest_makereport(item: Item, call: CallInfo[None]):\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3601,6 +3835,39 @@
         "gold_hit": false,
         "bypass": false,
         "error": "rate limited (5-hour limit)"
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' _pytest/_io/saferepr.py\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"_format_repr_exception|SafeRepr|repr_instance|saferepr\" _pytest'",
+          "codex_bash:/bin/zsh -lc pwd",
+          "codex_bash:/bin/zsh -lc 'rg --files | rg \"saferepr|_pytest/.*/code.py|_pytest/.*/reports.py|_pytest/.*/python.py\"'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' src/_pytest/_io/saferepr.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/io/test_saferepr.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' src/_pytest/_code/code.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"__class__\\\\.\\\\w+|obj\\\\.__class__|type\\\\(obj\\\\)\\\\.\\\\w+\\\" src/_pytest/_io src/_pytest/_code testing/",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/_io/saferepr.py testing/io/test_saferepr.py'",
+          "codex_bash:/bin/zsh -lc \"nl -ba src/_pytest/_io/saferepr.py | sed -n '1,60p'\"",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/io/test_saferepr.py | sed -n '40,90p'\""
+        ],
+        "cost_usd": 0.064089,
+        "input_tokens": 409008,
+        "output_tokens": 4563,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/_io/saferepr.py",
+          "testing/io/test_saferepr.py"
+        ],
+        "patch": "diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py\nindex 23af4d0bb..47a00de60 100644\n--- a/src/_pytest/_io/saferepr.py\n+++ b/src/_pytest/_io/saferepr.py\n@@ -20,7 +20,7 @@ def _format_repr_exception(exc: BaseException, obj: Any) -> str:\n     except BaseException as exc:\n         exc_info = \"unpresentable exception ({})\".format(_try_repr_or_str(exc))\n     return \"<[{} raised in repr()] {} object at 0x{:x}>\".format(\n-        exc_info, obj.__class__.__name__, id(obj)\n+        exc_info, type(obj).__name__, id(obj)\n     )\n \n \ndiff --git a/testing/io/test_saferepr.py b/testing/io/test_saferepr.py\nindex 06084202e..96a3cb5ee 100644\n--- a/testing/io/test_saferepr.py\n+++ b/testing/io/test_saferepr.py\n@@ -56,6 +56,19 @@ def test_exceptions():\n     )\n \n \n+def test_exceptions_with_broken_class_lookup():\n+    class BrokenClassLookup:\n+        def __getattribute__(self, attr):\n+            raise RuntimeError(\"broken attribute lookup\")\n+\n+        def __repr__(self):\n+            raise ValueError(\"broken repr\")\n+\n+    s = saferepr(BrokenClassLookup())\n+    assert \"BrokenClassLookup\" in s\n+    assert \"broken repr\" in s\n+\n+\n def test_baseexception():\n     \"\"\"Test saferepr() with BaseExceptions, which includes pytest outcomes.\"\"\"\n \n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3661,6 +3928,34 @@
         "cost_usd": 0.067326,
         "input_tokens": 437343,
         "output_tokens": 2874,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/main.py"
+        ],
+        "patch": "diff --git a/src/_pytest/main.py b/src/_pytest/main.py\nindex 843c5b5f7..78c580395 100644\n--- a/src/_pytest/main.py\n+++ b/src/_pytest/main.py\n@@ -107,6 +107,7 @@ def pytest_addoption(parser):\n \n     group = parser.getgroup(\"collect\", \"collection\")\n     group.addoption(\n+        \"-C\",\n         \"--collectonly\",\n         \"--collect-only\",\n         action=\"store_true\",\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -c \"rg -n \\\"collect-only|collect_only|collectonly|--collect-only|addoption\\\\(\\\" .\"",
+          "codex_bash:/bin/zsh -c 'rg -n \"option.*collect|collect.*option|collect_only\" src testing doc .'",
+          "codex_bash:/bin/zsh -c \"sed -n '90,130p' src/_pytest/main.py\"",
+          "codex_bash:/bin/zsh -c \"rg -n \\\"\\\\-c\\\\b|dest=\\\\\\\".*config|configfile|collectonly\\\" src/_pytest testing | head -n 200\"",
+          "codex_bash:/bin/zsh -c \"rg -n '\\\"-[A-Z]\\\"|\\\"-[a-z]\\\"' src/_pytest | sed -n '1,220p'\"",
+          "codex_bash:/bin/zsh -c \"sed -n '1,130p' src/_pytest/main.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -c \"nl -ba src/_pytest/main.py | sed -n '104,120p'\"",
+          "codex_bash:/bin/zsh -c 'git diff -- src/_pytest/main.py'"
+        ],
+        "cost_usd": 0.050214,
+        "input_tokens": 324395,
+        "output_tokens": 2592,
         "num_turns": 1,
         "touched_files": [
           "src/_pytest/main.py"
@@ -3754,6 +4049,53 @@
           "src/_pytest/pathlib.py"
         ],
         "patch": "diff --git a/src/_pytest/pathlib.py b/src/_pytest/pathlib.py\nindex e43310ef0..d96ed9ff2 100644\n--- a/src/_pytest/pathlib.py\n+++ b/src/_pytest/pathlib.py\n@@ -522,7 +522,18 @@ def import_path(\n         raise ImportError(path)\n \n     if mode is ImportMode.importlib:\n-        module_name = module_name_from_path(path, root)\n+        module_root = root\n+        # Namespace packages do not have __init__.py files, so a source tree rooted at a\n+        # sys.path entry (for example ``src/``) should not become part of the synthetic\n+        # module name. Walk upward until we find such a namespace package root.\n+        for parent in path.parent.parents:\n+            if (parent / \"__init__.py\").is_file():\n+                break\n+            if str(parent) in sys.path:\n+                module_root = parent\n+                break\n+\n+        module_name = module_name_from_path(path, module_root)\n \n         for meta_importer in sys.meta_path:\n             spec = meta_importer.find_spec(module_name, [str(path.parent)])\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"initialize\\\\(|pmxbot\\\\.logging|from .* import logging|import logging\\\" pmxbot tests -g '\"'!**/__py",
+          "codex_bash:/bin/zsh -lc \"rg --files pmxbot tests | sed -n '1,220p'\"",
+          "codex_bash:/bin/zsh -lc pwd",
+          "codex_bash:/bin/zsh -lc \"find . -maxdepth 2 -type d | sort | sed -n '1,220p'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"pmxbot\\\\.logging|Logger\\\\.store|initialize\\\\(\\\" src testing -g '\"'!**/__pycache__/**'\"'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"import-mode|importlib\\\" pyproject.toml setup.cfg tox.ini pytest.ini src testing .github -g '\"'!**/",
+          "codex_bash:/bin/zsh -lc \"sed -n '480,700p' src/_pytest/pathlib.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1520,1655p' testing/test_collection.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '280,340p' testing/test_pathlib.py\"",
+          "codex_bash:/bin/zsh -lc 'git grep -n \"insert_missing_modules\"'",
+          "codex_bash:/bin/zsh -lc 'git log --oneline --decorate -n 20 -- src/_pytest/pathlib.py'",
+          "codex_bash:/bin/zsh -lc \"git log --oneline --decorate --grep='importlib' --all -- src/_pytest/pathlib.py\"",
+          "codex_bash:/bin/zsh -lc 'git show --stat --summary 03e54712d -- src/_pytest/pathlib.py testing/test_pathlib.py testing/test_collect",
+          "codex_bash:/bin/zsh -lc 'git show --stat --summary 86c3aab00 -- src/_pytest/pathlib.py testing/test_pathlib.py testing/test_collect",
+          "codex_bash:/bin/zsh -lc 'git show 03e54712d -- src/_pytest/pathlib.py'",
+          "codex_bash:/bin/zsh -lc 'git show 03e54712d -- testing/test_pathlib.py'",
+          "codex_bash:/bin/zsh -lc \"sed -n '520,700p' src/_pytest/pathlib.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"import_path\\\\(\\\" src testing | sed -n '1,120p'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,80p' src/_pytest/pathlib.py\"",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/pathlib.py'",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"always returns a new module|importmode_twice_is_different_module|module2 = import_path\\\\(simple_mo",
+          "codex_bash:/bin/zsh -lc \"sed -n '288,312p' testing/test_pathlib.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"nl -ba src/_pytest/pathlib.py | sed -n '520,548p'\"",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/pathlib.py testing/test_pathlib.py'",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/test_pathlib.py | sed -n '296,310p'\""
+        ],
+        "cost_usd": 0.152073,
+        "input_tokens": 964655,
+        "output_tokens": 12292,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/pathlib.py",
+          "testing/test_pathlib.py"
+        ],
+        "patch": "diff --git a/src/_pytest/pathlib.py b/src/_pytest/pathlib.py\nindex e43310ef0..fe81616fd 100644\n--- a/src/_pytest/pathlib.py\n+++ b/src/_pytest/pathlib.py\n@@ -524,6 +524,9 @@ def import_path(\n     if mode is ImportMode.importlib:\n         module_name = module_name_from_path(path, root)\n \n+        if module_name in sys.modules:\n+            return sys.modules[module_name]\n+\n         for meta_importer in sys.meta_path:\n             spec = meta_importer.find_spec(module_name, [str(path.parent)])\n             if spec is not None:\ndiff --git a/testing/test_pathlib.py b/testing/test_pathlib.py\nindex c15a81ea1..ae6d781f0 100644\n--- a/testing/test_pathlib.py\n+++ b/testing/test_pathlib.py\n@@ -301,10 +301,10 @@ class TestImportPath:\n     def test_importmode_twice_is_different_module(\n         self, simple_module: Path, tmp_path: Path\n     ) -> None:\n-        \"\"\"`importlib` mode always returns a new module.\"\"\"\n+        \"\"\"`importlib` mode reuses the already-imported module.\"\"\"\n         module1 = import_path(simple_module, mode=\"importlib\", root=tmp_path)\n         module2 = import_path(simple_module, mode=\"importlib\", root=tmp_path)\n-        assert module1 is not module2\n+        assert module1 is module2\n \n     def test_no_meta_path_found(\n         self, simple_module: Path, monkeypatch: MonkeyPatch, tmp_path: Path\n",
         "gold_hit": true,
         "bypass": false,
         "error": null
@@ -3874,6 +4216,66 @@
         "gold_hit": true,
         "bypass": false,
         "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg --files | rg \\\"rewrite\\\\.py|assertion|_pytest\\\"\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"all\\\\(|any\\\\(|BoolOp|assertion rewrite|unroll\\\" _pytest pytest src -g '*.py'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '880,1105p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' testing/test_assertrewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"all\\\\(|any\\\\(|generator expression|list comprehension|boolop|assert all|assert any\\\" testing src/_",
+          "codex_bash:/bin/zsh -lc \"sed -n '430,540p' testing/test_assertrewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '600,700p' testing/test_assertrewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '700,980p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"visit_.*Comp|comprehension|GeneratorExp|ListComp|IfExp|visit_IfExp|helper\\\\(\\\" src/_pytest/asserti",
+          "codex_bash:/bin/zsh -lc 'git log --oneline --decorate -- src/_pytest/assertion/rewrite.py | head -n 40'",
+          "codex_bash:/bin/zsh -lc \"git log --oneline --decorate --grep='all()' --grep='any()' --grep='5062' --grep='5370' --grep='5371' --gre",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal f078984c2 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal 2125d0450 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal 2b14edb10 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal 1b381d527 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal 2b9ca3428 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git show 2b9ca3428 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal 22d91a3c3 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git show --stat --patch --minimal 733f43b02 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite",
+          "codex_bash:/bin/zsh -lc 'git diff 733f43b02''^ 733f43b02 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc \"git show 733f43b02:src/_pytest/assertion/rewrite.py | sed -n '900,1045p'\"",
+          "codex_bash:/bin/zsh -lc \"git show 22d91a3c3:src/_pytest/assertion/rewrite.py | sed -n '1000,1045p'\"",
+          "codex_bash:/bin/zsh -lc \"git log --oneline --decorate --grep='any #5062' --grep='Unroll calls to any' --all\"",
+          "codex_bash:/bin/zsh -lc 'git diff 0a5712406 2b9ca3428 -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc 'rg -n \"def set_location|def traverse_node|copy_location|fix_missing_locations\" src/_pytest/assertion/rewri",
+          "codex_bash:/bin/zsh -lc \"sed -n '480,620p' src/_pytest/assertion/rewrite.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '930,1045p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '820,900p' src/_pytest/assertion/rewrite.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '820,1025p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '620,760p' testing/test_assertrewrite.py\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"test_unroll_all_\" testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc 'python -m py_compile src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc \"nl -ba src/_pytest/assertion/rewrite.py | sed -n '830,1025p'\"",
+          "codex_bash:/bin/zsh -lc \"nl -ba testing/test_assertrewrite.py | sed -n '520,575p'\""
+        ],
+        "cost_usd": 0.635736,
+        "input_tokens": 4086625,
+        "output_tokens": 37904,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/assertion/rewrite.py",
+          "testing/test_assertrewrite.py"
+        ],
+        "patch": "diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py\nindex 2903b8995..6c0bae5f0 100644\n--- a/src/_pytest/assertion/rewrite.py\n+++ b/src/_pytest/assertion/rewrite.py\n@@ -838,6 +838,9 @@ class AssertionRewriter(ast.NodeVisitor):\n         self.variable_counter = itertools.count()\n         self.stack = []\n         self.on_failure = []\n+        if self._is_all_call_with_generator_or_list_comprehension(assert_.test):\n+            self._visit_all(assert_.test)\n+            return self.statements\n         self.push_format_context()\n         # Rewrite assert into a bunch of statements.\n         top_condition, explanation = self.visit(assert_.test)\n@@ -991,6 +994,34 @@ warn_explicit(\n         outer_expl = \"%s\\n{%s = %s\\n}\" % (res_expl, res_expl, expl)\n         return res, outer_expl\n \n+    @staticmethod\n+    def _is_all_call_with_generator_or_list_comprehension(call):\n+        return (\n+            isinstance(call.func, ast.Name)\n+            and call.func.id == \"all\"\n+            and len(call.args) == 1\n+            and isinstance(call.args[0], (ast.GeneratorExp, ast.ListComp))\n+        )\n+\n+    def _visit_all(self, call):\n+        \"\"\"Special rewrite for the builtin all function, see #5062.\"\"\"\n+        gen_exp = call.args[0]\n+        assertion_module = ast.Module(\n+            body=[ast.Assert(test=gen_exp.elt, lineno=1, msg=\"\", col_offset=1)]\n+        )\n+        AssertionRewriter(module_path=None, config=None).run(assertion_module)\n+\n+        body = assertion_module.body\n+        for comp in reversed(gen_exp.generators):\n+            for if_ in reversed(comp.ifs):\n+                body = [ast.If(test=if_, body=body, orelse=[])]\n+            body = [ast.For(iter=comp.iter, target=comp.target, body=body, orelse=[])]\n+\n+        for stmt in body:\n+            set_location(stmt, call.lineno, call.col_offset)\n+        self.statements.extend(body)\n+        return ast.Num(n=1), \"\"\n+\n     def visit_Starred(self, starred):\n         # From Python 3.5, a Starred node can appear in a function call\n         res, expl = self.visit(starred.value)\ndiff --git a/testing/test_assertrewrite.py b/testing/test_assertrewrite.py\nindex 87dada213..0ad471977 100644\n--- a/testing/test_assertrewrite.py\n+++ b/testing/test_assertrewrite.py\n@@ -525,6 +525,45 @@ class TestAssertionRewrite(object):\n  +  where False = g(**{'a': 2})\"\"\"\n         )\n \n+    def test_unroll_all_generator(self, testdir):\n+        testdir.makepyfile(\n+            \"\"\"\n+            def check_even(num):\n+                return num % 2 == 0\n+\n+            def test_generator():\n+                odd_list = list(range(1, 9, 2))\n+                assert all(check_even(num) for num in odd_list)\n+            \"\"\"\n+        )\n+        result = testdir.runpytest()\n+        result.stdout.fnmatch_lines([\"*assert False*\", \"*where False = check_even(1)*\"])\n+\n+    def test_unroll_all_list_comprehension(self, testdir):\n+        testdir.makepyfile(\n+            \"\"\"\n+            def check_even(num):\n+                return num % 2 == 0\n+\n+            def test_list_comprehension():\n+                odd_list = list(range(1, 9, 2))\n+                assert all([check_even(num) for num in odd_list])\n+            \"\"\"\n+        )\n+        result = testdir.runpytest()\n+        result.stdout.fnmatch_lines([\"*assert False*\", \"*where False = check_even(1)*\"])\n+\n+    def test_unroll_all_nested_generator(self, testdir):\n+        testdir.makepyfile(\n+            \"\"\"\n+            def test_nested_generator():\n+                s = [[True, True], [True, True]]\n+                assert all(e for row in s for e in row)\n+            \"\"\"\n+        )\n+        result = testdir.runpytest()\n+        result.stdout.fnmatch_lines([\"*1 passed*\"])\n+\n     def test_attribute(self):\n         class X(object):\n             g = 3\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -3946,6 +4348,30 @@
           "testing/test_skipping.py"
         ],
         "patch": "diff --git a/src/_pytest/skipping.py b/src/_pytest/skipping.py\nindex 7bd975e5a..4b657af14 100644\n--- a/src/_pytest/skipping.py\n+++ b/src/_pytest/skipping.py\n@@ -270,6 +270,18 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):\n         else:\n             rep.longrepr = \"Unexpected success\"\n         rep.outcome = \"failed\"\n+    elif (\n+        item._store.get(skipped_by_mark_key, True)\n+        and rep.skipped\n+        and type(rep.longrepr) is tuple\n+    ):\n+        # skipped by mark.skipif; change the location of the failure\n+        # to point to the item definition, otherwise it will display\n+        # the location of where the skip exception was raised within pytest\n+        _, _, reason = rep.longrepr\n+        filename, line = item.reportinfo()[:2]\n+        assert line is not None\n+        rep.longrepr = str(filename), line + 1, reason\n     elif item.config.option.runxfail:\n         pass  # don't interfere\n     elif call.excinfo and isinstance(call.excinfo.value, xfail.Exception):\n@@ -291,18 +303,6 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):\n             else:\n                 rep.outcome = \"passed\"\n                 rep.wasxfail = xfailed.reason\n-    elif (\n-        item._store.get(skipped_by_mark_key, True)\n-        and rep.skipped\n-        and type(rep.longrepr) is tuple\n-    ):\n-        # skipped by mark.skipif; change the location of the failure\n-        # to point to the item definition, otherwise it will display\n-        # the location of where the skip exception was raised within pytest\n-        _, _, reason = rep.longrepr\n-        filename, line = item.reportinfo()[:2]\n-        assert line is not None\n-        rep.longrepr = str(filename), line + 1, reason\n \n \n def pytest_report_teststatus(report: BaseReport) -> Optional[Tuple[str, str, str]]:\ndiff --git a/testing/test_skipping.py b/testing/test_skipping.py\nindex 0b1c0b49b..dee4907b0 100644\n--- a/testing/test_skipping.py\n+++ b/testing/test_skipping.py\n@@ -607,6 +607,20 @@ class TestSkip:\n         result = testdir.runpytest(\"-rs\")\n         result.stdout.fnmatch_lines([\"*unconditional skip*\", \"*1 skipped*\"])\n \n+    def test_skip_no_reason_runxfail(self, testdir):\n+        testdir.makepyfile(\n+            \"\"\"\n+            import pytest\n+            @pytest.mark.skip\n+            def test_foo():\n+                assert 0\n+            \"\"\"\n+        )\n+        result = testdir.runpytest(\"-rs\", \"--runxfail\")\n+        result.stdout.fnmatch_lines(\n+            [\"*SKIPPED [1] test_foo.py:*: unconditional skip\", \"*1 skipped*\"]\n+        )\n+\n     def test_skip_with_reason(self, testdir):\n         testdir.makepyfile(\n             \"\"\"\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"pytest_runtest_makereport|runxfail|skip location|skipif|unconditional skip|wasxfail\\\" src/_pytest/",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,320p' src/_pytest/skipping.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '255,320p' src/_pytest/skipping.py\"",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/skipping.py'"
+        ],
+        "cost_usd": 0.028803,
+        "input_tokens": 177702,
+        "output_tokens": 3580,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/skipping.py"
+        ],
+        "patch": "diff --git a/src/_pytest/skipping.py b/src/_pytest/skipping.py\nindex 7bd975e5a..e0878ff90 100644\n--- a/src/_pytest/skipping.py\n+++ b/src/_pytest/skipping.py\n@@ -270,13 +270,13 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):\n         else:\n             rep.longrepr = \"Unexpected success\"\n         rep.outcome = \"failed\"\n-    elif item.config.option.runxfail:\n-        pass  # don't interfere\n-    elif call.excinfo and isinstance(call.excinfo.value, xfail.Exception):\n+    elif not item.config.option.runxfail and call.excinfo and isinstance(\n+        call.excinfo.value, xfail.Exception\n+    ):\n         assert call.excinfo.value.msg is not None\n         rep.wasxfail = \"reason: \" + call.excinfo.value.msg\n         rep.outcome = \"skipped\"\n-    elif not rep.skipped and xfailed:\n+    elif not item.config.option.runxfail and not rep.skipped and xfailed:\n         if call.excinfo:\n             raises = xfailed.raises\n             if raises is not None and not isinstance(call.excinfo.value, raises):\n",
         "gold_hit": true,
         "bypass": false,
         "error": null
@@ -4043,6 +4469,54 @@
         "gold_hit": true,
         "bypass": false,
         "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"getstatementrange|StatementRange|source.*lineno|TracebackEntry|co_firstlineno\\\" _pytest -g '\"'!**/",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"lineno|statement.*lineno|assert.*rewrit|decorator\\\" _pytest testing src -g '\"'!**/__pycache__/**'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"python3\\\\.9|3\\\\.9|decorator\\\" doc changelog news -g '\"'!**/__pycache__/**'\"'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/code/test_source.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '680,760p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '140,240p' src/_pytest/_code/source.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '450,540p' testing/code/test_source.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1180,1265p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '240,330p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '780,850p' src/_pytest/_code/code.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/test_assertrewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"getstatementrange_ast\\\\(|end_lineno|decorator_list\\\" src testing | sed -n '1,120p'\"",
+          "codex_bash:/bin/zsh -lc 'git log --oneline --decorate -- src/_pytest/_code/source.py src/_pytest/_code/code.py src/_pytest/assertio",
+          "codex_bash:/bin/zsh -lc \"git log --oneline --decorate --grep='4984\\\\|decorator\\\\|lineno' --all\"",
+          "codex_bash:/bin/zsh -lc 'git show --stat --oneline 9bfa02ea0 --'",
+          "codex_bash:/bin/zsh -lc 'git show --stat --oneline dc7091502 --'",
+          "codex_bash:/bin/zsh -lc \"git show 9bfa02ea0:src/_pytest/_code/source.py | sed -n '140,220p'\"",
+          "codex_bash:/bin/zsh -lc \"git show 9bfa02ea0:testing/code/test_source.py | sed -n '450,520p'\"",
+          "codex_bash:/bin/zsh -lc 'git show 9bfa02ea0:testing/code/test_source.py | rg -n \"9359|decorator|test_getstatementrange\" -n'",
+          "codex_bash:/bin/zsh -lc \"git show 9bfa02ea0:testing/code/test_source.py | sed -n '520,620p'\"",
+          "codex_bash:/bin/zsh -lc \"git show 9bfa02ea0:testing/code/test_source.py | sed -n '620,700p'\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '600,650p' testing/code/test_source.py\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"test_decorator|assert_before_decorated\" testing/code/test_source.py'",
+          "codex_bash:/bin/zsh -lc \"sed -n '450,520p' testing/code/test_source.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/_code/source.py testing/code/test_source.py'",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom pathlib import Path\nfor p in ['src/_pytest/_code/source.py','testing/code/test_source"
+        ],
+        "cost_usd": 0.21312,
+        "input_tokens": 1383931,
+        "output_tokens": 9217,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/_code/source.py",
+          "testing/code/test_source.py"
+        ],
+        "patch": "diff --git a/src/_pytest/_code/source.py b/src/_pytest/_code/source.py\nindex 6f54057c0..4086453dc 100644\n--- a/src/_pytest/_code/source.py\n+++ b/src/_pytest/_code/source.py\n@@ -149,6 +149,13 @@ def get_statement_startend2(lineno: int, node: ast.AST) -> Tuple[int, Optional[i\n     values: List[int] = []\n     for x in ast.walk(node):\n         if isinstance(x, (ast.stmt, ast.ExceptHandler)):\n+            # Before Python 3.8, decorators were included in the lineno of\n+            # decorated classes and functions. Since Python 3.8, the lineno\n+            # points at the `class`/`def` line, so include decorator lines to\n+            # preserve the old statement range behavior.\n+            if isinstance(x, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):\n+                for decorator in x.decorator_list:\n+                    values.append(decorator.lineno - 1)\n             values.append(x.lineno - 1)\n             for name in (\"finalbody\", \"orelse\"):\n                 val: Optional[List[ast.stmt]] = getattr(x, name, None)\ndiff --git a/testing/code/test_source.py b/testing/code/test_source.py\nindex 53e1bb985..31a5d3bee 100644\n--- a/testing/code/test_source.py\n+++ b/testing/code/test_source.py\n@@ -493,6 +493,23 @@ def test_source_with_decorator() -> None:\n     )\n \n \n+def test_assert_before_decorated_function() -> None:\n+    source = Source(\n+        \"\"\"\\\n+def foo(f):\n+    pass\n+\n+def test_right_statement(foo):\n+    assert foo == (3 + 2) * (6 + 9)\n+\n+    @foo\n+    def inner():\n+        return 2\n+\"\"\"\n+    )\n+    assert str(source.getstatement(4)) == \"    assert foo == (3 + 2) * (6 + 9)\"\n+\n+\n def test_single_line_else() -> None:\n     source = getstatement(1, \"if False: 2\\nelse: 3\")\n     assert str(source) == \"else: 3\"\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -4128,6 +4602,39 @@
         "gold_hit": true,
         "bypass": false,
         "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"filename\\\\)-25s|lineno\\\\)4d|DEFAULT_LOG_FORMAT\\\" -S pytest _pytest\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"DEFAULT_LOG_FORMAT|log format|logging format|basicConfig|log_format\" -S .'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' src/_pytest/logging.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '620,700p' doc/en/logging.rst\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1200,1255p' doc/en/reference.rst\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"%\\\\(filename\\\\)-25s|%(levelname\\\\)-8s %(message)s|DEFAULT_LOG_FORMAT\\\" -S .\"",
+          "codex_bash:/bin/zsh -lc 'git status --short'",
+          "codex_bash:/bin/zsh -lc 'rg -n -F \"%(filename)-25s\" .'",
+          "codex_bash:/bin/zsh -lc 'rg -n -F \"DEFAULT_LOG_FORMAT\" .'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/logging/test_formatter.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,120p' src/_pytest/logging.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/logging.py'",
+          "codex_bash:/bin/zsh -lc 'git status --short'"
+        ],
+        "cost_usd": 0.057455,
+        "input_tokens": 370383,
+        "output_tokens": 3163,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/logging.py"
+        ],
+        "patch": "diff --git a/src/_pytest/logging.py b/src/_pytest/logging.py\nindex 757cb2797..08670d2b2 100644\n--- a/src/_pytest/logging.py\n+++ b/src/_pytest/logging.py\n@@ -15,7 +15,7 @@ from _pytest.compat import dummy_context_manager\n from _pytest.config import create_terminal_writer\n from _pytest.pathlib import Path\n \n-DEFAULT_LOG_FORMAT = \"%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s\"\n+DEFAULT_LOG_FORMAT = \"%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s\"\n DEFAULT_LOG_DATE_FORMAT = \"%H:%M:%S\"\n \n \n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -4198,6 +4705,39 @@
           "src/_pytest/mark/evaluate.py"
         ],
         "patch": "diff --git a/src/_pytest/mark/evaluate.py b/src/_pytest/mark/evaluate.py\nindex 759191668..4d32f3294 100644\n--- a/src/_pytest/mark/evaluate.py\n+++ b/src/_pytest/mark/evaluate.py\n@@ -2,33 +2,13 @@ import os\n import platform\n import sys\n import traceback\n-from typing import Any\n-from typing import Dict\n from typing import List\n from typing import Optional\n \n from ..outcomes import fail\n from ..outcomes import TEST_OUTCOME\n from .structures import Mark\n-from _pytest.config import Config\n from _pytest.nodes import Item\n-from _pytest.store import StoreKey\n-\n-\n-evalcache_key = StoreKey[Dict[str, Any]]()\n-\n-\n-def cached_eval(config: Config, expr: str, d: Dict[str, object]) -> Any:\n-    default = {}  # type: Dict[str, object]\n-    evalcache = config._store.setdefault(evalcache_key, default)\n-    try:\n-        return evalcache[expr]\n-    except KeyError:\n-        import _pytest._code\n-\n-        exprcode = _pytest._code.compile(expr, mode=\"eval\")\n-        evalcache[expr] = x = eval(exprcode, d)\n-        return x\n \n \n class MarkEvaluator:\n@@ -98,7 +78,10 @@ class MarkEvaluator:\n                     self.expr = expr\n                     if isinstance(expr, str):\n                         d = self._getglobals()\n-                        result = cached_eval(self.item.config, expr, d)\n+                        import _pytest._code\n+\n+                        exprcode = _pytest._code.compile(expr, mode=\"eval\")\n+                        result = eval(exprcode, d)\n                     else:\n                         if \"reason\" not in mark.kwargs:\n                             # XXX better be checked at collection time\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc 'rg -n \"cached_eval|_istrue|skipif|xfail\" _pytest/mark -S'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,240p' _pytest/mark/evaluate.py\"",
+          "codex_bash:/bin/zsh -lc pwd",
+          "codex_bash:/bin/zsh -lc \"rg --files | rg \\\"evaluate\\\\.py\"'$|mark/.+'\"\\\\.py\"'$|_pytest/.+'\"\\\\.py\"'$\"'",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' src/_pytest/mark/evaluate.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,260p' src/_pytest/skipping.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"cached_eval\\\\(\\\" src -S\"",
+          "codex_bash:/bin/zsh -lc 'git status --short'",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' src/_pytest/mark/evaluate.py\"",
+          "codex_bash:/bin/zsh -lc 'python -m compileall -q src/_pytest/mark/evaluate.py'",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'python -m compileall -q src/_pytest/mark/evaluate.py'",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/mark/evaluate.py'"
+        ],
+        "cost_usd": 0.075743,
+        "input_tokens": 491487,
+        "output_tokens": 3367,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/mark/evaluate.py"
+        ],
+        "patch": "diff --git a/src/_pytest/mark/evaluate.py b/src/_pytest/mark/evaluate.py\nindex 759191668..2e1a6ac44 100644\n--- a/src/_pytest/mark/evaluate.py\n+++ b/src/_pytest/mark/evaluate.py\n@@ -2,7 +2,6 @@ import os\n import platform\n import sys\n import traceback\n-from typing import Any\n from typing import Dict\n from typing import List\n from typing import Optional\n@@ -10,25 +9,7 @@ from typing import Optional\n from ..outcomes import fail\n from ..outcomes import TEST_OUTCOME\n from .structures import Mark\n-from _pytest.config import Config\n from _pytest.nodes import Item\n-from _pytest.store import StoreKey\n-\n-\n-evalcache_key = StoreKey[Dict[str, Any]]()\n-\n-\n-def cached_eval(config: Config, expr: str, d: Dict[str, object]) -> Any:\n-    default = {}  # type: Dict[str, object]\n-    evalcache = config._store.setdefault(evalcache_key, default)\n-    try:\n-        return evalcache[expr]\n-    except KeyError:\n-        import _pytest._code\n-\n-        exprcode = _pytest._code.compile(expr, mode=\"eval\")\n-        evalcache[expr] = x = eval(exprcode, d)\n-        return x\n \n \n class MarkEvaluator:\n@@ -87,6 +68,8 @@ class MarkEvaluator:\n \n         if self._marks:\n             self.result = False\n+            import _pytest._code\n+\n             for mark in self._marks:\n                 self._mark = mark\n                 if \"condition\" not in mark.kwargs:\n@@ -98,7 +81,9 @@ class MarkEvaluator:\n                     self.expr = expr\n                     if isinstance(expr, str):\n                         d = self._getglobals()\n-                        result = cached_eval(self.item.config, expr, d)\n+\n+                        exprcode = _pytest._code.compile(expr, mode=\"eval\")\n+                        result = eval(exprcode, d)\n                     else:\n                         if \"reason\" not in mark.kwargs:\n                             # XXX better be checked at collection time\n",
         "gold_hit": true,
         "bypass": false,
         "error": null
@@ -4277,6 +4817,42 @@
         "gold_hit": true,
         "bypass": false,
         "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc 'rg -n \"is_rewrite_disabled|PYTEST_DONT_REWRITE|docstring\" -S _pytest src testing'",
+          "codex_bash:/bin/zsh -lc 'rg -n \"AssertionRewriter|rewrite_asserts\" -S _pytest src testing'",
+          "codex_bash:/bin/zsh -lc \"sed -n '640,780p' src/_pytest/assertion/rewrite.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,220p' testing/test_assertrewrite.py\"",
+          "codex_bash:/bin/zsh -lc 'rg -n \"numeric|int|Constant|docstring|place_initial_imports|rewrite\" testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nimport ast, textwrap\nfor src in ['1\\\\nassert True\\\\n', '\\\"x\\\"\\\\nassert True\\\\n', '1.5\\\\nas",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"\\\\.docstring\\\\b|docstring =|get_docstring\\\\(\\\" src testing -S\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '220,380p' src/_pytest/assertion/rewrite.py\"",
+          "codex_edit",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nimport ast\nfrom src._pytest.assertion.rewrite import rewrite_asserts\nsrc = '1\\\\nother = st",
+          "codex_bash:/bin/zsh -lc \"python - <<'PY'\nfrom src._pytest.assertion.rewrite import AssertionRewriter\nprint(AssertionRewriter.is_rew",
+          "codex_bash:/bin/zsh -lc \"PYTHONPATH=src python - <<'PY'\nimport ast\nfrom _pytest.assertion.rewrite import rewrite_asserts\nsrc = '1\\\\",
+          "codex_bash:/bin/zsh -lc \"PYTHONPATH=src python - <<'PY'\nfrom _pytest.assertion.rewrite import AssertionRewriter\nprint(AssertionRewr",
+          "codex_bash:/bin/zsh -lc 'python -m py_compile src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/assertion/rewrite.py testing/test_assertrewrite.py'"
+        ],
+        "cost_usd": 0.090064,
+        "input_tokens": 575886,
+        "output_tokens": 6136,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/assertion/rewrite.py",
+          "testing/test_assertrewrite.py"
+        ],
+        "patch": "diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py\nindex 157903faf..c20b42c4f 100644\n--- a/src/_pytest/assertion/rewrite.py\n+++ b/src/_pytest/assertion/rewrite.py\n@@ -742,8 +742,8 @@ class AssertionRewriter(ast.NodeVisitor):\n                     nodes.append(field)\n \n     @staticmethod\n-    def is_rewrite_disabled(docstring: str) -> bool:\n-        return \"PYTEST_DONT_REWRITE\" in docstring\n+    def is_rewrite_disabled(docstring: object) -> bool:\n+        return isinstance(docstring, str) and \"PYTEST_DONT_REWRITE\" in docstring\n \n     def variable(self) -> str:\n         \"\"\"Get a new variable.\"\"\"\ndiff --git a/testing/test_assertrewrite.py b/testing/test_assertrewrite.py\nindex d01803204..7a55409d9 100644\n--- a/testing/test_assertrewrite.py\n+++ b/testing/test_assertrewrite.py\n@@ -80,6 +80,14 @@ class TestAssertionRewrite:\n             assert imp.lineno == 2\n             assert imp.col_offset == 0\n         assert isinstance(m.body[3], ast.Assign)\n+        s = \"\"\"1\\nother = stuff\"\"\"\n+        m = rewrite(s)\n+        for imp in m.body[:2]:\n+            assert isinstance(imp, ast.Import)\n+            assert imp.lineno == 2\n+            assert imp.col_offset == 0\n+        assert isinstance(m.body[2], ast.Expr)\n+        assert isinstance(m.body[3], ast.Assign)\n         s = \"\"\"from __future__ import division\\nother_stuff\"\"\"\n         m = rewrite(s)\n         assert isinstance(m.body[0], ast.ImportFrom)\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
       }
     ]
   },
@@ -4339,6 +4915,36 @@
           "testing/python/fixtures.py"
         ],
         "patch": "diff --git a/src/_pytest/python.py b/src/_pytest/python.py\nindex 377357846..0de5e62bc 100644\n--- a/src/_pytest/python.py\n+++ b/src/_pytest/python.py\n@@ -1343,9 +1343,9 @@ def _showfixtures_main(config, session):\n         if verbose <= 0 and argname[0] == \"_\":\n             continue\n         if verbose > 0:\n-            funcargspec = \"%s -- %s\" % (argname, bestrel)\n+            funcargspec = \"%s [%s] -- %s\" % (argname, fixturedef.scope, bestrel)\n         else:\n-            funcargspec = argname\n+            funcargspec = \"%s [%s]\" % (argname, fixturedef.scope)\n         tw.line(funcargspec, green=True)\n         loc = getlocation(fixturedef.func, curdir)\n         doc = fixturedef.func.__doc__ or \"\"\ndiff --git a/testing/python/fixtures.py b/testing/python/fixtures.py\nindex 48f8028e6..617b027e0 100644\n--- a/testing/python/fixtures.py\n+++ b/testing/python/fixtures.py\n@@ -3037,11 +3037,13 @@ class TestShowFixtures(object):\n \n     def test_show_fixtures(self, testdir):\n         result = testdir.runpytest(\"--fixtures\")\n-        result.stdout.fnmatch_lines([\"*tmpdir*\", \"*temporary directory*\"])\n+        result.stdout.fnmatch_lines([\"*tmpdir [function]*\", \"*temporary directory*\"])\n \n     def test_show_fixtures_verbose(self, testdir):\n         result = testdir.runpytest(\"--fixtures\", \"-v\")\n-        result.stdout.fnmatch_lines([\"*tmpdir*--*tmpdir.py*\", \"*temporary directory*\"])\n+        result.stdout.fnmatch_lines(\n+            [\"*tmpdir [function]*--*tmpdir.py*\", \"*temporary directory*\"]\n+        )\n \n     def test_show_fixtures_testmodule(self, testdir):\n         p = testdir.makepyfile(\n@@ -3058,9 +3060,9 @@ class TestShowFixtures(object):\n         result = testdir.runpytest(\"--fixtures\", p)\n         result.stdout.fnmatch_lines(\n             \"\"\"\n-            *tmpdir\n+            *tmpdir [function]*\n             *fixtures defined from*\n-            *arg1*\n+            *arg1 [function]*\n             *hello world*\n         \"\"\"\n         )\n@@ -3086,9 +3088,9 @@ class TestShowFixtures(object):\n         result = testdir.runpytest(\"--fixtures\")\n         result.stdout.fnmatch_lines(\n             \"\"\"\n-            *tmpdir*\n+            *tmpdir [function]*\n             *fixtures defined from*conftest*\n-            *arg1*\n+            *arg1 [function]*\n             *hello world*\n         \"\"\"\n         )\n@@ -3120,10 +3122,10 @@ class TestShowFixtures(object):\n             textwrap.dedent(\n                 \"\"\"\\\n                 * fixtures defined from test_show_fixtures_trimmed_doc *\n-                arg2\n+                arg2 [function]\n                     line1\n                     line2\n-                arg1\n+                arg1 [function]\n                     line1\n                     line2\n                 \"\"\"\n@@ -3149,7 +3151,7 @@ class TestShowFixtures(object):\n             textwrap.dedent(\n                 \"\"\"\\\n                 * fixtures defined from test_show_fixtures_indented_doc *\n-                fixture1\n+                fixture1 [function]\n                     line1\n                         indented line\n                 \"\"\"\n@@ -3175,7 +3177,7 @@ class TestShowFixtures(object):\n             textwrap.dedent(\n                 \"\"\"\\\n                 * fixtures defined from test_show_fixtures_indented_doc_first_line_unindented *\n-                fixture1\n+                fixture1 [function]\n                     line1\n                     line2\n                         indented line\n@@ -3203,7 +3205,7 @@ class TestShowFixtures(object):\n             textwrap.dedent(\n                 \"\"\"\\\n                 * fixtures defined from test_show_fixtures_indented_in_class *\n-                fixture1\n+                fixture1 [function]\n                     line1\n                     line2\n                         indented line\n@@ -3245,11 +3247,11 @@ class TestShowFixtures(object):\n         result.stdout.fnmatch_lines(\n             \"\"\"\n             * fixtures defined from test_a *\n-            fix_a\n+            fix_a [function]\n                 Fixture A\n \n             * fixtures defined from test_b *\n-            fix_b\n+            fix_b [function]\n                 Fixture B\n         \"\"\"\n         )\n@@ -3285,11 +3287,11 @@ class TestShowFixtures(object):\n         result.stdout.fnmatch_lines(\n             \"\"\"\n             * fixtures defined from conftest *\n-            arg1\n+            arg1 [function]\n                 Hello World in conftest.py\n \n             * fixtures defined from test_show_fixtures_with_same_name *\n-            arg1\n+            arg1 [function]\n                 Hi from test module\n         \"\"\"\n         )\n",
+        "gold_hit": true,
+        "bypass": false,
+        "error": null
+      },
+      {
+        "variant": "without_semble",
+        "backend": "codex",
+        "model": "gpt-5.4-mini",
+        "semble_version": "",
+        "tool_calls": [
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"--fixtures|fixtures.*scope|scope.*fixtures\\\" src testing doc -g '\"'!**/.git/**'\"'\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"fixtures\\\" src doc -g '\"'!**/.git/**'\"'\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1,240p' src/_pytest/fixtures.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '1290,1365p' src/_pytest/python.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"class FixtureDef|scope = attr|def __init__\\\\(.*FixtureDef|@attr.s.*FixtureDef\\\" src/_pytest/fixtur",
+          "codex_bash:/bin/zsh -lc \"sed -n '650,860p' src/_pytest/fixtures.py\"",
+          "codex_bash:/bin/zsh -lc \"rg -n \\\"FixtureDef\\\\(\\\" src/_pytest/fixtures.py src/_pytest/python.py\"",
+          "codex_bash:/bin/zsh -lc \"sed -n '930,1085p' src/_pytest/fixtures.py\"",
+          "codex_edit",
+          "codex_bash:/bin/zsh -lc 'git diff -- src/_pytest/python.py'",
+          "codex_bash:/bin/zsh -lc 'git status --short'"
+        ],
+        "cost_usd": 0.065249,
+        "input_tokens": 420706,
+        "output_tokens": 3571,
+        "num_turns": 1,
+        "touched_files": [
+          "src/_pytest/python.py"
+        ],
+        "patch": "diff --git a/src/_pytest/python.py b/src/_pytest/python.py\nindex 377357846..ee4036241 100644\n--- a/src/_pytest/python.py\n+++ b/src/_pytest/python.py\n@@ -1342,10 +1342,11 @@ def _showfixtures_main(config, session):\n                 currentmodule = module\n         if verbose <= 0 and argname[0] == \"_\":\n             continue\n+        scope = fixturedef.scope or \"function\"\n         if verbose > 0:\n-            funcargspec = \"%s -- %s\" % (argname, bestrel)\n+            funcargspec = \"%s [%s] -- %s\" % (argname, scope, bestrel)\n         else:\n-            funcargspec = argname\n+            funcargspec = \"%s [%s]\" % (argname, scope)\n         tw.line(funcargspec, green=True)\n         loc = getlocation(fixturedef.func, curdir)\n         doc = fixturedef.func.__doc__ or \"\"\n",
         "gold_hit": true,
         "bypass": false,
         "error": null
