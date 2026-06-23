@@ -135,6 +135,7 @@ async def test_index_cache_builds_and_caches(
     with (
         patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=fake_index) as mock_build,
         patch("semble.mcp.save_index_to_cache") as mock_save,
+        patch("semble.mcp.get_validated_cache", return_value=Path("/fake/cache")),
     ):
         first = await cache.get(resolved_source)
         second = await cache.get(resolved_source)
@@ -142,6 +143,50 @@ async def test_index_cache_builds_and_caches(
     assert second is fake_index
     mock_build.assert_called_once()
     mock_save.assert_called_once_with(fake_index, cache._compute_cache_key(resolved_source))
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("source", "patch_target", "expected_build_calls", "validate_called"),
+    [
+        ("local_tmp_path", "from_path", 2, True),
+        ("https://github.com/org/repo", "from_git", 1, False),
+    ],
+    ids=["local_path_rebuilds_when_stale", "git_url_skips_revalidation"],
+)
+async def test_index_cache_staleness_check_scope(
+    cache: _IndexCache,
+    tmp_path: Path,
+    source: str,
+    patch_target: str,
+    expected_build_calls: int,
+    validate_called: bool,
+) -> None:
+    """Local paths are revalidated (and rebuilt when stale) on every get(); git URLs never are."""
+    resolved_source = str(tmp_path) if source == "local_tmp_path" else source
+    with (
+        patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=MagicMock()) as mock_build,
+        patch("semble.mcp.save_index_to_cache"),
+        patch("semble.mcp.get_validated_cache", return_value=None) as mock_validate,
+    ):
+        await cache.get(resolved_source)
+        await cache.get(resolved_source)
+    assert mock_build.call_count == expected_build_calls
+    assert mock_validate.called is validate_called
+
+
+@pytest.mark.anyio
+async def test_index_cache_skips_staleness_check_for_failed_task(cache: _IndexCache, tmp_path: Path) -> None:
+    """A cached entry that finished with an exception is not revalidated; it is left for the normal retry path."""
+
+    async def _raise() -> MagicMock:
+        raise RuntimeError("boom")
+
+    cache._tasks[str(tmp_path.resolve())] = asyncio.create_task(_raise())
+    await asyncio.sleep(0)  # let the task finish
+    with patch("semble.mcp.get_validated_cache") as mock_validate:
+        await cache._evict_if_stale(str(tmp_path), str(tmp_path.resolve()))
+    mock_validate.assert_not_called()
 
 
 @pytest.mark.anyio

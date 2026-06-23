@@ -11,7 +11,7 @@ from typing import Annotated
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
 
-from semble.cache import save_index_to_cache
+from semble.cache import get_validated_cache, save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import ContentType
@@ -199,9 +199,29 @@ class _IndexCache:
     def evict(self, source: str) -> None:
         self._tasks.pop(self._compute_cache_key(source), None)
 
+    async def _evict_if_stale(self, source: str, cache_key: str) -> None:
+        """Evict a cached local-path entry whose on-disk cache no longer matches its files."""
+        cached = self._tasks.get(cache_key)
+        if (
+            cached is None
+            or is_git_url(source)
+            or not cached.done()
+            or cached.cancelled()
+            or cached.exception() is not None
+        ):
+            return
+        validated = await asyncio.to_thread(get_validated_cache, cache_key, self._model_path, self._content)
+        if validated is None:
+            self.evict(source)
+
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
-        """Return an index for the requested source, building and caching it on first access."""
+        """Return an index for the requested source, building and caching it on first access.
+
+        Local paths are revalidated against the on-disk cache on every call (the same
+        file-mtime check the CLI uses), so an entry is rebuilt once its files change.
+        """
         cache_key = self._compute_cache_key(source, ref)
+        await self._evict_if_stale(source, cache_key)
 
         if cache_key not in self._tasks:
             model_path = await self._await_model()
