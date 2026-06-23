@@ -226,7 +226,8 @@ class _IndexCache:
         if time.monotonic() - finished_at < duration * _MIN_REVALIDATE_FACTOR:
             return
         validated = await asyncio.to_thread(get_validated_cache, cache_key, self._model_path, self._content)
-        if validated is None:
+        # Only evict if this entry hasn't already been replaced by a concurrent caller.
+        if validated is None and self._tasks.get(cache_key) is cached:
             self.evict(source)
 
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:

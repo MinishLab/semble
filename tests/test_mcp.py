@@ -207,6 +207,26 @@ async def test_index_cache_skips_staleness_check_for_failed_task(cache: _IndexCa
 
 
 @pytest.mark.anyio
+async def test_index_cache_does_not_evict_entry_replaced_during_validation(cache: _IndexCache, tmp_path: Path) -> None:
+    """If a concurrent caller already replaced a stale entry, _evict_if_stale must not evict the new one."""
+    cache_key = str(tmp_path.resolve())
+    cache._tasks[cache_key] = asyncio.create_task(_succeed())
+    await asyncio.sleep(0)
+    cache._build_times[cache_key] = (0.0, 0.0)  # cooldown already elapsed
+
+    replacement_task = object()
+
+    def _replace_entry_then_report_stale(*args: object, **kwargs: object) -> None:
+        # Simulate a concurrent get() winning the race and installing a fresh task first.
+        cache._tasks[cache_key] = replacement_task  # type: ignore[assignment]
+        return None
+
+    with patch("semble.mcp.get_validated_cache", side_effect=_replace_entry_then_report_stale):
+        await cache._evict_if_stale(str(tmp_path), cache_key)
+    assert cache._tasks.get(cache_key) is replacement_task
+
+
+@pytest.mark.anyio
 async def test_index_cache_evicts_on_failure(cache: _IndexCache, tmp_path: Path) -> None:
     """A failed build evicts the entry so the next call can retry."""
     call_count = 0
