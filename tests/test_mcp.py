@@ -169,6 +169,9 @@ async def test_index_cache_staleness_check_scope(
         patch(f"semble.mcp.SembleIndex.{patch_target}", return_value=MagicMock()) as mock_build,
         patch("semble.mcp.save_index_to_cache"),
         patch("semble.mcp.get_validated_cache", return_value=None) as mock_validate,
+        # Disable the cooldown: real build duration (here, just thread-dispatch overhead) would
+        # otherwise sometimes exceed the gap between the two get() calls below, flaking the test.
+        patch("semble.mcp._MIN_REVALIDATE_FACTOR", 0),
     ):
         await cache.get(resolved_source)
         await cache.get(resolved_source)
@@ -182,7 +185,7 @@ async def test_index_cache_skips_staleness_check_during_cooldown(cache: _IndexCa
     cache_key = str(tmp_path.resolve())
     cache._tasks[cache_key] = asyncio.create_task(_succeed())
     await asyncio.sleep(0)  # let the task finish
-    cache._build_times[cache_key] = (time.monotonic(), 10.0)  # a build that took 10s, just finished
+    cache._revalidate_after[cache_key] = time.monotonic() + 30.0  # a build that took 10s, just finished
     with patch("semble.mcp.get_validated_cache") as mock_validate:
         await cache._evict_if_stale(str(tmp_path), cache_key)
     mock_validate.assert_not_called()
@@ -212,7 +215,7 @@ async def test_index_cache_does_not_evict_entry_replaced_during_validation(cache
     cache_key = str(tmp_path.resolve())
     cache._tasks[cache_key] = asyncio.create_task(_succeed())
     await asyncio.sleep(0)
-    cache._build_times[cache_key] = (0.0, 0.0)  # cooldown already elapsed
+    cache._revalidate_after[cache_key] = 0.0  # cooldown already elapsed
 
     replacement_task = object()
 

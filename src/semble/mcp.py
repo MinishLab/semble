@@ -171,7 +171,7 @@ class _IndexCache:
         self._model_ready = asyncio.Event()
         self._content = content
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
-        self._build_times: dict[str, tuple[float, float]] = {}  # cache_key -> (finished_at, duration), in seconds
+        self._revalidate_after: dict[str, float] = {}  # cache_key -> monotonic time, staleness check is gated until
 
     async def _await_model(self) -> str:
         """Block until the model is installed; re-raise the load error if it failed."""
@@ -188,24 +188,34 @@ class _IndexCache:
 
     def _build_and_cache_index(self, source: str, ref: str | None, model_path: str, cache_key: str) -> SembleIndex:
         """Build an index for the given source and cache it."""
-        start = time.monotonic()
         index = (
             SembleIndex.from_git(source, ref=ref, model_path=model_path, content=self._content)
             if is_git_url(source)
             else SembleIndex.from_path(cache_key, model_path=model_path, content=self._content)
         )
-        finished = time.monotonic()
-        self._build_times[cache_key] = (finished, finished - start)
         try:
             save_index_to_cache(index, cache_key)
         except Exception:
             logger.warning("Failed to save index cache for %r", cache_key, exc_info=True)
         return index
 
+    async def _build_and_track(self, source: str, ref: str | None, model_path: str, cache_key: str) -> SembleIndex:
+        """Build an index and, for local paths, record when its staleness cooldown ends.
+
+        The cooldown write happens after the await, i.e. back on the event loop thread,
+        regardless of which thread `_build_and_cache_index` itself ran on.
+        """
+        start = time.monotonic()
+        index = await asyncio.to_thread(self._build_and_cache_index, source, ref, model_path, cache_key)
+        if not is_git_url(source):
+            finished = time.monotonic()
+            self._revalidate_after[cache_key] = finished + (finished - start) * _MIN_REVALIDATE_FACTOR
+        return index
+
     def evict(self, source: str) -> None:
         cache_key = self._compute_cache_key(source)
         self._tasks.pop(cache_key, None)
-        self._build_times.pop(cache_key, None)
+        self._revalidate_after.pop(cache_key, None)
 
     async def _evict_if_stale(self, source: str, cache_key: str) -> None:
         """Evict a cached local-path entry whose on-disk cache no longer matches its files.
@@ -222,8 +232,7 @@ class _IndexCache:
             or cached.exception() is not None
         ):
             return
-        finished_at, duration = self._build_times.get(cache_key, (0.0, 0.0))
-        if time.monotonic() - finished_at < duration * _MIN_REVALIDATE_FACTOR:
+        if time.monotonic() < self._revalidate_after.get(cache_key, 0.0):
             return
         validated = await asyncio.to_thread(get_validated_cache, cache_key, self._model_path, self._content)
         # Only evict if this entry hasn't already been replaced by a concurrent caller.
@@ -245,10 +254,8 @@ class _IndexCache:
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
                     evicted_key, _ = self._tasks.popitem(last=False)
-                    self._build_times.pop(evicted_key, None)
-                self._tasks[cache_key] = asyncio.create_task(
-                    asyncio.to_thread(self._build_and_cache_index, source, ref, model_path, cache_key)
-                )
+                    self._revalidate_after.pop(evicted_key, None)
+                self._tasks[cache_key] = asyncio.create_task(self._build_and_track(source, ref, model_path, cache_key))
         self._tasks.move_to_end(cache_key)
         task = self._tasks[cache_key]
         try:
