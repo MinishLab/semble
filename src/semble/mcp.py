@@ -217,8 +217,8 @@ class _IndexCache:
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access.
 
-        Local paths are revalidated against the on-disk cache on every call (the same
-        file-mtime check the CLI uses), so an entry is rebuilt once its files change.
+        Local paths are revalidated against the on-disk cache on every call,
+         so an entry is rebuilt once its files change.
         """
         cache_key = self._compute_cache_key(source, ref)
         await self._evict_if_stale(source, cache_key)
