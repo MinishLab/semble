@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import time
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -173,6 +174,22 @@ async def test_index_cache_staleness_check_scope(
         await cache.get(resolved_source)
     assert mock_build.call_count == expected_build_calls
     assert mock_validate.called is validate_called
+
+
+@pytest.mark.anyio
+async def test_index_cache_skips_staleness_check_during_cooldown(cache: _IndexCache, tmp_path: Path) -> None:
+    """A slow-to-build local path is not revalidated again until its cooldown elapses."""
+    cache_key = str(tmp_path.resolve())
+    cache._tasks[cache_key] = asyncio.create_task(_succeed())
+    await asyncio.sleep(0)  # let the task finish
+    cache._build_times[cache_key] = (time.monotonic(), 10.0)  # a build that took 10s, just finished
+    with patch("semble.mcp.get_validated_cache") as mock_validate:
+        await cache._evict_if_stale(str(tmp_path), cache_key)
+    mock_validate.assert_not_called()
+
+
+async def _succeed() -> MagicMock:
+    return MagicMock()
 
 
 @pytest.mark.anyio

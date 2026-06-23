@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
@@ -25,6 +26,7 @@ _REPO_DESCRIPTION = (
 )
 
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
+_MIN_REVALIDATE_FACTOR = 3  # Don't recheck staleness sooner than this many times the last build's duration
 
 
 async def _get_index(
@@ -169,6 +171,7 @@ class _IndexCache:
         self._model_ready = asyncio.Event()
         self._content = content
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
+        self._build_times: dict[str, tuple[float, float]] = {}  # cache_key -> (finished_at, duration), in seconds
 
     async def _await_model(self) -> str:
         """Block until the model is installed; re-raise the load error if it failed."""
@@ -185,11 +188,14 @@ class _IndexCache:
 
     def _build_and_cache_index(self, source: str, ref: str | None, model_path: str, cache_key: str) -> SembleIndex:
         """Build an index for the given source and cache it."""
+        start = time.monotonic()
         index = (
             SembleIndex.from_git(source, ref=ref, model_path=model_path, content=self._content)
             if is_git_url(source)
             else SembleIndex.from_path(cache_key, model_path=model_path, content=self._content)
         )
+        finished = time.monotonic()
+        self._build_times[cache_key] = (finished, finished - start)
         try:
             save_index_to_cache(index, cache_key)
         except Exception:
@@ -197,10 +203,16 @@ class _IndexCache:
         return index
 
     def evict(self, source: str) -> None:
-        self._tasks.pop(self._compute_cache_key(source), None)
+        cache_key = self._compute_cache_key(source)
+        self._tasks.pop(cache_key, None)
+        self._build_times.pop(cache_key, None)
 
     async def _evict_if_stale(self, source: str, cache_key: str) -> None:
-        """Evict a cached local-path entry whose on-disk cache no longer matches its files."""
+        """Evict a cached local-path entry whose on-disk cache no longer matches its files.
+
+        Skipped while inside the cooldown window so repos that are slow to build aren't
+        rebuilt faster than they can be served.
+        """
         cached = self._tasks.get(cache_key)
         if (
             cached is None
@@ -210,6 +222,9 @@ class _IndexCache:
             or cached.exception() is not None
         ):
             return
+        finished_at, duration = self._build_times.get(cache_key, (0.0, 0.0))
+        if time.monotonic() - finished_at < duration * _MIN_REVALIDATE_FACTOR:
+            return
         validated = await asyncio.to_thread(get_validated_cache, cache_key, self._model_path, self._content)
         if validated is None:
             self.evict(source)
@@ -217,8 +232,8 @@ class _IndexCache:
     async def get(self, source: str, ref: str | None = None) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access.
 
-        Local paths are revalidated against the on-disk cache on every call,
-         so an entry is rebuilt once its files change.
+        Local paths are revalidated against the on-disk cache on every call (subject to a
+        cooldown scaled by build time), so an entry is rebuilt once its files change.
         """
         cache_key = self._compute_cache_key(source, ref)
         await self._evict_if_stale(source, cache_key)
@@ -228,7 +243,8 @@ class _IndexCache:
             # Re-check after the await: another caller may have populated the entry.
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
-                    self._tasks.popitem(last=False)
+                    evicted_key, _ = self._tasks.popitem(last=False)
+                    self._build_times.pop(evicted_key, None)
                 self._tasks[cache_key] = asyncio.create_task(
                     asyncio.to_thread(self._build_and_cache_index, source, ref, model_path, cache_key)
                 )
