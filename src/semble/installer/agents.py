@@ -12,6 +12,8 @@ _HOME = Path.home()
 Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
 Mode = Literal["install", "uninstall"]
 
+INTEGRATION_IDS = ("mcp", "instructions", "subagent")
+
 SEMBLE_START = "<!-- SEMBLE_START -->"
 SEMBLE_END = "<!-- SEMBLE_END -->"
 

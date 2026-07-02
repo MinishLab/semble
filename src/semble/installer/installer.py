@@ -178,30 +178,46 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
         print()
 
 
-def run(mode: Mode) -> None:
-    """Interactively install or uninstall semble across coding agents."""
+def run(
+    mode: Mode,
+    agent_ids: list[str] | None = None,
+    integration_ids: list[str] | None = None,
+    yes: bool = False,
+) -> None:
+    """Install or uninstall semble across coding agents.
+
+    Prompts interactively unless `agent_ids` is given, in which case it runs unattended
+    against those agents (and `integration_ids`, or all integrations if omitted).
+    """
     install = mode == "install"
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
 
-    agent_items = [
-        (f"{a.display_name}{'  (detected)' if (detected := is_detected(a)) else ''}", a, detected and install)
-        for a in sorted(AGENTS, key=lambda a: not is_detected(a))
-    ]
-    chosen_agents = _checkbox(
-        f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
-    ) or _exit("Nothing selected. Exiting.")
+    if agent_ids is not None:
+        chosen_agents = [a for a in AGENTS if a.id in agent_ids]
+        chosen_integrations = (
+            [i for i in _INTEGRATIONS if i.id in integration_ids] if integration_ids else list(_INTEGRATIONS)
+        )
+    else:
+        agent_items = [
+            (f"{a.display_name}{'  (detected)' if (detected := is_detected(a)) else ''}", a, detected and install)
+            for a in sorted(AGENTS, key=lambda a: not is_detected(a))
+        ]
+        chosen_agents = _checkbox(
+            f"Select agents to {'configure' if install else 'remove configuration from'}:", agent_items
+        ) or _exit("Nothing selected. Exiting.")
 
-    max_label = max(len(i.label) for i in _INTEGRATIONS)
-    integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
-    chosen_integrations = _checkbox(
-        f"Select integrations to {'enable' if install else 'remove'}:", integ_items
-    ) or _exit("Nothing selected. Exiting.")
+        max_label = max(len(i.label) for i in _INTEGRATIONS)
+        integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
+        chosen_integrations = _checkbox(
+            f"Select integrations to {'enable' if install else 'remove'}:", integ_items
+        ) or _exit("Nothing selected. Exiting.")
 
     _print_plan(chosen_agents, chosen_integrations)
 
-    question = "Proceed?" if install else "Remove semble configuration?"
-    if not questionary.confirm(question, default=install).ask():
-        _exit("Cancelled.")
+    if not yes:
+        question = "Proceed?" if install else "Remove semble configuration?"
+        if not questionary.confirm(question, default=install).ask():
+            _exit("Cancelled.")
 
     _apply(mode, chosen_agents, chosen_integrations)
     footer = " Restart your agents to pick up the changes." if install else ""

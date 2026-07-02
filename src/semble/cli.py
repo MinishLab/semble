@@ -13,6 +13,7 @@ from model2vec.utils import get_package_extras
 from semble.cache import find_index_from_cache_folder, resolve_cache_folder
 from semble.index import SembleIndex
 from semble.index.types import PersistencePath
+from semble.installer.agents import AGENTS, INTEGRATION_IDS
 from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
@@ -199,17 +200,42 @@ def _cli_main() -> None:
 
     sub.add_parser("savings", help="Show token savings and usage stats.")
 
-    sub.add_parser("install", help="Interactively configure semble across coding agents.")
-    sub.add_parser("uninstall", help="Interactively remove semble configuration from coding agents.")
+    install_p = sub.add_parser("install", help="Configure semble across coding agents.")
+    uninstall_p = sub.add_parser("uninstall", help="Remove semble configuration from coding agents.")
+    for p, verb in ((install_p, "configure"), (uninstall_p, "remove configuration from")):
+        p.add_argument(
+            "--agent",
+            nargs="+",
+            choices=[a.id for a in AGENTS],
+            metavar="AGENT",
+            help=f"Agent(s) to {verb} non-interactively, e.g. --agent claude pi. Skips prompts.",
+        )
+        p.add_argument(
+            "--type",
+            nargs="+",
+            choices=[*INTEGRATION_IDS, "all"],
+            metavar="TYPE",
+            help="Integrations to include (mcp, instructions, subagent, or all). Default: all. Requires --agent.",
+        )
+        p.add_argument(
+            "-y",
+            "--yes",
+            action="store_true",
+            help="Skip the confirmation prompt.",
+        )
 
     args = parser.parse_args()
 
     if args.command == "savings":
         print(format_savings_report())
     elif args.command in ("install", "uninstall"):
+        if args.type and not args.agent:
+            parser.error("--type requires --agent")
+
         from semble.installer import run
 
-        run(args.command)
+        integration_ids = None if not args.type or "all" in args.type else args.type
+        run(args.command, agent_ids=args.agent, integration_ids=integration_ids, yes=args.yes)
     elif args.command == "clear":
         _run_clear(args.type)
     elif args.command == "search":

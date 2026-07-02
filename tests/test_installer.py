@@ -470,7 +470,39 @@ def test_cli_dispatches_to_installer_run(monkeypatch, command):
     import semble.cli as cli
 
     calls = []
-    monkeypatch.setattr("semble.installer.run", lambda mode: calls.append(mode))
+    monkeypatch.setattr("semble.installer.run", lambda mode, **kwargs: calls.append((mode, kwargs)))
     monkeypatch.setattr(sys, "argv", ["semble", command])
     cli.main()
-    assert calls == [command]
+    assert calls == [(command, {"agent_ids": None, "integration_ids": None, "yes": False})]
+
+
+@pytest.mark.parametrize("command", ["install", "uninstall"])
+def test_cli_unattended_flags(monkeypatch, command):
+    """--agent/--type/--yes flags run non-interactively without prompting."""
+    import semble.cli as cli
+
+    calls = []
+    monkeypatch.setattr("semble.installer.run", lambda mode, **kwargs: calls.append((mode, kwargs)))
+    monkeypatch.setattr(sys, "argv", ["semble", command, "--agent", "pi", "--type", "subagent", "--yes"])
+    cli.main()
+    assert calls == [(command, {"agent_ids": ["pi"], "integration_ids": ["subagent"], "yes": True})]
+
+
+def test_cli_type_without_agent_errors(monkeypatch, capsys):
+    """--type without --agent is rejected with a usage error."""
+    import semble.cli as cli
+
+    monkeypatch.setattr(sys, "argv", ["semble", "install", "--type", "mcp"])
+    with pytest.raises(SystemExit):
+        cli.main()
+    assert "--type requires --agent" in capsys.readouterr().err
+
+
+def test_run_unattended_skips_prompts(run_setup, monkeypatch):
+    """run() with agent_ids skips both checkboxes and the confirmation prompt."""
+    from semble.installer import run
+
+    monkeypatch.setattr(
+        "semble.installer.installer.questionary.confirm", lambda *_, **__: (_ for _ in ()).throw(AssertionError)
+    )
+    run("install", agent_ids=["claude"], yes=True)

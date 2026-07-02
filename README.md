@@ -45,6 +45,14 @@ semble install
 
 To undo the setup, run `semble uninstall`.
 
+For unattended installs (e.g. sandboxed or scripted environments), skip the prompts with `--agent` and, optionally, `--type`:
+
+```bash
+semble install --agent claude --type mcp subagent --yes
+```
+
+`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, or `all` (default: all); `--yes` skips the confirmation prompt.
+
 For manual setup instructions (MCP config per agent, AGENTS.md snippet, sub-agent files), see the [installation docs](docs/installation.md).
 
 <details>

@@ -25,6 +25,20 @@ Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilo
 
 > **Pi prerequisite:** Pi requires the MCP extension to be installed before semble can connect. Run `pi install npm:pi-mcp-extension` once, then `semble install`.
 
+### Unattended install
+
+For sandboxed or scripted environments, pass `--agent` to skip the interactive prompts:
+
+```bash
+semble install --agent claude pi --type mcp subagent --yes
+```
+
+- `--agent` — one or more agent ids (see the list above; use the lowercase form, e.g. `claude`, `codex`, `pi`).
+- `--type` — one or more of `mcp`, `instructions`, `subagent`, or `all` (default: all). Requires `--agent`.
+- `-y`/`--yes` — skip the confirmation prompt.
+
+`semble uninstall` accepts the same flags.
+
 ---
 
 ## Manual setup
