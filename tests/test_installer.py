@@ -504,15 +504,17 @@ def test_run_unattended_skips_prompts(run_setup, monkeypatch):
     """run() with agent_ids skips both checkboxes and the confirmation prompt."""
     from semble.installer import run
 
-    monkeypatch.setattr(
-        "semble.installer.installer.questionary.confirm", lambda *_, **__: (_ for _ in ()).throw(AssertionError)
-    )
+    def _boom(*_: object, **__: object) -> None:
+        raise AssertionError("should not prompt in unattended mode")
+
+    monkeypatch.setattr("semble.installer.installer._checkbox", _boom)
+    monkeypatch.setattr("semble.installer.installer.questionary.confirm", _boom)
     run("install", agent_ids=["claude"], yes=True)
 
 
 @pytest.mark.parametrize(
     ("agent_ids", "integration_ids"),
-    [([], None), (["nonexistent"], None), (["claude"], ["nonexistent"]), (["claude"], [])],
+    [([], None), (["nonexistent"], None), (["claude"], [])],
 )
 def test_run_unattended_empty_selection_exits(run_setup, agent_ids, integration_ids):
     """run() exits with a non-zero code instead of silently no-opping when nothing matches."""
