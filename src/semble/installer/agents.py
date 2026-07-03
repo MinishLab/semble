@@ -208,8 +208,6 @@ AGENTS: list[AgentTarget] = [
         display_name="ZCode",
         binary=None,
         config_dir=_HOME / ".zcode",
-        # Confirmed by inspecting ZCode's app.asar (v3.2.4): servers live under mcp.servers.<name>
-        # in ~/.zcode/cli/config.json (functions readServerMapFromJson/writeServerMapToJson).
         mcp=McpConfig(_HOME / ".zcode" / "cli" / "config.json", "mcp.servers", _STDIO_SERVER_CONFIG),
         instructions_path=_HOME / ".zcode" / "AGENTS.md",
         subagent_path=_HOME / ".zcode" / "agents" / "semble-search.md",

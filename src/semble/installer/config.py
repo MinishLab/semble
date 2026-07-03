@@ -104,7 +104,7 @@ def _reparse_ok(text: str) -> bool:
 
 
 def _nested_skeleton(keys: list[str], member_key: str, value: dict[str, object]) -> dict[str, object]:
-    """Build `{keys[0]: {keys[1]: ... {member_key: value}}}`."""
+    """Wrap `value` under `member_key`, then under each of `keys` in turn."""
     nested: dict[str, object] = {member_key: value}
     for key in reversed(keys):
         nested = {key: nested}
@@ -132,11 +132,7 @@ def _resolve_or_create_section(
 
 
 def merge_json_member(path: Path, section_key: str, member_key: str, value: dict[str, object]) -> Action:
-    """Add or update `section_key.member_key = value` in a JSON5 config file, preserving comments and formatting.
-
-    `section_key` may itself be a dot-separated path (e.g. "mcp.servers") to nest through multiple
-    container objects, all created on demand.
-    """
+    """Add or update `section_key.member_key = value` in a JSON5 config file, preserving comments and formatting."""
     existed = path.exists()
     text = path.read_text(encoding="utf-8") if existed else ""
     section_path = section_key.split(".")
@@ -177,10 +173,7 @@ def merge_json_member(path: Path, section_key: str, member_key: str, value: dict
 
 
 def remove_json_member(path: Path, section_key: str, member_key: str) -> Action:
-    """Remove `section_key.member_key` from a JSON5 config file, leaving everything else intact.
-
-    `section_key` may itself be a dot-separated path (e.g. "mcp.servers"), mirroring `merge_json_member`.
-    """
+    """Remove `section_key.member_key` from a JSON5 config file, leaving everything else intact."""
     if not path.exists():
         return "not-found"
 
