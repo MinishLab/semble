@@ -506,3 +506,15 @@ def test_run_unattended_skips_prompts(run_setup, monkeypatch):
         "semble.installer.installer.questionary.confirm", lambda *_, **__: (_ for _ in ()).throw(AssertionError)
     )
     run("install", agent_ids=["claude"], yes=True)
+
+
+@pytest.mark.parametrize(
+    ("agent_ids", "integration_ids"),
+    [([], None), (["nonexistent"], None), (["claude"], ["nonexistent"])],
+)
+def test_run_unattended_empty_selection_exits(run_setup, agent_ids, integration_ids):
+    """run() exits cleanly instead of silently no-opping when agent_ids/integration_ids match nothing."""
+    from semble.installer import run
+
+    with pytest.raises(SystemExit):
+        run("install", agent_ids=agent_ids, integration_ids=integration_ids, yes=True)

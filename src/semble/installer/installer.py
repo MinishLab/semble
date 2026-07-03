@@ -193,10 +193,10 @@ def run(
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
 
     if agent_ids is not None:
-        chosen_agents = [a for a in AGENTS if a.id in agent_ids]
+        chosen_agents = [a for a in AGENTS if a.id in agent_ids] or _exit("No matching agents. Exiting.")
         chosen_integrations = (
             [i for i in _INTEGRATIONS if i.id in integration_ids] if integration_ids else list(_INTEGRATIONS)
-        )
+        ) or _exit("No matching integrations. Exiting.")
     else:
         agent_items = [
             (f"{a.display_name}{'  (detected)' if (detected := is_detected(a)) else ''}", a, detected and install)
