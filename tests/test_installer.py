@@ -10,6 +10,7 @@ from semble.installer.agents import (
     AGENTS,
     SEMBLE_END,
     SEMBLE_START,
+    IntegrationType,
     _opencode_mcp_path,
     _vscode_mcp_path,
     is_detected,
@@ -485,7 +486,8 @@ def test_cli_unattended_flags(monkeypatch, command):
     monkeypatch.setattr("semble.installer.run", lambda mode, **kwargs: calls.append((mode, kwargs)))
     monkeypatch.setattr(sys, "argv", ["semble", command, "--agent", "pi", "--type", "subagent", "--yes"])
     cli.main()
-    assert calls == [(command, {"agent_ids": ["pi"], "integration_ids": ["subagent"], "yes": True})]
+    assert calls == [(command, {"agent_ids": ["pi"], "integration_ids": [IntegrationType.SUBAGENT], "yes": True})]
+    assert isinstance(calls[0][1]["integration_ids"][0], IntegrationType)
 
 
 def test_cli_type_without_agent_errors(monkeypatch, capsys):

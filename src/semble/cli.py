@@ -221,7 +221,7 @@ def _cli_main() -> None:
             "-y",
             "--yes",
             action="store_true",
-            help="Skip the confirmation prompt.",
+            help="Skip the confirmation prompt. Combine with --agent for a fully non-interactive run.",
         )
 
     args = parser.parse_args()
