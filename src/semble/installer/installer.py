@@ -132,10 +132,10 @@ def _tick(ok: bool) -> str:
     return f"{_GREEN}✓{_RESET}" if ok else f"{_DIM}–{_RESET}"
 
 
-def _exit(message: str) -> NoReturn:
-    """Print message and exit with code 0."""
+def _exit(message: str, code: int = 0) -> NoReturn:
+    """Print message and exit with the given code (0 by default, for user-cancelled runs)."""
     print(message)
-    sys.exit(0)
+    sys.exit(code)
 
 
 def _checkbox(prompt: str, items: Sequence[tuple[str, _T, bool]]) -> list[_T] | None:
@@ -198,12 +198,12 @@ def run(
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
 
     if agent_ids is not None:
-        chosen_agents = [a for a in AGENTS if a.id in agent_ids] or _exit("No matching agents. Exiting.")
+        chosen_agents = [a for a in AGENTS if a.id in agent_ids] or _exit("No matching agents. Exiting.", code=1)
         chosen_integrations = (
             [i for i in _INTEGRATIONS if i.id in integration_ids]
             if integration_ids is not None
             else list(_INTEGRATIONS)
-        ) or _exit("No matching integrations. Exiting.")
+        ) or _exit("No matching integrations. Exiting.", code=1)
     else:
         agent_items = [
             (f"{a.display_name}{'  (detected)' if (detected := is_detected(a)) else ''}", a, detected and install)

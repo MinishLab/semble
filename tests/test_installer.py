@@ -515,8 +515,9 @@ def test_run_unattended_skips_prompts(run_setup, monkeypatch):
     [([], None), (["nonexistent"], None), (["claude"], ["nonexistent"]), (["claude"], [])],
 )
 def test_run_unattended_empty_selection_exits(run_setup, agent_ids, integration_ids):
-    """run() exits cleanly instead of silently no-opping when agent_ids/integration_ids match nothing."""
+    """run() exits with a non-zero code instead of silently no-opping when nothing matches."""
     from semble.installer import run
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as exc_info:
         run("install", agent_ids=agent_ids, integration_ids=integration_ids, yes=True)
+    assert exc_info.value.code == 1
