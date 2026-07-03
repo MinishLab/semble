@@ -13,7 +13,7 @@ from model2vec.utils import get_package_extras
 from semble.cache import find_index_from_cache_folder, resolve_cache_folder
 from semble.index import SembleIndex
 from semble.index.types import PersistencePath
-from semble.installer.agents import AGENTS, IntegrationId
+from semble.installer.agents import AGENTS, IntegrationType
 from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
@@ -213,7 +213,7 @@ def _cli_main() -> None:
         p.add_argument(
             "--type",
             nargs="+",
-            choices=[*(t.value for t in IntegrationId), "all"],
+            choices=[*(t.value for t in IntegrationType), "all"],
             metavar="TYPE",
             help="Integrations to include (mcp, instructions, subagent, or all). Default: all. Requires --agent.",
         )
@@ -234,7 +234,7 @@ def _cli_main() -> None:
 
         from semble.installer import run
 
-        integration_ids = None if not args.type or "all" in args.type else [IntegrationId(t) for t in args.type]
+        integration_ids = None if not args.type or "all" in args.type else [IntegrationType(t) for t in args.type]
         run(args.command, agent_ids=args.agent, integration_ids=integration_ids, yes=args.yes)
     elif args.command == "clear":
         _run_clear(args.type)

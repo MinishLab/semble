@@ -12,7 +12,7 @@ from semble.installer.agents import (
     AGENTS,
     INSTRUCTIONS,
     AgentTarget,
-    IntegrationId,
+    IntegrationType,
     Mode,
     WriteResult,
     is_detected,
@@ -42,7 +42,7 @@ _ACTION_DETAIL: dict[str, str] = {
 class _Integration:
     """Descriptor for one installer integration (MCP server, instructions, sub-agent)."""
 
-    id: IntegrationId
+    id: IntegrationType
     label: str
     desc: str
     apply: Callable[[AgentTarget, Mode], WriteResult | None]
@@ -104,21 +104,21 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
 
 _INTEGRATIONS: list[_Integration] = [
     _Integration(
-        IntegrationId.MCP,
+        IntegrationType.MCP,
         "MCP server",
         "lets the agent call semble directly as a tool",
         _apply_mcp,
         AgentTarget.resolved_mcp_path,
     ),
     _Integration(
-        IntegrationId.INSTRUCTIONS,
+        IntegrationType.INSTRUCTIONS,
         "Instructions",
         "adds CLI usage guidance to AGENTS.md / CLAUDE.md",
         _apply_instructions,
         lambda a: a.instructions_path,
     ),
     _Integration(
-        IntegrationId.SUBAGENT,
+        IntegrationType.SUBAGENT,
         "Sub-agent",
         "installs a dedicated semble-search sub-agent",
         _apply_subagent,
@@ -186,7 +186,7 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
 def run(
     mode: Mode,
     agent_ids: list[str] | None = None,
-    integration_ids: list[IntegrationId] | None = None,
+    integration_ids: list[IntegrationType] | None = None,
     yes: bool = False,
 ) -> None:
     """Install or uninstall semble across coding agents.

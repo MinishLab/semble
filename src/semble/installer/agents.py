@@ -14,7 +14,7 @@ Action = Literal["created", "updated", "unchanged", "not-found", "removed", "err
 Mode = Literal["install", "uninstall"]
 
 
-class IntegrationId(str, Enum):
+class IntegrationType(str, Enum):
     """Identifier for one of semble's install/uninstall integrations."""
 
     MCP = "mcp"
