@@ -200,7 +200,9 @@ def run(
     if agent_ids is not None:
         chosen_agents = [a for a in AGENTS if a.id in agent_ids] or _exit("No matching agents. Exiting.")
         chosen_integrations = (
-            [i for i in _INTEGRATIONS if i.id in integration_ids] if integration_ids else list(_INTEGRATIONS)
+            [i for i in _INTEGRATIONS if i.id in integration_ids]
+            if integration_ids is not None
+            else list(_INTEGRATIONS)
         ) or _exit("No matching integrations. Exiting.")
     else:
         agent_items = [

@@ -510,7 +510,7 @@ def test_run_unattended_skips_prompts(run_setup, monkeypatch):
 
 @pytest.mark.parametrize(
     ("agent_ids", "integration_ids"),
-    [([], None), (["nonexistent"], None), (["claude"], ["nonexistent"])],
+    [([], None), (["nonexistent"], None), (["claude"], ["nonexistent"]), (["claude"], [])],
 )
 def test_run_unattended_empty_selection_exits(run_setup, agent_ids, integration_ids):
     """run() exits cleanly instead of silently no-opping when agent_ids/integration_ids match nothing."""
