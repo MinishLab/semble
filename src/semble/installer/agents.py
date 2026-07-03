@@ -204,6 +204,15 @@ AGENTS: list[AgentTarget] = [
         subagent_path=_HOME / ".codex" / "agents" / "semble-search.toml",
     ),
     AgentTarget(
+        id="zcode",
+        display_name="ZCode",
+        binary=None,
+        config_dir=_HOME / ".zcode",
+        mcp=McpConfig(_HOME / ".zcode" / "settings.json", "mcpServers", _STDIO_SERVER_CONFIG),
+        instructions_path=None,
+        subagent_path=_HOME / ".zcode" / "agents" / "semble-search.md",
+    ),
+    AgentTarget(
         id="vscode",
         display_name="VS Code",
         binary="code",
