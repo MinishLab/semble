@@ -301,14 +301,17 @@ cmd mcp add --scope user semble -- uvx --from "semble[mcp]" semble
 <details>
 <summary>ZCode</summary>
 
-Add to `~/.zcode/settings.json`:
+Add to `~/.zcode/cli/config.json` under the nested `mcp.servers` key (or use Settings -> MCP Servers -> Full configuration mode):
 
 ```json
 {
-  "mcpServers": {
-    "semble": {
-      "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+  "mcp": {
+    "servers": {
+      "semble": {
+        "command": "uvx",
+        "args": ["--from", "semble[mcp]", "semble"],
+        "type": "stdio"
+      }
     }
   }
 }
