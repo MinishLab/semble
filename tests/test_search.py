@@ -134,7 +134,7 @@ def test_sort_top_k() -> None:
 @pytest.mark.parametrize(
     ("model_path", "expected_call_arg"),
     [
-        (None, "minishlab/potion-code-16M"),  # default model
+        (None, "minishlab/potion-code-16M-v2"),  # default model
         ("some/custom/model", "some/custom/model"),  # explicit path forwarded
     ],
 )
