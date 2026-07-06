@@ -116,6 +116,9 @@ def search(
         for chunk in all_candidates
     }
 
+    # Remove chunks that have 0.0 score
+    combined_scores = {chunk: score for chunk, score in combined_scores.items() if score}
+
     if rerank:
         # Boost files with multiple relevant chunks.
         boost_multi_chunk_files(combined_scores)
