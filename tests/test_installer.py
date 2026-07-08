@@ -17,7 +17,9 @@ from semble.installer.agents import (
 )
 from semble.installer.config import (
     _CODEX_MCP_HEADER,
+    merge_json_member,
     merge_toml_block,
+    remove_json_member,
     remove_marked,
     remove_toml_block,
     replace_or_append_marked,
@@ -124,6 +126,22 @@ def test_merge_mcp_errors(claude_agent, content):
     assert merge_mcp(claude_agent).action == "error"
 
 
+def test_merge_and_remove_json_member_nested_section_key(tmp_path):
+    """A dotted section_key (e.g. ZCode's "mcp.servers") creates missing intermediate levels on demand."""
+    f = tmp_path / "config.json"
+
+    f.write_text('{\n  "mcp": {\n    "other": true\n  }\n}\n')  # only the outer level exists
+    assert merge_json_member(f, "mcp.servers", "semble", _STDIO_SERVER_CONFIG) == "updated"
+    data = json.loads(f.read_text())
+    assert data["mcp"]["other"] is True
+    assert data["mcp"]["servers"]["semble"] == _STDIO_SERVER_CONFIG
+
+    assert remove_json_member(f, "mcp.servers", "semble") == "removed"
+    data = json.loads(f.read_text())
+    assert "semble" not in data["mcp"]["servers"]
+    assert data["mcp"]["other"] is True
+
+
 @pytest.mark.parametrize(
     ("agent_id", "key"),
     [
@@ -134,14 +152,18 @@ def test_merge_mcp_errors(claude_agent, content):
         ("pi", "mcpServers"),
         ("commandcode", "mcpServers"),
         ("antigravity", "mcpServers"),
+        ("zcode", "mcp.servers"),  # dotted key: nested two levels deep
     ],
 )
 def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
-    """merge_mcp writes the semble entry under each agent's own top-level MCP key."""
+    """merge_mcp writes the semble entry under each agent's own (possibly nested) MCP key."""
     src = next(a for a in AGENTS if a.id == agent_id)
     agent = replace(src, mcp=replace(src.mcp, path=tmp_path / "cfg.json"))
     merge_mcp(agent)
-    assert "semble" in json.loads((tmp_path / "cfg.json").read_text())[key]
+    section = json.loads((tmp_path / "cfg.json").read_text())
+    for part in key.split("."):
+        section = section[part]
+    assert "semble" in section
 
 
 def test_mcp_skipped_when_grammar_unavailable(claude_agent, monkeypatch):

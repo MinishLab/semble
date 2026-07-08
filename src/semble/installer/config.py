@@ -103,34 +103,65 @@ def _reparse_ok(text: str) -> bool:
     return parser is not None and not parser.parse(text.encode("utf-8")).root_node.has_error
 
 
+def _nested_skeleton(keys: list[str], member_key: str, value: dict[str, object]) -> dict[str, object]:
+    """Wrap `value` under `member_key`, then under each of `keys` in turn."""
+    nested: dict[str, object] = {member_key: value}
+    for key in reversed(keys):
+        nested = {key: nested}
+    return nested
+
+
+def _resolve_or_create_section(
+    obj: Node, src: bytes, section_path: list[str], member_key: str, value: dict[str, object]
+) -> Node | bytes | Literal["error"]:
+    """Walk `section_path` from `obj`, returning the final container node.
+
+    If a level is missing, returns the full new source with a freshly nested skeleton (containing
+    `member_key`/`value`) inserted in its place. Returns "error" if an existing level isn't an object.
+    """
+    container = obj
+    for depth, key in enumerate(section_path):
+        section = _member(container, src, key)
+        if section is None:
+            skeleton = _nested_skeleton(section_path[depth + 1 :], member_key, value)
+            return _insert_first_member(src, container, f"{json.dumps(key)}: {json.dumps(skeleton)}")
+        if _value_of(section).type != "object":
+            return "error"
+        container = _value_of(section)
+    return container
+
+
 def merge_json_member(path: Path, section_key: str, member_key: str, value: dict[str, object]) -> Action:
     """Add or update `section_key.member_key = value` in a JSON5 config file, preserving comments and formatting."""
     existed = path.exists()
     text = path.read_text(encoding="utf-8") if existed else ""
+    section_path = section_key.split(".")
 
     if not text.strip():  # missing or empty: write a clean fresh file
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({section_key: {member_key: value}}, indent=2) + "\n", encoding="utf-8")
+        path.write_text(
+            json.dumps(_nested_skeleton(section_path, member_key, value), indent=2) + "\n", encoding="utf-8"
+        )
         return "updated" if existed else "created"
 
     located = _json5_object(text)
     if not isinstance(located, tuple):
         return located
     obj, src = located
-    section_key_json = json.dumps(section_key)
-    member_key_json = json.dumps(member_key)
-    value_json = json.dumps(value)
 
-    section = _member(obj, src, section_key)
-    if section is None:
-        new_src = _insert_first_member(src, obj, f"{section_key_json}: {{{member_key_json}: {value_json}}}")
-    elif _value_of(section).type != "object":
+    resolved = _resolve_or_create_section(obj, src, section_path, member_key, value)
+    if resolved == "error":
         return "error"
-    elif (existing := _member(_value_of(section), src, member_key)) is not None:
-        val_node = _value_of(existing)
-        new_src = src[: val_node.start_byte] + value_json.encode("utf-8") + src[val_node.end_byte :]
+    if isinstance(resolved, bytes):
+        new_src = resolved
     else:
-        new_src = _insert_first_member(src, _value_of(section), f"{member_key_json}: {value_json}")
+        member_key_json = json.dumps(member_key)
+        value_json = json.dumps(value)
+        if (existing := _member(resolved, src, member_key)) is not None:
+            val_node = _value_of(existing)
+            new_src = src[: val_node.start_byte] + value_json.encode("utf-8") + src[val_node.end_byte :]
+        else:
+            new_src = _insert_first_member(src, resolved, f"{member_key_json}: {value_json}")
 
     new_text = new_src.decode("utf-8")
     if new_text == text:
@@ -151,10 +182,13 @@ def remove_json_member(path: Path, section_key: str, member_key: str) -> Action:
         return located
     obj, src = located
 
-    section = _member(obj, src, section_key)
-    if section is None or _value_of(section).type != "object":
-        return "not-found"
-    member = _member(_value_of(section), src, member_key)
+    container = obj
+    for key in section_key.split("."):
+        section = _member(container, src, key)
+        if section is None or _value_of(section).type != "object":
+            return "not-found"
+        container = _value_of(section)
+    member = _member(container, src, member_key)
     if member is None:
         return "not-found"
 

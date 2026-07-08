@@ -21,7 +21,7 @@ To undo:
 semble uninstall
 ```
 
-Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, Pi, Command Code, and Antigravity.
+Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, Pi, Command Code, Antigravity, and ZCode.
 
 > **Pi prerequisite:** Pi requires the MCP extension to be installed before semble can connect. Run `pi install npm:pi-mcp-extension` once, then `semble install`.
 
@@ -298,6 +298,27 @@ cmd mcp add --scope user semble -- uvx --from "semble[mcp]" semble
 
 </details>
 
+<details>
+<summary>ZCode</summary>
+
+Add to `~/.zcode/cli/config.json` under the nested `mcp.servers` key (or use Settings -> MCP Servers -> Full configuration mode):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "semble": {
+        "command": "uvx",
+        "args": ["--from", "semble[mcp]", "semble"],
+        "type": "stdio"
+      }
+    }
+  }
+}
+```
+
+</details>
+
 By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command. For example, in Claude Code:
 
 ```bash
@@ -350,7 +371,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 ### Sub-agent
 
-For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, Reasonix, Pi, Command Code, Antigravity), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
+For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, Reasonix, Pi, Command Code, Antigravity, ZCode), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
 
 > **Pi prerequisite:** Pi sub-agents require the Pi agents extension. Run `pi install npm:pi-agents` once before installing.
 
@@ -367,3 +388,4 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Pi | `pi.md` | `~/.pi/agents/semble-search.md` |
 | Command Code | `commandcode.md` | `~/.commandcode/agents/semble-search.md` |
 | Antigravity | `antigravity.md` | `~/.gemini/config/skills/semble-search/SKILL.md` |
+| ZCode | `zcode.md` | `~/.zcode/agents/semble-search.md` |
