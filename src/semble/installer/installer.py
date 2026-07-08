@@ -9,6 +9,7 @@ from typing import Callable, NoReturn, Sequence, TypeVar
 import questionary
 
 from semble.installer.agents import (
+    _MCP_PACKAGE_SPEC,
     AGENTS,
     INSTRUCTIONS,
     AgentTarget,
@@ -27,6 +28,7 @@ from semble.installer.config import (
 )
 
 _T = TypeVar("_T")
+_MCP_PACKAGE_SPEC_PLACEHOLDER = "{{MCP_PACKAGE_SPEC}}"
 
 _GREEN = "\033[32m"
 _DIM = "\033[2m"
@@ -96,7 +98,7 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
         src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
-        dest.write_text(src, encoding="utf-8")
+        dest.write_text(src.replace(_MCP_PACKAGE_SPEC_PLACEHOLDER, _MCP_PACKAGE_SPEC), encoding="utf-8")
     except Exception:
         return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")

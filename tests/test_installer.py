@@ -1,6 +1,8 @@
 import json
 import sys
 from dataclasses import replace
+from importlib.resources import files
+from pathlib import Path
 
 import pytest
 
@@ -27,6 +29,7 @@ from semble.installer.config import (
 )
 from semble.installer.installer import (
     _INTEGRATIONS,
+    _MCP_PACKAGE_SPEC_PLACEHOLDER,
     _apply_instructions,
     _apply_mcp,
     _apply_subagent,
@@ -85,6 +88,32 @@ def test_mcp_configs_pin_current_package_version():
             assert _MCP_PACKAGE_SPEC in command
         else:
             assert agent.mcp.entry["args"][1] == _MCP_PACKAGE_SPEC
+
+
+def test_packaged_agent_templates_render_current_mcp_package_spec(tmp_path):
+    """Packaged sub-agent templates are rendered with the current MCP package spec at install time."""
+    for agent in AGENTS:
+        if agent.subagent_path is None:
+            continue
+        suffix = agent.subagent_path.suffix
+        template = files("semble").joinpath(f"agents/{agent.id}{suffix}").read_text(encoding="utf-8")
+        assert _MCP_PACKAGE_SPEC_PLACEHOLDER in template
+        assert _MCP_PACKAGE_SPEC not in template
+
+        rendered = replace(agent, subagent_path=tmp_path / agent.id / f"semble-search{suffix}")
+        assert _apply_subagent(rendered, "install").action == "created"
+        text = rendered.subagent_path.read_text(encoding="utf-8")
+        assert _MCP_PACKAGE_SPEC in text
+        assert _MCP_PACKAGE_SPEC_PLACEHOLDER not in text
+
+
+def test_docs_examples_pin_current_mcp_package_spec():
+    """Manual MCP examples stay pinned to the current package version."""
+    root = Path(__file__).resolve().parents[1]
+    docs_text = (root / "docs" / "installation.md").read_text(encoding="utf-8")
+    readme_text = (root / "README.md").read_text(encoding="utf-8")
+    assert _MCP_PACKAGE_SPEC in docs_text
+    assert _MCP_PACKAGE_SPEC in readme_text
 
 
 def test_merge_mcp_preserves_comments_and_other_entries(claude_agent):

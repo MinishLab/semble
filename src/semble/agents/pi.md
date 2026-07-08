@@ -29,7 +29,7 @@ semble find-related src/auth.py 42 ./my-project
 
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]@0.4.2" semble` in its place.
+If `semble` is not on `$PATH`, use `uvx --from "{{MCP_PACKAGE_SPEC}}" semble` in its place.
 
 ### Workflow
 
