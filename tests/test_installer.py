@@ -6,6 +6,7 @@ import pytest
 
 from semble.installer import run
 from semble.installer.agents import (
+    _MCP_PACKAGE_SPEC,
     _STDIO_SERVER_CONFIG,
     AGENTS,
     SEMBLE_END,
@@ -71,6 +72,19 @@ def test_merge_mcp_creates_fresh_file(claude_agent):
     assert merge_mcp(claude_agent).action == "created"
     data = json.loads(claude_agent.mcp.path.read_text())
     assert data["mcpServers"]["semble"] == _STDIO_SERVER_CONFIG
+
+
+def test_mcp_configs_pin_current_package_version():
+    """Generated uvx MCP configs pin semble to the installer package version."""
+    assert "@" in _MCP_PACKAGE_SPEC
+    for agent in AGENTS:
+        if agent.mcp is None:
+            continue
+        command = agent.mcp.entry["command"]
+        if isinstance(command, list):
+            assert _MCP_PACKAGE_SPEC in command
+        else:
+            assert agent.mcp.entry["args"][1] == _MCP_PACKAGE_SPEC
 
 
 def test_merge_mcp_preserves_comments_and_other_entries(claude_agent):

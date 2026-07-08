@@ -51,7 +51,7 @@ semble install --agent claude pi --type mcp subagent --yes
 <summary>Claude Code</summary>
 
 ```bash
-claude mcp add semble -s user -- uvx --from "semble[mcp]" semble
+claude mcp add semble -s user -- uvx --from "semble[mcp]@0.4.2" semble
 ```
 
 </details>
@@ -66,7 +66,7 @@ Add to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -82,7 +82,7 @@ Add to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.semble]
 command = "uvx"
-args = ["--from", "semble[mcp]", "semble"]
+args = ["--from", "semble[mcp]@0.4.2", "semble"]
 ```
 
 </details>
@@ -97,7 +97,7 @@ Add to `~/.config/opencode/opencode.jsonc`:
   "mcp": {
     "semble": {
       "type": "local",
-      "command": ["uvx", "--from", "semble[mcp]", "semble"]
+      "command": ["uvx", "--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -115,7 +115,7 @@ Add to `.vscode/mcp.json` in your project (or your user profile's `mcp.json`):
   "servers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -133,7 +133,7 @@ Add to `~/.copilot/mcp-config.json`:
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -151,7 +151,7 @@ Add to `~/.codeium/windsurf/mcp_config.json`:
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -169,7 +169,7 @@ Add to `~/.gemini/settings.json`:
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -187,7 +187,7 @@ Add to `~/.kiro/settings/mcp.json` (or `.kiro/settings/mcp.json` in your project
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -206,7 +206,7 @@ Add to `~/.config/zed/settings.json` (or `.zed/settings.json` in your project):
     "semble": {
       "source": "custom",
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -224,7 +224,7 @@ Add to `~/.reasonix/config.json` (the backwards-compatible MCP config path read 
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -248,7 +248,7 @@ Then add to `~/.pi/agent/mcp.json`:
  "mcpServers": {
  "semble": {
  "command": "uvx",
- "args": ["--from", "semble[mcp]", "semble"]
+ "args": ["--from", "semble[mcp]@0.4.2", "semble"]
  }
  }
 }
@@ -266,7 +266,7 @@ Add to `~/.gemini/config/mcp_config.json`:
   "mcpServers": {
     "semble": {
       "command": "uvx",
-      "args": ["--from", "semble[mcp]", "semble"]
+      "args": ["--from", "semble[mcp]@0.4.2", "semble"]
     }
   }
 }
@@ -284,7 +284,7 @@ Add to `~/.commandcode/mcp.json`:
  "mcpServers": {
  "semble": {
  "command": "uvx",
- "args": ["--from", "semble[mcp]", "semble"]
+ "args": ["--from", "semble[mcp]@0.4.2", "semble"]
  }
  }
 }
@@ -293,7 +293,7 @@ Add to `~/.commandcode/mcp.json`:
 Or use the CLI:
 
 ```bash
-cmd mcp add --scope user semble -- uvx --from "semble[mcp]" semble
+cmd mcp add --scope user semble -- uvx --from "semble[mcp]@0.4.2" semble
 ```
 
 </details>
@@ -309,7 +309,7 @@ Add to `~/.zcode/cli/config.json` under the nested `mcp.servers` key (or use Set
     "servers": {
       "semble": {
         "command": "uvx",
-        "args": ["--from", "semble[mcp]", "semble"],
+        "args": ["--from", "semble[mcp]@0.4.2", "semble"],
         "type": "stdio"
       }
     }
@@ -322,7 +322,7 @@ Add to `~/.zcode/cli/config.json` under the nested `mcp.servers` key (or use Set
 By default the MCP server indexes only code files. To also index documentation, config, or everything, append `--content docs`, `--content config`, or `--content all` to the server command. For example, in Claude Code:
 
 ```bash
-claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all
+claude mcp add semble -s user -- uvx --from "semble[mcp]@0.4.2" semble --content all
 ```
 
 ### Instructions (AGENTS.md / CLAUDE.md)
@@ -358,7 +358,7 @@ semble find-related src/auth.py 42 ./my-project
 
 `path` defaults to the current directory when omitted; git URLs are accepted.
 
-If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]@0.4.2" semble` in its place.
 
 ### Workflow
 

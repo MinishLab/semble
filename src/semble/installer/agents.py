@@ -8,6 +8,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Literal
 
+from semble.version import __version__
+
 _HOME = Path.home()
 
 Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
@@ -24,28 +26,29 @@ class IntegrationType(str, Enum):
 
 SEMBLE_START = "<!-- SEMBLE_START -->"
 SEMBLE_END = "<!-- SEMBLE_END -->"
+_MCP_PACKAGE_SPEC = f"semble[mcp]@{__version__}"
 
 _STDIO_SERVER_CONFIG: dict[str, object] = {
     "command": "uvx",
-    "args": ["--from", "semble[mcp]", "semble"],
+    "args": ["--from", _MCP_PACKAGE_SPEC, "semble"],
     "type": "stdio",
 }
 
 _OPENCODE_SERVER_CONFIG: dict[str, object] = {
-    "command": ["uvx", "--from", "semble[mcp]", "semble"],
+    "command": ["uvx", "--from", _MCP_PACKAGE_SPEC, "semble"],
     "type": "local",  # opencode uses "local"/"remote", not "stdio"
     "enabled": True,
 }
 
 _BARE_STDIO_SERVER_CONFIG: dict[str, object] = {  # Windsurf: command/args only, no "type"
     "command": "uvx",
-    "args": ["--from", "semble[mcp]", "semble"],
+    "args": ["--from", _MCP_PACKAGE_SPEC, "semble"],
 }
 
 _ZED_SERVER_CONFIG: dict[str, object] = {  # Zed requires "source": "custom" for manual servers
     "source": "custom",
     "command": "uvx",
-    "args": ["--from", "semble[mcp]", "semble"],
+    "args": ["--from", _MCP_PACKAGE_SPEC, "semble"],
 }
 
 INSTRUCTIONS = f"""\
@@ -70,7 +73,7 @@ semble find-related src/auth.py 42 ./my-project
 semble search "save model to disk" ./my-project --top-k 10
 ```
 
-The index is built on first run and cached automatically. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble`.
+The index is built on first run and cached automatically. If `semble` is not on `$PATH`, use `uvx --from "{_MCP_PACKAGE_SPEC}" semble`.
 
 ### Workflow
 
