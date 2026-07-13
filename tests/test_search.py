@@ -1,5 +1,5 @@
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import bm25s
 import numpy as np
@@ -132,19 +132,26 @@ def test_sort_top_k() -> None:
 
 
 @pytest.mark.parametrize(
-    ("model_path", "expected_call_arg"),
+    ("model_path", "expected_call_arg", "incomplete_cache"),
     [
-        (None, "minishlab/potion-code-16M-v2"),  # default model
-        ("some/custom/model", "some/custom/model"),  # explicit path forwarded
+        (None, "minishlab/potion-code-16M-v2", False),  # default model
+        ("some/custom/model", "some/custom/model", False),  # explicit path forwarded
+        ("broken/model", "broken/model", True),  # incomplete cache retries through the Hub
     ],
 )
-def test_load_model(model_path: str | None, expected_call_arg: str) -> None:
+def test_load_model(model_path: str | None, expected_call_arg: str, incomplete_cache: bool) -> None:
     """load_model calls from_pretrained with default or custom model path."""
     fake_model = MagicMock(spec=StaticModel)
-    with patch("semble.index.dense.StaticModel.from_pretrained", return_value=fake_model) as mock_fp:
+    side_effect = [ValueError("Could not find expected model files"), fake_model] if incomplete_cache else None
+    with patch(
+        "semble.index.dense.StaticModel.from_pretrained", return_value=fake_model, side_effect=side_effect
+    ) as mock_fp:
         result, _ = load_model(model_path)
-    mock_fp.assert_called_once_with(expected_call_arg, force_download=False)
     assert result is fake_model
+    expected_calls = [call(expected_call_arg, force_download=False)]
+    if incomplete_cache:
+        expected_calls.append(call(expected_call_arg, force_download=True))
+    assert mock_fp.call_args_list == expected_calls
 
 
 def test_embed_chunks_empty_returns_empty_array(mock_model: Any) -> None:
