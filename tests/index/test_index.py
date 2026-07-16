@@ -197,7 +197,7 @@ def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
 
 
 def test_load_save_roundtrip_preserves_manifest(tmp_path: Path, indexed_index: SembleIndex) -> None:
-    """load_from_disk followed by save must not clobber file_paths with an empty list."""
+    """load_from_disk followed by save must preserve the incremental manifest."""
     save_a = tmp_path / "a"
     save_b = tmp_path / "b"
     indexed_index.save(save_a)
@@ -206,8 +206,8 @@ def test_load_save_roundtrip_preserves_manifest(tmp_path: Path, indexed_index: S
     loaded.save(save_b)
     import json
 
-    manifest_a = json.loads((save_a / "metadata.json").read_text())["file_paths"]
-    manifest_b = json.loads((save_b / "metadata.json").read_text())["file_paths"]
+    manifest_a = json.loads((save_a / "metadata.json").read_text())["files"]
+    manifest_b = json.loads((save_b / "metadata.json").read_text())["files"]
     assert manifest_b == manifest_a
     assert len(manifest_b) > 0
 

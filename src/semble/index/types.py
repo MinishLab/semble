@@ -42,9 +42,9 @@ class PersistencePath:
 
 @dataclass
 class FileManifestEntry:
-    """Records a file's content hash and its chunk range within the global chunk list."""
+    """Record a file's modification time and chunk range within the global chunk list."""
 
-    file_hash: str
+    mtime: float
     start: int
     count: int
 

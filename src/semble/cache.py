@@ -138,7 +138,7 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
     extensions = get_extensions(content)
 
     path_as_path = Path(path).resolve()
-    stored_files: list[str] = metadata.get("file_paths", [])
+    stored_files = metadata.get("files", {})
     current_files = []
     for file_path in walk_files(path_as_path, extensions=extensions):
         file_status = get_file_status(file_path, write_time)

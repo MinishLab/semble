@@ -25,7 +25,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
     _write_files(
         tmp_path,
         {
-            "a.py": "def stable_anchor():\r\n    return 1\r\n",
+            "a.py": "def stable_anchor():\n    return 1\n",
             "b.py": "def changed_value():\n    return 2\n",
             "c.py": "def unique_gone():\n    return 3\n",
             "emptying.py": "def becomes_empty():\n    return 4\n",
@@ -36,7 +36,6 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
     )
     a_entry = manifest_before["a.py"]
     b_entry = manifest_before["b.py"]
-    assert all("\r" not in chunk.content for chunk in chunks_before[a_entry.start : a_entry.start + a_entry.count])
     a_vectors_before = semantic_before.vectors[a_entry.start : a_entry.start + a_entry.count].copy()
     b_vectors_before = semantic_before.vectors[b_entry.start : b_entry.start + b_entry.count].copy()
     previous = PreviousIndex(

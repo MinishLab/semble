@@ -72,7 +72,7 @@ class SembleIndex:
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
         :param loaded_from_disk: Whether the index was loaded from disk (cache hit); controls CLI messaging.
-        :param manifest: File hashes and chunk ranges used for incremental reindexing.
+        :param manifest: File modification times and chunk ranges used for incremental reindexing.
         """
         self.model = model
         self.chunks: list[Chunk] = chunks
@@ -379,7 +379,6 @@ class SembleIndex:
             "time": datetime.now().timestamp(),
             "model_path": self._model_path,
             "content_type": list(x.value for x in self._content),
-            "file_paths": sorted(self._file_mapping),
             "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
             "cache_version": CACHE_FORMAT_VERSION,
             "files": self._manifest,

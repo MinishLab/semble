@@ -1,5 +1,4 @@
 import contextlib
-import hashlib
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -16,6 +15,7 @@ from semble.index.files import (
     detect_language,
     get_extensions,
     get_file_status,
+    read_file_text,
 )
 from semble.index.sparse import enrich_for_bm25
 from semble.index.types import FileManifestEntry, PreviousIndex, make_chunk_id
@@ -35,34 +35,6 @@ def _reindex_file(
             bm25_index.remove_document(make_chunk_id(indexed_path, slot))
     for slot, chunk in enumerate(file_chunks):
         bm25_index.add_document(make_chunk_id(indexed_path, slot), tokenize(enrich_for_bm25(chunk)))
-
-
-def _remove_deleted_files(
-    bm25_index: BM25,
-    manifest: dict[str, FileManifestEntry],
-    previous_manifest: dict[str, FileManifestEntry],
-) -> None:
-    """Remove BM25 documents belonging to files absent from the new manifest."""
-    for indexed_path, previous_entry in previous_manifest.items():
-        if indexed_path not in manifest:
-            for slot in range(previous_entry.count):
-                bm25_index.remove_document(make_chunk_id(indexed_path, slot))
-
-
-def _embed_changed_chunks(
-    model: StaticModel,
-    embedding_parts: list[tuple[int, int, int]],
-    changed_chunks: list[Chunk],
-    vector_parts: list[EmbeddingMatrix],
-) -> None:
-    """Embed changed chunks in one batch and restore their per-file rows."""
-    if not changed_chunks:
-        return
-    changed_embeddings = embed_chunks(model, changed_chunks)
-    offset = 0
-    for index, _, count in embedding_parts:
-        vector_parts[index] = changed_embeddings[offset : offset + count]
-        offset += count
 
 
 def create_index_from_path(
@@ -104,34 +76,30 @@ def create_index_from_path(
                 continue
 
             indexed_path = str(file_path.relative_to(display_root) if display_root else file_path)
-            raw_source = file_path.read_bytes()
-            file_hash = hashlib.sha256(raw_source).hexdigest()
+            mtime = file_path.stat().st_mtime
             previous_entry = previous_manifest.get(indexed_path)
 
-            if previous is not None and previous_entry is not None and previous_entry.file_hash == file_hash:
+            if previous is not None and previous_entry is not None and previous_entry.mtime == mtime:
                 file_chunks = previous.chunks[previous_entry.start : previous_entry.start + previous_entry.count]
                 vector_parts.append(
                     previous.vectors[previous_entry.start : previous_entry.start + previous_entry.count]
                 )
             else:
-                source = raw_source.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+                source = read_file_text(file_path)
                 file_chunks = chunk_source(source, indexed_path, language)
                 _reindex_file(bm25_index, indexed_path, file_chunks, previous_entry)
 
-                if file_chunks:
-                    embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-                    vector_parts.append(np.empty((0, 0), dtype=np.float32))  # Replaced after batched embedding.
-                    changed_chunks.extend(file_chunks)
-                else:
-                    vector_parts.append(np.empty((0, model.dim), dtype=np.float32))
+                embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
+                vector_parts.append(np.empty((0, model.dim), dtype=np.float32))
+                changed_chunks.extend(file_chunks)
 
             start = len(chunks)
             chunks.extend(file_chunks)
             chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
-            manifest[indexed_path] = FileManifestEntry(file_hash=file_hash, start=start, count=len(file_chunks))
+            manifest[indexed_path] = FileManifestEntry(mtime=mtime, start=start, count=len(file_chunks))
 
-    if previous is not None:
-        _remove_deleted_files(bm25_index, manifest, previous_manifest)
+    for indexed_path in previous_manifest.keys() - manifest.keys():
+        _reindex_file(bm25_index, indexed_path, [], previous_manifest[indexed_path])
 
     if not chunks:
         raise ValueError(f"No supported files found under {path}.")
@@ -139,7 +107,11 @@ def create_index_from_path(
     if previous is None:
         embeddings = embed_chunks(model, chunks)
     else:
-        _embed_changed_chunks(model, embedding_parts, changed_chunks, vector_parts)
+        changed_embeddings = embed_chunks(model, changed_chunks)
+        offset = 0
+        for index, _, count in embedding_parts:
+            vector_parts[index] = changed_embeddings[offset : offset + count]
+            offset += count
         same_vector_layout = len(manifest) == len(previous_manifest) and all(
             (previous_entry := previous_manifest.get(indexed_path)) is not None
             and entry.start == previous_entry.start

@@ -148,7 +148,7 @@ def _write_metadata(
                 "model_path": model_path,
                 "content_type": content_type,
                 "time": write_time,
-                "file_paths": file_paths if file_paths is not None else [],
+                "files": {file_path: {} for file_path in file_paths or []},
                 "chunk_size": chunk_size if chunk_size is not None else _DESIRED_CHUNK_LENGTH_CHARS,
                 "cache_version": cache_version if cache_version is not None else CACHE_FORMAT_VERSION,
             }
@@ -207,7 +207,7 @@ def test_get_validated_cache_reads_utf8_metadata_with_non_ascii_file_paths(tmp_p
                 "model_path": "my/model",
                 "content_type": ["docs"],
                 "time": 0.0,
-                "file_paths": [non_ascii_path],
+                "files": {non_ascii_path: {}},
                 "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
                 "cache_version": CACHE_FORMAT_VERSION,
             },
