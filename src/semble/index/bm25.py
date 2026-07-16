@@ -8,8 +8,8 @@ import numpy as np
 import numpy.typing as npt
 import orjson
 
-_K1 = 1.5
-_B = 0.75
+_K1 = 1.5  # Term-frequency saturation
+_B = 0.75  # Document length normalization
 
 
 class BM25:
@@ -55,9 +55,11 @@ class BM25:
     def get_scores(
         self, tokens: list[str], weight_mask: npt.NDArray[np.bool_] | None = None
     ) -> npt.NDArray[np.float32]:
-        """Return a BM25 score per position in doc_order, compatible with bm25s.get_scores.
+        """Calculate BM25 scores for a tokenized query.
 
-        Unknown query tokens contribute 0 rather than raising.
+        :param tokens: Tokenized search query.
+        :param weight_mask: Optional boolean mask aligned with doc_order.
+        :return: Scores aligned with doc_order.
         """
         output_size = len(self.doc_order)
         corpus_size = len(self._documents)
@@ -87,8 +89,7 @@ class BM25:
     def save(self, path: Path) -> None:
         """Persist the index to path/index.json."""
         path.mkdir(parents=True, exist_ok=True)
-        documents = {chunk_id: dict(counts) for chunk_id, counts in self._documents.items()}
-        payload = {"documents": documents, "doc_order": self.doc_order}
+        payload = {"documents": self._documents, "doc_order": self.doc_order}
         (path / "index.json").write_bytes(orjson.dumps(payload))
 
     @classmethod

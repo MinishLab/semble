@@ -157,11 +157,12 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
 def load_previous_for_incremental(
     path: str, model_path: str | None, content: Sequence[ContentType]
 ) -> PreviousIndex | None:
-    """Load a prior on-disk index for reuse during incremental reindexing.
+    """Load compatible index state for incremental reuse.
 
-    Returns None -- forfeiting the incremental optimization for this run, so the
-    caller falls back to a full rebuild -- for malformed or inconsistent cache
-    state.
+    :param path: Source path used to locate the cached index.
+    :param model_path: Requested model, or None to use the default.
+    :param content: Content types the cached index must support.
+    :return: Previous index state, or None if the cache is unavailable or invalid.
     """
     try:
         index_path = find_index_from_cache_folder(path)

@@ -45,9 +45,20 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
         bm25_index=bm25_before,
     )
     _, semantic_unchanged, _, _ = create_index_from_path(tmp_path, mock_model, display_root=tmp_path, previous=previous)
-    np.testing.assert_array_equal(semantic_unchanged.vectors, semantic_before.vectors)
+    assert semantic_unchanged.vectors is semantic_before.vectors
 
     (tmp_path / "b.py").write_text("def changed_value():\n    return 999\n")
+    bm25_before, semantic_before, chunks_before, manifest_before = create_index_from_path(
+        tmp_path, mock_model, display_root=tmp_path, previous=previous
+    )
+    assert semantic_before.vectors is previous.vectors
+    previous = PreviousIndex(
+        chunks=chunks_before,
+        vectors=semantic_before.vectors,
+        manifest=manifest_before,
+        bm25_index=bm25_before,
+    )
+
     (tmp_path / "c.py").unlink()
     (tmp_path / "emptying.py").write_text(" " * 128)
     _write_files(tmp_path, {"d.py": "def brand_new_term():\n    return 4\n"})

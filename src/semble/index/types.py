@@ -6,7 +6,7 @@ from pathlib import Path
 from semble.index.bm25 import BM25
 from semble.types import Chunk, EmbeddingMatrix
 
-CACHE_FORMAT_VERSION = 3
+CACHE_FORMAT_VERSION = 1  # Bump when the persisted index schema changes.
 
 
 def make_chunk_id(indexed_path: str, slot: int) -> str:

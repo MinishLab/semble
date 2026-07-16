@@ -187,7 +187,9 @@ def test_find_related(indexed_index: SembleIndex) -> None:
 
 def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
     """Test that saving and loading a folder leads to the same data."""
+    assert indexed_index.chunks[0].to_dict()["location"] == indexed_index.chunks[0].location
     indexed_index.save(tmp_path)
+    assert "location" not in orjson.loads((tmp_path / "chunks.json").read_bytes())[0]
     with patch.object(StaticModel, "from_pretrained"):
         index_2 = SembleIndex.load_from_disk(tmp_path)
     assert index_2.chunks == indexed_index.chunks

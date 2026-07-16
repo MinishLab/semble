@@ -6,7 +6,6 @@ import tempfile
 import warnings
 from collections import defaultdict
 from collections.abc import Sequence
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
@@ -369,9 +368,8 @@ class SembleIndex:
 
         self._bm25_index.save(persistence_paths.bm25_index)
         self._semantic_index.save(persistence_paths.semantic_index)
-        chunks_as_dict = [chunk.to_dict() for chunk in self.chunks]
         with open(persistence_paths.chunks, "wb") as f:
-            data = orjson.dumps(chunks_as_dict)
+            data = orjson.dumps(self.chunks)
             f.write(data)
         from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
 
@@ -384,7 +382,7 @@ class SembleIndex:
             "file_paths": sorted(self._file_mapping),
             "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
             "cache_version": CACHE_FORMAT_VERSION,
-            "files": {indexed_path: asdict(entry) for indexed_path, entry in self._manifest.items()},
+            "files": self._manifest,
         }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)
