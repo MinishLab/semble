@@ -114,7 +114,7 @@ def create_index_from_path(
                     previous.vectors[previous_entry.start : previous_entry.start + previous_entry.count]
                 )
             else:
-                source = raw_source.decode("utf-8", errors="replace")
+                source = raw_source.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
                 file_chunks = chunk_source(source, indexed_path, language)
                 _reindex_file(bm25_index, indexed_path, file_chunks, previous_entry)
 
