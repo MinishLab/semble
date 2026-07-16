@@ -92,19 +92,6 @@ wheels = [
 ]
 
 [[package]]
-name = "bm25s"
-version = "0.3.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/98/3f/88010a24298e2ca4b0807ca5a59ee69e867551fc289c3b062d41cefda59b/bm25s-0.3.8.tar.gz", hash = "sha256:d165f096d64961de0b25a0ad4989d42dfe529c94ca12a9a070eef173c62b8612", size = 80495, upload-time = "2026-04-29T02:18:45.493Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/c2/e5dbdbf8e99ec504432f9bd82cdf990faff1ffcdd5316272cb7fccce31ed/bm25s-0.3.8-py3-none-any.whl", hash = "sha256:b5ff52a0633ee5add26ca89619f5c5fff66127dcce0984976a2a09e1871a33f9", size = 74452, upload-time = "2026-04-29T02:18:43.892Z" },
-]
-
-[[package]]
 name = "certifi"
 version = "2026.4.22"
 source = { registry = "https://pypi.org/simple" }
@@ -3143,7 +3130,6 @@ wheels = [
 name = "semble"
 source = { editable = "." }
 dependencies = [
-    { name = "bm25s" },
     { name = "model2vec" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -3179,7 +3165,6 @@ mcp = [
 
 [package.metadata]
 requires-dist = [
-    { name = "bm25s", specifier = ">=0.2.0" },
     { name = "einops", marker = "extra == 'benchmark'", specifier = ">=0.8.2" },
     { name = "matplotlib", marker = "extra == 'benchmark'", specifier = ">=3.7" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0,<2.0" },

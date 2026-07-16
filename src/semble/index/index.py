@@ -6,20 +6,21 @@ import tempfile
 import warnings
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
 import orjson
-from bm25s import BM25
 from model2vec.model import StaticModel
 
-from semble.cache import get_validated_cache
+from semble.cache import get_validated_cache, load_previous_for_incremental
+from semble.index.bm25 import BM25
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.index.files import read_file_text
-from semble.index.types import PersistencePath
+from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, PersistencePath
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, ContentType, IndexStats, SearchResult
@@ -60,6 +61,7 @@ class SembleIndex:
         root: Path | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         loaded_from_disk: bool = False,
+        manifest: dict[str, FileManifestEntry] | None = None,
     ) -> None:
         """Initialize a SembleIndex. Should be created with from_path or from_git.
 
@@ -71,6 +73,7 @@ class SembleIndex:
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
         :param loaded_from_disk: Whether the index was loaded from disk (cache hit); controls CLI messaging.
+        :param manifest: File hashes and chunk ranges used for incremental reindexing.
         """
         self.model = model
         self.chunks: list[Chunk] = chunks
@@ -82,6 +85,7 @@ class SembleIndex:
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
+        self._manifest: dict[str, FileManifestEntry] = manifest or {}
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -152,14 +156,18 @@ class SembleIndex:
         model, model_path = load_model(model_path)
 
         path = path.resolve()
-        bm25, vicinity, chunks = create_index_from_path(
+        previous = load_previous_for_incremental(str(path), model_path, normalized)
+        bm25_index, semantic_index, chunks, manifest = create_index_from_path(
             path,
             model=model,
             content=normalized,
             display_root=path,
+            previous=previous,
         )
 
-        return SembleIndex(model, bm25, vicinity, chunks, model_path, root=path, content=normalized)
+        return SembleIndex(
+            model, bm25_index, semantic_index, chunks, model_path, root=path, content=normalized, manifest=manifest
+        )
 
     @classmethod
     def from_git(
@@ -207,7 +215,7 @@ class SembleIndex:
 
             model, model_path = load_model(model_path)
             resolved_path = Path(tmp_dir).resolve()
-            bm25, vicinity, chunks = create_index_from_path(
+            bm25_index, semantic_index, chunks, manifest = create_index_from_path(
                 resolved_path,
                 model=model,
                 content=normalized,
@@ -216,12 +224,13 @@ class SembleIndex:
 
             return SembleIndex(
                 model,
-                bm25,
-                vicinity,
+                bm25_index,
+                semantic_index,
                 chunks,
                 model_path,
                 root=resolved_path,
                 content=normalized,
+                manifest=manifest,
             )
 
     def find_related(
@@ -310,19 +319,30 @@ class SembleIndex:
             missing = ", ".join(str(p) for p in non_existent)
             raise FileNotFoundError(f"Index not found at {path}. Missing: {missing}")
 
-        bm_25_index = BM25.load(persistence_paths.bm25_index)
-        semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
         with open(persistence_paths.metadata, "rb") as f:
             metadata = orjson.loads(f.read())
+        found_version = metadata.get("cache_version")
+        if found_version != CACHE_FORMAT_VERSION:
+            raise ValueError(
+                f"Unsupported index format {found_version!r}; expected {CACHE_FORMAT_VERSION}. Rebuild the index."
+            )
+
+        bm25_index = BM25.load(persistence_paths.bm25_index)
+        semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
         with open(persistence_paths.chunks, "rb") as f:
             chunk_data = orjson.loads(f.read())
 
         chunks = []
         for chunk_item in chunk_data:
             chunks.append(Chunk.from_dict(chunk_item))
+        if len(chunks) != len(bm25_index.doc_order) or len(chunks) != semantic_index.vectors.shape[0]:
+            raise ValueError("Persisted index components have inconsistent document counts")
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]
         content = tuple(ContentType(s) for s in metadata.get("content_type", ["code"]))
+        manifest = {
+            indexed_path: FileManifestEntry(**entry) for indexed_path, entry in metadata.get("files", {}).items()
+        }
         if root_path:
             root_path = Path(root_path)
 
@@ -330,13 +350,14 @@ class SembleIndex:
 
         return cls(
             model,
-            bm_25_index,
+            bm25_index,
             semantic_index,
             chunks,
             model_path,
             root=root_path,
             content=content,
             loaded_from_disk=True,
+            manifest=manifest,
         )
 
     def save(self, path: Path | str) -> None:
@@ -362,6 +383,8 @@ class SembleIndex:
             "content_type": list(x.value for x in self._content),
             "file_paths": sorted(self._file_mapping),
             "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
+            "cache_version": CACHE_FORMAT_VERSION,
+            "files": {indexed_path: asdict(entry) for indexed_path, entry in self._manifest.items()},
         }
         with open(persistence_paths.metadata, "wb") as f:
             data = orjson.dumps(metadata)

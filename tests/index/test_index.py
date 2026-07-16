@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import orjson
 import pytest
 from model2vec import StaticModel
 
@@ -31,7 +32,7 @@ def test_index_markdown_inclusion(
     mock_model: StaticModel, tmp_project: Path, content: list[ContentType], md_in_results: bool
 ) -> None:
     """Markdown files are excluded for code-only and included when docs is requested."""
-    _, _, chunks = create_index_from_path(tmp_project, mock_model, content=content)
+    _, _, chunks, _ = create_index_from_path(tmp_project, mock_model, content=content)
     has_md = ".md" in {Path(c.file_path).suffix for c in chunks}
     assert has_md is md_in_results
 
@@ -57,7 +58,7 @@ def test_from_git_include_text_files_deprecated(mock_model: Any, tmp_project: Pa
     with patch("semble.index.index.load_model", return_value=(mock_model, "")):
         with patch("subprocess.run", return_value=fake_result):
             with patch("semble.index.index.create_index_from_path") as mock_create:
-                mock_create.return_value = (MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")])
+                mock_create.return_value = (MagicMock(), MagicMock(), [make_chunk("x = 1", "f.py")], {})
                 with pytest.warns(DeprecationWarning, match="include_text_files is deprecated"):
                     SembleIndex.from_git("https://example.com/repo", include_text_files=True)
 
@@ -232,6 +233,28 @@ def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:
     assert "metadata.json" in error_msg
     # The file we did create should NOT be listed as missing.
     assert "chunks.json" not in error_msg
+
+
+@pytest.mark.parametrize(
+    ("corruption", "message"),
+    [("version", "Unsupported index format"), ("counts", "inconsistent document counts")],
+)
+def test_load_from_disk_rejects_incompatible_state(
+    corruption: str, message: str, tmp_path: Path, indexed_index: SembleIndex
+) -> None:
+    """Incompatible persistence metadata and component counts are rejected."""
+    indexed_index.save(tmp_path)
+    if corruption == "version":
+        path = tmp_path / "metadata.json"
+        data = orjson.loads(path.read_bytes())
+        del data["cache_version"]
+    else:
+        path = tmp_path / "chunks.json"
+        data = orjson.loads(path.read_bytes())[:-1]
+    path.write_bytes(orjson.dumps(data))
+
+    with pytest.raises(ValueError, match=message):
+        SembleIndex.load_from_disk(tmp_path)
 
 
 def test_from_path_uses_cache_when_valid(tmp_project: Path) -> None:

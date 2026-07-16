@@ -8,10 +8,14 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import orjson
+
+from semble.index.bm25 import BM25
+from semble.index.dense import SelectableBasicBackend
 from semble.index.file_walker import walk_files
 from semble.index.files import FileStatus, get_extensions, get_file_status
-from semble.index.types import PersistencePath
-from semble.types import ContentType
+from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, PersistencePath, PreviousIndex, make_chunk_id
+from semble.types import Chunk, ContentType
 from semble.utils import is_git_url, resolve_model_name
 
 logger = logging.getLogger(__name__)
@@ -99,10 +103,13 @@ def _metadata_matches(metadata: dict, model_path: str, content: Sequence[Content
 
     try:
         content_type = tuple(ContentType(s) for s in metadata["content_type"])
-        # chunk_size is absent in indexes built before this field was added; treat None as mismatch
-        # so old caches are transparently rebuilt with the current chunk size.
+        # chunk_size and cache_version are absent in indexes built before those fields were added;
+        # treat that as a mismatch so old caches are transparently rebuilt in the current format.
         chunk_size_ok = metadata.get("chunk_size") == _DESIRED_CHUNK_LENGTH_CHARS
-        return metadata["model_path"] == model_path and set(content_type) == set(content) and chunk_size_ok
+        version_ok = metadata.get("cache_version") == CACHE_FORMAT_VERSION
+        return (
+            metadata["model_path"] == model_path and set(content_type) == set(content) and chunk_size_ok and version_ok
+        )
     except (KeyError, ValueError):
         return False
 
@@ -145,3 +152,57 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
         return None
 
     return index_path
+
+
+def load_previous_for_incremental(
+    path: str, model_path: str | None, content: Sequence[ContentType]
+) -> PreviousIndex | None:
+    """Load a prior on-disk index for reuse during incremental reindexing.
+
+    Returns None -- forfeiting the incremental optimization for this run, so the
+    caller falls back to a full rebuild -- for malformed or inconsistent cache
+    state.
+    """
+    try:
+        index_path = find_index_from_cache_folder(path)
+        persistence_path = PersistencePath.from_path(index_path)
+        if persistence_path.non_existing():
+            return None
+
+        if model_path is None:
+            model_path = resolve_model_name()
+        with open(persistence_path.metadata, encoding="utf-8") as f:
+            metadata = json.load(f)
+        if not _metadata_matches(metadata, model_path, content):
+            return None
+
+        raw_manifest = metadata.get("files")
+        if not raw_manifest:
+            return None
+        manifest = {indexed_path: FileManifestEntry(**entry) for indexed_path, entry in raw_manifest.items()}
+
+        with open(persistence_path.chunks, "rb") as f:
+            chunks = [Chunk.from_dict(item) for item in orjson.loads(f.read())]
+
+        vectors = SelectableBasicBackend.load(persistence_path.semantic_index).vectors
+        bm25_index = BM25.load(persistence_path.bm25_index)
+        chunk_count = len(chunks)
+        if vectors.shape[0] != chunk_count or len(bm25_index.doc_order) != chunk_count:
+            return None
+        expected_ids: list[str] = []
+        next_start = 0
+        for indexed_path, entry in manifest.items():
+            if (
+                entry.start != next_start
+                or entry.count < 0
+                or any(chunk.file_path != indexed_path for chunk in chunks[entry.start : entry.start + entry.count])
+            ):
+                return None
+            expected_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(entry.count))
+            next_start += entry.count
+        if next_start != chunk_count or bm25_index.doc_order != expected_ids:
+            return None
+
+        return PreviousIndex(chunks=chunks, vectors=vectors, manifest=manifest, bm25_index=bm25_index)
+    except (OSError, orjson.JSONDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return None

@@ -3,6 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from semble.index.bm25 import BM25
+from semble.types import Chunk, EmbeddingMatrix
+
+CACHE_FORMAT_VERSION = 3
+
+
+def make_chunk_id(indexed_path: str, slot: int) -> str:
+    """Return the stable document ID for a file chunk."""
+    return f"{indexed_path}:{slot}"
+
 
 @dataclass
 class PersistencePath:
@@ -28,3 +38,22 @@ class PersistencePath:
             semantic_index=path / "semantic_index",
             metadata=path / "metadata.json",
         )
+
+
+@dataclass
+class FileManifestEntry:
+    """Records a file's content hash and its chunk range within the global chunk list."""
+
+    file_hash: str
+    start: int
+    count: int
+
+
+@dataclass
+class PreviousIndex:
+    """A previously built index, loaded for reuse during incremental reindexing."""
+
+    chunks: list[Chunk]
+    vectors: EmbeddingMatrix
+    manifest: dict[str, FileManifestEntry]
+    bm25_index: BM25

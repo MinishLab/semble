@@ -18,6 +18,8 @@ from semble.cache import (
     resolve_cache_folder,
     save_index_to_cache,
 )
+from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
+from semble.index.types import CACHE_FORMAT_VERSION
 from semble.types import ContentType
 
 
@@ -134,9 +136,8 @@ def _write_metadata(
     write_time: float,
     file_paths: list[str] | None = None,
     chunk_size: int | None = None,
+    cache_version: int | None = None,
 ) -> None:
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
-
     path.mkdir(parents=True, exist_ok=True)
     (path / "chunks.json").write_text("[]")
     (path / "bm25_index").write_text("")
@@ -149,6 +150,7 @@ def _write_metadata(
                 "time": write_time,
                 "file_paths": file_paths if file_paths is not None else [],
                 "chunk_size": chunk_size if chunk_size is not None else _DESIRED_CHUNK_LENGTH_CHARS,
+                "cache_version": cache_version if cache_version is not None else CACHE_FORMAT_VERSION,
             }
         )
     )
@@ -189,8 +191,6 @@ def test_get_validated_cache_metadata_mismatch(
 
 def test_get_validated_cache_reads_utf8_metadata_with_non_ascii_file_paths(tmp_path: Path) -> None:
     """Cache metadata is always UTF-8, even when the system default encoding is not."""
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
-
     index_path = tmp_path / "index"
     index_path.mkdir(parents=True)
     (index_path / "chunks.json").write_text("[]")
@@ -209,6 +209,7 @@ def test_get_validated_cache_reads_utf8_metadata_with_non_ascii_file_paths(tmp_p
                 "time": 0.0,
                 "file_paths": [non_ascii_path],
                 "chunk_size": _DESIRED_CHUNK_LENGTH_CHARS,
+                "cache_version": CACHE_FORMAT_VERSION,
             },
             ensure_ascii=False,
         ),
@@ -228,36 +229,26 @@ def test_get_validated_cache_reads_utf8_metadata_with_non_ascii_file_paths(tmp_p
     assert result == index_path
 
 
-def test_get_validated_cache_chunk_size_mismatch_returns_none(tmp_path: Path) -> None:
-    """Cache built with a different chunk_size is not reused."""
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
-
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("chunk_size", None),
+        ("chunk_size", _DESIRED_CHUNK_LENGTH_CHARS + 100),
+        ("cache_version", None),
+        ("cache_version", CACHE_FORMAT_VERSION - 1),
+    ],
+)
+def test_get_validated_cache_format_mismatch_returns_none(field: str, value: int | None, tmp_path: Path) -> None:
+    """Missing or stale persistence-format metadata forces a rebuild."""
     index_path = tmp_path / "index"
-    _write_metadata(index_path, "my/model", ["code"], float("inf"), chunk_size=_DESIRED_CHUNK_LENGTH_CHARS + 100)
-    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
-
-
-def test_get_validated_cache_missing_chunk_size_returns_none(tmp_path: Path) -> None:
-    """Old cache metadata without chunk_size field is not reused (transparent rebuild)."""
-    index_path = tmp_path / "index"
-    # Write metadata as old semble would — no chunk_size field
-    index_path.mkdir(parents=True, exist_ok=True)
-    (index_path / "chunks.json").write_text("[]")
-    (index_path / "bm25_index").write_text("")
-    (index_path / "semantic_index").write_text("")
-    import json as _json
-
-    (index_path / "metadata.json").write_text(
-        _json.dumps(
-            {
-                "model_path": "my/model",
-                "content_type": ["code"],
-                "time": float("inf"),
-                "file_paths": [],
-            }
-        )
-    )
+    _write_metadata(index_path, "my/model", ["code"], float("inf"))
+    metadata_path = index_path / "metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    if value is None:
+        del metadata[field]
+    else:
+        metadata[field] = value
+    metadata_path.write_text(json.dumps(metadata))
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
 
