@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from functools import cache
 from logging import getLogger
 
+from semble_grammars import LanguageNotFoundError, UnsupportedPlatformError, get_parser
 from tree_sitter import Node, Parser
-from tree_sitter_language_pack import DownloadError, LanguageNotFoundError, SupportedLanguage, get_parser
 
 from semble.index.files import ALL_LANGUAGES
 
@@ -29,14 +29,14 @@ class ChunkBoundary:
 
 
 @cache
-def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
+def _cached_get_parser(language: str) -> Parser | None:
     """Gets a parser from tree_sitter."""
     try:
         return get_parser(language)
     except LanguageNotFoundError:
         logger.warning("Language %s not found, falling back to line chunking", language)
-    except DownloadError:
-        logger.warning("Failed to download language %s, falling back to line chunking", language)
+    except UnsupportedPlatformError:
+        logger.warning("No bundled grammars for this platform, falling back to line chunking")
     except Exception:
         logger.error("Uncaught exception in _cached_get_parser", exc_info=True)
     return None

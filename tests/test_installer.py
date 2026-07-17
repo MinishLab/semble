@@ -167,9 +167,9 @@ def test_merge_mcp_writes_under_agent_key(tmp_path, agent_id, key):
 
 
 def test_mcp_skipped_when_grammar_unavailable(claude_agent, monkeypatch):
-    """When the JSON5 grammar cannot be downloaded, merge/remove return 'skipped'."""
+    """When the JSON5 grammar is unavailable, merge/remove return 'skipped'."""
     claude_agent.mcp.path.write_text('{ "mcpServers": {} }')
-    monkeypatch.setattr("semble.installer.config.download", lambda _: 1 / 0)
+    monkeypatch.setattr("semble.installer.config.get_parser", lambda _: 1 / 0)
     monkeypatch.setattr("semble.installer.config._json5_parser_cache", False)
     assert merge_mcp(claude_agent).action == "skipped"
     assert remove_mcp(claude_agent).action == "skipped"

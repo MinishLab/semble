@@ -32,9 +32,9 @@ dependencies = [
     "bm25s>=0.2.0",
     "pathspec>=0.12",
     "tree-sitter>=0.25,<0.26",
-    "tree-sitter-language-pack>=1.0,<1.8.0,!=1.6.3",
     "orjson",
     "questionary>=2.0,<3.0",
+    "semble-grammars",
 ]
 
 [project.optional-dependencies]
@@ -146,3 +146,6 @@ exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
 
 [tool.uv]
 exclude-newer = "1 week"
+
+[tool.uv.sources]
+semble-grammars = { path = "../semble-grammars", editable = true }
