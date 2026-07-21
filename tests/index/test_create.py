@@ -36,8 +36,8 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
     )
     a_entry = manifest_before["a.py"]
     b_entry = manifest_before["b.py"]
-    a_vectors_before = semantic_before.vectors[a_entry.start : a_entry.start + a_entry.count].copy()
-    b_vectors_before = semantic_before.vectors[b_entry.start : b_entry.start + b_entry.count].copy()
+    a_vectors_before = semantic_before.vectors[a_entry.start : a_entry.end].copy()
+    b_vectors_before = semantic_before.vectors[b_entry.start : b_entry.end].copy()
     previous = PreviousIndex(
         chunks=chunks_before,
         vectors=semantic_before.vectors,
@@ -68,12 +68,10 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
 
     a_entry_after = manifest_after["a.py"]
     b_entry_after = manifest_after["b.py"]
-    np.testing.assert_array_equal(
-        semantic_after.vectors[a_entry_after.start : a_entry_after.start + a_entry_after.count], a_vectors_before
-    )
+    np.testing.assert_array_equal(semantic_after.vectors[a_entry_after.start : a_entry_after.end], a_vectors_before)
     assert not np.array_equal(
         b_vectors_before,
-        semantic_after.vectors[b_entry_after.start : b_entry_after.start + b_entry_after.count],
+        semantic_after.vectors[b_entry_after.start : b_entry_after.end],
     )
     assert "c.py" not in manifest_after
     assert "d.py" in manifest_after

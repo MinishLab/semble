@@ -188,15 +188,13 @@ def load_previous_for_incremental(
         vectors = SelectableBasicBackend.load(persistence_path.semantic_index).vectors
         bm25_index = BM25.load(persistence_path.bm25_index)
         chunk_count = len(chunks)
-        if vectors.shape[0] != chunk_count or len(bm25_index.doc_order) != chunk_count:
+        if not (chunk_count == vectors.shape[0] == len(bm25_index.doc_order)):
             return None
         expected_ids: list[str] = []
         next_start = 0
         for indexed_path, entry in manifest.items():
-            if (
-                entry.start != next_start
-                or entry.count < 0
-                or any(chunk.file_path != indexed_path for chunk in chunks[entry.start : entry.start + entry.count])
+            if entry.start != next_start or any(
+                chunk.file_path != indexed_path for chunk in chunks[entry.start : entry.end]
             ):
                 return None
             expected_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(entry.count))
@@ -206,4 +204,5 @@ def load_previous_for_incremental(
 
         return PreviousIndex(chunks=chunks, vectors=vectors, manifest=manifest, bm25_index=bm25_index)
     except (OSError, orjson.JSONDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        logger.debug("Unable to reuse incremental cache for %s", path, exc_info=True)
         return None

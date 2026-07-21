@@ -44,9 +44,14 @@ class PersistencePath:
 class FileManifestEntry:
     """Record a file's modification time and chunk range within the global chunk list."""
 
-    mtime: float
+    mtime_ns: int
     start: int
     count: int
+
+    @property
+    def end(self) -> int:
+        """Return the exclusive end of the chunk range."""
+        return self.start + self.count
 
 
 @dataclass

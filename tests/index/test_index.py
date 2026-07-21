@@ -239,7 +239,7 @@ def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize(
     ("corruption", "message"),
-    [("version", "Unsupported index format"), ("counts", "inconsistent document counts")],
+    [("version", "SembleIndex.from_path"), ("counts", "inconsistent document counts")],
 )
 def test_load_from_disk_rejects_incompatible_state(
     corruption: str, message: str, tmp_path: Path, indexed_index: SembleIndex

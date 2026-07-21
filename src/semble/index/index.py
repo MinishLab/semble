@@ -323,7 +323,8 @@ class SembleIndex:
         found_version = metadata.get("cache_version")
         if found_version != CACHE_FORMAT_VERSION:
             raise ValueError(
-                f"Unsupported index format {found_version!r}; expected {CACHE_FORMAT_VERSION}. Rebuild the index."
+                f"Unsupported index format {found_version!r}; expected {CACHE_FORMAT_VERSION}. "
+                "Rebuild it with SembleIndex.from_path(<source directory>) before searching again."
             )
 
         bm25_index = BM25.load(persistence_paths.bm25_index)
@@ -334,7 +335,7 @@ class SembleIndex:
         chunks = []
         for chunk_item in chunk_data:
             chunks.append(Chunk.from_dict(chunk_item))
-        if len(chunks) != len(bm25_index.doc_order) or len(chunks) != semantic_index.vectors.shape[0]:
+        if not (len(chunks) == len(bm25_index.doc_order) == semantic_index.vectors.shape[0]):
             raise ValueError("Persisted index components have inconsistent document counts")
         root_path = metadata["root_path"]
         model_path = metadata["model_path"]

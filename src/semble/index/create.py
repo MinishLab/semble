@@ -37,6 +37,18 @@ def _reindex_file(
         bm25_index.add_document(make_chunk_id(indexed_path, slot), tokenize(enrich_for_bm25(chunk)))
 
 
+def _has_same_vector_layout(
+    manifest: dict[str, FileManifestEntry], previous_manifest: dict[str, FileManifestEntry]
+) -> bool:
+    """Return whether both manifests use the same chunk ranges."""
+    return len(manifest) == len(previous_manifest) and all(
+        (previous_entry := previous_manifest.get(indexed_path)) is not None
+        and entry.start == previous_entry.start
+        and entry.count == previous_entry.count
+        for indexed_path, entry in manifest.items()
+    )
+
+
 def create_index_from_path(
     path: Path,
     model: StaticModel,
@@ -66,7 +78,6 @@ def create_index_from_path(
     vector_parts: list[EmbeddingMatrix] = []
     manifest: dict[str, FileManifestEntry] = {}
     embedding_parts: list[tuple[int, int, int]] = []
-    changed_chunks: list[Chunk] = []
 
     for file_path in walk_files(path, resolved_extensions):
         language = detect_language(file_path)
@@ -76,27 +87,24 @@ def create_index_from_path(
                 continue
 
             indexed_path = str(file_path.relative_to(display_root) if display_root else file_path)
-            mtime = file_path.stat().st_mtime
+            mtime_ns = file_path.stat().st_mtime_ns
             previous_entry = previous_manifest.get(indexed_path)
 
-            if previous is not None and previous_entry is not None and previous_entry.mtime == mtime:
-                file_chunks = previous.chunks[previous_entry.start : previous_entry.start + previous_entry.count]
-                vector_parts.append(
-                    previous.vectors[previous_entry.start : previous_entry.start + previous_entry.count]
-                )
+            if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:
+                file_chunks = previous.chunks[previous_entry.start : previous_entry.end]
+                vector_parts.append(previous.vectors[previous_entry.start : previous_entry.end])
             else:
                 source = read_file_text(file_path)
                 file_chunks = chunk_source(source, indexed_path, language)
                 _reindex_file(bm25_index, indexed_path, file_chunks, previous_entry)
 
                 embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-                vector_parts.append(np.empty((0, model.dim), dtype=np.float32))
-                changed_chunks.extend(file_chunks)
+                vector_parts.append(embed_chunks(model, file_chunks))
 
             start = len(chunks)
             chunks.extend(file_chunks)
             chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
-            manifest[indexed_path] = FileManifestEntry(mtime=mtime, start=start, count=len(file_chunks))
+            manifest[indexed_path] = FileManifestEntry(mtime_ns=mtime_ns, start=start, count=len(file_chunks))
 
     for indexed_path in previous_manifest.keys() - manifest.keys():
         _reindex_file(bm25_index, indexed_path, [], previous_manifest[indexed_path])
@@ -107,18 +115,7 @@ def create_index_from_path(
     if previous is None:
         embeddings = embed_chunks(model, chunks)
     else:
-        changed_embeddings = embed_chunks(model, changed_chunks)
-        offset = 0
-        for index, _, count in embedding_parts:
-            vector_parts[index] = changed_embeddings[offset : offset + count]
-            offset += count
-        same_vector_layout = len(manifest) == len(previous_manifest) and all(
-            (previous_entry := previous_manifest.get(indexed_path)) is not None
-            and entry.start == previous_entry.start
-            and entry.count == previous_entry.count
-            for indexed_path, entry in manifest.items()
-        )
-        if same_vector_layout:
+        if _has_same_vector_layout(manifest, previous_manifest):
             embeddings = previous.vectors
             for vector_part, start, count in embedding_parts:
                 embeddings[start : start + count] = vector_parts[vector_part]
