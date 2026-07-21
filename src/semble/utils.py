@@ -8,7 +8,7 @@ from semble.types import Chunk, SearchResult
 
 _GIT_URL_SCHEMES = ("https://", "http://", "ssh://", "git://", "git+ssh://", "file://")
 _SCP_GIT_URL_RE = re.compile(r"^[\w.-]+@[\w.-]+:(?!/)")
-DEFAULT_MODEL_NAME = "minishlab/potion-code-16M"
+DEFAULT_MODEL_NAME = "minishlab/potion-code-16M-v2"
 
 
 def is_git_url(path: str) -> bool:
