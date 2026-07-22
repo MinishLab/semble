@@ -8,6 +8,7 @@ import pytest
 
 from semble.cli import _cli_main, _maybe_save_index, _run_clear, main
 from semble.types import ContentType, SearchResult
+from semble.version import __version__
 from tests.conftest import make_chunk
 
 
@@ -87,6 +88,16 @@ def test_cli_find_related(
         assert fragment in captured.out
     if expected_stderr:
         assert expected_stderr in captured.err
+
+
+@pytest.mark.parametrize("argv", [["semble", "--version"], ["semble", "-V"]])
+def test_cli_version(argv: list[str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """--version and -V print the package version and exit 0, via both _cli_main and main()."""
+    monkeypatch.setattr(sys, "argv", argv)
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out.strip() == __version__
 
 
 def test_main_dispatches_to_cli(

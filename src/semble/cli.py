@@ -17,8 +17,11 @@ from semble.installer.agents import AGENTS, IntegrationType
 from semble.stats import format_savings_report
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
+from semble.version import __version__
 
-_CLI_DISPATCH_ARGS = frozenset({"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear"})
+_CLI_DISPATCH_ARGS = frozenset(
+    {"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear", "--version", "-V"}
+)
 _CLEAR_CHOICE = Literal["all", "index", "savings"]
 
 _SHA_256_REGEX = re.compile(r"^[a-f0-9]{64}$")
@@ -166,6 +169,7 @@ def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
 
 def _cli_main() -> None:
     parser = argparse.ArgumentParser(prog="semble")
+    parser.add_argument("-V", "--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command")
 
     search_p = sub.add_parser("search", help="Search a codebase.")
