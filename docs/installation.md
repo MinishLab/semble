@@ -39,6 +39,10 @@ semble install --agent claude pi --type mcp subagent --yes
 
 `semble uninstall` accepts the same flags.
 
+### Keeping installed configuration up to date
+
+The MCP server config, `AGENTS.md`/`CLAUDE.md` instructions, and sub-agent files that `semble install` writes all pin `uvx` to the exact semble version you have installed (`semble[mcp]==X.Y.Z`), so agents keep calling the version the instructions were written for rather than whatever is newest on PyPI. After upgrading (`uv tool upgrade semble` or `pip install --upgrade semble`), rerun `semble install`. This is idempotent and rewrites the pin (and anything else that changed) in place for every agent you select.
+
 ---
 
 ## Manual setup

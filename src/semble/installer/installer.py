@@ -11,6 +11,7 @@ import questionary
 from semble.installer.agents import (
     AGENTS,
     INSTRUCTIONS,
+    SEMBLE_PIN,
     AgentTarget,
     IntegrationType,
     Mode,
@@ -96,7 +97,7 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
         src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
-        dest.write_text(src, encoding="utf-8")
+        dest.write_text(src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"'), encoding="utf-8")
     except Exception:
         return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")

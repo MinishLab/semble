@@ -7,13 +7,13 @@ from typing import Literal, TypeVar, cast
 from tree_sitter import Node, Parser
 from tree_sitter_language_pack import SupportedLanguage, download, get_parser
 
-from semble.installer.agents import SEMBLE_END, SEMBLE_START, Action
+from semble.installer.agents import SEMBLE_END, SEMBLE_PIN, SEMBLE_START, Action
 
 JsonObjectResult = tuple[Node, bytes] | Literal["skipped", "error"]
 _T = TypeVar("_T")
 
 _CODEX_MCP_HEADER = "[mcp_servers.semble]"
-_CODEX_MCP_BLOCK = '[mcp_servers.semble]\ncommand = "uvx"\nargs = ["--from", "semble[mcp]", "semble"]\n'
+_CODEX_MCP_BLOCK = f'[mcp_servers.semble]\ncommand = "uvx"\nargs = ["--from", "{SEMBLE_PIN}", "semble"]\n'
 
 _json5_parser_cache: Parser | None | bool = False  # False = not yet attempted
 

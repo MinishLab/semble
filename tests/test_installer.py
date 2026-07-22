@@ -8,7 +8,9 @@ from semble.installer import run
 from semble.installer.agents import (
     _STDIO_SERVER_CONFIG,
     AGENTS,
+    INSTRUCTIONS,
     SEMBLE_END,
+    SEMBLE_PIN,
     SEMBLE_START,
     IntegrationType,
     _opencode_mcp_path,
@@ -16,6 +18,7 @@ from semble.installer.agents import (
     is_detected,
 )
 from semble.installer.config import (
+    _CODEX_MCP_BLOCK,
     _CODEX_MCP_HEADER,
     merge_json_member,
     merge_toml_block,
@@ -34,6 +37,7 @@ from semble.installer.installer import (
     merge_mcp,
     remove_mcp,
 )
+from semble.version import __version__
 
 _BLOCK = f"{SEMBLE_START}\n## Semble\nsome instructions\n{SEMBLE_END}\n"
 _BLOCK_V2 = f"{SEMBLE_START}\n## Semble\nupdated instructions\n{SEMBLE_END}\n"
@@ -381,6 +385,46 @@ def test_apply_subagent_codex_toml(tmp_path):
     assert "developer_instructions" in text
     assert _apply_subagent(agent, "uninstall").action == "removed"
     assert not dest.exists()
+
+
+def test_semble_pin_matches_installed_version():
+    """SEMBLE_PIN pins the mcp extra to the exact installed semble version, not a bare/latest spec."""
+    assert SEMBLE_PIN == f"semble[mcp]=={__version__}"
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        _STDIO_SERVER_CONFIG,
+        next(a for a in AGENTS if a.id == "opencode").mcp.entry,
+        next(a for a in AGENTS if a.id == "windsurf").mcp.entry,
+        next(a for a in AGENTS if a.id == "zed").mcp.entry,
+    ],
+)
+def test_mcp_configs_pin_version(config):
+    """Every uvx-based MCP server config passes the version-pinned spec, never a bare 'semble[mcp]'."""
+    assert SEMBLE_PIN in config.get("args", ()) or SEMBLE_PIN in config.get("command", ())
+
+
+def test_instructions_pin_version():
+    """The instructions block's CLI fallback line is pinned, not a bare uvx invocation."""
+    assert f'"{SEMBLE_PIN}"' in INSTRUCTIONS
+    assert '"semble[mcp]"' not in INSTRUCTIONS
+
+
+def test_codex_mcp_block_pins_version():
+    """The Codex TOML block embeds the same version pin as the JSON-based agent configs."""
+    assert SEMBLE_PIN in _CODEX_MCP_BLOCK
+
+
+def test_apply_subagent_pins_version(tmp_path):
+    """_apply_subagent rewrites the template's fallback uvx line with the version-pinned spec."""
+    dest = tmp_path / "agents" / "semble-search.md"
+    agent = replace(next(a for a in AGENTS if a.id == "claude"), subagent_path=dest)
+    _apply_subagent(agent, "install")
+    text = dest.read_text()
+    assert f'"{SEMBLE_PIN}"' in text
+    assert '"semble[mcp]"' not in text
 
 
 def test_is_detected(monkeypatch, tmp_path):
