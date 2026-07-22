@@ -55,10 +55,15 @@ class Chunk:
 
 @dataclass(frozen=True, slots=True)
 class SearchResult:
-    """A single search result with score and source."""
+    """A single search result.
+
+    ``score`` is the fused or reranked RRF score. ``semantic_score`` is the raw
+    cosine similarity from the dense leg, or ``None`` for BM25-only results.
+    """
 
     chunk: Chunk
     score: float
+    semantic_score: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

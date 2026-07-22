@@ -32,7 +32,10 @@ def _search_semantic(
     query_embedding = model.encode([query])
     indices, scores = semantic_index.query(query_embedding, k=top_k, selector=selector)[0]
     # Vicinity returns cosine distance; convert to similarity so higher = better.
-    return [SearchResult(chunk=chunks[index], score=1.0 - float(distance)) for index, distance in zip(indices, scores)]
+    return [
+        SearchResult(chunk=chunks[index], score=(similarity := 1.0 - float(distance)), semantic_score=similarity)
+        for index, distance in zip(indices, scores, strict=True)
+    ]
 
 
 def _sort_top_k(arr: npt.NDArray, top_k: int) -> npt.NDArray[np.int_]:
@@ -129,4 +132,6 @@ def search(
     else:
         sorted_by_score = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
         ranked = sorted_by_score[:top_k]
-    return [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]
+    return [
+        SearchResult(chunk=chunk, score=score, semantic_score=semantic_scores.get(chunk)) for chunk, score in ranked
+    ]

@@ -46,6 +46,7 @@ def format_results(query: str, results: list[SearchResult], max_snippet_lines: i
             "start_line": r.chunk.start_line,
             "end_line": r.chunk.end_line,
             "score": r.score,
+            "semantic_score": r.semantic_score,
         }
         if max_snippet_lines is None:
             entry["content"] = r.chunk.content

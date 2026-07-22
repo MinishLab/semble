@@ -11,7 +11,7 @@ from semble.index.bm25 import BM25
 from semble.index.dense import SelectableBasicBackend, embed_chunks, load_model
 from semble.search import _search_bm25, _search_semantic, _sort_top_k, search
 from semble.tokens import tokenize
-from semble.types import Chunk
+from semble.types import Chunk, SearchResult
 from tests.conftest import make_chunk
 
 
@@ -80,6 +80,23 @@ def test_semantic_search(semantic: SelectableBasicBackend, chunks: list[Chunk], 
     results = _search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
     assert len(results) > 0
     assert all(-1.0 <= r.score <= 1.0 for r in results)
+    assert all(r.semantic_score == r.score for r in results)
+
+
+def test_semantic_search_converts_cosine_distances_to_scores(chunks: list[Chunk], mock_model: Any) -> None:
+    """Semantic search converts cosine distances to raw cosine similarities."""
+    semantic = MagicMock(spec=SelectableBasicBackend)
+    semantic.query.return_value = [
+        (
+            np.array([0, 1, 2], dtype=np.int_),
+            np.array([0.0, 1.0, 0.5], dtype=np.float32),
+        )
+    ]
+
+    results = _search_semantic("login", mock_model, semantic, chunks, top_k=3, selector=None)
+
+    assert [result.semantic_score for result in results] == [1.0, 0.0, 0.5]
+    assert [result.score for result in results] == [1.0, 0.0, 0.5]
 
 
 def test_search_hybrid(chunks: list[Chunk], semantic: SelectableBasicBackend, bm25: BM25, mock_model: Any) -> None:
@@ -103,6 +120,33 @@ def test_search_hybrid(chunks: list[Chunk], semantic: SelectableBasicBackend, bm
     result_locations = {r.chunk.file_path for r in deduped}
     assert "module_a.py" in result_locations
     assert "module_b.py" in result_locations
+
+
+@pytest.mark.parametrize("rerank", [True, False])
+def test_search_preserves_semantic_scores(rerank: bool) -> None:
+    """Hybrid search preserves cosine scores for semantic candidates through both ranking paths."""
+    semantic_chunk = make_chunk("def semantic_match(): pass", "semantic.py")
+    bm25_chunk = make_chunk("def keyword_match(): pass", "keyword.py")
+    semantic_results = [SearchResult(chunk=semantic_chunk, score=0.8, semantic_score=0.8)]
+    bm25_results = [SearchResult(chunk=bm25_chunk, score=2.0)]
+
+    with (
+        patch("semble.search._search_semantic", return_value=semantic_results),
+        patch("semble.search._search_bm25", return_value=bm25_results),
+    ):
+        results = search(
+            "unmatched query",
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+            [semantic_chunk, bm25_chunk],
+            top_k=2,
+            alpha=0.5,
+            rerank=rerank,
+        )
+
+    scores_by_chunk = {result.chunk: result.semantic_score for result in results}
+    assert scores_by_chunk == {semantic_chunk: 0.8, bm25_chunk: None}
 
 
 @pytest.mark.parametrize(

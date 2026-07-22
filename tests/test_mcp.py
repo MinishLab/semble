@@ -101,9 +101,14 @@ def test_format_results(max_snippet_lines: int | None, has_content: bool, conten
     assert empty_out == {"query": "query", "results": []}
 
     chunks = [make_chunk(f"line1\nline2\nline3\nline4\ndef fn_{i}(): pass", f"f{i}.py") for i in range(3)]
-    results = [SearchResult(chunk=c, score=round(0.1 * (i + 1), 3)) for i, c in enumerate(chunks)]
+    semantic_scores = [0.25, None, -0.1]
+    results = [
+        SearchResult(chunk=c, score=round(0.1 * (i + 1), 3), semantic_score=semantic_score)
+        for i, (c, semantic_score) in enumerate(zip(chunks, semantic_scores))
+    ]
     out = format_results("foo", results, max_snippet_lines)
     assert out["query"] == "foo"
+    assert [entry["semantic_score"] for entry in out["results"]] == semantic_scores
     for entry in out["results"]:
         assert "file_path" in entry
         assert "start_line" in entry
