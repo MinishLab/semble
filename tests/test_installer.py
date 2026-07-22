@@ -1,3 +1,4 @@
+import importlib.metadata
 import json
 import sys
 from dataclasses import replace
@@ -16,6 +17,7 @@ from semble.installer.agents import (
     _opencode_mcp_path,
     _vscode_mcp_path,
     is_detected,
+    semble_pin,
 )
 from semble.installer.config import (
     _CODEX_MCP_BLOCK,
@@ -387,9 +389,51 @@ def test_apply_subagent_codex_toml(tmp_path):
     assert not dest.exists()
 
 
-def test_semble_pin_matches_installed_version():
-    """SEMBLE_PIN pins the mcp extra to the exact installed semble version, not a bare/latest spec."""
-    assert SEMBLE_PIN == f"semble[mcp]=={__version__}"
+class _FakeDistribution:
+    def __init__(self, direct_url: str | None):
+        self._direct_url = direct_url
+
+    def read_text(self, name: str) -> str | None:
+        return self._direct_url if name == "direct_url.json" else None
+
+
+def test_semble_pin_matches_installed_version(monkeypatch):
+    """For a normal (non-editable) install, semble_pin() pins the mcp extra to the exact installed version."""
+    monkeypatch.setattr("semble.installer.agents.importlib.metadata.distribution", lambda name: _FakeDistribution(None))
+    assert semble_pin() == f"semble[mcp]=={__version__}"
+
+
+def test_semble_pin_uses_local_path_for_editable_install(monkeypatch, tmp_path):
+    """An editable/local-directory install pins to the local source path, not the released PyPI version."""
+    direct_url = json.dumps({"url": tmp_path.as_uri(), "dir_info": {"editable": True}})
+    monkeypatch.setattr(
+        "semble.installer.agents.importlib.metadata.distribution", lambda name: _FakeDistribution(direct_url)
+    )
+    assert semble_pin() == f"{tmp_path}[mcp]"
+
+
+def test_semble_pin_uses_git_commit_for_non_editable_git_install(monkeypatch):
+    """A non-editable `pip install git+URL` pins to the exact commit, since it may not match any PyPI release."""
+    direct_url = json.dumps(
+        {
+            "url": "https://github.com/example/semble.git",
+            "vcs_info": {"vcs": "git", "commit_id": "abc123", "requested_revision": "main"},
+        }
+    )
+    monkeypatch.setattr(
+        "semble.installer.agents.importlib.metadata.distribution", lambda name: _FakeDistribution(direct_url)
+    )
+    assert semble_pin() == "git+https://github.com/example/semble.git@abc123#egg=semble[mcp]"
+
+
+def test_semble_pin_falls_back_when_distribution_lookup_fails(monkeypatch):
+    """If the distribution metadata can't be read at all, semble_pin() falls back to the version pin."""
+
+    def _raise(name: str):
+        raise importlib.metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr("semble.installer.agents.importlib.metadata.distribution", _raise)
+    assert semble_pin() == f"semble[mcp]=={__version__}"
 
 
 @pytest.mark.parametrize(
