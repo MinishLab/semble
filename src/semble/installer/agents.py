@@ -42,8 +42,7 @@ _BARE_STDIO_SERVER_CONFIG: dict[str, object] = {  # Windsurf: command/args only,
     "args": ["--from", "semble[mcp]", "semble"],
 }
 
-_ZED_SERVER_CONFIG: dict[str, object] = {  # Zed requires "source": "custom" for manual servers
-    "source": "custom",
+_ZED_SERVER_CONFIG: dict[str, object] = {  # Zed: command/args only, no "source"
     "command": "uvx",
     "args": ["--from", "semble[mcp]", "semble"],
 }
