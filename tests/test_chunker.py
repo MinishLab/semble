@@ -2,7 +2,7 @@ import logging
 from unittest.mock import patch
 
 import pytest
-from tree_sitter_language_pack import DownloadError
+from tree_sitter_language_pack import DownloadError, LanguageNotFoundError
 
 from semble.chunking.chunking import Chunk, chunk_lines, chunk_source
 from semble.chunking.core import ChunkBoundary, _cached_get_parser, chunk
@@ -102,12 +102,14 @@ def test_get_parser(caplog: pytest.LogCaptureFixture) -> None:
         _cached_get_parser("hello")
         assert len(caplog.records) == 0
 
-    with patch("semble.chunking.core.get_parser", side_effect=DownloadError):
+    download_error = DownloadError("invalid peer certificate: UnknownIssuer")
+    with patch("semble.chunking.core.get_parser", side_effect=download_error):
         with caplog.at_level(logging.WARNING, logger="semble.chunking.core"):
             _cached_get_parser("Python")
             assert len(caplog.records) == 1
             assert "Failed to download" in caplog.records[0].message
             assert "Python" in caplog.records[0].message
+            assert "UnknownIssuer" in caplog.records[0].message
 
             caplog.clear()
             _cached_get_parser("Python")
@@ -122,6 +124,18 @@ def test_get_parser(caplog: pytest.LogCaptureFixture) -> None:
             caplog.clear()
             _cached_get_parser("Ruby")
             assert len(caplog.records) == 0
+
+
+def test_language_not_found_reports_download_failure(caplog: pytest.LogCaptureFixture) -> None:
+    """A wrapped download failure remains visible when line chunking is used."""
+    error = LanguageNotFoundError("Download error: failed to fetch parser manifest")
+
+    with patch("semble.chunking.core.get_parser", side_effect=error):
+        with caplog.at_level(logging.WARNING, logger="semble.chunking.core"):
+            assert _cached_get_parser("python") is None
+
+    assert "failed to fetch parser manifest" in caplog.records[0].message
+    assert "falling back to line chunking" in caplog.records[0].message
 
 
 def test_chunks_is_none() -> None:

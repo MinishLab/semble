@@ -33,10 +33,18 @@ def _cached_get_parser(language: SupportedLanguage) -> Parser | None:
     """Gets a parser from tree_sitter."""
     try:
         return get_parser(language)
-    except LanguageNotFoundError:
-        logger.warning("Language %s not found, falling back to line chunking", language)
-    except DownloadError:
-        logger.warning("Failed to download language %s, falling back to line chunking", language)
+    except LanguageNotFoundError as error:
+        logger.warning(
+            "Language %s not found (%s), falling back to line chunking",
+            language,
+            error,
+        )
+    except DownloadError as error:
+        logger.warning(
+            "Failed to download language %s (%s), falling back to line chunking",
+            language,
+            error,
+        )
     except Exception:
         logger.error("Uncaught exception in _cached_get_parser", exc_info=True)
     return None
