@@ -5,6 +5,7 @@ Quality and speed benchmarks for `semble`.
 - [Main results](#main-results)
 - [Token efficiency](#token-efficiency)
 - [By language](#by-language)
+- [Common-language subset](#common-language-subset)
 - [Ablations](#ablations)
 - [Dataset](#dataset)
 - [Methods](#methods)
@@ -96,6 +97,26 @@ NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best sc
 
 cbm = [codebase-memory-mcp](#methods).
 
+## Common-language subset
+
+GitNexus and codegraph (see [Excluded methods](#excluded-methods)) don't support all 19 benchmark languages, so they're left out of the tables above. To get an apples-to-apples read on their retrieval quality, this table restricts every tool to the 13 languages both of them support — C, C++, C#, Go, Java, JavaScript, Kotlin, PHP, Python, Ruby, Rust, Swift, TypeScript — dropping Bash, Elixir, Haskell, Lua, Scala, and Zig (GitNexus's unsupported set, which is a superset of codegraph's).
+
+| Method | NDCG@10 (13-language subset) |
+|---|---:|
+| CodeRankEmbed Hybrid | 0.857 |
+| **semble** | **0.852** |
+| CodeRankEmbed | 0.729 |
+| ColGREP | 0.673 |
+| codegraph | 0.648 |
+| GitNexus | 0.626 |
+| codebase-memory-mcp | 0.614 |
+| grepai | 0.527 |
+| probe | 0.393 |
+| cs | 0.198 |
+| ripgrep | 0.148 |
+
+No new benchmark run: semble/CodeRankEmbed/CodeRankEmbed Hybrid/ColGREP/grepai/probe/cs/codebase-memory-mcp/ripgrep values are the mean of their already-published per-language NDCG@10 above, restricted to these 13 languages; GitNexus and codegraph are computed the same way from their own per-repo results.
+
 ## Ablations
 
 `raw` returns retrieval scores directly; `+ ranking` feeds them through semble's hybrid ranker.
@@ -151,11 +172,12 @@ cbm = [codebase-memory-mcp](#methods).
 
 ## Excluded methods
 
-Four tools were considered but not included in the main comparison:
+Five tools were considered but not included in the main comparison:
 
 - **[codanna](https://codanna.io)**: symbol-level semantic search with fastembed. Excluded because it does not support Haskell, Bash, Zig, Scala, Elixir, or Ruby (6 of the 19 benchmark languages, covering 20 of 63 repos (~38% of tasks)).
 - **[claude-context](https://github.com/zilliztech/claude-context)**: retrieval-augmented code search using OpenAI embeddings and a vector database. Excluded because it requires a paid OpenAI API key and a running vector-DB service.
 - **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local ONNX embeddings + RRF over a call/symbol graph). We benchmarked it (`gitnexus analyze --embeddings` + `gitnexus query`, ranked by the `definitions` field) and it scores well where it works — **0.635 NDCG@10** across the 46/63 repos it could index, ahead of codebase-memory-mcp. Excluded from the main table for the same reason as codanna: it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of 19 languages, 17 of 63 repos). This isn't an installation or config issue — `gitnexus analyze -v` shows tree-sitter parsing `0` files for these languages (`parsedFiles=0, langs=0`), and the installed npm package genuinely ships no `tree-sitter-{haskell,elixir,lua,bash,scala,zig}` grammar at all (confirmed by inspecting `node_modules`), so indexing hard-fails with "Embedding generation completed without persisted embeddings" rather than degrading gracefully. Its own npm package also needs several native postinstall scripts (tree-sitter grammars, onnxruntime-node, ladybugdb) for full functionality, a meaningfully larger install footprint than the single-binary tools above.
+- **[codegraph](https://github.com/colbymchenry/codegraph)**: SQLite FTS5 symbol search + graph traversal. We benchmarked it (`codegraph init` + `codegraph query --json`) — **0.539 NDCG@10** across all 63 repos. Excluded for the same reason as codanna/GitNexus: it does not support Haskell, Bash, Elixir, or Zig (4 of 19 languages). Unlike GitNexus it fails gracefully — it indexes the repo and reports success, it just extracts 0 symbols from files in those languages, so queries return nothing (confirmed with isolated single-file repros, not just observed on the full benchmark repos).
 - **[ck](https://github.com/BeaconBay/ck)**: hybrid regex + local semantic search (BAAI/bge-small-en-v1.5 via fastembed), `ck --hybrid --json`. A baseline (`benchmarks/baselines/ck.py`) was written and its JSON output schema verified directly against the installed binary, but no numbers are published here: `ck`'s release binary links `fastembed` with the `rustls` TLS backend (bundled CA roots) rather than the OS trust store for its one-time embedding-model download, so it fails outright behind any TLS-intercepting corporate proxy — a real risk for CI runners and corporate laptops, not just a quirk of one environment. Run `uv run python -m benchmarks.baselines.ck` yourself on a network without TLS interception to get real numbers.
 
 ## Running the benchmarks
@@ -277,6 +299,20 @@ uv run python -m benchmarks.baselines.gitnexus --repo fastapi --repo axios
 ```
 
 Each repo is indexed under a `semble-bench-<repo>` alias (`--skip-git --embeddings --index-only`) and removed again after evaluation.
+
+</details>
+
+<details>
+<summary>codegraph (excluded, see above)</summary>
+
+Needs `codegraph` on `$PATH` (`npm i -g @colbymchenry/codegraph`). Covers all 63 repos but scores 0 on Haskell/Bash/Elixir/Zig repos (11 of 63).
+
+```bash
+uv run python -m benchmarks.baselines.codegraph
+uv run python -m benchmarks.baselines.codegraph --repo fastapi --repo axios
+```
+
+Each repo is indexed in place (`.codegraph/`, deleted again after evaluation). `CODEGRAPH_TELEMETRY=0` is set to disable codegraph's anonymous usage stats during benchmark runs.
 
 </details>
 
