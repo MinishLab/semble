@@ -18,19 +18,21 @@ Quality and speed across all methods.
 | Method | NDCG@10 | Index | Query p50 |
 |---|---:|---:|---:|
 | CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
-| **semble** | **0.854** | **263 ms** | **1.5 ms** |
+| **semble** | **0.854** | **586 ms** | **0.97 ms** |
 | CodeRankEmbed | 0.765 | 57 s | 16 ms |
-| ColGREP | 0.693 | 5.8 s | 124 ms |
-| BM25 | 0.673 | 263 ms | 0.02 ms |
+| ColGREP | 0.693 | 5.2 s | 120 ms |
+| BM25 | 0.673 | 586 ms | 0.77 ms |
+| codebase-memory-mcp | 0.630 | 454 ms | 46 ms |
 | grepai | 0.561 | 35 s | 48 ms |
 | probe | 0.387 | — | 207 ms |
-| ripgrep | 0.126 | — | 12 ms |
+| cs | 0.200 | — | 22 ms |
+| ripgrep | 0.126 | — | 15 ms |
 
 | ![Speed vs quality (cold)](../assets/images/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](../assets/images/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
 | *Time to first result (index + query) vs NDCG@10* | *Query latency on a warm index vs NDCG@10* |
 
-The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 218x and query latency by 11x.
+The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 98x and query latency by 17x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
 
@@ -69,28 +71,30 @@ semble returns the top-50 ranked chunks. `ripgrep+read` splits the query into ke
 
 NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best score per row is bolded.
 
-| Language | semble | CRE Hybrid | CRE | ColGREP | grepai | probe | ripgrep |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| scala | 0.909 | **0.922** | 0.845 | 0.765 | 0.330 | 0.392 | 0.180 |
-| cpp | **0.915** | 0.913 | 0.846 | 0.626 | 0.731 | 0.375 | 0.126 |
-| ruby | **0.909** | **0.909** | 0.769 | 0.708 | 0.643 | 0.382 | 0.230 |
-| elixir | 0.894 | **0.905** | 0.869 | 0.808 | 0.669 | 0.412 | 0.134 |
-| javascript | 0.917 | 0.903 | **0.920** | 0.823 | 0.675 | 0.588 | 0.176 |
-| zig | **0.913** | 0.901 | 0.807 | 0.474 | 0.755 | 0.369 | 0.000 |
-| csharp | 0.885 | **0.889** | 0.743 | 0.614 | 0.277 | 0.392 | 0.117 |
-| go | **0.895** | 0.884 | 0.676 | 0.785 | 0.722 | 0.410 | 0.133 |
-| python | 0.867 | **0.880** | 0.794 | 0.777 | 0.634 | 0.488 | 0.202 |
-| php | 0.858 | **0.874** | 0.758 | 0.663 | 0.402 | 0.340 | 0.123 |
-| swift | 0.860 | **0.873** | 0.721 | 0.710 | 0.429 | 0.280 | 0.160 |
-| bash | 0.825 | 0.852 | **0.892** | 0.706 | 0.723 | 0.226 | 0.000 |
-| lua | 0.823 | **0.847** | 0.803 | 0.798 | 0.699 | 0.336 | 0.000 |
-| java | **0.849** | 0.841 | 0.706 | 0.641 | 0.386 | 0.536 | 0.198 |
-| kotlin | 0.821 | **0.830** | 0.670 | 0.637 | 0.478 | 0.335 | 0.166 |
-| rust | **0.856** | 0.827 | 0.627 | 0.662 | 0.519 | 0.242 | 0.162 |
-| c | 0.741 | **0.806** | 0.706 | 0.676 | 0.555 | 0.384 | 0.000 |
-| haskell | 0.765 | 0.771 | **0.776** | 0.683 | 0.483 | 0.313 | 0.000 |
-| typescript | 0.706 | **0.708** | 0.545 | 0.430 | 0.394 | 0.354 | 0.128 |
-| **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.561** | **0.387** | **0.126** |
+| Language | semble | CRE Hybrid | CRE | ColGREP | cbm | grepai | probe | cs | ripgrep |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| scala | 0.909 | **0.922** | 0.845 | 0.765 | 0.704 | 0.330 | 0.392 | 0.111 | 0.180 |
+| cpp | **0.915** | 0.913 | 0.846 | 0.626 | 0.630 | 0.731 | 0.375 | 0.262 | 0.126 |
+| ruby | **0.909** | **0.909** | 0.769 | 0.708 | 0.689 | 0.643 | 0.382 | 0.255 | 0.230 |
+| elixir | 0.894 | **0.905** | 0.869 | 0.808 | 0.506 | 0.669 | 0.412 | 0.397 | 0.134 |
+| javascript | 0.917 | 0.903 | **0.920** | 0.823 | 0.770 | 0.675 | 0.588 | 0.171 | 0.176 |
+| zig | **0.913** | 0.901 | 0.807 | 0.474 | 0.766 | 0.755 | 0.369 | 0.121 | 0.000 |
+| csharp | 0.885 | **0.889** | 0.743 | 0.614 | 0.775 | 0.277 | 0.392 | 0.248 | 0.117 |
+| go | **0.895** | 0.884 | 0.676 | 0.785 | 0.506 | 0.722 | 0.410 | 0.183 | 0.133 |
+| python | 0.867 | **0.880** | 0.794 | 0.777 | 0.643 | 0.634 | 0.488 | 0.305 | 0.202 |
+| php | 0.858 | **0.874** | 0.758 | 0.663 | 0.608 | 0.402 | 0.340 | 0.180 | 0.123 |
+| swift | 0.860 | **0.873** | 0.721 | 0.710 | 0.630 | 0.429 | 0.280 | 0.151 | 0.160 |
+| bash | 0.825 | 0.852 | **0.892** | 0.706 | 0.768 | 0.723 | 0.226 | 0.170 | 0.000 |
+| lua | 0.823 | **0.847** | 0.803 | 0.798 | 0.591 | 0.699 | 0.336 | 0.050 | 0.000 |
+| java | **0.849** | 0.841 | 0.706 | 0.641 | 0.554 | 0.386 | 0.536 | 0.136 | 0.198 |
+| kotlin | 0.821 | **0.830** | 0.670 | 0.637 | 0.611 | 0.478 | 0.335 | 0.170 | 0.166 |
+| rust | **0.856** | 0.827 | 0.627 | 0.662 | 0.454 | 0.519 | 0.242 | 0.193 | 0.162 |
+| c | 0.741 | **0.806** | 0.706 | 0.676 | 0.655 | 0.555 | 0.384 | 0.175 | 0.000 |
+| haskell | 0.765 | 0.771 | **0.776** | 0.683 | 0.624 | 0.483 | 0.313 | 0.160 | 0.000 |
+| typescript | 0.706 | **0.708** | 0.545 | 0.430 | 0.455 | 0.394 | 0.354 | 0.145 | 0.128 |
+| **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
+
+cbm = [codebase-memory-mcp](#methods).
 
 ## Ablations
 
@@ -138,17 +142,21 @@ NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best sc
 
 - **[ripgrep](https://github.com/BurntSushi/ripgrep)**: fast regex search over files, included as a raw keyword-match baseline.
 - **[probe](https://github.com/buger/probe)**: BM25 keyword ranking backed by tree-sitter parse trees. No persistent index; scans on the fly.
+- **[cs (Code Spelunker)](https://github.com/boyter/cs)**: structural BM25 ranker (tree-sitter aware, ranks matches differently in code/comments/strings). No persistent index.
 - **[ColGREP](https://github.com/lightonai/next-plaid/tree/main/colgrep)**: late-interaction code retrieval built on next-plaid with the [LateOn-Code-edge](https://huggingface.co/lightonai/LateOn-Code-edge) model.
 - **[grepai](https://github.com/nicholasgasior/grepai)**: semantic search using [nomic-embed-text](https://huggingface.co/nomic-ai/nomic-embed-text-v1) (137M params) via a local Ollama daemon.
+- **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**: code intelligence engine that indexes a repo into a SQLite/graph store. We benchmark its `search_graph` tool, which does BM25 full-text search with structural boosting (Functions/Methods +10, Routes +8, Classes +5); indexed in `fast` mode (no embeddings).
 - **[CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed)**: 137M-param transformer embedding model for code retrieval. *CodeRankEmbed Hybrid* fuses its dense scores with BM25.
 - **[semble](https://github.com/your-repo/semble)**: this library. [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) static embeddings + BM25 + the semble reranking stack.
 
 ## Excluded methods
 
-Two tools were considered but not included in the benchmark:
+Four tools were considered but not included in the main comparison:
 
 - **[codanna](https://codanna.io)**: symbol-level semantic search with fastembed. Excluded because it does not support Haskell, Bash, Zig, Scala, Elixir, or Ruby (6 of the 19 benchmark languages, covering 20 of 63 repos (~38% of tasks)).
 - **[claude-context](https://github.com/zilliztech/claude-context)**: retrieval-augmented code search using OpenAI embeddings and a vector database. Excluded because it requires a paid OpenAI API key and a running vector-DB service.
+- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local ONNX embeddings + RRF over a call/symbol graph). We benchmarked it (`gitnexus analyze --embeddings` + `gitnexus query`, ranked by the `definitions` field) and it scores well where it works — **0.635 NDCG@10** across the 46/63 repos it could index, ahead of codebase-memory-mcp. Excluded from the main table for the same reason as codanna: it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of 19 languages, 17 of 63 repos). This isn't an installation or config issue — `gitnexus analyze -v` shows tree-sitter parsing `0` files for these languages (`parsedFiles=0, langs=0`), and the installed npm package genuinely ships no `tree-sitter-{haskell,elixir,lua,bash,scala,zig}` grammar at all (confirmed by inspecting `node_modules`), so indexing hard-fails with "Embedding generation completed without persisted embeddings" rather than degrading gracefully. Its own npm package also needs several native postinstall scripts (tree-sitter grammars, onnxruntime-node, ladybugdb) for full functionality, a meaningfully larger install footprint than the single-binary tools above.
+- **[ck](https://github.com/BeaconBay/ck)**: hybrid regex + local semantic search (BAAI/bge-small-en-v1.5 via fastembed), `ck --hybrid --json`. A baseline (`benchmarks/baselines/ck.py`) was written and its JSON output schema verified directly against the installed binary, but no numbers are published here: `ck`'s release binary links `fastembed` with the `rustls` TLS backend (bundled CA roots) rather than the OS trust store for its one-time embedding-model download, so it fails outright behind any TLS-intercepting corporate proxy — a real risk for CI runners and corporate laptops, not just a quirk of one environment. Run `uv run python -m benchmarks.baselines.ck` yourself on a network without TLS interception to get real numbers.
 
 ## Running the benchmarks
 
@@ -229,6 +237,58 @@ uv run python -m benchmarks.baselines.grepai --timeout 1800 --output results.jso
 ```
 
 The `--output` flag enables resume mode: already-completed repos are skipped on restart.
+
+</details>
+
+<details>
+<summary>cs (Code Spelunker)</summary>
+
+Needs `cs` on `$PATH` (`go install github.com/boyter/cs/v3@latest`).
+
+```bash
+uv run python -m benchmarks.baselines.cs
+uv run python -m benchmarks.baselines.cs --repo fastapi --repo axios
+```
+
+</details>
+
+<details>
+<summary>codebase-memory-mcp</summary>
+
+Needs `codebase-memory-mcp` on `$PATH` (`uv tool install codebase-memory-mcp`, or `pip`/`npm`/`brew`). First run downloads a small platform binary.
+
+```bash
+uv run python -m benchmarks.baselines.codebase_memory
+uv run python -m benchmarks.baselines.codebase_memory --repo fastapi --repo axios
+```
+
+Each repo is indexed under a `semble-bench-<repo>` project name and deleted again after evaluation, so it doesn't collide with any projects you have indexed for real use.
+
+</details>
+
+<details>
+<summary>GitNexus (excluded, see above)</summary>
+
+Needs `gitnexus` on `$PATH` (`npm install -g gitnexus`). Only covers 46/63 repos (missing bash, elixir, haskell, lua, scala, zig).
+
+```bash
+uv run python -m benchmarks.baselines.gitnexus
+uv run python -m benchmarks.baselines.gitnexus --repo fastapi --repo axios
+```
+
+Each repo is indexed under a `semble-bench-<repo>` alias (`--skip-git --embeddings --index-only`) and removed again after evaluation.
+
+</details>
+
+<details>
+<summary>ck (excluded, see above)</summary>
+
+Needs `ck` on `$PATH` (`cargo install ck-search` or `npm install -g @beaconbay/ck-search`). Requires outbound HTTPS to Hugging Face with no TLS interception (see exclusion note above).
+
+```bash
+uv run python -m benchmarks.baselines.ck
+uv run python -m benchmarks.baselines.ck --repo fastapi --repo axios
+```
 
 </details>
 

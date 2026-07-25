@@ -38,6 +38,35 @@ def run_ripgrep_count(
     return [path for path, _ in entries[:top_k]]
 
 
+def run_cs(
+    query: str,
+    benchmark_dir: Path,
+    *,
+    top_k: int,
+    timeout: int = 30,
+) -> list[str]:
+    """Return file paths from cs (Code Spelunker) JSON output, ranked by its structural BM25 score."""
+    cmd = ["cs", query, "--format", "json", "--dir", str(benchmark_dir), "--result-limit", str(top_k)]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return []
+    if proc.returncode != 0:
+        return []
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+    if not data:
+        return []
+    seen: dict[str, None] = {}
+    for item in data:
+        location = item.get("location", "")
+        if location:
+            seen[location] = None
+    return list(seen)[:top_k]
+
+
 def run_colgrep_files(
     query: str,
     benchmark_dir: Path,

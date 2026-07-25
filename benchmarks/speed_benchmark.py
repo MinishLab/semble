@@ -5,12 +5,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
-from model2vec import StaticModel
 from sentence_transformers import SentenceTransformer
 
 from benchmarks.data import RepoSpec, Task, available_repo_specs, load_tasks, save_results
 from benchmarks.tools import run_colgrep_files, run_ripgrep_count
 from semble import SembleIndex
+from semble.index.dense import load_model
 from semble.types import EmbeddingMatrix
 from semble.utils import DEFAULT_MODEL_NAME
 
@@ -88,18 +88,16 @@ class _CREWrapper:
         return self._model.encode(text_list, batch_size=1)  # type: ignore[return-value]
 
 
-def _bench_semble(
-    spec: RepoSpec, tasks: list[Task], model: StaticModel | None
-) -> tuple[float, SembleIndex, tuple[float, ...]]:
+def _bench_semble(spec: RepoSpec, tasks: list[Task]) -> tuple[float, SembleIndex, tuple[float, ...]]:
     """Index a repo with semble and measure query latency; return (index_ms, index, latencies_ms)."""
     started = time.perf_counter()
-    index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+    index = SembleIndex.from_path(spec.benchmark_dir, model_path=DEFAULT_MODEL_NAME)
     index_ms = (time.perf_counter() - started) * 1000
     latencies: list[float] = []
     for task in tasks:
         for _ in range(5):
             started = time.perf_counter()
-            index.search(task.query, top_k=_TOP_K, mode="hybrid")
+            index.search(task.query, top_k=_TOP_K)
             latencies.append((time.perf_counter() - started) * 1000)
     return index_ms, index, tuple(latencies)
 
@@ -110,7 +108,7 @@ def _bench_bm25(index: SembleIndex, index_ms: float, tasks: list[Task]) -> tuple
     for task in tasks:
         for _ in range(5):
             started = time.perf_counter()
-            index.search(task.query, top_k=_TOP_K, mode="bm25")
+            index.search(task.query, top_k=_TOP_K, alpha=0.0)
             latencies.append((time.perf_counter() - started) * 1000)
     return index_ms, tuple(latencies)
 
@@ -192,16 +190,11 @@ def main() -> None:
 
     print("Loading semble model...", file=sys.stderr)
     started = time.perf_counter()
-    semble_model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
-    print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
-
-    print("Loading CodeRankEmbed...", file=sys.stderr)
-    started = time.perf_counter()
-    cre_model = _CREWrapper(SentenceTransformer("nomic-ai/CodeRankEmbed", trust_remote_code=True, device="cpu"))
+    load_model(DEFAULT_MODEL_NAME)  # warms semble's internal model cache so repo #1 isn't penalized
     print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
     print(file=sys.stderr)
 
-    tools = ["semble", "bm25", "coderankembed", "colgrep", "ripgrep"]
+    tools = ["semble", "bm25", "colgrep", "ripgrep"]
 
     print(
         f"{'Repo':<22} {'Language':<14} {'Tool':<16} {'Index':>10} {'p50':>8} {'p90':>8} {'p95':>8} {'p99':>8}",
@@ -215,7 +208,7 @@ def main() -> None:
         spec = specs[repo]
         tasks = repo_tasks[repo]
 
-        index_ms, semble_index, latencies_ms = _bench_semble(spec, tasks, semble_model)
+        index_ms, semble_index, latencies_ms = _bench_semble(spec, tasks)
         result = ToolResult(
             repo=repo, language=spec.language, tool="semble", index_ms=index_ms, latencies_ms=latencies_ms
         )
@@ -228,16 +221,6 @@ def main() -> None:
         )
         all_results.append(result)
         print(f"{'':22} {spec.language:<14} {'bm25':<16} {bm25_index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr)
-
-        index_ms, latencies_ms = _bench_coderankembed(spec, tasks, cre_model)
-        result = ToolResult(
-            repo=repo, language=spec.language, tool="coderankembed", index_ms=index_ms, latencies_ms=latencies_ms
-        )
-        all_results.append(result)
-        print(
-            f"{'':22} {spec.language:<14} {'coderankembed':<16} {index_ms:>8.0f}ms {_fmt_stats(result)}",
-            file=sys.stderr,
-        )
 
         colgrep_result = _bench_colgrep(spec, tasks)
         if colgrep_result is not None:

@@ -25,7 +25,7 @@ _METHODS: list[_Method] = [
         "name": "ripgrep",
         "ndcg10": 0.126,
         "index_ms": 0.0,  # no persistent index; scans on the fly
-        "query_p50_ms": 12.08,
+        "query_p50_ms": 14.55,
         "color": "#606060",
         "params_m": 0,
     },
@@ -38,18 +38,34 @@ _METHODS: list[_Method] = [
         "params_m": 0,
     },
     {
+        "name": "cs",
+        "ndcg10": 0.1997,
+        "index_ms": 0.0,  # no persistent index; scans on the fly
+        "query_p50_ms": 22.1,
+        "color": "#5aa9a3",
+        "params_m": 0,
+    },
+    {
+        "name": "codebase-memory-mcp",
+        "ndcg10": 0.6298,
+        "index_ms": 454.0,
+        "query_p50_ms": 46.3,
+        "color": "#a3a34a",
+        "params_m": 0,
+    },
+    {
         "name": "BM25",
         "ndcg10": 0.673,
-        "index_ms": 262.6,  # same semble index infrastructure; BM25 component adds negligible overhead
-        "query_p50_ms": 0.019,
+        "index_ms": 586.4,  # same semble index infrastructure; BM25 component adds negligible overhead
+        "query_p50_ms": 0.77,
         "color": "#3a9e7e",
         "params_m": 0,
     },
     {
         "name": "ColGREP",
         "ndcg10": 0.6925,
-        "index_ms": 5750.6,
-        "query_p50_ms": 123.83,
+        "index_ms": 5168.3,
+        "query_p50_ms": 120.25,
         "color": "#e8a838",
         "params_m": 16,
     },
@@ -80,8 +96,8 @@ _METHODS: list[_Method] = [
     {
         "name": "semble",
         "ndcg10": 0.8544,
-        "index_ms": 262.6,
-        "query_p50_ms": 1.49,
+        "index_ms": 586.4,
+        "query_p50_ms": 0.97,
         "color": "#1a5fa8",
         "params_m": 16,
     },
