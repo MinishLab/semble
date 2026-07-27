@@ -239,7 +239,7 @@ The quality benchmark (left) scores retrieval quality (NDCG@10) against total la
 
 ## How it works
 
-Semble splits each file into code-aware chunks using [tree-sitter](https://github.com/tree-sitter/py-tree-sitter), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) model for semantic similarity, and [BM25](https://github.com/xhluca/bm25s) for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
+Semble splits each file into code-aware chunks using [tree-sitter](https://github.com/tree-sitter/py-tree-sitter), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [potion-code-16M-v2](https://huggingface.co/minishlab/potion-code-16M-v2) model for semantic similarity, and BM25 for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
 
 After fusing, results are reranked with a set of code-aware signals:
 
@@ -256,7 +256,7 @@ After fusing, results are reranked with a set of code-aware signals:
 
 Because the embedding model is static with no transformer forward pass at query time, all of this runs in milliseconds on CPU.
 
-Indexes are cached to disk automatically on the first search. On subsequent runs, Semble walks the file tree and compares modification times; if any file was added, removed, or changed, or if the indexing settings change (e.g., after a semble upgrade), the index is fully rebuilt. In MCP mode, a file watcher detects changes and triggers a rebuild automatically so the index is always current within the same session.
+Indexes are cached to disk automatically on the first search. On subsequent runs, Semble walks the file tree and compares modification times; added, removed, or changed files are reindexed incrementally, without rebuilding the rest of the index. A full rebuild only happens if the indexing settings change (e.g., after a semble upgrade that changes the model, chunking, or cache format). In MCP mode, a file watcher detects changes and triggers reindexing automatically so the index is always current within the same session.
 
 ## Acknowledgements
 
