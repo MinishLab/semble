@@ -25,7 +25,7 @@ _METHODS: list[_Method] = [
         "name": "ripgrep",
         "ndcg10": 0.126,
         "index_ms": 0.0,  # no persistent index; scans on the fly
-        "query_p50_ms": 14.55,
+        "query_p50_ms": 14.46,
         "color": "#606060",
         "params_m": 0,
     },
@@ -54,9 +54,17 @@ _METHODS: list[_Method] = [
         "params_m": 0,
     },
     {
+        "name": "ck",
+        "ndcg10": 0.646,
+        "index_ms": 85449.0,
+        "query_p50_ms": 178.3,
+        "color": "#4a7ba3",
+        "params_m": 33,
+    },
+    {
         "name": "BM25",
         "ndcg10": 0.673,
-        "index_ms": 586.4,  # same semble index infrastructure; BM25 component adds negligible overhead
+        "index_ms": 45.0,  # standalone BM25 build time, not shared with semble's dense index
         "query_p50_ms": 0.77,
         "color": "#3a9e7e",
         "params_m": 0,
@@ -64,8 +72,8 @@ _METHODS: list[_Method] = [
     {
         "name": "ColGREP",
         "ndcg10": 0.6925,
-        "index_ms": 5168.3,
-        "query_p50_ms": 120.25,
+        "index_ms": 5359.0,
+        "query_p50_ms": 122.42,
         "color": "#e8a838",
         "params_m": 16,
     },

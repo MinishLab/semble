@@ -10,7 +10,11 @@ from sentence_transformers import SentenceTransformer
 from benchmarks.data import RepoSpec, Task, available_repo_specs, load_tasks, save_results
 from benchmarks.tools import run_colgrep_files, run_ripgrep_count
 from semble import SembleIndex
+from semble.index.bm25 import BM25
 from semble.index.dense import load_model
+from semble.index.sparse import enrich_for_bm25
+from semble.index.types import make_chunk_id
+from semble.tokens import tokenize
 from semble.types import EmbeddingMatrix
 from semble.utils import DEFAULT_MODEL_NAME
 
@@ -102,8 +106,30 @@ def _bench_semble(spec: RepoSpec, tasks: list[Task]) -> tuple[float, SembleIndex
     return index_ms, index, tuple(latencies)
 
 
-def _bench_bm25(index: SembleIndex, index_ms: float, tasks: list[Task]) -> tuple[float, tuple[float, ...]]:
-    """Measure BM25-only query latency on a pre-built semble index; return (index_ms, latencies_ms)."""
+def _bench_bm25(index: SembleIndex, tasks: list[Task]) -> tuple[float, tuple[float, ...]]:
+    """Build a standalone BM25 index from already-chunked content and measure query latency.
+
+    Reuses semble's chunks (no re-parsing) but times only the BM25-specific work — building a
+    combined semble index also pays for dense embedding, which dominates and would make this
+    number meaningless as a "BM25 index time".
+    """
+    started = time.perf_counter()
+    bm25_index = BM25()
+    doc_ids: list[str] = []
+    slot = 0
+    prev_path = None
+    for chunk in index.chunks:
+        slot = slot + 1 if chunk.file_path == prev_path else 0
+        prev_path = chunk.file_path
+        chunk_id = make_chunk_id(chunk.file_path, slot)
+        bm25_index.add_document(chunk_id, tokenize(enrich_for_bm25(chunk)))
+        doc_ids.append(chunk_id)
+    bm25_index.set_doc_order(doc_ids)
+    index_ms = (time.perf_counter() - started) * 1000
+
+    # Query latency still goes through the full search() pipeline at alpha=0.0 (BM25-only
+    # weighting) rather than raw bm25_index.get_scores(), since that's what a real "BM25 mode"
+    # caller of semble actually pays (candidate selection, reranking hooks, etc.).
     latencies: list[float] = []
     for task in tasks:
         for _ in range(5):
@@ -215,7 +241,7 @@ def main() -> None:
         all_results.append(result)
         print(f"{repo:<22} {spec.language:<14} {'semble':<16} {index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr)
 
-        bm25_index_ms, latencies_ms = _bench_bm25(semble_index, index_ms, tasks)
+        bm25_index_ms, latencies_ms = _bench_bm25(semble_index, tasks)
         result = ToolResult(
             repo=repo, language=spec.language, tool="bm25", index_ms=bm25_index_ms, latencies_ms=latencies_ms
         )

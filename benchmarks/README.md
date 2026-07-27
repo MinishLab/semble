@@ -5,7 +5,6 @@ Quality and speed benchmarks for `semble`.
 - [Main results](#main-results)
 - [Token efficiency](#token-efficiency)
 - [By language](#by-language)
-- [Common-language subset](#common-language-subset)
 - [Ablations](#ablations)
 - [Dataset](#dataset)
 - [Methods](#methods)
@@ -19,10 +18,10 @@ Quality and speed across all methods.
 | Method | NDCG@10 | Index | Query p50 |
 |---|---:|---:|---:|
 | CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
-| **semble** | **0.854** | **586 ms** | **0.97 ms** |
+| **semble** | **0.854** | **590 ms** | **0.98 ms** |
 | CodeRankEmbed | 0.765 | 57 s | 16 ms |
-| ColGREP | 0.693 | 5.2 s | 120 ms |
-| BM25 | 0.673 | 586 ms | 0.77 ms |
+| ColGREP | 0.693 | 5.4 s | 122 ms |
+| BM25 | 0.673 | 45 ms | 0.77 ms |
 | ck | 0.646 | 85 s | 178 ms |
 | codebase-memory-mcp | 0.630 | 454 ms | 46 ms |
 | grepai | 0.561 | 35 s | 48 ms |
@@ -34,7 +33,7 @@ Quality and speed across all methods.
 |:--:|:--:|
 | *Time to first result (index + query) vs NDCG@10* | *Query latency on a warm index vs NDCG@10* |
 
-The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 98x and query latency by 17x.
+The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 97x and query latency by 17x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
 
@@ -50,8 +49,8 @@ For each query: tokens consumed at first relevant hit, or 32k if the method neve
 
 | Method | Expected tokens | Savings |
 |---|---:|---:|
-| ripgrep + read file | 45,692 | baseline |
-| **semble** | **566** | **98% fewer** |
+| ripgrep + read file | 45,587 | baseline |
+| **semble** | **348** | **99% fewer** |
 
 ### Recall at fixed token budgets
 
@@ -59,8 +58,8 @@ A relevant file is "covered" once any retrieved unit comes from it.
 
 | Method | 500 | 1k | 2k | 4k | 8k | 16k | 32k |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| **semble** | **0.685** | **0.849** | **0.938** | **0.976** | **0.991** | **0.996** | **0.996** |
-| ripgrep + read file | 0.001 | 0.008 | 0.037 | 0.088 | 0.212 | 0.379 | 0.583 |
+| **semble** | **0.842** | **0.923** | **0.967** | **0.988** | **0.995** | **0.995** | **0.995** |
+| ripgrep + read file | 0.001 | 0.008 | 0.037 | 0.086 | 0.207 | 0.374 | 0.583 |
 
 <details>
 <summary>Methodology</summary>
@@ -97,27 +96,6 @@ NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best sc
 | **overall** | **0.854** | **0.862** | **0.765** | **0.693** | **0.638** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
 
 cbm = [codebase-memory-mcp](#methods). ck's `zig` and `cpp` rows are averaged over 2/3 repos — `abseil-cpp` and the `zig` repo itself each exceeded ck's 600s indexing timeout (see [Methods](#methods)); the other repos in those languages are unaffected.
-
-## Common-language subset
-
-GitNexus and codegraph (see [Excluded methods](#excluded-methods)) don't support all 19 benchmark languages, so they're left out of the tables above. To get an apples-to-apples read on their retrieval quality, this table restricts every tool to the 13 languages both of them support — C, C++, C#, Go, Java, JavaScript, Kotlin, PHP, Python, Ruby, Rust, Swift, TypeScript — dropping Bash, Elixir, Haskell, Lua, Scala, and Zig (GitNexus's unsupported set, which is a superset of codegraph's).
-
-| Method | NDCG@10 (13-language subset) |
-|---|---:|
-| CodeRankEmbed Hybrid | 0.857 |
-| **semble** | **0.852** |
-| CodeRankEmbed | 0.729 |
-| ColGREP | 0.673 |
-| codegraph | 0.648 |
-| GitNexus | 0.626 |
-| codebase-memory-mcp | 0.614 |
-| ck | 0.608 |
-| grepai | 0.527 |
-| probe | 0.393 |
-| cs | 0.198 |
-| ripgrep | 0.148 |
-
-No new benchmark run: semble/CodeRankEmbed/CodeRankEmbed Hybrid/ColGREP/ck/grepai/probe/cs/codebase-memory-mcp/ripgrep values are the mean of their already-published per-language NDCG@10 above, restricted to these 13 languages; GitNexus and codegraph are computed the same way from their own per-repo results.
 
 ## Ablations
 
@@ -179,8 +157,8 @@ Four tools were considered but not included in the main comparison:
 
 - **[codanna](https://codanna.io)**: symbol-level semantic search with fastembed. Excluded because it does not support Haskell, Bash, Zig, Scala, Elixir, or Ruby (6 of the 19 benchmark languages, covering 20 of 63 repos (~38% of tasks)).
 - **[claude-context](https://github.com/zilliztech/claude-context)**: retrieval-augmented code search using OpenAI embeddings and a vector database. Excluded because it requires a paid OpenAI API key and a running vector-DB service.
-- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local ONNX embeddings + RRF over a call/symbol graph). We benchmarked it (`gitnexus analyze --embeddings` + `gitnexus query`, ranked by the `definitions` field) and it scores well where it works — **0.635 NDCG@10** across the 46/63 repos it could index, ahead of codebase-memory-mcp. Excluded from the main table for the same reason as codanna: it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of 19 languages, 17 of 63 repos). This isn't an installation or config issue — `gitnexus analyze -v` shows tree-sitter parsing `0` files for these languages (`parsedFiles=0, langs=0`), and the installed npm package genuinely ships no `tree-sitter-{haskell,elixir,lua,bash,scala,zig}` grammar at all (confirmed by inspecting `node_modules`), so indexing hard-fails with "Embedding generation completed without persisted embeddings" rather than degrading gracefully. Its own npm package also needs several native postinstall scripts (tree-sitter grammars, onnxruntime-node, ladybugdb) for full functionality, a meaningfully larger install footprint than the single-binary tools above.
-- **[codegraph](https://github.com/colbymchenry/codegraph)**: SQLite FTS5 symbol search + graph traversal. We benchmarked it (`codegraph init` + `codegraph query --json`) — **0.539 NDCG@10** across all 63 repos. Excluded for the same reason as codanna/GitNexus: it does not support Haskell, Bash, Elixir, or Zig (4 of 19 languages). Unlike GitNexus it fails gracefully — it indexes the repo and reports success, it just extracts 0 symbols from files in those languages, so queries return nothing (confirmed with isolated single-file repros, not just observed on the full benchmark repos).
+- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local embeddings + RRF). Scores 0.635 NDCG@10 on the 46/63 repos it can index. Excluded because it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of 19 languages) — no tree-sitter grammar for those languages, so indexing hard-fails instead of degrading gracefully.
+- **[codegraph](https://github.com/colbymchenry/codegraph)**: SQLite FTS5 symbol search + graph traversal. Scores 0.539 NDCG@10 across all 63 repos. Excluded for the same reason as codanna/GitNexus: no support for Haskell, Bash, Elixir, or Zig (4 of 19 languages) — unlike GitNexus it fails gracefully, just returning 0 results for those languages instead of erroring.
 
 ## Running the benchmarks
 
@@ -327,16 +305,6 @@ Needs `ck` on `$PATH` (`cargo install ck-search` or `npm install -g @beaconbay/c
 uv run python -m benchmarks.baselines.ck
 uv run python -m benchmarks.baselines.ck --repo fastapi --repo axios
 ```
-
-If you're behind a TLS-intercepting proxy (e.g. a corporate MITM proxy or Zscaler) and see `invalid peer certificate: UnknownIssuer` on the model download: `ck`'s published binary links `fastembed` with the `hf-hub-rustls-tls` feature, which uses a bundled CA store instead of your OS trust store, so it can't complete the download even though `curl`/`pip`/etc. work fine on the same network. The fix is a local rebuild with the native-tls feature instead:
-
-```bash
-git clone https://github.com/BeaconBay/ck.git && cd ck
-sed -i '' 's/hf-hub-rustls-tls/hf-hub-native-tls/' Cargo.toml
-cargo install --path ck-cli --force
-```
-
-This is a one-line Cargo feature swap (`fastembed` supports both `hf-hub-native-tls` and `hf-hub-rustls-tls`; ck's `Cargo.toml` just hardcodes the rustls one) — no changes to ck's actual logic.
 
 </details>
 

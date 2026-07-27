@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import tiktoken
-from model2vec import StaticModel
 
 from benchmarks.data import (
     Target,
@@ -24,14 +23,14 @@ from benchmarks.data import (
     target_matches_location,
 )
 from semble import SembleIndex
-from semble.index.file_walker import DEFAULT_IGNORED_DIRS, FILE_TYPES, FileCategory
+from semble.index.dense import load_model
+from semble.index.file_walker import _DEFAULT_IGNORED_DIRS as DEFAULT_IGNORED_DIRS
+from semble.index.files import get_extensions
 from semble.ranking.boosting import _STOPWORDS as _SEMBLE_STOPWORDS
-from semble.types import Chunk
+from semble.types import Chunk, ContentType
 from semble.utils import DEFAULT_MODEL_NAME
 
-_RG_INCLUDE_GLOBS: tuple[str, ...] = tuple(
-    f"*{ext}" for ext, spec in FILE_TYPES.items() if spec.category == FileCategory.CODE
-)
+_RG_INCLUDE_GLOBS: tuple[str, ...] = tuple(f"*{ext}" for ext in get_extensions([ContentType.CODE]))
 _RG_EXCLUDE_GLOBS: tuple[str, ...] = tuple(f"!{d}" for d in DEFAULT_IGNORED_DIRS)
 
 _BUDGETS = (500, 1000, 2000, 4000, 8000, 16000, 32000)
@@ -378,7 +377,7 @@ def run_recall(args: argparse.Namespace) -> None:
 
     print("Loading tokenizer + model...", file=sys.stderr)
     enc = tiktoken.get_encoding(_TOKENIZER_NAME)
-    model = StaticModel.from_pretrained(DEFAULT_MODEL_NAME)
+    load_model(DEFAULT_MODEL_NAME)  # warms semble's internal model cache
 
     method_curves: dict[str, MethodCurves] = defaultdict(list)
     print(f"\n{'Repo':<22} {'Language':<12} {'Tasks':>6} {'Time':>8}", file=sys.stderr)
@@ -386,7 +385,7 @@ def run_recall(args: argparse.Namespace) -> None:
     for repo, repo_task_list in sorted(grouped_tasks(tasks).items()):
         spec = repo_specs[repo]
         started = time.perf_counter()
-        index = SembleIndex.from_path(spec.benchmark_dir, model=model)
+        index = SembleIndex.from_path(spec.benchmark_dir, model_path=DEFAULT_MODEL_NAME)
         per_method = _evaluate_repo_recall(index, repo_task_list, spec.benchmark_dir, enc)
         for m, lst in per_method.items():
             method_curves[m].extend(lst)
