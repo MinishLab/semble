@@ -69,12 +69,18 @@ def _run_search(query: str, benchmark_dir: Path, *, top_k: int) -> list[str]:
     except subprocess.TimeoutExpired:
         return []
     # ck exits 1 with "No matches found" on stderr (empty stdout) rather than an empty JSON array.
+    # --json with --quiet is actually JSONL (one object per line), not a wrapped JSON array.
     if not proc.stdout.strip():
         return []
-    try:
-        items = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        return []
+    items: list[dict] = []
+    for line in proc.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            items.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
     seen: dict[str, None] = {}
     for item in items:
         rel = item.get("file", "")

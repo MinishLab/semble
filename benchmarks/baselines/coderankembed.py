@@ -18,30 +18,55 @@ from benchmarks.data import (
     load_filtered_tasks,
     results_path,
     save_results,
-    summarize_modes,
 )
 from benchmarks.metrics import ndcg_at_k, target_rank
-from semble import SembleIndex
-from semble.types import SearchResult
+from semble.index.create import create_index_from_path
+from semble.index.index import SembleIndex
+from semble.types import ContentType, SearchResult
 
 _MODEL_NAME = "nomic-ai/CodeRankEmbed"
 _TOP_K = 10
 _LATENCY_RUNS = 3  # transformer inference is slow; keep runs low
 
+# SembleIndex.search()'s mode -> alpha mapping (1.0 = full semantic, None = auto hybrid blend).
+_MODE_ALPHA: dict[str, float | None] = {"semantic": 1.0, "hybrid": None}
+
 
 class _AsymmetricWrapper:
-    """Wrap SentenceTransformer with asymmetric query/document prompts."""
+    """Wrap SentenceTransformer with asymmetric query/document prompts.
+
+    Duck-types as the StaticModel `.encode()` interface SembleIndex expects (query-time calls pass
+    a single-item list with no kwargs; index-build-time calls pass `use_multiprocessing`), even
+    though this isn't a real StaticModel — SembleIndex's model type hint isn't enforced at runtime.
+    """
 
     def __init__(self, model: SentenceTransformer, max_seq_length: int = 512) -> None:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: Sequence[str]) -> np.ndarray:
+    def encode(self, texts: Sequence[str], use_multiprocessing: bool = False) -> np.ndarray:
         """Encode texts with query or document prompt based on batch size."""
         text_list = list(texts)
         if len(text_list) == 1:
             return self._model.encode(text_list, prompt_name="query", batch_size=1)  # type: ignore[return-value]
         return self._model.encode(text_list, batch_size=1)  # type: ignore[return-value]
+
+
+def _build_index(benchmark_dir: Path, model: _AsymmetricWrapper) -> SembleIndex:
+    """Build a SembleIndex using CodeRankEmbed embeddings for both BM25 enrichment and dense search."""
+    bm25_index, semantic_index, chunks, _manifest = create_index_from_path(
+        benchmark_dir,
+        model=model,
+        content=(ContentType.CODE,),  # type: ignore[arg-type]
+    )
+    return SembleIndex(
+        model=model,  # type: ignore[arg-type]
+        bm25_index=bm25_index,
+        semantic_index=semantic_index,
+        chunks=chunks,
+        model_path=_MODEL_NAME,
+        root=benchmark_dir,
+    )
 
 
 @dataclass(frozen=True)
@@ -64,6 +89,7 @@ def _evaluate(
     index: SembleIndex,
     tasks: list[Task],
     *,
+    alpha: float | None,
     verbose: bool = False,
 ) -> tuple[float, float, list[float], dict[str, float]]:
     """Return (mean NDCG@5, NDCG@10, latency list ms, per-category NDCG@10)."""
@@ -77,7 +103,7 @@ def _evaluate(
         results: list[SearchResult] = []
         for _ in range(_LATENCY_RUNS):
             started = time.perf_counter()
-            results = index.search(task.query, top_k=_TOP_K)
+            results = index.search(task.query, top_k=_TOP_K, alpha=alpha)
             query_latencies.append((time.perf_counter() - started) * 1000)
         latencies.append(float(np.median(query_latencies)))
 
@@ -107,12 +133,25 @@ def _evaluate(
     return ndcg5_sum / total, ndcg10_sum / total, latencies, by_category
 
 
+def _summarize_modes(results: list[RepoResult], modes: list[str]) -> dict[str, dict[str, float]]:
+    """Return average NDCG@10 and p50 latency per mode (RepoResult has no `.tokens`, unlike ablations.py's)."""
+    summary: dict[str, dict[str, float]] = {}
+    for mode in modes:
+        mode_results = [r for r in results if r.mode == mode]
+        n = len(mode_results)
+        summary[mode] = {
+            "avg_ndcg10": round(sum(r.ndcg10 for r in mode_results) / n, 4) if n else 0.0,
+            "avg_p50_ms": round(sum(r.p50_ms for r in mode_results) / n, 1) if n else 0.0,
+        }
+    return summary
+
+
 def _build_summary(results: list[RepoResult], modes: list[str]) -> dict[str, object]:
     """Build the JSON summary dict from the current (possibly partial) results list."""
     return {
         "tool": "coderankembed",
         "model": _MODEL_NAME,
-        "by_mode": summarize_modes(results, modes),
+        "by_mode": _summarize_modes(results, modes),
         "repos": [asdict(result) for result in results],
     }
 
@@ -175,12 +214,12 @@ def _bench(
             print(f"\n--- {repo} ---", file=sys.stderr)
 
         started = time.perf_counter()
-        index = SembleIndex.from_path(spec.benchmark_dir)
+        index = _build_index(spec.benchmark_dir, model)
         index_ms = (time.perf_counter() - started) * 1000
 
         repo_results: list[RepoResult] = []
         for mode in modes:
-            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, verbose=verbose)
+            ndcg5, ndcg10, latencies, by_category = _evaluate(index, tasks, alpha=_MODE_ALPHA[mode], verbose=verbose)
             p50, p90 = np.percentile(latencies, [50, 90]).tolist()
             result = RepoResult(
                 repo=repo,
