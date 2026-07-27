@@ -157,8 +157,8 @@ Four tools were considered but not included in the main comparison:
 
 - **[codanna](https://codanna.io)**: symbol-level semantic search with fastembed. Excluded because it does not support Haskell, Bash, Zig, Scala, Elixir, or Ruby (6 of the 19 benchmark languages, covering 20 of 63 repos (~38% of tasks)).
 - **[claude-context](https://github.com/zilliztech/claude-context)**: retrieval-augmented code search using OpenAI embeddings and a vector database. Excluded because it requires a paid OpenAI API key and a running vector-DB service.
-- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local embeddings + RRF). Scores 0.635 NDCG@10 on the 46/63 repos it can index. Excluded because it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of 19 languages) — no tree-sitter grammar for those languages, so indexing hard-fails instead of degrading gracefully.
-- **[codegraph](https://github.com/colbymchenry/codegraph)**: SQLite FTS5 symbol search + graph traversal. Scores 0.539 NDCG@10 across all 63 repos. Excluded for the same reason as codanna/GitNexus: no support for Haskell, Bash, Elixir, or Zig (4 of 19 languages) — unlike GitNexus it fails gracefully, just returning 0 results for those languages instead of erroring.
+- **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local embeddings + RRF). Excluded because it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of the 19 benchmark languages).
+- **[codegraph](https://github.com/colbymchenry/codegraph)**: SQLite FTS5 symbol search + graph traversal. Excluded because it does not support Haskell, Bash, Elixir, or Zig (4 of the 19 benchmark languages).
 
 ## Running the benchmarks
 
