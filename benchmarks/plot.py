@@ -30,6 +30,14 @@ _METHODS: list[_Method] = [
         "params_m": 0,
     },
     {
+        "name": "probe",
+        "ndcg10": 0.387,
+        "index_ms": 0.0,  # no persistent index; scans on the fly
+        "query_p50_ms": 207.1,
+        "color": "#9b7bb0",
+        "params_m": 0,
+    },
+    {
         "name": "cs",
         "ndcg10": 0.1997,
         "index_ms": 0.0,  # no persistent index; scans on the fly
