@@ -20,7 +20,7 @@ from benchmarks.metrics import file_rank, ndcg_at_k
 _CK = "ck"
 _TOP_K = 10
 _LATENCY_RUNS = 3
-_INDEX_TIMEOUT = 600
+_INDEX_TIMEOUT = 1800
 _SEARCH_TIMEOUT = 60
 
 

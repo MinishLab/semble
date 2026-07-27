@@ -416,6 +416,13 @@
       "index_ms": 96648.0
     },
     {
+      "repo": "zig",
+      "language": "zig",
+      "ndcg10": 0.4127,
+      "p50_ms": 471.9,
+      "index_ms": null
+    },
+    {
       "repo": "zig-clap",
       "language": "zig",
       "ndcg10": 0.6531,
@@ -437,7 +444,7 @@
       "index_ms": 221465.0
     }
   ],
-  "avg_ndcg10": 0.646,
-  "avg_p50_ms": 182.4,
+  "avg_ndcg10": 0.6422,
+  "avg_p50_ms": 187.0,
   "avg_index_ms": 95892.7
 }

@@ -55,9 +55,9 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "ck",
-        "ndcg10": 0.646,
-        "index_ms": 85449.0,
-        "query_p50_ms": 178.3,
+        "ndcg10": 0.642,
+        "index_ms": 95892.7,
+        "query_p50_ms": 187.0,
         "color": "#4a7ba3",
         "params_m": 33,
     },
