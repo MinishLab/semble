@@ -3,6 +3,13 @@
   "note": "hybrid regex + BAAI/bge-small-en-v1.5 (33M params) semantic search, RRF fusion",
   "repos": [
     {
+      "repo": "abseil-cpp",
+      "language": "cpp",
+      "ndcg10": 0.6441,
+      "p50_ms": 431.1,
+      "index_ms": 732963.0
+    },
+    {
       "repo": "aeson",
       "language": "haskell",
       "ndcg10": 0.8684,
@@ -431,6 +438,6 @@
     }
   ],
   "avg_ndcg10": 0.646,
-  "avg_p50_ms": 178.3,
-  "avg_index_ms": 85449.0
+  "avg_p50_ms": 182.4,
+  "avg_index_ms": 95892.7
 }
