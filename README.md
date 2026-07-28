@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/mcp.so%2Fsemble%2FMinish.svg)](https://mcptoplist.com/server/mcp.so%2Fsemble%2FMinish)
+
 <h2 align="center">
   <img width="30%" alt="semble logo" src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/semble_logo.png"><br/>
   Fast and Accurate Code Search for Agents<br/>
