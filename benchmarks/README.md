@@ -27,7 +27,7 @@ Quality and speed across all methods.
 | grepai | 0.561 | 35 s | 48 ms |
 | probe | 0.387 | — | 207 ms |
 | cs | 0.200 | — | 22 ms |
-| ripgrep | 0.126 | — | 15 ms |
+| ripgrep | 0.126 | — | 14 ms |
 
 | ![Speed vs quality (cold)](../assets/images/speed_vs_ndcg_cold.png) | ![Speed vs quality (warm)](../assets/images/speed_vs_ndcg_warm.png) |
 |:--:|:--:|
@@ -265,34 +265,6 @@ uv run python -m benchmarks.baselines.codebase_memory --repo fastapi --repo axio
 ```
 
 Each repo is indexed under a `semble-bench-<repo>` project name and deleted again after evaluation, so it doesn't collide with any projects you have indexed for real use.
-
-</details>
-
-<details>
-<summary>GitNexus (excluded, see above)</summary>
-
-Needs `gitnexus` on `$PATH` (`npm install -g gitnexus`). Only covers 46/63 repos (missing bash, elixir, haskell, lua, scala, zig).
-
-```bash
-uv run python -m benchmarks.baselines.gitnexus
-uv run python -m benchmarks.baselines.gitnexus --repo fastapi --repo axios
-```
-
-Each repo is indexed under a `semble-bench-<repo>` alias (`--skip-git --embeddings --index-only`) and removed again after evaluation.
-
-</details>
-
-<details>
-<summary>codegraph (excluded, see above)</summary>
-
-Needs `codegraph` on `$PATH` (`npm i -g @colbymchenry/codegraph`). Covers all 63 repos but scores 0 on Haskell/Bash/Elixir/Zig repos (11 of 63).
-
-```bash
-uv run python -m benchmarks.baselines.codegraph
-uv run python -m benchmarks.baselines.codegraph --repo fastapi --repo axios
-```
-
-Each repo is indexed in place (`.codegraph/`, deleted again after evaluation). `CODEGRAPH_TELEMETRY=0` is set to disable codegraph's anonymous usage stats during benchmark runs.
 
 </details>
 

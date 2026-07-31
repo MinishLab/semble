@@ -56,7 +56,7 @@ def _build_index(benchmark_dir: Path, model: _AsymmetricWrapper) -> SembleIndex:
     """Build a SembleIndex using CodeRankEmbed embeddings for both BM25 enrichment and dense search."""
     bm25_index, semantic_index, chunks, _manifest = create_index_from_path(
         benchmark_dir,
-        model=model,
+        model=model,  # type: ignore[arg-type]
         content=(ContentType.CODE,),  # type: ignore[arg-type]
     )
     return SembleIndex(

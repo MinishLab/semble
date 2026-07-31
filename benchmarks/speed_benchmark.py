@@ -11,12 +11,15 @@ from benchmarks.data import RepoSpec, Task, available_repo_specs, load_tasks, sa
 from benchmarks.tools import run_colgrep_files, run_ripgrep_count
 from semble import SembleIndex
 from semble.index.bm25 import BM25
+from semble.index.create import create_index_from_path
 from semble.index.dense import load_model
 from semble.index.sparse import enrich_for_bm25
 from semble.index.types import make_chunk_id
 from semble.tokens import tokenize
-from semble.types import EmbeddingMatrix
+from semble.types import ContentType
 from semble.utils import DEFAULT_MODEL_NAME
+
+_CRE_MODEL_NAME = "nomic-ai/CodeRankEmbed"
 
 # One representative repo per language (medium size, healthy NDCG on the main benchmark).
 _REPOS: list[str] = [
@@ -76,20 +79,52 @@ class ToolResult:
         return float(np.percentile(self.latencies_ms, 99))
 
 
-class _CREWrapper:
-    """Wrap SentenceTransformer with asymmetric query/document prompts."""
+class _AsymmetricWrapper:
+    """Wrap SentenceTransformer with asymmetric query/document prompts.
+
+    Duck-types as the StaticModel `.encode()` interface SembleIndex expects (query-time calls pass
+    a single-item list with no kwargs; index-build-time calls pass `use_multiprocessing`), even
+    though this isn't a real StaticModel — SembleIndex's model type hint isn't enforced at runtime.
+    """
 
     def __init__(self, model: SentenceTransformer, max_seq_length: int = 512) -> None:
-        """Initialise wrapper and cap sequence length to avoid OOM on CPU."""
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: Sequence[str], /) -> EmbeddingMatrix:
-        """Encode with query prompt for single items, document prompt for batches."""
+    def encode(self, texts: Sequence[str], use_multiprocessing: bool = False) -> np.ndarray:
+        """Encode texts with query or document prompt based on batch size."""
         text_list = list(texts)
         if len(text_list) == 1:
             return self._model.encode(text_list, prompt_name="query", batch_size=1)  # type: ignore[return-value]
         return self._model.encode(text_list, batch_size=1)  # type: ignore[return-value]
+
+
+def _bench_coderankembed(
+    spec: RepoSpec, tasks: list[Task], model: _AsymmetricWrapper
+) -> tuple[float, tuple[float, ...]]:
+    """Index a repo with CodeRankEmbed via semble and measure query latency; return (index_ms, latencies_ms)."""
+    started = time.perf_counter()
+    bm25_index, semantic_index, chunks, _manifest = create_index_from_path(
+        spec.benchmark_dir,
+        model=model,  # type: ignore[arg-type]
+        content=(ContentType.CODE,),  # type: ignore[arg-type]
+    )
+    index = SembleIndex(
+        model=model,  # type: ignore[arg-type]
+        bm25_index=bm25_index,
+        semantic_index=semantic_index,
+        chunks=chunks,
+        model_path=_CRE_MODEL_NAME,
+        root=spec.benchmark_dir,
+    )
+    index_ms = (time.perf_counter() - started) * 1000
+    latencies: list[float] = []
+    for task in tasks:
+        for _ in range(5):
+            started = time.perf_counter()
+            index.search(task.query, top_k=_TOP_K, alpha=1.0)
+            latencies.append((time.perf_counter() - started) * 1000)
+    return index_ms, tuple(latencies)
 
 
 def _bench_semble(spec: RepoSpec, tasks: list[Task]) -> tuple[float, SembleIndex, tuple[float, ...]]:
@@ -135,20 +170,6 @@ def _bench_bm25(index: SembleIndex, tasks: list[Task]) -> tuple[float, tuple[flo
         for _ in range(5):
             started = time.perf_counter()
             index.search(task.query, top_k=_TOP_K, alpha=0.0)
-            latencies.append((time.perf_counter() - started) * 1000)
-    return index_ms, tuple(latencies)
-
-
-def _bench_coderankembed(spec: RepoSpec, tasks: list[Task], model: _CREWrapper) -> tuple[float, tuple[float, ...]]:
-    """Index a repo with CodeRankEmbed via semble and measure query latency; return (index_ms, latencies_ms)."""
-    started = time.perf_counter()
-    index = SembleIndex.from_path(spec.benchmark_dir, model=model)
-    index_ms = (time.perf_counter() - started) * 1000
-    latencies: list[float] = []
-    for task in tasks:
-        for _ in range(5):
-            started = time.perf_counter()
-            index.search(task.query, top_k=_TOP_K, mode="semantic")
             latencies.append((time.perf_counter() - started) * 1000)
     return index_ms, tuple(latencies)
 
@@ -218,9 +239,14 @@ def main() -> None:
     started = time.perf_counter()
     load_model(DEFAULT_MODEL_NAME)  # warms semble's internal model cache so repo #1 isn't penalized
     print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
+
+    print("Loading CodeRankEmbed...", file=sys.stderr)
+    started = time.perf_counter()
+    cre_model = _AsymmetricWrapper(SentenceTransformer(_CRE_MODEL_NAME, trust_remote_code=True, device="cpu"))
+    print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
     print(file=sys.stderr)
 
-    tools = ["semble", "bm25", "colgrep", "ripgrep"]
+    tools = ["semble", "bm25", "coderankembed", "colgrep", "ripgrep"]
 
     print(
         f"{'Repo':<22} {'Language':<14} {'Tool':<16} {'Index':>10} {'p50':>8} {'p90':>8} {'p95':>8} {'p99':>8}",
@@ -247,6 +273,16 @@ def main() -> None:
         )
         all_results.append(result)
         print(f"{'':22} {spec.language:<14} {'bm25':<16} {bm25_index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr)
+
+        cre_index_ms, latencies_ms = _bench_coderankembed(spec, tasks, cre_model)
+        result = ToolResult(
+            repo=repo, language=spec.language, tool="coderankembed", index_ms=cre_index_ms, latencies_ms=latencies_ms
+        )
+        all_results.append(result)
+        print(
+            f"{'':22} {spec.language:<14} {'coderankembed':<16} {cre_index_ms:>8.0f}ms {_fmt_stats(result)}",
+            file=sys.stderr,
+        )
 
         colgrep_result = _bench_colgrep(spec, tasks)
         if colgrep_result is not None:
