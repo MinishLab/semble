@@ -64,8 +64,8 @@ _METHODS: list[_Method] = [
     {
         "name": "BM25",
         "ndcg10": 0.673,
-        "index_ms": 43.5,  # standalone BM25 build time, not shared with semble's dense index
-        "query_p50_ms": 0.16,  # standalone bm25_index.get_scores(), not semble's hybrid search()
+        "index_ms": 46.6,  # standalone BM25 build time, not shared with semble's dense index
+        "query_p50_ms": 0.17,  # standalone bm25_index.get_scores() + top-k sort, not hybrid search()
         "color": "#3a9e7e",
         "params_m": 0,
     },

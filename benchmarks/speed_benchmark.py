@@ -174,7 +174,8 @@ def _bench_bm25(index: SembleIndex, tasks: list[Task]) -> tuple[float, tuple[flo
             scores = bm25_index.get_scores(tokens)
             if scores.size:
                 k = min(_TOP_K, scores.size)
-                np.argpartition(-scores, kth=k - 1)[:k]
+                partitioned = np.argpartition(-scores, kth=k - 1)[:k]
+                np.argsort(-scores[partitioned])
             latencies.append((time.perf_counter() - started) * 1000)
     return index_ms, tuple(latencies)
 

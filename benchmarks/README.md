@@ -21,7 +21,7 @@ Quality and speed across all methods.
 | **semble**           | **0.854** | **518 ms** | **0.91 ms** |
 | CodeRankEmbed        |     0.839 |      116 s |       16 ms |
 | ColGREP              |     0.693 |      5.4 s |      122 ms |
-| BM25                 |     0.673 |      44 ms |     0.16 ms |
+| BM25                 |     0.673 |      47 ms |     0.17 ms |
 | ck                   |     0.642 |       96 s |      187 ms |
 | codebase-memory-mcp  |     0.630 |     454 ms |       46 ms |
 | grepai               |     0.561 |       35 s |       48 ms |
