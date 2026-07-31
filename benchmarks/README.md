@@ -18,7 +18,7 @@ Quality and speed across all methods.
 | Method | NDCG@10 | Index | Query p50 |
 |---|---:|---:|---:|
 | CodeRankEmbed Hybrid | 0.862 | 57 s | 16 ms |
-| **semble** | **0.854** | **590 ms** | **0.98 ms** |
+| **semble** | **0.854** | **518 ms** | **0.91 ms** |
 | CodeRankEmbed | 0.765 | 57 s | 16 ms |
 | ColGREP | 0.693 | 5.4 s | 122 ms |
 | BM25 | 0.673 | 45 ms | 0.77 ms |
@@ -33,7 +33,7 @@ Quality and speed across all methods.
 |:--:|:--:|
 | *Time to first result (index + query) vs NDCG@10* | *Query latency on a warm index vs NDCG@10* |
 
-The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by 97x and query latency by 17x.
+The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.008. semble wins index time by ~100x and query latency by ~20x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
 

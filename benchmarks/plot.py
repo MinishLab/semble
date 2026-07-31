@@ -104,8 +104,8 @@ _METHODS: list[_Method] = [
     {
         "name": "semble",
         "ndcg10": 0.8544,
-        "index_ms": 586.4,
-        "query_p50_ms": 0.97,
+        "index_ms": 518.2,
+        "query_p50_ms": 0.91,
         "color": "#1a5fa8",
         "params_m": 16,
     },
