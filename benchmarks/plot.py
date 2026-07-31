@@ -64,8 +64,8 @@ _METHODS: list[_Method] = [
     {
         "name": "BM25",
         "ndcg10": 0.673,
-        "index_ms": 45.0,  # standalone BM25 build time, not shared with semble's dense index
-        "query_p50_ms": 0.77,
+        "index_ms": 43.5,  # standalone BM25 build time, not shared with semble's dense index
+        "query_p50_ms": 0.16,  # standalone bm25_index.get_scores(), not semble's hybrid search()
         "color": "#3a9e7e",
         "params_m": 0,
     },
@@ -87,17 +87,17 @@ _METHODS: list[_Method] = [
     },
     {
         "name": "CodeRankEmbed",
-        "ndcg10": 0.7648,
-        "index_ms": 57269.4,
-        "query_p50_ms": 16.27,
+        "ndcg10": 0.8393,
+        "index_ms": 115859.8,
+        "query_p50_ms": 15.56,
         "color": "#d9634f",
         "params_m": 137,
     },
     {
         "name": "CodeRankEmbed\nHybrid",
-        "ndcg10": 0.8617,
-        "index_ms": 57269.4,
-        "query_p50_ms": 16.27,
+        "ndcg10": 0.8613,
+        "index_ms": 115859.8,
+        "query_p50_ms": 15.56,
         "color": "#922b21",
         "params_m": 137,
     },

@@ -79,22 +79,25 @@ class ToolResult:
         return float(np.percentile(self.latencies_ms, 99))
 
 
+_UNSET = object()
+
+
 class _AsymmetricWrapper:
     """Wrap SentenceTransformer with asymmetric query/document prompts.
 
-    Duck-types as the StaticModel `.encode()` interface SembleIndex expects (query-time calls pass
-    a single-item list with no kwargs; index-build-time calls pass `use_multiprocessing`), even
-    though this isn't a real StaticModel — SembleIndex's model type hint isn't enforced at runtime.
+    semble only passes use_multiprocessing during index-time calls, never at query time, so its
+    presence is a reliable query/document discriminator (batch size is not: single-chunk files are
+    real one-element document batches).
     """
 
     def __init__(self, model: SentenceTransformer, max_seq_length: int = 512) -> None:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: Sequence[str], use_multiprocessing: bool = False) -> np.ndarray:
-        """Encode texts with query or document prompt based on batch size."""
+    def encode(self, texts: Sequence[str], use_multiprocessing: object = _UNSET) -> np.ndarray:
+        """Encode with the query prompt only when use_multiprocessing wasn't passed."""
         text_list = list(texts)
-        if len(text_list) == 1:
+        if use_multiprocessing is _UNSET:
             return self._model.encode(text_list, prompt_name="query", batch_size=1)  # type: ignore[return-value]
         return self._model.encode(text_list, batch_size=1)  # type: ignore[return-value]
 
@@ -162,14 +165,16 @@ def _bench_bm25(index: SembleIndex, tasks: list[Task]) -> tuple[float, tuple[flo
     bm25_index.set_doc_order(doc_ids)
     index_ms = (time.perf_counter() - started) * 1000
 
-    # Query latency still goes through the full search() pipeline at alpha=0.0 (BM25-only
-    # weighting) rather than raw bm25_index.get_scores(), since that's what a real "BM25 mode"
-    # caller of semble actually pays (candidate selection, reranking hooks, etc.).
+    # Query bm25_index directly — index.search(alpha=0.0) still runs dense encoding and reranking.
     latencies: list[float] = []
     for task in tasks:
         for _ in range(5):
             started = time.perf_counter()
-            index.search(task.query, top_k=_TOP_K, alpha=0.0)
+            tokens = tokenize(task.query)
+            scores = bm25_index.get_scores(tokens)
+            if scores.size:
+                k = min(_TOP_K, scores.size)
+                np.argpartition(-scores, kth=k - 1)[:k]
             latencies.append((time.perf_counter() - started) * 1000)
     return index_ms, tuple(latencies)
 

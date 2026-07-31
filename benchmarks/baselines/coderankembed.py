@@ -32,22 +32,25 @@ _LATENCY_RUNS = 3  # transformer inference is slow; keep runs low
 _MODE_ALPHA: dict[str, float | None] = {"semantic": 1.0, "hybrid": None}
 
 
+_UNSET = object()
+
+
 class _AsymmetricWrapper:
     """Wrap SentenceTransformer with asymmetric query/document prompts.
 
-    Duck-types as the StaticModel `.encode()` interface SembleIndex expects (query-time calls pass
-    a single-item list with no kwargs; index-build-time calls pass `use_multiprocessing`), even
-    though this isn't a real StaticModel — SembleIndex's model type hint isn't enforced at runtime.
+    semble only passes use_multiprocessing during index-time calls, never at query time, so its
+    presence is a reliable query/document discriminator (batch size is not: single-chunk files are
+    real one-element document batches).
     """
 
     def __init__(self, model: SentenceTransformer, max_seq_length: int = 512) -> None:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: Sequence[str], use_multiprocessing: bool = False) -> np.ndarray:
-        """Encode texts with query or document prompt based on batch size."""
+    def encode(self, texts: Sequence[str], use_multiprocessing: object = _UNSET) -> np.ndarray:
+        """Encode with the query prompt only when use_multiprocessing wasn't passed."""
         text_list = list(texts)
-        if len(text_list) == 1:
+        if use_multiprocessing is _UNSET:
             return self._model.encode(text_list, prompt_name="query", batch_size=1)  # type: ignore[return-value]
         return self._model.encode(text_list, batch_size=1)  # type: ignore[return-value]
 
