@@ -94,7 +94,7 @@ _METHODS: list[_Method] = [
         "params_m": 137,
     },
     {
-        "name": "CodeRankEmbed\nHybrid",
+        "name": "CodeRankEmbed Hybrid",
         "ndcg10": 0.8613,
         "index_ms": 115859.8,
         "query_p50_ms": 15.56,
@@ -120,8 +120,8 @@ _CBRT_LABEL_DELTA_WARM = 0.2
 # Cold: incumbent prior-art curve (ripgrep → BM25 → ColGREP → CRE Hybrid); semble floats above it.
 # Warm: BM25 dominates ripgrep (faster and higher NDCG), so incumbent curve is BM25 → CRE Hybrid.
 _FRONTIER_NAMES: dict[str, set[str]] = {
-    "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed\nHybrid"},
-    "warm": {"BM25", "CodeRankEmbed\nHybrid"},
+    "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed Hybrid"},
+    "warm": {"BM25", "CodeRankEmbed Hybrid"},
 }
 
 
