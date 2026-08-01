@@ -12,6 +12,9 @@ resolution-markers = [
 exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P1W"
 
+[options.exclude-newer-package]
+semble-grammars = "2026-08-02T00:00:00Z"
+
 [[package]]
 name = "annotated-doc"
 version = "0.0.4"
@@ -3196,7 +3199,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
     { name = "questionary", specifier = ">=2.0,<3.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
-    { name = "semble-grammars", editable = "../semble-grammars" },
+    { name = "semble-grammars", specifier = ">=0.1.2" },
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
     { name = "tiktoken", marker = "extra == 'benchmark'", specifier = ">=0.7" },
     { name = "tree-sitter", specifier = ">=0.25,<0.26" },
@@ -3206,22 +3209,19 @@ provides-extras = ["mcp", "benchmark", "dev"]
 
 [[package]]
 name = "semble-grammars"
-source = { editable = "../semble-grammars" }
+version = "0.1.2"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tree-sitter" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0" },
-    { name = "pydoclint", marker = "extra == 'dev'", specifier = ">=0.5.3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
-    { name = "tree-sitter", specifier = ">=0.23.1,<0.27" },
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/bd/2c0491654f9ce320faa72e6e047e07b11e696d8d737dad2a68629a294831/semble_grammars-0.1.2-py3-none-macosx_10_13_x86_64.whl", hash = "sha256:52fe698f1d2489e6ad3e6462c9322e77796769b203f74a294f801e5a8bd10f19", size = 6690645, upload-time = "2026-08-01T11:24:46.97Z" },
+    { url = "https://files.pythonhosted.org/packages/da/42/85eca6563cf3794a68e6b0fd6c03d3ed39b1466e68fd14e0b25b70084c19/semble_grammars-0.1.2-py3-none-macosx_11_0_arm64.whl", hash = "sha256:772e7011ce5e2ff5d9347a2f027a447c713d3f0d62983dd38457f04aa2215c6c", size = 7258590, upload-time = "2026-08-01T11:24:48.88Z" },
+    { url = "https://files.pythonhosted.org/packages/32/e2/bec01f956cd7aa52505a57954f3259febd00092715eac6f0ea1fff6058e0/semble_grammars-0.1.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:f24f63a04e569f2de28aaf39166c8dddd8e296aa0390ac816df6ad1bd814e3bf", size = 6868770, upload-time = "2026-08-01T11:24:50.944Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/d9/e93eb269ccd2494cf4b5ac2f201b5badb959800bf21a2ae700d6d7f6418a/semble_grammars-0.1.2-py3-none-manylinux2014_x86_64.whl", hash = "sha256:c040595ca4e117969a349807dce05c1a51dbb368e80de80b005539fd86ef9c07", size = 6906388, upload-time = "2026-08-01T11:24:53.005Z" },
+    { url = "https://files.pythonhosted.org/packages/26/d0/3a783d2eda7e4f8f631ae1890cb87bdfaa6cb97efbc74135b66641b89dde/semble_grammars-0.1.2-py3-none-win_amd64.whl", hash = "sha256:078ae79ad15442a2922dae46620f778fa237b191ac06e9c29832f079915d4d39", size = 11078076, upload-time = "2026-08-01T11:24:55.007Z" },
+    { url = "https://files.pythonhosted.org/packages/04/20/96078011af0d3b0e5b1c1f4b8937ba6f89f7dd5edef71902e9949845e513/semble_grammars-0.1.2-py3-none-win_arm64.whl", hash = "sha256:6bb406d0fc9594b9bfd3cad82fb538748109d6c72066c0e76ea102c64f12c4d9", size = 10363135, upload-time = "2026-08-01T11:24:57.472Z" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "sentence-transformers"
