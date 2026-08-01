@@ -34,7 +34,7 @@ dependencies = [
     "tree-sitter>=0.25,<0.26",
     "orjson",
     "questionary>=2.0,<3.0",
-    "semble-grammars>=0.1.1",
+    "semble-grammars>=0.1.2",
 ]
 
 [project.optional-dependencies]
