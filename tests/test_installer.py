@@ -17,6 +17,7 @@ from semble.installer.agents import (
 )
 from semble.installer.config import (
     _CODEX_MCP_HEADER,
+    _json5_parser,
     merge_json_member,
     merge_toml_block,
     remove_json_member,
@@ -170,9 +171,10 @@ def test_mcp_skipped_when_grammar_unavailable(claude_agent, monkeypatch):
     """When the JSON5 grammar is unavailable, merge/remove return 'skipped'."""
     claude_agent.mcp.path.write_text('{ "mcpServers": {} }')
     monkeypatch.setattr("semble.installer.config.get_parser", lambda _: 1 / 0)
-    monkeypatch.setattr("semble.installer.config._json5_parser_cache", False)
+    _json5_parser.cache_clear()
     assert merge_mcp(claude_agent).action == "skipped"
     assert remove_mcp(claude_agent).action == "skipped"
+    _json5_parser.cache_clear()
 
 
 def test_merge_mcp_reparse_guard(claude_agent, monkeypatch):
