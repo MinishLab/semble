@@ -7,17 +7,10 @@ from logging import getLogger
 from semble_grammars import LanguageNotFoundError, UnsupportedPlatformError, get_parser
 from tree_sitter import Node, Parser
 
-from semble.index.files import ALL_LANGUAGES
-
 logger = getLogger(__name__)
 
 _RECURSION_DEPTH = 500
 _MIN_CHUNK_SIZE = 50
-
-
-def is_supported_language(language: str) -> bool:
-    """Check if the language is supported by tree-sitter."""
-    return language in ALL_LANGUAGES
 
 
 @dataclass

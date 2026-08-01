@@ -1,6 +1,6 @@
 import logging
 
-from semble.chunking.core import chunk, chunk_lines, is_supported_language
+from semble.chunking.core import chunk, chunk_lines
 from semble.types import Chunk
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ def chunk_source(source: str, file_path: str, language: str | None) -> list[Chun
     if not source.strip():
         return []
     chunk_boundaries = None
-    if language is not None and is_supported_language(language):
+    if language is not None:
         chunk_boundaries = chunk(source, language, _DESIRED_CHUNK_LENGTH_CHARS)
     # This is an if because the error state of the parser above
     # is a None.
