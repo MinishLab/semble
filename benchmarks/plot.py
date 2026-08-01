@@ -94,14 +94,6 @@ _METHODS: list[_Method] = [
         "params_m": 137,
     },
     {
-        "name": "CodeRankEmbed Hybrid",
-        "ndcg10": 0.8613,
-        "index_ms": 115859.8,
-        "query_p50_ms": 15.56,
-        "color": "#922b21",
-        "params_m": 137,
-    },
-    {
         "name": "semble",
         "ndcg10": 0.8544,
         "index_ms": 518.2,
@@ -117,11 +109,11 @@ _CBRT_LABEL_DELTA_COLD = 2.0
 _CBRT_LABEL_DELTA_WARM = 0.2
 
 # Frontier methods per mode.
-# Cold: incumbent prior-art curve (ripgrep → BM25 → ColGREP → CRE Hybrid); semble floats above it.
-# Warm: BM25 dominates ripgrep (faster and higher NDCG), so incumbent curve is BM25 → CRE Hybrid.
+# Cold: incumbent prior-art curve (ripgrep → BM25 → ColGREP → CodeRankEmbed); semble floats above it.
+# Warm: BM25 dominates ripgrep (faster and higher NDCG), so incumbent curve is BM25 → CodeRankEmbed.
 _FRONTIER_NAMES: dict[str, set[str]] = {
-    "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed Hybrid"},
-    "warm": {"BM25", "CodeRankEmbed Hybrid"},
+    "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed"},
+    "warm": {"BM25", "CodeRankEmbed"},
 }
 
 

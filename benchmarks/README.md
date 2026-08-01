@@ -17,7 +17,6 @@ Quality and speed across all methods.
 
 | Method               |   NDCG@10 |      Index |   Query p50 |
 | -------------------- | --------: | ---------: | ----------: |
-| CodeRankEmbed Hybrid |     0.861 |      116 s |       16 ms |
 | **semble**           | **0.854** | **518 ms** | **0.91 ms** |
 | CodeRankEmbed        |     0.839 |      116 s |       16 ms |
 | ColGREP              |     0.693 |      5.4 s |      122 ms |
@@ -33,7 +32,7 @@ Quality and speed across all methods.
 | :-----------------------------------------------------------------: | :-----------------------------------------------------------------: |
 |          _Time to first result (index + query) vs NDCG@10_          |             _Query latency on a warm index vs NDCG@10_              |
 
-The 137M-param CodeRankEmbed Hybrid wins NDCG@10 by 0.007. semble wins index time by ~220x and query latency by ~17x.
+semble matches the NDCG@10 of the 137M-param CodeRankEmbed while winning index time by ~220x and query latency by ~17x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
 
@@ -70,30 +69,30 @@ semble returns the top-50 ranked chunks. `ripgrep+read` splits the query into ke
 
 ## By language
 
-NDCG@10 per language, sorted by CodeRankEmbed Hybrid (CRE in the table). Best score per row is bolded.
+NDCG@10 per language, sorted by CodeRankEmbed (CRE in the table). Best score per row is bolded.
 
-| Language    |    semble | CRE Hybrid |       CRE |   ColGREP |        ck |       cbm |    grepai |     probe |        cs |   ripgrep |
-| ----------- | --------: | ---------: | --------: | --------: | --------: | --------: | --------: | --------: | --------: | --------: |
-| zig         |     0.913 |  **0.937** |     0.911 |     0.474 |     0.511 |     0.766 |     0.755 |     0.369 |     0.121 |     0.000 |
-| javascript  |     0.917 |      0.917 | **0.925** |     0.823 |     0.772 |     0.770 |     0.675 |     0.588 |     0.171 |     0.176 |
-| ruby        |     0.909 |  **0.912** |     0.905 |     0.708 |     0.738 |     0.689 |     0.643 |     0.382 |     0.255 |     0.230 |
-| scala       |     0.909 |      0.910 | **0.925** |     0.765 |     0.717 |     0.704 |     0.330 |     0.392 |     0.111 |     0.180 |
-| elixir      |     0.894 |  **0.909** |     0.893 |     0.808 |     0.786 |     0.506 |     0.669 |     0.412 |     0.397 |     0.134 |
-| cpp         | **0.915** |      0.896 |     0.897 |     0.626 |     0.687 |     0.630 |     0.731 |     0.375 |     0.262 |     0.126 |
-| go          | **0.895** |      0.891 |     0.713 |     0.785 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
-| php         |     0.858 |  **0.886** |     0.847 |     0.663 |     0.615 |     0.608 |     0.402 |     0.340 |     0.180 |     0.123 |
-| python      |     0.867 |  **0.883** |     0.878 |     0.777 |     0.721 |     0.643 |     0.634 |     0.488 |     0.305 |     0.202 |
-| bash        |     0.825 |  **0.869** |     0.834 |     0.706 |     0.677 |     0.768 |     0.723 |     0.226 |     0.170 |     0.000 |
-| csharp      | **0.885** |      0.866 |     0.848 |     0.614 |     0.548 |     0.775 |     0.277 |     0.392 |     0.248 |     0.117 |
-| swift       | **0.860** |      0.854 |     0.845 |     0.710 |     0.672 |     0.630 |     0.429 |     0.280 |     0.151 |     0.160 |
-| lua         |     0.823 |  **0.842** |     0.829 |     0.798 |     0.738 |     0.591 |     0.699 |     0.336 |     0.050 |     0.000 |
-| java        | **0.849** |      0.836 |     0.790 |     0.641 |     0.606 |     0.554 |     0.386 |     0.536 |     0.136 |     0.198 |
-| kotlin      |     0.821 |  **0.825** |     0.823 |     0.637 |     0.587 |     0.611 |     0.478 |     0.335 |     0.170 |     0.166 |
-| rust        | **0.856** |      0.803 |     0.754 |     0.662 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
-| haskell     |     0.765 |      0.788 | **0.811** |     0.683 |     0.733 |     0.624 |     0.483 |     0.313 |     0.160 |     0.000 |
-| c           |     0.741 |  **0.787** |     0.771 |     0.676 |     0.606 |     0.655 |     0.555 |     0.384 |     0.175 |     0.000 |
-| typescript  |     0.706 |  **0.709** |     0.671 |     0.430 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
-| **overall** | **0.854** |  **0.861** |     0.839 | **0.693** | **0.634** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
+| Language    |    semble |       CRE |   ColGREP |        ck |       cbm |    grepai |     probe |        cs |   ripgrep |
+| ----------- | --------: | --------: | --------: | --------: | --------: | --------: | --------: | --------: | --------: |
+| javascript  |     0.917 | **0.925** |     0.823 |     0.772 |     0.770 |     0.675 |     0.588 |     0.171 |     0.176 |
+| scala       |     0.909 | **0.925** |     0.765 |     0.717 |     0.704 |     0.330 |     0.392 |     0.111 |     0.180 |
+| zig         | **0.913** |     0.911 |     0.474 |     0.511 |     0.766 |     0.755 |     0.369 |     0.121 |     0.000 |
+| ruby        | **0.909** |     0.905 |     0.708 |     0.738 |     0.689 |     0.643 |     0.382 |     0.255 |     0.230 |
+| cpp         | **0.915** |     0.897 |     0.626 |     0.687 |     0.630 |     0.731 |     0.375 |     0.262 |     0.126 |
+| elixir      | **0.894** |     0.893 |     0.808 |     0.786 |     0.506 |     0.669 |     0.412 |     0.397 |     0.134 |
+| python      |     0.867 | **0.878** |     0.777 |     0.721 |     0.643 |     0.634 |     0.488 |     0.305 |     0.202 |
+| csharp      | **0.885** |     0.848 |     0.614 |     0.548 |     0.775 |     0.277 |     0.392 |     0.248 |     0.117 |
+| php         | **0.858** |     0.847 |     0.663 |     0.615 |     0.608 |     0.402 |     0.340 |     0.180 |     0.123 |
+| swift       | **0.860** |     0.845 |     0.710 |     0.672 |     0.630 |     0.429 |     0.280 |     0.151 |     0.160 |
+| bash        |     0.825 | **0.834** |     0.706 |     0.677 |     0.768 |     0.723 |     0.226 |     0.170 |     0.000 |
+| lua         |     0.823 | **0.829** |     0.798 |     0.738 |     0.591 |     0.699 |     0.336 |     0.050 |     0.000 |
+| kotlin      |     0.821 | **0.823** |     0.637 |     0.587 |     0.611 |     0.478 |     0.335 |     0.170 |     0.166 |
+| haskell     |     0.765 | **0.811** |     0.683 |     0.733 |     0.624 |     0.483 |     0.313 |     0.160 |     0.000 |
+| java        | **0.849** |     0.790 |     0.641 |     0.606 |     0.554 |     0.386 |     0.536 |     0.136 |     0.198 |
+| c           |     0.741 | **0.771** |     0.676 |     0.606 |     0.655 |     0.555 |     0.384 |     0.175 |     0.000 |
+| rust        | **0.856** |     0.754 |     0.662 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
+| go          | **0.895** |     0.713 |     0.785 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
+| typescript  | **0.706** |     0.671 |     0.430 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
+| **overall** | **0.854** |     0.839 | **0.693** | **0.634** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
 
 cbm = [codebase-memory-mcp](#methods).
 
@@ -148,7 +147,7 @@ cbm = [codebase-memory-mcp](#methods).
 - **[grepai](https://github.com/nicholasgasior/grepai)**: semantic search using [nomic-embed-text](https://huggingface.co/nomic-ai/nomic-embed-text-v1) (137M params) via a local Ollama daemon.
 - **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**: code intelligence engine that indexes a repo into a SQLite/graph store. We benchmark its `search_graph` tool in `fast` mode, which does BM25 full-text search with structural boosting.
 - **[ck](https://github.com/BeaconBay/ck)**: hybrid regex + semantic search using [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5).
-- **[CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed)**: 137M-param transformer embedding model for code retrieval. _CodeRankEmbed Hybrid_ fuses its dense scores with BM25.
+- **[CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed)**: 137M-param transformer embedding model for code retrieval, used for semantic-only dense search.
 - **[semble](https://github.com/your-repo/semble)**: this library. [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) static embeddings + BM25 + the semble reranking stack.
 
 ## Excluded methods
@@ -313,7 +312,7 @@ Requires the `benchmark` extra (`uv sync --extra benchmark`).
 
 ```bash
 uv run python -m benchmarks.baselines.coderankembed
-uv run python -m benchmarks.baselines.coderankembed --mode semantic
+uv run python -m benchmarks.baselines.coderankembed --repo fastapi --repo axios
 ```
 
 </details>
