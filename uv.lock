@@ -13,7 +13,7 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
-semble-grammars = "2026-08-02T00:00:00Z"
+semble-grammars = false
 
 [[package]]
 name = "annotated-doc"

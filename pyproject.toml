@@ -148,4 +148,4 @@ exclude_also = ["if __name__ == .__main__.:", "@abstractmethod"]
 exclude-newer = "1 week"
 
 [tool.uv.exclude-newer-package]
-semble-grammars = "2026-08-02T00:00:00Z"
+semble-grammars = false
