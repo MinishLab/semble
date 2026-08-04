@@ -5,12 +5,13 @@ import re
 import sys
 import warnings
 from importlib.util import find_spec
+from pathlib import Path
 from shutil import rmtree
 from typing import Literal
 
 from model2vec.utils import get_package_extras
 
-from semble.cache import find_index_from_cache_folder, resolve_cache_folder
+from semble.cache import cache_key, find_index_from_cache_folder, resolve_cache_folder
 from semble.index import SembleIndex
 from semble.index.types import PersistencePath
 from semble.installer.agents import AGENTS, IntegrationType
@@ -22,7 +23,7 @@ from semble.version import __version__
 _CLI_DISPATCH_ARGS = frozenset(
     {"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear", "--version", "-V"}
 )
-_CLEAR_CHOICE = Literal["all", "index", "savings"]
+_CLEAR_CHOICE = Literal["all", "index", "savings", "orphans"]
 
 _SHA_256_REGEX = re.compile(r"^[a-f0-9]{64}$")
 
@@ -138,33 +139,69 @@ def _run_find_related(
     _maybe_save_index(index, path)
 
 
+def _clear_indexes(cache_folder: Path) -> None:
+    """Remove all valid index entries from the cache folder."""
+    indexes = []
+    for path in cache_folder.glob("*/index"):
+        if not _SHA_256_REGEX.match(path.parent.name):
+            continue
+        if PersistencePath.from_path(path).non_existing():
+            continue
+        indexes.append(path)
+
+    if not indexes:
+        print(f"No indexes found to clear in `{cache_folder}`")
+    else:
+        for path in indexes:
+            index_folder = path.parent
+            rmtree(index_folder)
+            print(f"Cleared index at `{index_folder}`")
+
+
+def _clear_savings(cache_folder: Path) -> None:
+    """Remove the savings file from the cache folder."""
+    path = cache_folder / "savings.jsonl"
+    if not path.exists():
+        print(f"No savings file found at `{path}`")
+    else:
+        path.unlink()
+        print(f"Cleared savings at `{path}`")
+
+
+def _clear_orphans(cache_folder: Path) -> None:
+    """Remove index entries whose local root_path no longer exists."""
+    orphans = []
+    for path in cache_folder.glob("*/index"):
+        if not _SHA_256_REGEX.match(path.parent.name):
+            continue
+        try:
+            with open(path / "metadata.json", encoding="utf-8") as f:
+                root_path = json.load(f).get("root_path")
+        except (OSError, json.JSONDecodeError):
+            continue
+        # Git-URL entries store their temp clone dir as root_path, so only trust entries whose key matches.
+        if not root_path or cache_key(root_path) != path.parent.name:
+            continue
+        if not Path(root_path).exists():
+            orphans.append((path.parent, root_path))
+
+    if not orphans:
+        print("No orphaned indexes found")
+    else:
+        for index_folder, root_path in orphans:
+            rmtree(index_folder)
+            print(f"Cleared orphaned index for `{root_path}`")
+
+
 def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
     """Run the `clear` subcommand."""
     cache_folder = resolve_cache_folder()
     if clear_type == "index" or clear_type == "all":
-        indexes = []
-        for path in cache_folder.glob("*/index"):
-            if not _SHA_256_REGEX.match(path.parent.name):
-                continue
-            if PersistencePath.from_path(path).non_existing():
-                continue
-            indexes.append(path)
-
-        if not indexes:
-            print(f"No indexes found to clear in `{cache_folder}`")
-        else:
-            for path in indexes:
-                index_folder = path.parent
-                rmtree(index_folder)
-                print(f"Cleared index at `{index_folder}`")
-
+        _clear_indexes(cache_folder)
     if clear_type == "savings" or clear_type == "all":
-        path = cache_folder / "savings.jsonl"
-        if not path.exists():
-            print(f"No savings file found at `{path}`")
-        else:
-            path.unlink()
-            print(f"Cleared savings at `{path}`")
+        _clear_savings(cache_folder)
+    if clear_type == "orphans":
+        _clear_orphans(cache_folder)
 
 
 def _cli_main() -> None:
@@ -186,7 +223,11 @@ def _cli_main() -> None:
     _add_content_args(search_p)
 
     clear_p = sub.add_parser("clear", help="Clear the index cache.")
-    clear_p.add_argument("type", choices=["all", "index", "savings"], help="Type of cache to clear.")
+    clear_p.add_argument(
+        "type",
+        choices=["all", "index", "savings", "orphans"],
+        help="Type of cache to clear. `orphans` removes indexes whose source path no longer exists.",
+    )
 
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")

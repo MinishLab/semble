@@ -1,3 +1,5 @@
+import hashlib
+import json
 import sys
 import warnings
 from importlib.resources import files
@@ -240,7 +242,7 @@ def test_agent_file_tools_are_bash_only() -> None:
     assert not any("mcp__" in t for t in tools)
 
 
-def _make_valid_index_dir(cache_folder: Path, sha: str = "a" * 64) -> Path:
+def _make_valid_index_dir(cache_folder: Path, sha: str = "a" * 64, metadata: str = "{}") -> Path:
     """Create a fake valid index directory with the expected structure."""
     index_dir = cache_folder / sha / "index"
     index_dir.mkdir(parents=True)
@@ -248,7 +250,7 @@ def _make_valid_index_dir(cache_folder: Path, sha: str = "a" * 64) -> Path:
     (index_dir / "chunks.json").write_text("[]")
     (index_dir / "bm25_index").write_text("")
     (index_dir / "semantic_index").write_text("")
-    (index_dir / "metadata.json").write_text("{}")
+    (index_dir / "metadata.json").write_text(metadata)
     return index_dir
 
 
@@ -289,6 +291,40 @@ def test_run_clear_index(
     if scenario == "valid":
         assert not (tmp_path / ("a" * 64)).exists()
         assert not (tmp_path / ("b" * 64)).exists()
+
+
+@pytest.mark.parametrize(
+    "scenario",
+    ["orphan", "live", "mismatched_key", "no_root_path"],
+)
+def test_run_clear_orphans(scenario: str, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """_run_clear('orphans') removes entries whose local root is gone, and keeps everything else."""
+    cache_folder = tmp_path / "cache"
+    cache_folder.mkdir()
+    root = tmp_path / "repo"
+    root.mkdir()
+    sha = hashlib.sha256(str(root.resolve()).encode("utf-8")).hexdigest()
+    if scenario == "orphan":
+        _make_valid_index_dir(cache_folder, sha, metadata=json.dumps({"root_path": str(root)}))
+        root.rmdir()
+    elif scenario == "live":
+        _make_valid_index_dir(cache_folder, sha, metadata=json.dumps({"root_path": str(root)}))
+    elif scenario == "mismatched_key":
+        # A git-URL entry: the dir name hashes the URL, not the (missing) root_path
+        _make_valid_index_dir(cache_folder, "a" * 64, metadata=json.dumps({"root_path": str(root / "clone")}))
+    elif scenario == "no_root_path":
+        _make_valid_index_dir(cache_folder, "b" * 64)
+
+    with patch("semble.cli.resolve_cache_folder", return_value=cache_folder):
+        _run_clear("orphans")
+
+    out = capsys.readouterr().out
+    if scenario == "orphan":
+        assert str(root) in out
+        assert not (cache_folder / sha).exists()
+    else:
+        assert "No orphaned indexes found" in out
+        assert len(list(cache_folder.iterdir())) == 1
 
 
 @pytest.mark.parametrize(
@@ -348,6 +384,7 @@ def test_run_clear_all(
         ("index", True, False, ["Cleared index", "e" * 64]),
         ("savings", False, True, ["Cleared savings"]),
         ("all", True, True, ["Cleared index", "Cleared savings"]),
+        ("orphans", False, False, ["No orphaned indexes found"]),
     ],
 )
 def test_cli_clear_command(

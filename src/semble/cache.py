@@ -24,15 +24,19 @@ if TYPE_CHECKING:
     from semble.index import SembleIndex
 
 
-def find_index_from_cache_folder(path: str) -> Path:
-    """Finds an index from a cache folder and a project path."""
+def cache_key(path: str) -> str:
+    """Compute the sha256 cache key for a local path or git URL."""
     if is_git_url(path):
         data = path.encode("utf-8")
     else:
         normalized = Path(path).expanduser().resolve()
         data = str(normalized).encode("utf-8")
-    subdir_path = hashlib.new("sha256", data).hexdigest()
-    cache_dir = resolve_cache_folder() / subdir_path
+    return hashlib.new("sha256", data).hexdigest()
+
+
+def find_index_from_cache_folder(path: str) -> Path:
+    """Finds an index from a cache folder and a project path."""
+    cache_dir = resolve_cache_folder() / cache_key(path)
     return cache_dir / "index"
 
 
