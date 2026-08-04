@@ -327,6 +327,26 @@ def test_run_clear_orphans(scenario: str, tmp_path: Path, capsys: pytest.Capture
         assert len(list(cache_folder.iterdir())) == 1
 
 
+def test_run_clear_orphans_skips_invalid_metadata(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """A non-string root_path is skipped without aborting the rest of the cleanup."""
+    cache_folder = tmp_path / "cache"
+    cache_folder.mkdir()
+    root = tmp_path / "repo"
+    root.mkdir()
+    sha = hashlib.sha256(str(root.resolve()).encode("utf-8")).hexdigest()
+    _make_valid_index_dir(cache_folder, sha, metadata=json.dumps({"root_path": str(root)}))
+    root.rmdir()
+    _make_valid_index_dir(cache_folder, "f" * 64, metadata=json.dumps({"root_path": 123}))
+
+    with patch("semble.cli.resolve_cache_folder", return_value=cache_folder):
+        _run_clear("orphans")
+
+    out = capsys.readouterr().out
+    assert str(root) in out
+    assert not (cache_folder / sha).exists()
+    assert (cache_folder / ("f" * 64)).exists()
+
+
 @pytest.mark.parametrize(
     ("create_file", "expected"),
     [

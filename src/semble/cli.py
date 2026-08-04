@@ -180,7 +180,7 @@ def _clear_orphans(cache_folder: Path) -> None:
         except (OSError, json.JSONDecodeError):
             continue
         # Git-URL entries store their temp clone dir as root_path, so only trust entries whose key matches.
-        if not root_path or cache_key(root_path) != path.parent.name:
+        if not isinstance(root_path, str) or not root_path or cache_key(root_path) != path.parent.name:
             continue
         if not Path(root_path).exists():
             orphans.append((path.parent, root_path))
