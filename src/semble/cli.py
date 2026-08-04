@@ -176,7 +176,8 @@ def _clear_orphans(cache_folder: Path) -> None:
             continue
         try:
             with open(path / "metadata.json", encoding="utf-8") as f:
-                root_path = json.load(f).get("root_path")
+                metadata = json.load(f)
+                root_path = metadata.get("root_path") if isinstance(metadata, dict) else None
         except (OSError, json.JSONDecodeError):
             continue
         # Git-URL entries store their temp clone dir as root_path, so only trust entries whose key matches.
