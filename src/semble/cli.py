@@ -67,6 +67,7 @@ def _add_content_args(p: argparse.ArgumentParser) -> None:
 
 def main() -> None:
     """Entry point for the semble command-line tool."""
+    # Non-UTF-8 Windows consoles can't encode glyphs like "✓" and would otherwise crash.
     for stream in (sys.stdout, sys.stderr):
         if isinstance(stream, io.TextIOWrapper):
             stream.reconfigure(errors="replace")
