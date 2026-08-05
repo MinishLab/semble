@@ -65,6 +65,10 @@ def test_resolve_chunk() -> None:
     # Line out of range returns None.
     assert resolve_chunk([interior], "src/a.py", 99) is None
 
+    # Separator mismatch (e.g. backslash-stored path, forward-slash query) still matches.
+    backslash_chunk = make_chunk("line1\nline2\nline3", "src\\a.py")
+    assert resolve_chunk([backslash_chunk], "src/a.py", 2) is backslash_chunk
+
 
 @pytest.mark.parametrize(
     ("path", "expected"),

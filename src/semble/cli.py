@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import io
 import json
 import re
 import sys
@@ -66,6 +67,9 @@ def _add_content_args(p: argparse.ArgumentParser) -> None:
 
 def main() -> None:
     """Entry point for the semble command-line tool."""
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper):
+            stream.reconfigure(errors="replace")
     if len(sys.argv) > 1 and sys.argv[1] in _CLI_DISPATCH_ARGS:
         _cli_main()
     else:

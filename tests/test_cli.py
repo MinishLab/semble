@@ -21,8 +21,10 @@ from tests.conftest import make_chunk
     ],
 )
 def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
-    """main() delegates to asyncio.run(serve(...)) when no CLI subcommand is given."""
+    """main() delegates to asyncio.run(serve(...)), tolerating streams without reconfigure()."""
     monkeypatch.setattr(sys, "argv", argv)
+    monkeypatch.setattr(sys, "stdout", object())
+    monkeypatch.setattr(sys, "stderr", object())
     with patch("asyncio.run") as mock_run:
         mock_run.side_effect = lambda coro: coro.close()
         main()

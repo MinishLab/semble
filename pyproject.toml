@@ -30,7 +30,6 @@ dependencies = [
     "vicinity>=0.4.4",
     "numpy>=1.24.0",
     "pathspec>=0.12",
-    "tree-sitter>=0.25,<0.26",
     "orjson",
     "questionary>=2.0,<3.0",
     "semble-grammars>=0.1.2",
