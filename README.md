@@ -98,9 +98,12 @@ semble search "deployment guide" ./my-project --content docs   # or: config, all
 
 # Find code similar to a known location
 semble find-related src/auth.py 42 ./my-project
+
+# Show only the first N lines of each result's snippet (0 = path/line range only)
+semble search "authentication flow" ./my-project --max-snippet-lines 10
 ```
 
-`--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
+`--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
 
 <details>
 <summary>Controlling which files are indexed</summary>
@@ -172,6 +175,8 @@ Savings are calculated as follows: for each call, semble records the total chara
 By default, your Semble savings statistics and any saved indexes are stored in the OS cache folder (`~/Library/Caches/semble/` on macOS, `~/.cache/semble/` on Linux, `%LOCALAPPDATA%\semble\Cache\` on Windows). To override this location you can supply an environment variable `SEMBLE_CACHE_LOCATION` which should be the full path to the target cache location e.g. `~/my-folder/my-caches/semble`.
 
 On first use, Semble also downloads the embedding model from Hugging Face and caches it in the standard Hugging Face cache (`~/.cache/huggingface/` by default, or `$HF_HOME` if set); this only happens once and requires network access.
+
+Use `semble clear` to remove cached data: `semble clear index` (saved indexes), `semble clear savings` (usage stats), `semble clear orphans` (indexes for repos no longer present on disk), or `semble clear all` (everything).
 
 </details>
 
