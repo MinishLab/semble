@@ -265,6 +265,10 @@ Because the embedding model is static with no transformer forward pass at query 
 
 Indexes are cached to disk automatically on the first search. On subsequent runs, Semble walks the file tree and compares modification times; added, removed, or changed files are reindexed incrementally, without rebuilding the rest of the index. A full rebuild only happens if the indexing settings change (e.g., after a semble upgrade that changes the model, chunking, or cache format). In MCP mode, the index is checked and refreshed automatically as files change, so results stay current across the session.
 
+### Using a custom model
+
+If you would like to use another model, you can set your `SEMBLE_MODEL_NAME` environment variable to a local path or Hugging Face repository. This path is read verbatim, and should contain a [`Model2Vec`](https://github.com/MinishLab/model2vec) compatible model. This is particularly useful if you can't access Hugging Face at runtime.
+
 ## Acknowledgements
 
 Thanks to [Greptile](https://greptile.com) for providing free access to their AI code review platform.
