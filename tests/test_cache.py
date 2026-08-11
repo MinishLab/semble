@@ -29,7 +29,7 @@ def test_find_index_from_cache_folder_local_path(tmp_path: Path) -> None:
     assert result.name == "index"
     assert result == find_index_from_cache_folder(str(tmp_path))
     assert find_index_from_cache_folder(str(tmp_path), [ContentType.DOCS]).name == "index-docs"
-    assert find_index_from_cache_folder(str(tmp_path), list(ContentType)).name == "index-code-docs-config"
+    assert find_index_from_cache_folder(str(tmp_path), list(ContentType)).name == "index-code-config-docs"
 
 
 def test_find_index_from_cache_folder_git_url() -> None:

@@ -37,7 +37,7 @@ def cache_key(path: str) -> str:
 def find_index_from_cache_folder(path: str, content: Sequence[ContentType] = (ContentType.CODE,)) -> Path:
     """Find an exact content index in the cache for a project path."""
     cache_dir = resolve_cache_folder() / cache_key(path)
-    scope = "-".join(content_type.value for content_type in ContentType if content_type in content)
+    scope = "-".join(sorted({content_type.value for content_type in content}))
     return cache_dir / ("index" if scope == ContentType.CODE.value else f"index-{scope}")
 
 
