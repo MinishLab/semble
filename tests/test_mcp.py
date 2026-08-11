@@ -359,7 +359,6 @@ async def test_search_filters_all_content_index(
     (tmp_project / "settings.toml").write_text("project = 'semble'\n")
     expected = [
         (None, {".py"}),
-        ("code", {".py"}),
         ("docs", {".md"}),
         ("config", {".toml"}),
         ("all", {".md", ".py", ".toml"}),

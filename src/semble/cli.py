@@ -48,7 +48,7 @@ def _maybe_save_index(index: SembleIndex, path: str) -> None:
             print(f"Error saving index: {e}", file=sys.stderr)
 
 
-def _add_content_args(p: argparse.ArgumentParser, *, help_text: str = "Content types to index") -> None:
+def _add_content_args(p: argparse.ArgumentParser) -> None:
     """Add --content and deprecated --include-text-files to a subparser."""
     p.add_argument(
         "--content",
@@ -56,7 +56,7 @@ def _add_content_args(p: argparse.ArgumentParser, *, help_text: str = "Content t
         default=["code"],
         choices=[ct.value for ct in ContentType] + ["all"],
         metavar="TYPE",
-        help=f"{help_text} (space-separated, e.g. --content code docs). Choices: code, docs, config, all. Default: code.",
+        help="Content types to search (space-separated, e.g. --content code docs). Choices: code, docs, config, all. Default: code.",
     )
     p.add_argument(
         "--include-text-files",
@@ -82,7 +82,7 @@ def _mcp_main() -> None:
         prog="semble",
         description="Instant local code search for agents.",
     )
-    _add_content_args(parser, help_text="Default content types for MCP searches")
+    _add_content_args(parser)
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
         print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
