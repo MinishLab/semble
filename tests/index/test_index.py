@@ -86,6 +86,7 @@ def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:
 def test_index_language_counts(indexed_index: SembleIndex) -> None:
     """Language breakdown in stats includes python with at least one chunk."""
     stats = indexed_index.stats
+    assert indexed_index.content == (ContentType.CODE,)
     assert "python" in stats.languages
     assert stats.languages["python"] > 0
 

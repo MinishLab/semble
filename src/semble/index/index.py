@@ -124,6 +124,11 @@ class SembleIndex:
             languages=dict(language_counts),
         )
 
+    @property
+    def content(self) -> tuple[ContentType, ...]:
+        """Return the content types covered by this index."""
+        return self._content
+
     @classmethod
     def from_path(
         cls,

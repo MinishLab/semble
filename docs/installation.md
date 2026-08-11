@@ -323,7 +323,7 @@ Add to `~/.zcode/cli/config.json` under the nested `mcp.servers` key (or use Set
 
 </details>
 
-The MCP server indexes code, documentation, and config once, then filters that index for each search. Searches default to code; append `--content docs`, `--content config`, or `--content all` to the server command to change that default. The `content` argument on an individual MCP search overrides it. For example, in Claude Code:
+The MCP server indexes each requested content selection on first use and caches it separately. Searches default to code; append `--content docs`, `--content config`, or `--content all` to the server command to change that default. The `content` argument on an individual MCP search overrides it. For example, in Claude Code:
 
 ```bash
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all

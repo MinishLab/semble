@@ -10,7 +10,7 @@ import pytest
 from model2vec import StaticModel
 
 from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
-from semble.types import Chunk, SearchResult
+from semble.types import Chunk, ContentType, SearchResult
 from semble.utils import format_results, is_git_url, resolve_chunk
 from tests.conftest import make_chunk
 
@@ -145,10 +145,17 @@ async def test_index_cache_builds_and_caches(
     ):
         first = await cache.get(resolved_source)
         second = await cache.get(resolved_source)
+        docs_first = await cache.get(resolved_source, content=(ContentType.DOCS,))
+        docs_second = await cache.get(resolved_source, content=(ContentType.DOCS,))
     assert first is fake_index
     assert second is fake_index
-    mock_build.assert_called_once()
-    mock_save.assert_called_once_with(fake_index, cache._compute_cache_key(resolved_source))
+    assert docs_first is fake_index
+    assert docs_second is fake_index
+    assert [call.kwargs["content"] for call in mock_build.call_args_list] == [
+        (ContentType.CODE,),
+        (ContentType.DOCS,),
+    ]
+    assert mock_save.call_count == 2
 
 
 @pytest.mark.anyio
@@ -187,12 +194,12 @@ async def test_index_cache_staleness_check_scope(
 @pytest.mark.anyio
 async def test_index_cache_skips_staleness_check_during_cooldown(cache: _IndexCache, tmp_path: Path) -> None:
     """A slow-to-build local path is not revalidated again until its cooldown elapses."""
-    cache_key = str(tmp_path.resolve())
+    cache_key = cache._compute_cache_key(str(tmp_path))
     cache._tasks[cache_key] = asyncio.create_task(_succeed())
     await asyncio.sleep(0)  # let the task finish
     cache._revalidate_after[cache_key] = time.monotonic() + 30.0  # a build that took 10s, just finished
     with patch("semble.mcp.get_validated_cache") as mock_validate:
-        await cache._evict_if_stale(str(tmp_path), cache_key)
+        await cache._evict_if_stale(cache_key)
     mock_validate.assert_not_called()
 
 
@@ -207,17 +214,18 @@ async def test_index_cache_skips_staleness_check_for_failed_task(cache: _IndexCa
     async def _raise() -> MagicMock:
         raise RuntimeError("boom")
 
-    cache._tasks[str(tmp_path.resolve())] = asyncio.create_task(_raise())
+    cache_key = cache._compute_cache_key(str(tmp_path))
+    cache._tasks[cache_key] = asyncio.create_task(_raise())
     await asyncio.sleep(0)  # let the task finish
     with patch("semble.mcp.get_validated_cache") as mock_validate:
-        await cache._evict_if_stale(str(tmp_path), str(tmp_path.resolve()))
+        await cache._evict_if_stale(cache_key)
     mock_validate.assert_not_called()
 
 
 @pytest.mark.anyio
 async def test_index_cache_does_not_evict_entry_replaced_during_validation(cache: _IndexCache, tmp_path: Path) -> None:
     """If a concurrent caller already replaced a stale entry, _evict_if_stale must not evict the new one."""
-    cache_key = str(tmp_path.resolve())
+    cache_key = cache._compute_cache_key(str(tmp_path))
     cache._tasks[cache_key] = asyncio.create_task(_succeed())
     await asyncio.sleep(0)
     cache._revalidate_after[cache_key] = 0.0  # cooldown already elapsed
@@ -230,7 +238,7 @@ async def test_index_cache_does_not_evict_entry_replaced_during_validation(cache
         return None
 
     with patch("semble.mcp.get_validated_cache", side_effect=_replace_entry_then_report_stale):
-        await cache._evict_if_stale(str(tmp_path), cache_key)
+        await cache._evict_if_stale(cache_key)
     assert cache._tasks.get(cache_key) is replacement_task
 
 
@@ -350,12 +358,12 @@ async def test_tool_output(
 
 
 @pytest.mark.anyio
-async def test_search_filters_all_content_index(
+async def test_search_builds_exact_content_indexes(
     cache: _IndexCache,
     mock_model: StaticModel,
     tmp_project: Path,
 ) -> None:
-    """MCP search selects content without rebuilding the repository index."""
+    """MCP search lazily builds the exact requested content index."""
     (tmp_project / "settings.toml").write_text("project = 'semble'\n")
     expected = [
         (None, {".py"}),
@@ -488,7 +496,7 @@ async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> N
     with patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()):
         for d in dirs[:_CACHE_MAX_SIZE]:
             await cache.get(str(d))
-        first_key = str(dirs[0].resolve())
+        first_key = cache._compute_cache_key(str(dirs[0]))
         assert first_key in cache._tasks
         await cache.get(str(dirs[_CACHE_MAX_SIZE]))
     assert first_key not in cache._tasks
@@ -496,13 +504,13 @@ async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> N
 
 
 def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:
-    """evict() removes an existing cache entry by resolved path."""
-    key = str(tmp_path.resolve())
+    """evict() removes an existing exact cache entry."""
+    key = cache._compute_cache_key(str(tmp_path))
     cache._tasks[key] = MagicMock()
-    cache.evict(str(tmp_path))
+    cache.evict(key)
     assert key not in cache._tasks
 
 
 def test_cache_evict_missing(cache: _IndexCache, tmp_path: Path) -> None:
-    """evict() on an unknown path is a no-op."""
-    cache.evict(str(tmp_path))  # should not raise
+    """evict() on an unknown key is a no-op."""
+    cache.evict(cache._compute_cache_key(str(tmp_path)))  # should not raise

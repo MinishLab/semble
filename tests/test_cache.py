@@ -24,10 +24,12 @@ from semble.types import ContentType
 
 
 def test_find_index_from_cache_folder_local_path(tmp_path: Path) -> None:
-    """Local paths are normalised before hashing, result ends with /index."""
+    """Local paths are normalised and content variants get distinct index directories."""
     result = find_index_from_cache_folder(str(tmp_path))
     assert result.name == "index"
     assert result == find_index_from_cache_folder(str(tmp_path))
+    assert find_index_from_cache_folder(str(tmp_path), [ContentType.DOCS]).name == "index-docs"
+    assert find_index_from_cache_folder(str(tmp_path), list(ContentType)).name == "index-code-docs-config"
 
 
 def test_find_index_from_cache_folder_git_url() -> None:
@@ -74,9 +76,10 @@ def test_cache_dir_no_env(fn: object, expected_rel: Path) -> None:
 
 def test_save_index_to_cache(tmp_path: Path) -> None:
     """A freshly built index is saved under its cache key."""
-    index = MagicMock(loaded_from_disk=False)
-    with patch("semble.cache.find_index_from_cache_folder", return_value=tmp_path / "index"):
+    index = MagicMock(loaded_from_disk=False, content=(ContentType.DOCS,))
+    with patch("semble.cache.find_index_from_cache_folder", return_value=tmp_path / "index") as mock_find:
         save_index_to_cache(index, "repo")
+    mock_find.assert_called_once_with("repo", (ContentType.DOCS,))
     index.save.assert_called_once_with(tmp_path / "index")
 
 
@@ -119,14 +122,18 @@ def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
 
 
 def test_clear_cache(tmp_path: Path) -> None:
-    """clear_cache removes the index directory when it exists and is a no-op otherwise."""
-    index_path = tmp_path / "index"
+    """clear_cache removes every content variant and is a no-op when none exist."""
+    cache_dir = tmp_path / "repo"
+    index_path = cache_dir / "index"
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         clear_cache("/some/path")  # no-op: path doesn't exist yet
-    index_path.mkdir()
+    index_path.mkdir(parents=True)
+    docs_path = cache_dir / "index-docs"
+    docs_path.mkdir()
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         clear_cache("/some/path")
     assert not index_path.exists()
+    assert not docs_path.exists()
 
 
 def _write_metadata(

@@ -466,16 +466,14 @@ def detect_language(file_name: Path) -> str | None:
 
 def get_extensions(types: Sequence[ContentType]) -> list[str]:
     """Returns a list of supported file extensions for the given content types."""
+    languages: set[str] = set()
+    for content_type in types:
+        languages.update(_CONTENT_TYPE_LANGUAGES[content_type])
     all_extensions: set[str] = set()
-    for language in get_languages(types):
+    for language in languages:
         all_extensions.update(_LANGUAGE_TO_EXTENSION.get(language, set()))
 
     return sorted(all_extensions)
-
-
-def get_languages(types: Sequence[ContentType]) -> list[str]:
-    """Returns the languages belonging to the given content types."""
-    return sorted({language for content_type in types for language in _CONTENT_TYPE_LANGUAGES[content_type]})
 
 
 class FileStatus(str, Enum):

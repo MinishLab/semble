@@ -12,7 +12,7 @@ from typing import Literal
 
 from model2vec.utils import get_package_extras
 
-from semble.cache import cache_key, find_index_from_cache_folder, resolve_cache_folder
+from semble.cache import cache_key, resolve_cache_folder, save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.types import PersistencePath
 from semble.installer.agents import AGENTS, IntegrationType
@@ -40,12 +40,10 @@ def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
 
 def _maybe_save_index(index: SembleIndex, path: str) -> None:
     """Save the index to the cache folder if it was not loaded from disk."""
-    if not index.loaded_from_disk:
-        try:
-            cache_folder = find_index_from_cache_folder(path)
-            index.save(cache_folder)
-        except Exception as e:
-            print(f"Error saving index: {e}", file=sys.stderr)
+    try:
+        save_index_to_cache(index, path)
+    except Exception as e:
+        print(f"Error saving index: {e}", file=sys.stderr)
 
 
 def _add_content_args(p: argparse.ArgumentParser) -> None:
@@ -146,19 +144,18 @@ def _run_find_related(
 
 def _clear_indexes(cache_folder: Path) -> None:
     """Remove all valid index entries from the cache folder."""
-    indexes = []
-    for path in cache_folder.glob("*/index"):
+    indexes: set[Path] = set()
+    for path in cache_folder.glob("*/index*"):
         if not _SHA_256_REGEX.match(path.parent.name):
             continue
         if PersistencePath.from_path(path).non_existing():
             continue
-        indexes.append(path)
+        indexes.add(path.parent)
 
     if not indexes:
         print(f"No indexes found to clear in `{cache_folder}`")
     else:
-        for path in indexes:
-            index_folder = path.parent
+        for index_folder in indexes:
             rmtree(index_folder)
             print(f"Cleared index at `{index_folder}`")
 
@@ -175,8 +172,8 @@ def _clear_savings(cache_folder: Path) -> None:
 
 def _clear_orphans(cache_folder: Path) -> None:
     """Remove index entries whose local root_path no longer exists."""
-    orphans = []
-    for path in cache_folder.glob("*/index"):
+    orphans: dict[Path, str] = {}
+    for path in cache_folder.glob("*/index*"):
         if not _SHA_256_REGEX.match(path.parent.name):
             continue
         try:
@@ -189,12 +186,12 @@ def _clear_orphans(cache_folder: Path) -> None:
         if not isinstance(root_path, str) or not root_path or cache_key(root_path) != path.parent.name:
             continue
         if not Path(root_path).exists():
-            orphans.append((path.parent, root_path))
+            orphans[path.parent] = root_path
 
     if not orphans:
         print("No orphaned indexes found")
     else:
-        for index_folder, root_path in orphans:
+        for index_folder, root_path in orphans.items():
             rmtree(index_folder)
             print(f"Cleared orphaned index for `{root_path}`")
 

@@ -112,7 +112,7 @@ The index is built on first run and cached automatically. If `semble` is not on 
 2. Navigate directly to the top result's file and line. Read only the function or class at that location.
 3. Make the edit. Do not re-search or grep for the same content.
 4. Set the MCP search tool's `content` field to `docs`, `config`, or `all` when searching beyond code.
-5. Optionally use `mcp__semble__find_related` with `file_path` and `line` to discover similar code elsewhere.
+5. Optionally use `mcp__semble__find_related` with `file_path`, `line`, and the same `content` selection to discover similar code elsewhere.
 6. Use Grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
 {SEMBLE_END}
 """

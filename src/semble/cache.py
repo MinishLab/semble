@@ -34,10 +34,11 @@ def cache_key(path: str) -> str:
     return hashlib.new("sha256", data).hexdigest()
 
 
-def find_index_from_cache_folder(path: str) -> Path:
-    """Finds an index from a cache folder and a project path."""
+def find_index_from_cache_folder(path: str, content: Sequence[ContentType] = (ContentType.CODE,)) -> Path:
+    """Find an exact content index in the cache for a project path."""
     cache_dir = resolve_cache_folder() / cache_key(path)
-    return cache_dir / "index"
+    scope = "-".join(content_type.value for content_type in ContentType if content_type in content)
+    return cache_dir / ("index" if scope == ContentType.CODE.value else f"index-{scope}")
 
 
 def _windows_cache_dir(name: str) -> Path:
@@ -89,16 +90,14 @@ def resolve_cache_folder() -> Path:
 
 
 def clear_cache(path: str) -> None:
-    """Clears the cache for the given path."""
-    index_path = find_index_from_cache_folder(path)
-    if index_path.exists():
-        shutil.rmtree(index_path)
+    """Clear all exact content indexes for the given path."""
+    shutil.rmtree(find_index_from_cache_folder(path).parent, ignore_errors=True)
 
 
 def save_index_to_cache(index: "SembleIndex", path: str) -> None:
     """Save an index to the cache folder if it was freshly built."""
     if not index.loaded_from_disk:
-        index.save(find_index_from_cache_folder(path))
+        index.save(find_index_from_cache_folder(path, index.content))
 
 
 def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:
@@ -120,7 +119,7 @@ def _metadata_matches(metadata: dict, model_path: str, content: Sequence[Content
 
 def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:
     """Validates the cache folder and returns the index path."""
-    index_path = find_index_from_cache_folder(path)
+    index_path = find_index_from_cache_folder(path, content)
     if not index_path.exists():
         return None
 
@@ -169,7 +168,7 @@ def load_previous_for_incremental(
     :return: Previous index state, or None if the cache is unavailable or invalid.
     """
     try:
-        index_path = find_index_from_cache_folder(path)
+        index_path = find_index_from_cache_folder(path, content)
         persistence_path = PersistencePath.from_path(index_path)
         if persistence_path.non_existing():
             return None

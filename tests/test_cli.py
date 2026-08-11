@@ -224,11 +224,9 @@ def test_cli_content_argument(
 
 
 def test_maybe_save_index_logs_error_on_save_failure(capsys: pytest.CaptureFixture[str]) -> None:
-    """_maybe_save_index prints to stderr when index.save raises."""
+    """_maybe_save_index prints to stderr when cache persistence fails."""
     fake_index = MagicMock()
-    fake_index.loaded_from_disk = False
-    fake_index.save.side_effect = OSError("disk full")
-    with patch("semble.cli.find_index_from_cache_folder", return_value=Path("/cache")):
+    with patch("semble.cli.save_index_to_cache", side_effect=OSError("disk full")):
         _maybe_save_index(fake_index, "/some/path")
     assert "Error saving index" in capsys.readouterr().err
 
@@ -242,9 +240,11 @@ def test_agent_file_tools_are_bash_only() -> None:
     assert not any("mcp__" in t for t in tools)
 
 
-def _make_valid_index_dir(cache_folder: Path, sha: str = "a" * 64, metadata: str = "{}") -> Path:
+def _make_valid_index_dir(
+    cache_folder: Path, sha: str = "a" * 64, metadata: str = "{}", index_name: str = "index"
+) -> Path:
     """Create a fake valid index directory with the expected structure."""
-    index_dir = cache_folder / sha / "index"
+    index_dir = cache_folder / sha / index_name
     index_dir.mkdir(parents=True)
     # Create the files that PersistencePath.non_existing checks
     (index_dir / "chunks.json").write_text("[]")
@@ -269,7 +269,7 @@ def test_run_clear_index(
     """_run_clear('index') finds valid indexes, and skips non-SHA/incomplete/empty dirs."""
     if scenario == "valid":
         _make_valid_index_dir(tmp_path, "a" * 64)
-        _make_valid_index_dir(tmp_path, "b" * 64)
+        _make_valid_index_dir(tmp_path, "b" * 64, index_name="index-docs")
     elif scenario == "non_sha":
         bad_dir = tmp_path / "not-a-sha" / "index"
         bad_dir.mkdir(parents=True)
@@ -305,7 +305,7 @@ def test_run_clear_orphans(scenario: str, tmp_path: Path, capsys: pytest.Capture
     root.mkdir()
     sha = hashlib.sha256(str(root.resolve()).encode("utf-8")).hexdigest()
     if scenario == "orphan":
-        _make_valid_index_dir(cache_folder, sha, metadata=json.dumps({"root_path": str(root)}))
+        _make_valid_index_dir(cache_folder, sha, metadata=json.dumps({"root_path": str(root)}), index_name="index-docs")
         root.rmdir()
     elif scenario == "live":
         _make_valid_index_dir(cache_folder, sha, metadata=json.dumps({"root_path": str(root)}))
