@@ -230,7 +230,7 @@ class _IndexCache:
         """Build an index and, for local paths, record when its staleness cooldown ends.
 
         The cooldown write happens after the await, i.e. back on the event loop thread,
-        regardless of which thread `_build_and_cache_index` itself ran on.
+        regardless of which thread `_build_index` itself ran on.
         """
         start = time.monotonic()
         index = await asyncio.to_thread(self._build_index, source, ref, model_path, cache_key)
