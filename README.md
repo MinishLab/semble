@@ -225,7 +225,7 @@ Semble runs as an MCP server so agents can search any codebase directly as a nat
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL. |
+| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL and `content` as `code`, `docs`, `config`, or `all` (default: `code`). |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
 For per-agent setup instructions, see the [installation docs](docs/installation.md#mcp-server).

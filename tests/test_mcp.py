@@ -1,4 +1,5 @@
 import asyncio
+import json
 import threading
 import time
 from pathlib import Path
@@ -346,6 +347,36 @@ async def test_tool_output(
     text = await _call_tool(cache, tool, args, index_method=method, index_return=results, index_chunks=chunks)
     for substring in expected_substrings:
         assert substring in text
+
+
+@pytest.mark.anyio
+async def test_search_filters_all_content_index(
+    cache: _IndexCache,
+    mock_model: StaticModel,
+    tmp_project: Path,
+) -> None:
+    """MCP search selects content without rebuilding the repository index."""
+    (tmp_project / "settings.toml").write_text("project = 'semble'\n")
+    expected = [
+        (None, {".py"}),
+        ("code", {".py"}),
+        ("docs", {".md"}),
+        ("config", {".toml"}),
+        ("all", {".md", ".py", ".toml"}),
+    ]
+
+    with (
+        patch("semble.index.index.load_model", return_value=(mock_model, "/fake/model")),
+        patch("semble.mcp.save_index_to_cache"),
+    ):
+        server = create_server(cache)
+        for content, expected_suffixes in expected:
+            args = {"query": "project", "repo": str(tmp_project), "top_k": 20}
+            if content is not None:
+                args["content"] = content
+            result = await server.call_tool("search", args)
+            payload = json.loads(_tool_text(result))
+            assert {Path(item["file_path"]).suffix for item in payload["results"]} == expected_suffixes
 
 
 @pytest.mark.anyio

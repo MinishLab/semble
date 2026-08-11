@@ -7,7 +7,7 @@ import time
 from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
 from pydantic import Field
@@ -15,6 +15,7 @@ from pydantic import Field
 from semble.cache import get_validated_cache, save_index_to_cache
 from semble.index import SembleIndex
 from semble.index.dense import load_model
+from semble.index.files import get_languages
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
 
@@ -27,6 +28,7 @@ _REPO_DESCRIPTION = (
 
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
 _MIN_REVALIDATE_FACTOR = 3  # Don't recheck staleness sooner than this many times the last build's duration
+ContentSelection = Literal["code", "docs", "config", "all"]
 
 
 async def _get_index(
@@ -42,7 +44,10 @@ async def _get_index(
         raise ValueError(f"Failed to index {repo!r}: {exc}") from exc
 
 
-def create_server(cache: _IndexCache) -> FastMCP:
+def create_server(
+    cache: _IndexCache,
+    default_content: Sequence[ContentType] = (ContentType.CODE,),
+) -> FastMCP:
     """Build and return a configured FastMCP server backed by the given cache."""
     server = FastMCP(
         "semble",
@@ -74,6 +79,10 @@ def create_server(cache: _IndexCache) -> FastMCP:
                 ge=0,
             ),
         ] = 10,
+        content: Annotated[
+            ContentSelection | None,
+            Field(description="Content to search. Defaults to the MCP server's configured content."),
+        ] = None,
     ) -> str:
         """Search once with a focused query describing what the code does or its name.
 
@@ -85,7 +94,19 @@ def create_server(cache: _IndexCache) -> FastMCP:
             index = await _get_index(repo, cache)
         except ValueError as exc:
             return str(exc)
-        results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
+        if content is None:
+            selected_content = default_content
+        elif content == "all":
+            selected_content = tuple(ContentType)
+        else:
+            selected_content = (ContentType(content),)
+        results = index.search(
+            query,
+            top_k=top_k,
+            filter_languages=get_languages(selected_content),
+            rerank=ContentType.CODE in selected_content,
+            max_snippet_lines=max_snippet_lines,
+        )
         if not results:
             return json.dumps({"error": "No results found."})
         return json.dumps(format_results(query, results, max_snippet_lines))
@@ -139,7 +160,7 @@ async def serve(
     content: Sequence[ContentType] = (ContentType.CODE,),
 ) -> None:
     """Start an MCP stdio server."""
-    cache = _IndexCache(content=content)
+    cache = _IndexCache()
 
     async def _load_and_prewarm() -> None:
         """Pre-load the embedding model in parallel with starting the server."""
@@ -153,7 +174,7 @@ async def serve(
             cache._model_ready.set()
 
     init_task = asyncio.create_task(_load_and_prewarm())
-    server = create_server(cache)
+    server = create_server(cache, default_content=content)
     try:
         await server.run_stdio_async()
     finally:
@@ -164,12 +185,12 @@ async def serve(
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, content: Sequence[ContentType] = (ContentType.CODE,)) -> None:
+    def __init__(self) -> None:
         """Initialise an empty cache."""
         self._model_path: str | None = None
         self._model_error: BaseException | None = None
         self._model_ready = asyncio.Event()
-        self._content = content
+        self._content = tuple(ContentType)
         self._tasks: OrderedDict[str, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._revalidate_after: dict[str, float] = {}  # cache_key -> monotonic time, staleness check is gated until
 
