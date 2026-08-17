@@ -2,6 +2,8 @@ import argparse
 import asyncio
 import io
 import json
+import logging
+import os
 import re
 import sys
 import warnings
@@ -113,8 +115,22 @@ def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
         sys.exit(1)
 
 
-def _run_search(path: str, query: str, top_k: int, content: list[ContentType], max_snippet_lines: int | None) -> None:
+def _apply_max_file_bytes(max_file_bytes: int | None) -> None:
+    """Apply the --max-file-bytes override so it is honored by index creation and cache validation."""
+    if max_file_bytes is not None:
+        os.environ["SEMBLE_MAX_FILE_BYTES"] = str(max_file_bytes)
+
+
+def _run_search(
+    path: str,
+    query: str,
+    top_k: int,
+    content: list[ContentType],
+    max_snippet_lines: int | None,
+    max_file_bytes: int | None,
+) -> None:
     """Handle the `search` subcommand."""
+    _apply_max_file_bytes(max_file_bytes)
     index = _load_index(path, content)
     results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
     out = format_results(query, results, max_snippet_lines) if results else {"error": "No results found."}
@@ -123,9 +139,16 @@ def _run_search(path: str, query: str, top_k: int, content: list[ContentType], m
 
 
 def _run_find_related(
-    path: str, file_path: str, line: int, top_k: int, content: list[ContentType], max_snippet_lines: int | None
+    path: str,
+    file_path: str,
+    line: int,
+    top_k: int,
+    content: list[ContentType],
+    max_snippet_lines: int | None,
+    max_file_bytes: int | None,
 ) -> None:
     """Handle the `find-related` subcommand."""
+    _apply_max_file_bytes(max_file_bytes)
     index = _load_index(path, content)
     chunk = resolve_chunk(index.chunks, file_path, line)
     if chunk is None:
@@ -207,7 +230,18 @@ def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
         _clear_orphans(cache_folder)
 
 
+def _configure_cli_logging() -> None:
+    """Surface semble warnings (e.g. skipped oversized files) on stderr without touching the root logger."""
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    package_logger = logging.getLogger("semble")
+    package_logger.addHandler(handler)
+    if package_logger.level == logging.NOTSET:
+        package_logger.setLevel(logging.WARNING)
+
+
 def _cli_main() -> None:
+    _configure_cli_logging()
     parser = argparse.ArgumentParser(prog="semble")
     parser.add_argument("-V", "--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command")
@@ -222,6 +256,13 @@ def _cli_main() -> None:
         default=None,
         metavar="N",
         help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
+    )
+    search_p.add_argument(
+        "--max-file-bytes",
+        type=int,
+        default=None,
+        metavar="BYTES",
+        help="Maximum file size in bytes to index (default: 1,000,000). Equivalent to setting SEMBLE_MAX_FILE_BYTES.",
     )
     _add_content_args(search_p)
 
@@ -243,6 +284,13 @@ def _cli_main() -> None:
         default=None,
         metavar="N",
         help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
+    )
+    related_p.add_argument(
+        "--max-file-bytes",
+        type=int,
+        default=None,
+        metavar="BYTES",
+        help="Maximum file size in bytes to index (default: 1,000,000). Equivalent to setting SEMBLE_MAX_FILE_BYTES.",
     )
     _add_content_args(related_p)
 
@@ -293,6 +341,7 @@ def _cli_main() -> None:
             args.top_k,
             _resolve_content(args.content, args.include_text_files),
             args.max_snippet_lines,
+            args.max_file_bytes,
         )
     elif args.command == "find-related":
         _run_find_related(
@@ -302,4 +351,5 @@ def _cli_main() -> None:
             args.top_k,
             _resolve_content(args.content, args.include_text_files),
             args.max_snippet_lines,
+            args.max_file_bytes,
         )
