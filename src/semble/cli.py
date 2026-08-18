@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import io
 import json
+import logging
 import re
 import sys
 import warnings
@@ -207,7 +208,24 @@ def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
         _clear_orphans(cache_folder)
 
 
+class _CliLogHandler(logging.StreamHandler):
+    """stderr handler owned by the CLI; setup is idempotent on this type, not on foreign handlers."""
+
+
+def _configure_cli_logging() -> None:
+    """Surface semble warnings (e.g. skipped oversized files) on stderr without touching the root logger."""
+    package_logger = logging.getLogger("semble")
+    if any(isinstance(handler, _CliLogHandler) for handler in package_logger.handlers):
+        return
+    handler = _CliLogHandler(sys.stderr)
+    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    package_logger.addHandler(handler)
+    if package_logger.level == logging.NOTSET:
+        package_logger.setLevel(logging.WARNING)
+
+
 def _cli_main() -> None:
+    _configure_cli_logging()
     parser = argparse.ArgumentParser(prog="semble")
     parser.add_argument("-V", "--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command")

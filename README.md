@@ -174,6 +174,8 @@ Savings are calculated as follows: for each call, semble records the total chara
 
 By default, your Semble savings statistics and any saved indexes are stored in the OS cache folder (`~/Library/Caches/semble/` on macOS, `~/.cache/semble/` on Linux, `%LOCALAPPDATA%\semble\Cache\` on Windows). To override this location you can supply an environment variable `SEMBLE_CACHE_LOCATION` which should be the full path to the target cache location e.g. `~/my-folder/my-caches/semble`.
 
+Files larger than 1 MB are skipped during indexing to keep index builds lean. Skipped files are reported as a warning at index time. If you work with large generated or ingested documents, you can raise (or lower) this limit with the `SEMBLE_MAX_FILE_BYTES` environment variable (in bytes).
+
 On first use, Semble also downloads the embedding model from Hugging Face and caches it in the standard Hugging Face cache (`~/.cache/huggingface/` by default, or `$HF_HOME` if set); this only happens once and requires network access.
 
 Use `semble clear` to remove cached data: `semble clear index` (saved indexes), `semble clear savings` (usage stats), `semble clear orphans` (indexes for repos no longer present on disk), or `semble clear all` (everything).

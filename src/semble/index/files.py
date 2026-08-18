@@ -1,3 +1,5 @@
+import logging
+import os
 from collections import defaultdict
 from collections.abc import Sequence
 from enum import Enum
@@ -5,8 +7,10 @@ from pathlib import Path
 
 from semble.types import ContentType
 
-_MAX_FILE_BYTES = 1_000_000  # 1 MB max file size to read and index
+_DEFAULT_MAX_FILE_BYTES = 1_000_000  # Default 1 MB max file size to read and index
 _EMPTY_FILE_BYTES = 128
+
+logger = logging.getLogger(__name__)
 _EXTENSION_TO_LANGUAGE = {
     ".4th": "forth",
     ".ada": "ada",
@@ -488,6 +492,25 @@ def read_file_text(file_path: Path) -> str:
     return file_path.read_text(encoding="utf-8", errors="replace")
 
 
+def get_max_file_bytes() -> int:
+    """Resolve the maximum file size to index from SEMBLE_MAX_FILE_BYTES, falling back to the default.
+
+    Malformed or nonpositive values warn and fall back to the default rather than crash indexing.
+    """
+    raw = os.environ.get("SEMBLE_MAX_FILE_BYTES")
+    if raw is None:
+        return _DEFAULT_MAX_FILE_BYTES
+    try:
+        value = int(raw)
+    except ValueError:
+        logger.warning("Invalid SEMBLE_MAX_FILE_BYTES %r, using the default of %d bytes", raw, _DEFAULT_MAX_FILE_BYTES)
+        return _DEFAULT_MAX_FILE_BYTES
+    if value <= 0:
+        logger.warning("SEMBLE_MAX_FILE_BYTES must be positive, using the default of %d bytes", _DEFAULT_MAX_FILE_BYTES)
+        return _DEFAULT_MAX_FILE_BYTES
+    return value
+
+
 def get_file_status(file_path: Path, write_time: float | None) -> FileStatus:
     """Checks if a file should be indexed based on its size and modification time."""
     stat = file_path.stat()
@@ -495,7 +518,7 @@ def get_file_status(file_path: Path, write_time: float | None) -> FileStatus:
         # Index invalid, file invalid
         return FileStatus.NEWER
     size = stat.st_size
-    if size > _MAX_FILE_BYTES:
+    if size > get_max_file_bytes():
         # index valid, file invalid
         return FileStatus.TOO_LARGE
     if size < _EMPTY_FILE_BYTES and not read_file_text(file_path).strip():
