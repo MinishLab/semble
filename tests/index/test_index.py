@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
@@ -8,7 +9,7 @@ from model2vec import StaticModel
 
 from semble import SembleIndex
 from semble.index.create import create_index_from_path
-from semble.index.files import _MAX_FILE_BYTES, FileStatus, get_file_status
+from semble.index.files import _DEFAULT_MAX_FILE_BYTES, FileStatus, get_file_status, get_max_file_bytes
 from semble.types import ContentType
 from tests.conftest import make_chunk
 
@@ -69,11 +70,45 @@ def test_index_empty_returns_zero_chunks(mock_model: StaticModel, tmp_path: Path
         create_index_from_path(tmp_path, mock_model)
 
 
-def test_oversized_file_is_skipped(mock_model: StaticModel, tmp_path: Path) -> None:
-    """Files exceeding _MAX_FILE_BYTES are silently skipped during indexing."""
-    (tmp_path / "big.py").write_bytes(b"x" * (_MAX_FILE_BYTES + 1))
-    with pytest.raises(ValueError):  # no indexable content remains
-        create_index_from_path(tmp_path, mock_model)
+def test_max_file_bytes_resolution(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The limit resolves from SEMBLE_MAX_FILE_BYTES, falling back to the 1 MB default."""
+    monkeypatch.delenv("SEMBLE_MAX_FILE_BYTES", raising=False)
+    assert get_max_file_bytes() == _DEFAULT_MAX_FILE_BYTES
+    monkeypatch.setenv("SEMBLE_MAX_FILE_BYTES", str(_DEFAULT_MAX_FILE_BYTES + 5))
+    assert get_max_file_bytes() == _DEFAULT_MAX_FILE_BYTES + 5
+
+
+def test_max_file_bytes_invalid_values_fall_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Malformed or nonpositive SEMBLE_MAX_FILE_BYTES values fall back to the default."""
+    monkeypatch.delenv("SEMBLE_MAX_FILE_BYTES", raising=False)
+    assert get_max_file_bytes() == _DEFAULT_MAX_FILE_BYTES
+    for bad in ("not-a-number", "0", "-5"):
+        monkeypatch.setenv("SEMBLE_MAX_FILE_BYTES", bad)
+        assert get_max_file_bytes() == _DEFAULT_MAX_FILE_BYTES
+
+
+def test_oversized_file_is_skipped_with_warning(
+    mock_model: StaticModel, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Files exceeding the limit are skipped during indexing, with a warning naming them."""
+    monkeypatch.delenv("SEMBLE_MAX_FILE_BYTES", raising=False)
+    (tmp_path / "big.py").write_bytes(b"x" * (_DEFAULT_MAX_FILE_BYTES + 1))
+    with caplog.at_level(logging.WARNING, logger="semble.index.create"):
+        with pytest.raises(ValueError):  # no indexable content remains
+            create_index_from_path(tmp_path, mock_model)
+    assert "big.py" in caplog.text
+    assert str(_DEFAULT_MAX_FILE_BYTES) in caplog.text
+    assert "SEMBLE_MAX_FILE_BYTES" in caplog.text
+
+
+def test_oversized_file_indexed_when_limit_raised(
+    mock_model: StaticModel, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Raising SEMBLE_MAX_FILE_BYTES lets oversized files into the index."""
+    monkeypatch.setenv("SEMBLE_MAX_FILE_BYTES", str(_DEFAULT_MAX_FILE_BYTES + 1024))
+    (tmp_path / "big.py").write_bytes(b"x = 1\n" + b"#" * _DEFAULT_MAX_FILE_BYTES)
+    _, _, chunks, _ = create_index_from_path(tmp_path, mock_model)
+    assert any(chunk.file_path.endswith("big.py") for chunk in chunks)
 
 
 def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:

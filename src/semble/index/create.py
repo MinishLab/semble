@@ -1,4 +1,5 @@
 import contextlib
+import logging
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -15,12 +16,28 @@ from semble.index.files import (
     detect_language,
     get_extensions,
     get_file_status,
+    get_max_file_bytes,
     read_file_text,
 )
 from semble.index.sparse import enrich_for_bm25
 from semble.index.types import FileManifestEntry, PreviousIndex, make_chunk_id
 from semble.tokens import tokenize
 from semble.types import Chunk, ContentType, EmbeddingMatrix
+
+logger = logging.getLogger(__name__)
+
+
+def _warn_skipped_large(skipped_large: list[str]) -> None:
+    """Warn about files skipped for exceeding the maximum indexable file size."""
+    if skipped_large:
+        logger.warning(
+            "Skipped %d file(s) exceeding the maximum file size of %d bytes "
+            "(raise SEMBLE_MAX_FILE_BYTES to include them): %s%s",
+            len(skipped_large),
+            get_max_file_bytes(),
+            ", ".join(skipped_large[:5]),
+            " ..." if len(skipped_large) > 5 else "",
+        )
 
 
 def _reindex_file(
@@ -79,10 +96,14 @@ def create_index_from_path(
     manifest: dict[str, FileManifestEntry] = {}
     embedding_parts: list[tuple[int, int, int]] = []
 
+    skipped_large: list[str] = []
+
     for file_path in walk_files(path, resolved_extensions):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
             file_status = get_file_status(file_path, None)
+            if file_status is FileStatus.TOO_LARGE:
+                skipped_large.append(str(file_path))
             if file_status != FileStatus.VALID:
                 continue
 
@@ -108,6 +129,8 @@ def create_index_from_path(
 
     for indexed_path in previous_manifest.keys() - manifest.keys():
         _reindex_file(bm25_index, indexed_path, [], previous_manifest[indexed_path])
+
+    _warn_skipped_large(skipped_large)
 
     if not chunks:
         raise ValueError(f"No supported files found under {path}.")
