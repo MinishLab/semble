@@ -16,6 +16,22 @@ from semble.version import __version__
 
 _HOME = Path.home()
 
+
+def _exists_or_denied(path: Path) -> bool:
+    """Distinguish between existence and permission issues."""
+    try:
+        path.stat()
+    except FileNotFoundError:
+        return False
+    # PermissionError is a subclass of OSError
+    # which is why this looks the way it does.
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
 Action = Literal["created", "updated", "unchanged", "not-found", "removed", "error", "skipped"]
 Mode = Literal["install", "uninstall"]
 
@@ -33,15 +49,7 @@ SEMBLE_END = "<!-- SEMBLE_END -->"
 
 
 def semble_pin() -> str:
-    """Return the uvx --from specifier for the semble MCP server.
-
-    Version-pinned for normal installs (rerunning `semble install` after an
-    upgrade rewrites this pin to match). For an editable or local-directory
-    install, pins to the local source path instead, so generated configs
-    launch the checkout being developed rather than the released package.
-    For a non-editable git install, pins to the exact installed commit, since
-    that source may not correspond to any released PyPI version at all.
-    """
+    """Return the uvx --from specifier for the semble MCP server."""
     try:
         raw = importlib.metadata.distribution("semble").read_text("direct_url.json")
         if raw:
@@ -159,7 +167,7 @@ def _opencode_mcp_path() -> Path:
     base = Path(xdg) / "opencode" if xdg else _HOME / ".config" / "opencode"
     jsonc = base / "opencode.jsonc"
     json_ = base / "opencode.json"
-    return jsonc if jsonc.exists() else (json_ if json_.exists() else jsonc)
+    return jsonc if _exists_or_denied(jsonc) else (json_ if _exists_or_denied(json_) else jsonc)
 
 
 def _vscode_mcp_path() -> Path:
@@ -316,4 +324,4 @@ def is_detected(agent: AgentTarget) -> bool:
     """Return True if the agent appears to be installed."""
     if agent.binary and shutil.which(agent.binary):
         return True
-    return bool(agent.config_dir and agent.config_dir.exists())
+    return bool(agent.config_dir and _exists_or_denied(agent.config_dir))

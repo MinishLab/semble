@@ -2,6 +2,7 @@ import importlib.metadata
 import json
 import sys
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 
@@ -481,6 +482,31 @@ def test_is_detected(monkeypatch, tmp_path):
 
     agent_no_bin = replace(agent, binary=None, config_dir=tmp_path)
     assert is_detected(agent_no_bin)
+
+    agent_missing = replace(agent, binary=None, config_dir=tmp_path / "nonexistent")
+    assert not is_detected(agent_missing)
+
+
+def test_is_detected_true_when_config_dir_stat_denied(monkeypatch, tmp_path):
+    """A config dir blocked by sandboxing (EPERM/EACCES) still counts as detected, not absent."""
+    agent = replace(next(a for a in AGENTS if a.id == "claude"), binary=None, config_dir=tmp_path)
+
+    def _denied(self):
+        raise PermissionError(1, "Operation not permitted")
+
+    monkeypatch.setattr(Path, "stat", _denied)
+    assert is_detected(agent)
+
+
+def test_is_detected_false_on_other_os_error(monkeypatch, tmp_path):
+    """A non-permission OSError (e.g. ENOTDIR) is treated as absent, not detected."""
+    agent = replace(next(a for a in AGENTS if a.id == "claude"), binary=None, config_dir=tmp_path)
+
+    def _not_a_dir(self):
+        raise NotADirectoryError(20, "Not a directory")
+
+    monkeypatch.setattr(Path, "stat", _not_a_dir)
+    assert not is_detected(agent)
 
 
 def test_checkbox(monkeypatch):
