@@ -37,20 +37,20 @@
   },
   {
     "query": "union and discriminated union schema types",
-    "relevant": ["packages/zod/src/v4/core/api.ts"],
-    "secondary": ["packages/zod/src/v4/core/schemas.ts"],
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/classic/schemas.ts"],
     "category": "semantic"
   },
   {
     "query": "optional and nullable type wrappers",
-    "relevant": ["packages/zod/src/v4/core/api.ts"],
-    "secondary": [],
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/classic/schemas.ts"],
     "category": "semantic"
   },
   {
     "query": "z.transform and z.pipe for chaining Zod output transformations",
-    "relevant": ["packages/zod/src/v4/core/api.ts"],
-    "secondary": [],
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/classic/schemas.ts"],
     "category": "semantic"
   },
   {
@@ -85,20 +85,20 @@
   },
   {
     "query": "z.record and z.map schema builders for key-value types",
-    "relevant": ["packages/zod/src/v4/core/api.ts"],
-    "secondary": [],
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/classic/schemas.ts"],
     "category": "semantic"
   },
   {
     "query": "ZodDefault and ZodCatch schema wrappers that supply fallback values on parse failure",
-    "relevant": ["packages/zod/src/v4/core/api.ts"],
-    "secondary": [],
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/classic/schemas.ts"],
     "category": "semantic"
   },
   {
     "query": "enum schema types for literal value sets",
-    "relevant": ["packages/zod/src/v4/core/api.ts"],
-    "secondary": [],
+    "relevant": ["packages/zod/src/v4/core/schemas.ts"],
+    "secondary": ["packages/zod/src/v4/classic/schemas.ts"],
     "category": "semantic"
   },
   {

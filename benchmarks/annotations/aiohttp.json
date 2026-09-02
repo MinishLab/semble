@@ -21,7 +21,7 @@
       "aiohttp/client_ws.py"
     ],
     "secondary": [
-      "aiohttp/_websocket/reader.py"
+      "aiohttp/_websocket/reader_py.py"
     ],
     "category": "semantic"
   },

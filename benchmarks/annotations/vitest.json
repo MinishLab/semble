@@ -55,8 +55,8 @@
   },
   {
     "query": "test reporter interface for listening to test events and results",
-    "relevant": ["packages/vitest/src/public/reporters.ts"],
-    "secondary": [],
+    "relevant": ["packages/vitest/src/node/types/reporter.ts"],
+    "secondary": ["packages/vitest/src/node/reporters/index.ts"],
     "category": "semantic"
   },
   {
