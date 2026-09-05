@@ -31,7 +31,7 @@
       "pydantic/functional_validators.py"
     ],
     "secondary": [
-      "pydantic/class_validators.py"
+      "pydantic/deprecated/class_validators.py"
     ],
     "category": "semantic"
   },

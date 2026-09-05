@@ -22,9 +22,7 @@
     "relevant": [
       "model2vec/tokenizer/tokenizer.py"
     ],
-    "secondary": [
-      "model2vec/distill/utils.py"
-    ],
+    "secondary": [],
     "category": "semantic"
   },
   {
@@ -122,7 +120,7 @@
   {
     "query": "how vocabulary is pruned during distillation",
     "relevant": [
-      "model2vec/distill/utils.py"
+      "model2vec/tokenizer/tokenizer.py"
     ],
     "secondary": [
       "model2vec/distill/distillation.py"
