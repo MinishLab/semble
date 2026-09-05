@@ -1,10 +1,12 @@
 import contextlib
 import logging
-from collections.abc import Callable, Sequence
+import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
 from model2vec.model import StaticModel
+from tqdm import tqdm
 from vicinity.backends.basic import BasicArgs
 
 from semble.chunking import chunk_source
@@ -72,7 +74,7 @@ def create_index_from_path(
     content: ContentType | Sequence[ContentType] = (ContentType.CODE,),
     display_root: Path | None = None,
     previous: PreviousIndex | None = None,
-    on_progress: Callable[[int, int], None] | None = None,
+    show_progress: bool = False,
 ) -> tuple[BM25, SelectableBasicBackend, list[Chunk], dict[str, FileManifestEntry]]:
     """Create an index from a resolved directory, optionally reusing a previous index's unchanged files.
 
@@ -81,7 +83,7 @@ def create_index_from_path(
     :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
     :param previous: A previously built index to reuse unchanged files' chunks/embeddings/postings from.
-    :param on_progress: Optional callback invoked as (files_done, files_total) after each candidate file.
+    :param show_progress: Show a progress bar on stderr while indexing.
     :raises ValueError: if no items were found, no index can be created.
     :return: A BM25 index, semantic index, list of chunks, and file manifest.
     """
@@ -100,12 +102,8 @@ def create_index_from_path(
 
     skipped_large: list[str] = []
 
-    candidate_files = list(walk_files(path, resolved_extensions))
-    total_files = len(candidate_files)
-    report_progress = on_progress or (lambda files_done, files_total: None)
-
-    for files_done, file_path in enumerate(candidate_files, start=1):
-        report_progress(files_done, total_files)
+    files = list(walk_files(path, resolved_extensions))
+    for file_path in tqdm(files, desc="Indexing", unit="file", file=sys.stderr, leave=False, disable=not show_progress):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
             file_status = get_file_status(file_path, None)

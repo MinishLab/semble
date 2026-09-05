@@ -34,6 +34,8 @@ def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch
     [
         (["semble", "search", "query text", "/some/path"], ["query text", "0.9"]),
         (["semble", "search", "nothing", "/some/path", "--top-k", "3"], ["No results found"]),
+        (["semble", "search", "query text", "/some/path", "--pretty"], ["src/foo.py:1-1\n\ndef foo(): pass"]),
+        (["semble", "search", "nothing", "/some/path", "--pretty"], ["No results found."]),
     ],
 )
 def test_cli_search(

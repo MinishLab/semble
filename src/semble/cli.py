@@ -6,14 +6,12 @@ import logging
 import re
 import sys
 import warnings
-from collections.abc import Callable
 from importlib.util import find_spec
 from pathlib import Path
 from shutil import rmtree
 from typing import Literal
 
 from model2vec.utils import get_package_extras
-from tqdm import tqdm
 
 from semble.cache import cache_key, resolve_cache_folder, save_index_to_cache
 from semble.index import SembleIndex
@@ -32,34 +30,13 @@ _CLEAR_CHOICE = Literal["all", "index", "savings", "orphans"]
 _SHA_256_REGEX = re.compile(r"^[a-f0-9]{64}$")
 
 
-def _make_progress_callback() -> Callable[[int, int], None] | None:
-    """Return a callback that lazily shows an indexing progress bar on stderr, or None if not a tty.
-
-    The bar is only created on the first call, so a cache hit (no indexing work) never shows one.
-    """
-    if not sys.stderr.isatty():
-        return None
-    bar: tqdm | None = None
-
-    def on_progress(files_done: int, files_total: int) -> None:
-        nonlocal bar
-        if bar is None:
-            bar = tqdm(total=files_total, desc="Indexing", unit="file", file=sys.stderr, leave=False, colour="green")
-        bar.n = files_done
-        bar.refresh()
-        if files_done == files_total:
-            bar.close()
-
-    return on_progress
-
-
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
     """Build an index from a local path or git URL, showing a progress bar on a tty."""
-    on_progress = _make_progress_callback()
+    show_progress = sys.stderr.isatty()
     return (
-        SembleIndex.from_git(path, content=content, on_progress=on_progress)
+        SembleIndex.from_git(path, content=content, show_progress=show_progress)
         if is_git_url(path)
-        else SembleIndex.from_path(path, content=content, on_progress=on_progress)
+        else SembleIndex.from_path(path, content=content, show_progress=show_progress)
     )
 
 
@@ -158,7 +135,10 @@ def _run_search(
     index = _load_index(path, content)
     results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
     out = format_results(query, results, max_snippet_lines) if results else {"error": "No results found."}
-    _print_pretty(out) if pretty else print(json.dumps(out))
+    if pretty:
+        _print_pretty(out)
+    else:
+        print(json.dumps(out))
     _maybe_save_index(index, path)
 
 
@@ -184,7 +164,10 @@ def _run_find_related(
         if results
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )
-    _print_pretty(out) if pretty else print(json.dumps(out))
+    if pretty:
+        _print_pretty(out)
+    else:
+        print(json.dumps(out))
     _maybe_save_index(index, path)
 
 
