@@ -61,6 +61,7 @@ def test_cli_search(
     ("scenario", "expected_stdout", "expected_stderr", "expected_exit_code"),
     [
         ("with_results", ["src/bar.py", "0.8"], None, None),
+        ("pretty", ["src/bar.py:1-1\n\nclass Bar: pass"], None, None),
         ("no_results", ["No related chunks found"], None, None),
         ("unknown_chunk", [], "No chunk found", 1),
     ],
@@ -77,9 +78,11 @@ def test_cli_find_related(
     chunk = make_chunk("class Bar: pass", "src/bar.py")
     fake_index = MagicMock()
     fake_index.chunks = [] if scenario == "unknown_chunk" else [chunk]
-    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8)] if scenario == "with_results" else []
+    has_results = scenario in ("with_results", "pretty")
+    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8)] if has_results else []
     file_path = "unknown.py" if scenario == "unknown_chunk" else "src/bar.py"
-    monkeypatch.setattr(sys, "argv", ["semble", "find-related", file_path, "1", "/some/path"])
+    argv = ["semble", "find-related", file_path, "1", "/some/path"] + (["--pretty"] if scenario == "pretty" else [])
+    monkeypatch.setattr(sys, "argv", argv)
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         if expected_exit_code is None:
             _cli_main()
