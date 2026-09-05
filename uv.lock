@@ -3140,6 +3140,7 @@ dependencies = [
     { name = "pathspec" },
     { name = "questionary" },
     { name = "semble-grammars" },
+    { name = "tqdm" },
     { name = "vicinity" },
 ]
 
@@ -3186,6 +3187,7 @@ requires-dist = [
     { name = "semble-grammars", specifier = ">=0.1.2" },
     { name = "sentence-transformers", marker = "extra == 'benchmark'", specifier = ">=3.0" },
     { name = "tiktoken", marker = "extra == 'benchmark'", specifier = ">=0.7" },
+    { name = "tqdm", specifier = ">=4.60" },
     { name = "vicinity", specifier = ">=0.4.4" },
 ]
 provides-extras = ["mcp", "benchmark", "dev"]
