@@ -17,7 +17,7 @@ Quality and speed across all methods.
 
 | Method               |   NDCG@10 |      Index |   Query p50 |
 | -------------------- | --------: | ---------: | ----------: |
-| **semble**           | **0.854** | **518 ms** | **0.91 ms** |
+| **semble**           | **0.854** | **344 ms** | **0.91 ms** |
 | CodeRankEmbed        |     0.839 |      116 s |       16 ms |
 | ColGREP              |     0.693 |      5.4 s |      122 ms |
 | BM25                 |     0.673 |      47 ms |     0.17 ms |
@@ -32,7 +32,7 @@ Quality and speed across all methods.
 | :-----------------------------------------------------------------: | :-----------------------------------------------------------------: |
 |          _Time to first result (index + query) vs NDCG@10_          |             _Query latency on a warm index vs NDCG@10_              |
 
-semble matches the NDCG@10 of the 137M-param CodeRankEmbed while winning index time by ~220x and query latency by ~17x.
+semble matches the NDCG@10 of the 137M-param CodeRankEmbed while winning index time by ~340x and query latency by ~17x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
 

@@ -135,15 +135,12 @@ def create_index_from_path(
     if not chunks:
         raise ValueError(f"No supported files found under {path}.")
 
-    if previous is None:
-        embeddings = embed_chunks(model, chunks)
+    if previous is not None and _has_same_vector_layout(manifest, previous_manifest):
+        embeddings = previous.vectors
+        for vector_part, start, count in embedding_parts:
+            embeddings[start : start + count] = vector_parts[vector_part]
     else:
-        if _has_same_vector_layout(manifest, previous_manifest):
-            embeddings = previous.vectors
-            for vector_part, start, count in embedding_parts:
-                embeddings[start : start + count] = vector_parts[vector_part]
-        else:
-            embeddings = np.vstack(vector_parts)
+        embeddings = np.vstack(vector_parts)
     bm25_index.set_doc_order(chunk_ids)
     semantic_index = SelectableBasicBackend(embeddings, BasicArgs())
 

@@ -34,6 +34,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
     bm25_before, semantic_before, chunks_before, manifest_before = create_index_from_path(
         tmp_path, mock_model, display_root=tmp_path
     )
+    assert mock_model.encode.call_count == 4  # once per file, no second full pass
     a_entry = manifest_before["a.py"]
     b_entry = manifest_before["b.py"]
     a_vectors_before = semantic_before.vectors[a_entry.start : a_entry.end].copy()
