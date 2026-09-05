@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import warnings
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
 
@@ -136,6 +136,7 @@ class SembleIndex:
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
         model_path: str | None = None,
+        on_progress: Callable[[int, int], None] | None = None,
     ) -> SembleIndex:
         """Create and index a SembleIndex from a directory.
 
@@ -143,6 +144,7 @@ class SembleIndex:
         :param content: Content types to index, e.g. ContentType.CODE or [ContentType.CODE, ContentType.DOCS].
         :param include_text_files: Deprecated. Pass a content sequence directly instead.
         :param model_path: Path to the model to use. If None, the default model will be used.
+        :param on_progress: Optional callback invoked as (files_done, files_total) while indexing.
         :return: An indexed SembleIndex. Chunk file paths are relative to ``path``.
         :raises FileNotFoundError: If `path` does not exist.
         :raises NotADirectoryError: If `path` exists but is not a directory.
@@ -167,6 +169,7 @@ class SembleIndex:
             content=normalized,
             display_root=path,
             previous=previous,
+            on_progress=on_progress,
         )
 
         return SembleIndex(
@@ -181,6 +184,7 @@ class SembleIndex:
         model_path: str | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
         include_text_files: bool | None = None,
+        on_progress: Callable[[int, int], None] | None = None,
     ) -> SembleIndex:
         """Clone a git repository and index it.
 
@@ -194,6 +198,7 @@ class SembleIndex:
         :param model_path: Path to the model to use. If None, the default model will be used.
         :param content: Content types to index, e.g. (ContentType.CODE,) or (ContentType.CODE, ContentType.DOCS).
         :param include_text_files: Deprecated. Pass content=(ContentType.CODE, ContentType.DOCS, ...) instead.
+        :param on_progress: Optional callback invoked as (files_done, files_total) while indexing.
         :return: An indexed SembleIndex. Chunk file paths are repo-relative (e.g. ``src/foo.py``).
         :raises RuntimeError: If git is not on PATH, the clone fails, or times out.
         """
@@ -224,6 +229,7 @@ class SembleIndex:
                 model=model,
                 content=normalized,
                 display_root=resolved_path,
+                on_progress=on_progress,
             )
 
             return SembleIndex(
