@@ -32,11 +32,11 @@ _SHA_256_REGEX = re.compile(r"^[a-f0-9]{64}$")
 
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
     """Build an index from a local path or git URL, showing a progress bar on a tty."""
-    show_progress = sys.stderr.isatty()
+    show_progress_bar = sys.stderr.isatty()
     return (
-        SembleIndex.from_git(path, content=content, show_progress=show_progress)
+        SembleIndex.from_git(path, content=content, show_progress_bar=show_progress_bar)
         if is_git_url(path)
-        else SembleIndex.from_path(path, content=content, show_progress=show_progress)
+        else SembleIndex.from_path(path, content=content, show_progress_bar=show_progress_bar)
     )
 
 

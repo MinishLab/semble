@@ -74,7 +74,7 @@ def create_index_from_path(
     content: ContentType | Sequence[ContentType] = (ContentType.CODE,),
     display_root: Path | None = None,
     previous: PreviousIndex | None = None,
-    show_progress: bool = False,
+    show_progress_bar: bool = False,
 ) -> tuple[BM25, SelectableBasicBackend, list[Chunk], dict[str, FileManifestEntry]]:
     """Create an index from a resolved directory, optionally reusing a previous index's unchanged files.
 
@@ -83,7 +83,7 @@ def create_index_from_path(
     :param content: Content types to index.
     :param display_root: If set, chunk file paths are stored relative to this root.
     :param previous: A previously built index to reuse unchanged files' chunks/embeddings/postings from.
-    :param show_progress: Show a progress bar on stderr while indexing.
+    :param show_progress_bar: Show a progress bar on stderr while indexing.
     :raises ValueError: if no items were found, no index can be created.
     :return: A BM25 index, semantic index, list of chunks, and file manifest.
     """
@@ -103,7 +103,9 @@ def create_index_from_path(
     skipped_large: list[str] = []
 
     files = list(walk_files(path, resolved_extensions))
-    for file_path in tqdm(files, desc="Indexing", unit="file", file=sys.stderr, leave=False, disable=not show_progress):
+    for file_path in tqdm(
+        files, desc="Indexing", unit="file", file=sys.stderr, leave=False, colour="green", disable=not show_progress_bar
+    ):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
             file_status = get_file_status(file_path, None)
