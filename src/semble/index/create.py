@@ -66,6 +66,25 @@ def _has_same_vector_layout(
     )
 
 
+def _assemble_embeddings(
+    model: StaticModel,
+    chunks: list[Chunk],
+    manifest: dict[str, FileManifestEntry],
+    previous: PreviousIndex | None,
+    vector_parts: list[EmbeddingMatrix],
+    embedding_parts: list[tuple[int, int, int]],
+) -> EmbeddingMatrix:
+    """Embed all chunks in one pass for a fresh index, or splice re-embedded files into the previous vectors."""
+    if previous is None:
+        return embed_chunks(model, chunks)
+    if not _has_same_vector_layout(manifest, previous.manifest):
+        return np.vstack(vector_parts)
+    embeddings = previous.vectors
+    for vector_part, start, count in embedding_parts:
+        embeddings[start : start + count] = vector_parts[vector_part]
+    return embeddings
+
+
 def create_index_from_path(
     path: Path,
     model: StaticModel,
@@ -119,8 +138,9 @@ def create_index_from_path(
                 file_chunks = chunk_source(source, indexed_path, language)
                 _reindex_file(bm25_index, indexed_path, file_chunks, previous_entry)
 
-                embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-                vector_parts.append(embed_chunks(model, file_chunks))
+                if previous is not None:
+                    embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
+                    vector_parts.append(embed_chunks(model, file_chunks))
 
             start = len(chunks)
             chunks.extend(file_chunks)
@@ -135,15 +155,7 @@ def create_index_from_path(
     if not chunks:
         raise ValueError(f"No supported files found under {path}.")
 
-    if previous is None:
-        embeddings = embed_chunks(model, chunks)
-    else:
-        if _has_same_vector_layout(manifest, previous_manifest):
-            embeddings = previous.vectors
-            for vector_part, start, count in embedding_parts:
-                embeddings[start : start + count] = vector_parts[vector_part]
-        else:
-            embeddings = np.vstack(vector_parts)
+    embeddings = _assemble_embeddings(model, chunks, manifest, previous, vector_parts, embedding_parts)
     bm25_index.set_doc_order(chunk_ids)
     semantic_index = SelectableBasicBackend(embeddings, BasicArgs())
 
