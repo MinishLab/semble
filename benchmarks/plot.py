@@ -62,6 +62,14 @@ _METHODS: list[_Method] = [
         "params_m": 33,
     },
     {
+        "name": "zvec-grep",
+        "ndcg10": 0.6701,
+        "index_ms": 3953.0,
+        "query_p50_ms": 385.6,
+        "color": "#c23b6e",
+        "params_m": 16,
+    },
+    {
         "name": "BM25",
         "ndcg10": 0.673,
         "index_ms": 46.6,  # standalone BM25 build time, not shared with semble's dense index

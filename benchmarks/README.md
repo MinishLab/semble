@@ -21,6 +21,7 @@ Quality and speed across all methods.
 | CodeRankEmbed        |     0.839 |      116 s |       16 ms |
 | ColGREP              |     0.693 |      5.4 s |      122 ms |
 | BM25                 |     0.673 |      47 ms |     0.17 ms |
+| zvec-grep            |     0.670 |      4.0 s |      386 ms |
 | ck                   |     0.642 |       96 s |      187 ms |
 | codebase-memory-mcp  |     0.630 |     454 ms |       46 ms |
 | grepai               |     0.561 |       35 s |       48 ms |
@@ -71,28 +72,28 @@ semble returns the top-50 ranked chunks. `ripgrep+read` splits the query into ke
 
 NDCG@10 per language, sorted by CodeRankEmbed (CRE in the table). Best score per row is bolded.
 
-| Language    |    semble |       CRE |   ColGREP |        ck |       cbm |    grepai |     probe |        cs |   ripgrep |
-| ----------- | --------: | --------: | --------: | --------: | --------: | --------: | --------: | --------: | --------: |
-| javascript  |     0.917 | **0.925** |     0.823 |     0.772 |     0.770 |     0.675 |     0.588 |     0.171 |     0.176 |
-| scala       |     0.909 | **0.925** |     0.765 |     0.717 |     0.704 |     0.330 |     0.392 |     0.111 |     0.180 |
-| zig         | **0.913** |     0.911 |     0.474 |     0.511 |     0.766 |     0.755 |     0.369 |     0.121 |     0.000 |
-| ruby        | **0.909** |     0.905 |     0.708 |     0.738 |     0.689 |     0.643 |     0.382 |     0.255 |     0.230 |
-| cpp         | **0.915** |     0.897 |     0.626 |     0.687 |     0.630 |     0.731 |     0.375 |     0.262 |     0.126 |
-| elixir      | **0.894** |     0.893 |     0.808 |     0.786 |     0.506 |     0.669 |     0.412 |     0.397 |     0.134 |
-| python      |     0.867 | **0.878** |     0.777 |     0.721 |     0.643 |     0.634 |     0.488 |     0.305 |     0.202 |
-| csharp      | **0.885** |     0.848 |     0.614 |     0.548 |     0.775 |     0.277 |     0.392 |     0.248 |     0.117 |
-| php         | **0.858** |     0.847 |     0.663 |     0.615 |     0.608 |     0.402 |     0.340 |     0.180 |     0.123 |
-| swift       | **0.860** |     0.845 |     0.710 |     0.672 |     0.630 |     0.429 |     0.280 |     0.151 |     0.160 |
-| bash        |     0.825 | **0.834** |     0.706 |     0.677 |     0.768 |     0.723 |     0.226 |     0.170 |     0.000 |
-| lua         |     0.823 | **0.829** |     0.798 |     0.738 |     0.591 |     0.699 |     0.336 |     0.050 |     0.000 |
-| kotlin      |     0.821 | **0.823** |     0.637 |     0.587 |     0.611 |     0.478 |     0.335 |     0.170 |     0.166 |
-| haskell     |     0.765 | **0.811** |     0.683 |     0.733 |     0.624 |     0.483 |     0.313 |     0.160 |     0.000 |
-| java        | **0.849** |     0.790 |     0.641 |     0.606 |     0.554 |     0.386 |     0.536 |     0.136 |     0.198 |
-| c           |     0.741 | **0.771** |     0.676 |     0.606 |     0.655 |     0.555 |     0.384 |     0.175 |     0.000 |
-| rust        | **0.856** |     0.754 |     0.662 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
-| go          | **0.895** |     0.713 |     0.785 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
-| typescript  | **0.706** |     0.671 |     0.430 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
-| **overall** | **0.854** |     0.839 | **0.693** | **0.634** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
+| Language    |    semble |       CRE |   ColGREP |  zvec-grep |        ck |       cbm |    grepai |     probe |        cs |   ripgrep |
+| ----------- | --------: | --------: | --------: | ---------: | --------: | --------: | --------: | --------: | --------: | --------: |
+| javascript  |     0.917 | **0.925** |     0.823 |      0.760 |     0.772 |     0.770 |     0.675 |     0.588 |     0.171 |     0.176 |
+| scala       |     0.909 | **0.925** |     0.765 |      0.799 |     0.717 |     0.704 |     0.330 |     0.392 |     0.111 |     0.180 |
+| zig         | **0.913** |     0.911 |     0.474 |      0.664 |     0.511 |     0.766 |     0.755 |     0.369 |     0.121 |     0.000 |
+| ruby        | **0.909** |     0.905 |     0.708 |      0.758 |     0.738 |     0.689 |     0.643 |     0.382 |     0.255 |     0.230 |
+| cpp         | **0.915** |     0.897 |     0.626 |      0.677 |     0.687 |     0.630 |     0.731 |     0.375 |     0.262 |     0.126 |
+| elixir      | **0.894** |     0.893 |     0.808 |      0.811 |     0.786 |     0.506 |     0.669 |     0.412 |     0.397 |     0.134 |
+| python      |     0.867 | **0.878** |     0.777 |      0.704 |     0.721 |     0.643 |     0.634 |     0.488 |     0.305 |     0.202 |
+| csharp      | **0.885** |     0.848 |     0.614 |      0.609 |     0.548 |     0.775 |     0.277 |     0.392 |     0.248 |     0.117 |
+| php         | **0.858** |     0.847 |     0.663 |      0.583 |     0.615 |     0.608 |     0.402 |     0.340 |     0.180 |     0.123 |
+| swift       | **0.860** |     0.845 |     0.710 |      0.709 |     0.672 |     0.630 |     0.429 |     0.280 |     0.151 |     0.160 |
+| bash        |     0.825 | **0.834** |     0.706 |      0.725 |     0.677 |     0.768 |     0.723 |     0.226 |     0.170 |     0.000 |
+| lua         |     0.823 | **0.829** |     0.798 |      0.736 |     0.738 |     0.591 |     0.699 |     0.336 |     0.050 |     0.000 |
+| kotlin      |     0.821 | **0.823** |     0.637 |      0.628 |     0.587 |     0.611 |     0.478 |     0.335 |     0.170 |     0.166 |
+| haskell     |     0.765 | **0.811** |     0.683 |      0.689 |     0.733 |     0.624 |     0.483 |     0.313 |     0.160 |     0.000 |
+| java        | **0.849** |     0.790 |     0.641 |      0.685 |     0.606 |     0.554 |     0.386 |     0.536 |     0.136 |     0.198 |
+| c           |     0.741 | **0.771** |     0.676 |      0.598 |     0.606 |     0.655 |     0.555 |     0.384 |     0.175 |     0.000 |
+| rust        | **0.856** |     0.754 |     0.662 |      0.541 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
+| go          | **0.895** |     0.713 |     0.785 |      0.512 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
+| typescript  | **0.706** |     0.671 |     0.430 |      0.476 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
+| **overall** | **0.854** |     0.839 | **0.693** |  **0.670** | **0.634** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
 
 cbm = [codebase-memory-mcp](#methods).
 
@@ -147,6 +148,7 @@ cbm = [codebase-memory-mcp](#methods).
 - **[grepai](https://github.com/nicholasgasior/grepai)**: semantic search using [nomic-embed-text](https://huggingface.co/nomic-ai/nomic-embed-text-v1) (137M params) via a local Ollama daemon.
 - **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**: code intelligence engine that indexes a repo into a SQLite/graph store. We benchmark its `search_graph` tool in `fast` mode, which does BM25 full-text search with structural boosting.
 - **[ck](https://github.com/BeaconBay/ck)**: hybrid regex + semantic search using [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5).
+- **[zvec-grep](https://github.com/zvec-ai/zvec-grep)**: hybrid FTS + vector code search CLI, benchmarked with its local `potion-code-16m-v2` embedding model.
 - **[CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed)**: 137M-param transformer embedding model for code retrieval, used for semantic-only dense search.
 - **[semble](https://github.com/your-repo/semble)**: this library. [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) static embeddings + BM25 + the semble reranking stack.
 
@@ -275,6 +277,18 @@ Needs `ck` on `$PATH` (`cargo install ck-search` or `npm install -g @beaconbay/c
 ```bash
 uv run python -m benchmarks.baselines.ck
 uv run python -m benchmarks.baselines.ck --repo fastapi --repo axios
+```
+
+</details>
+
+<details>
+<summary>zvec-grep</summary>
+
+Needs `zg` on `$PATH` (`npm install -g @zvec/zvec-grep`, requires Node.js 22+). Downloads its local `potion-code-16m-v2` embedding model on first index; no API key needed.
+
+```bash
+uv run python -m benchmarks.baselines.zvecgrep
+uv run python -m benchmarks.baselines.zvecgrep --repo fastapi --repo axios
 ```
 
 </details>
