@@ -175,12 +175,12 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
         for integ in integrations:
             result = integ.apply(agent, mode)
             if result is None:
-                print(f"    {_DIM}– {integ.id}: not supported{_RESET}")
+                print(f"    {_DIM}– {integ.id.value}: not supported{_RESET}")
                 continue
             ok = result.action in ("created", "updated", "removed", "unchanged")
             detail = _ACTION_DETAIL.get(result.action, "")
             suffix = f" — {detail}" if detail else ""
-            print(f"    {_tick(ok)} {integ.id} ({result.action}){suffix} → {result.path}")
+            print(f"    {_tick(ok)} {integ.id.value} ({result.action}){suffix} → {result.path}")
         print()
 
 
