@@ -66,7 +66,7 @@ def _has_same_vector_layout(
     )
 
 
-def create_index_from_path(  # noqa: C901
+def create_index_from_path(
     path: Path,
     model: StaticModel,
     content: ContentType | Sequence[ContentType] = (ContentType.CODE,),
@@ -119,9 +119,8 @@ def create_index_from_path(  # noqa: C901
                 file_chunks = chunk_source(source, indexed_path, language)
                 _reindex_file(bm25_index, indexed_path, file_chunks, previous_entry)
 
-                if previous is not None:
-                    embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-                    vector_parts.append(embed_chunks(model, file_chunks))
+                embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
+                vector_parts.append(embed_chunks(model, file_chunks))
 
             start = len(chunks)
             chunks.extend(file_chunks)
@@ -136,9 +135,7 @@ def create_index_from_path(  # noqa: C901
     if not chunks:
         raise ValueError(f"No supported files found under {path}.")
 
-    if previous is None:
-        embeddings = embed_chunks(model, chunks)
-    elif _has_same_vector_layout(manifest, previous_manifest):
+    if previous is not None and _has_same_vector_layout(manifest, previous_manifest):
         embeddings = previous.vectors
         for vector_part, start, count in embedding_parts:
             embeddings[start : start + count] = vector_parts[vector_part]
