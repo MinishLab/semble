@@ -44,7 +44,7 @@ def test_cli_search(
 ) -> None:
     """_cli_main search subcommand calls index.search and prints results."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     has_results = "No results" not in expected_in_output[0]
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)] if has_results else []
     monkeypatch.setattr(sys, "argv", argv)
@@ -73,7 +73,7 @@ def test_cli_find_related(
 ) -> None:
     """_cli_main find-related prints results, empty states, and missing-chunk errors."""
     chunk = make_chunk("class Bar: pass", "src/bar.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.chunks = [] if scenario == "unknown_chunk" else [chunk]
     fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8)] if scenario == "with_results" else []
     file_path = "unknown.py" if scenario == "unknown_chunk" else "src/bar.py"
@@ -108,7 +108,7 @@ def test_main_dispatches_to_cli(
 ) -> None:
     """main() routes to _cli_main when first argument is a CLI subcommand."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query text", "/some/path"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
@@ -132,7 +132,7 @@ def test_cli_entrypoint_works_without_mcp_installed(
 ) -> None:
     """CLI entrypoint paths succeed even when the mcp package is not installed."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", argv)
     monkeypatch.setitem(sys.modules, "mcp", None)
@@ -186,7 +186,7 @@ def test_include_text_files_cli_deprecated(
 ) -> None:
     """--include-text-files on CLI raises DeprecationWarning."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", "--include-text-files"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
@@ -215,7 +215,7 @@ def test_cli_content_argument(
 ) -> None:
     """--content parses into the right ContentType list (including the 'all' shorthand and default)."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", *argv_content])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
@@ -225,9 +225,9 @@ def test_cli_content_argument(
 
 def test_maybe_save_index_logs_error_on_save_failure(capsys: pytest.CaptureFixture[str]) -> None:
     """_maybe_save_index prints to stderr when cache persistence fails."""
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     with patch("semble.cli.save_index_to_cache", side_effect=OSError("disk full")):
-        _maybe_save_index(fake_index, "/some/path")
+        _maybe_save_index([("/some/path", fake_index)])
     assert "Error saving index" in capsys.readouterr().err
 
 

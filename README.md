@@ -77,7 +77,7 @@ semble install --agent claude --type mcp subagent --yes
 - **Token-efficient**: returns only the relevant chunks, using [~99% fewer tokens than grep+read](#benchmarks).
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
 - **MCP server**: works with Claude Code, Cursor, Codex, OpenCode, VS Code, and any other MCP-compatible agent.
-- **Local and remote**: pass a local path or a git URL.
+- **Local and remote**: pass a local path or a git URL, or several of them to search related repos together.
 
 ## CLI
 
@@ -89,6 +89,9 @@ semble search "authentication flow" ./my-project
 
 # Search a remote repo (cloned on demand)
 semble search "save model to disk" https://github.com/MinishLab/model2vec
+
+# Search several repos at once (results are prefixed with the repo name)
+semble search "invoice endpoint" ./service-a ./service-b
 
 # Limit results
 semble search "save model to disk" ./my-project --top-k 10
@@ -104,6 +107,12 @@ semble search "authentication flow" ./my-project --max-snippet-lines 10
 ```
 
 `--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
+
+Passing several paths or URLs searches them as one corpus, so a query from repo A can find an endpoint defined in repo B. Each index is cached per repo and merged at query time. Result paths are prefixed with the repo name (`service-b/api/invoices.py`) and the output includes a `repos` map from prefix to absolute path or URL. Pass the prefixed path to `find-related` to search across all repos from a known location. To search a whole GitHub org, expand it with `gh`:
+
+```bash
+semble search "invoice endpoint" $(gh repo list my-org --no-archived --json url --jq '.[].url')
+```
 
 <details>
 <summary>Controlling which files are indexed</summary>
@@ -205,6 +214,9 @@ index = SembleIndex.from_path("./my-project", content=[ContentType.CODE, Content
 # Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
 
+# Merge indexes from several repos into one (chunk paths are prefixed with the repo name)
+index = SembleIndex.merge([("./service-a", SembleIndex.from_path("./service-a")), ("./service-b", SembleIndex.from_path("./service-b"))])
+
 # Search the index with a natural-language or code query
 results = index.search("save model to disk", top_k=3)
 
@@ -227,7 +239,7 @@ Semble runs as an MCP server so agents can search any codebase directly as a nat
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL and `content` as `code`, `docs`, `config`, or `all` (default: `code`). |
+| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL (or a list of them to search several repos together) and `content` as `code`, `docs`, `config`, or `all` (default: `code`). |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
 For per-agent setup instructions, see the [installation docs](docs/installation.md#mcp-server).

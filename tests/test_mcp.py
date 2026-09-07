@@ -30,7 +30,7 @@ async def _call_tool(
     index_chunks: list[Chunk] | None = None,
 ) -> str:
     """Patch SembleIndex.from_path with a fake index and invoke the tool, returning the text."""
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     getattr(fake_index, index_method).return_value = index_return
     if index_chunks is not None:
         fake_index.chunks = index_chunks

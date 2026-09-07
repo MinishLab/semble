@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 _REPO_DESCRIPTION = (
     "A local directory path or https:// or http:// git URL (e.g. https://github.com/org/repo) to index and "
-    "search. The index is cached after the first call, so repeat queries are fast."
+    "search, or a list of them to search several repos at once. Indexes are cached after the first call, "
+    "so repeat queries are fast. Multi-repo results prefix file_path with the repo name."
 )
 
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
@@ -31,7 +32,7 @@ ContentSelection = Literal["code", "docs", "config", "all"]
 _CacheKey = tuple[str, tuple[ContentType, ...]]
 
 
-async def _get_index(repo: str, cache: _IndexCache, content: Sequence[ContentType]) -> SembleIndex:
+async def _get_one_index(repo: str, cache: _IndexCache, content: Sequence[ContentType]) -> SembleIndex:
     """Return a cached index for a repo, rejecting unsafe git transport schemes."""
     if is_git_url(repo) and not repo.startswith(("https://", "http://")):
         raise ValueError(f"Only https://, http://, or local directory paths are accepted as `repo`. Got: {repo!r}")
@@ -39,6 +40,17 @@ async def _get_index(repo: str, cache: _IndexCache, content: Sequence[ContentTyp
         return await cache.get(repo, content=content)
     except Exception as exc:
         raise ValueError(f"Failed to index {repo!r}: {exc}") from exc
+
+
+async def _get_index(repo: str | list[str], cache: _IndexCache, content: Sequence[ContentType]) -> SembleIndex:
+    """Return an index for one repo, or one merged from several."""
+    repos = [repo] if isinstance(repo, str) else list(dict.fromkeys(repo))
+    if not repos:
+        raise ValueError("`repo` must name at least one local path or git URL.")
+    indexes = await asyncio.gather(*(_get_one_index(r, cache, content) for r in repos))
+    if len(indexes) == 1:
+        return indexes[0]
+    return cache.get_merged(list(zip(repos, indexes)))
 
 
 def _resolve_content_selection(
@@ -69,7 +81,7 @@ def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (
     @server.tool()
     async def search(
         query: Annotated[str, Field(description="Natural language or code query.")],
-        repo: Annotated[str, Field(description=_REPO_DESCRIPTION)],
+        repo: Annotated[str | list[str], Field(description=_REPO_DESCRIPTION)],
         top_k: Annotated[int, Field(description="Number of results to return.", ge=1)] = 5,
         max_snippet_lines: Annotated[
             int | None,
@@ -103,7 +115,7 @@ def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (
         results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
         if not results:
             return json.dumps({"error": "No results found."})
-        return json.dumps(format_results(query, results, max_snippet_lines))
+        return json.dumps(format_results(query, results, max_snippet_lines, index.sources))
 
     @server.tool()
     async def find_related(
@@ -112,7 +124,7 @@ def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (
             Field(description="Path to the file as stored in the index (use file_path from a search result)."),
         ],
         line: Annotated[int, Field(description="Line number (1-indexed).")],
-        repo: Annotated[str, Field(description=_REPO_DESCRIPTION)],
+        repo: Annotated[str | list[str], Field(description=_REPO_DESCRIPTION)],
         top_k: Annotated[int, Field(description="Number of similar chunks to return.", ge=1)] = 5,
         max_snippet_lines: Annotated[
             int | None,
@@ -150,7 +162,7 @@ def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (
         if not results:
             return json.dumps({"error": f"No related chunks found for {file_path}:{line}."})
         label = f"Chunks related to {file_path}:{line}"
-        return json.dumps(format_results(label, results, max_snippet_lines))
+        return json.dumps(format_results(label, results, max_snippet_lines, index.sources))
 
     return server
 
@@ -191,6 +203,16 @@ class _IndexCache:
         self._model_ready = asyncio.Event()
         self._tasks: OrderedDict[_CacheKey, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._revalidate_after: dict[_CacheKey, float] = {}
+        self._merged: dict[tuple[str, ...], tuple[list[SembleIndex], SembleIndex]] = {}
+
+    def get_merged(self, members: list[tuple[str, SembleIndex]]) -> SembleIndex:
+        """Return a merged index over members, reusing the last merge while every member index is unchanged."""
+        key = tuple(source for source, _ in members)
+        indexes = [index for _, index in members]
+        cached = self._merged.get(key)
+        if cached is None or any(a is not b for a, b in zip(cached[0], indexes)):
+            cached = self._merged[key] = (indexes, SembleIndex.merge(members))
+        return cached[1]
 
     async def _await_model(self) -> str:
         """Block until the model is installed; re-raise the load error if it failed."""

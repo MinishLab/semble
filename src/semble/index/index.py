@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import itertools
 import os
 import subprocess
 import tempfile
 import warnings
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +15,7 @@ import numpy as np
 import numpy.typing as npt
 import orjson
 from model2vec.model import StaticModel
+from vicinity.backends.basic import BasicArgs
 
 from semble.cache import get_validated_cache, load_previous_for_incremental
 from semble.index.bm25 import BM25
@@ -23,6 +26,7 @@ from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, Persiste
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, ContentType, IndexStats, SearchResult
+from semble.utils import is_git_url
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 _DEFAULT_CONTENT: tuple[ContentType, ...] = (ContentType.CODE,)
@@ -85,6 +89,7 @@ class SembleIndex:
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
         self._manifest: dict[str, FileManifestEntry] = manifest or {}
+        self.sources: dict[str, str] = {}  # repo label -> source, only set on indexes built by merge()
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -172,6 +177,36 @@ class SembleIndex:
         return SembleIndex(
             model, bm25_index, semantic_index, chunks, model_path, root=path, content=normalized, manifest=manifest
         )
+
+    @classmethod
+    def merge(cls, members: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
+        """Merge indexes built from several repos into one; chunk paths are prefixed with a per-repo label.
+
+        :param members: (source, index) pairs, where source is the path or URL the index was built from.
+        :return: A new in-memory index whose ``sources`` maps each label to its git URL or absolute local path.
+        """
+        members = [(s if is_git_url(s) else str(Path(s).expanduser().resolve()), index) for s, index in members]
+        labels: list[str] = []
+        for source, _ in members:
+            label = base = Path(source).name.removesuffix(".git") or source
+            for suffix in itertools.count(2):
+                if label not in labels:
+                    break
+                label = f"{base}-{suffix}"
+            labels.append(label)
+        labelled = list(zip(labels, (index for _, index in members)))
+        first = labelled[0][1]
+        merged = cls(
+            first.model,
+            BM25.merge([(label, index._bm25_index) for label, index in labelled]),
+            SelectableBasicBackend(np.vstack([index._semantic_index.vectors for _, index in labelled]), BasicArgs()),
+            [replace(c, file_path=f"{label}/{c.file_path}") for label, index in labelled for c in index.chunks],
+            first._model_path,
+            content=first.content,
+        )
+        merged.sources = {label: source for label, (source, _) in zip(labels, members)}
+        merged._file_sizes = {f"{label}/{p}": n for label, index in labelled for p, n in index._file_sizes.items()}
+        return merged
 
     @classmethod
     def from_git(

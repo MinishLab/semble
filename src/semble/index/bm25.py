@@ -86,6 +86,23 @@ class BM25:
             scores = scores * weight_mask
         return scores
 
+    @classmethod
+    def merge(cls, parts: list[tuple[str, "BM25"]]) -> "BM25":
+        """Combine indexes into one corpus; chunk ids are prefixed with each part's label."""
+        merged = cls()
+        doc_order: list[str] = []
+        for label, part in parts:
+            for chunk_id, counts in part._documents.items():
+                merged_id = f"{label}/{chunk_id}"
+                merged._documents[merged_id] = counts
+                merged._doc_lengths[merged_id] = part._doc_lengths[chunk_id]
+                for term, count in counts.items():
+                    merged.postings.setdefault(term, {})[merged_id] = count
+            merged._total_doc_length += part._total_doc_length
+            doc_order.extend(f"{label}/{chunk_id}" for chunk_id in part.doc_order)
+        merged.set_doc_order(doc_order)
+        return merged
+
     def save(self, path: Path) -> None:
         """Persist the index to path/index.json."""
         path.mkdir(parents=True, exist_ok=True)
