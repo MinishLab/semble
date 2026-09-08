@@ -192,11 +192,14 @@ class SembleIndex:
         if len({index._model_path for _, index in indexes}) != 1:
             raise ValueError("Indexes to merge must be built with the same model.")
         sources = [source if is_git_url(source) else str(Path(source).expanduser().resolve()) for source, _ in indexes]
-        names = [Path(source).name.removesuffix(".git") for source in sources]
-        labels = []
-        for i, name in enumerate(names):
-            seen = names[:i].count(name)  # earlier repos with the same name
-            labels.append(name if seen == 0 else f"{name}-{seen + 1}")
+        labels: list[str] = []
+        for source in sources:
+            name = label = Path(source).name.removesuffix(".git")
+            suffix = 2
+            while label in labels:  # another repo already has this name
+                label = f"{name}-{suffix}"
+                suffix += 1
+            labels.append(label)
         parts = [(label, index) for label, (_, index) in zip(labels, indexes)]
 
         chunks = [
