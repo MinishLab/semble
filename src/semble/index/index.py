@@ -181,17 +181,22 @@ class SembleIndex:
     def merge(cls, indexes: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
         """Merge indexes built from several repos into one that searches them together.
 
-        Chunk ids must stay unique across repos, so every file path is prefixed with the repo name
-        taken from its path or URL. The name to source mapping is exposed as ``sources``.
+        Chunk ids must stay unique across repos, so every file path is prefixed with a label: the repo
+        name taken from its path or URL, with ``-2``, ``-3``, ... appended when several repos share a
+        name. The label to source mapping is exposed as ``sources``.
 
         :param indexes: (source, index) pairs, where source is the local path or git URL the index was built from.
         :return: A new in-memory index over all chunks.
-        :raises ValueError: If two sources have the same repo name.
+        :raises ValueError: If the indexes were built with different models.
         """
+        if len({index._model_path for _, index in indexes}) != 1:
+            raise ValueError("Indexes to merge must be built with the same model.")
         sources = [source if is_git_url(source) else str(Path(source).expanduser().resolve()) for source, _ in indexes]
-        labels = [Path(source).name.removesuffix(".git") for source in sources]
-        if len(set(labels)) != len(labels):
-            raise ValueError(f"Repos to merge must have distinct names, got: {labels}")
+        names = [Path(source).name.removesuffix(".git") for source in sources]
+        labels = []
+        for i, name in enumerate(names):
+            seen = names[:i].count(name)  # earlier repos with the same name
+            labels.append(name if seen == 0 else f"{name}-{seen + 1}")
         parts = [(label, index) for label, (_, index) in zip(labels, indexes)]
 
         chunks = [
@@ -200,7 +205,6 @@ class SembleIndex:
         bm25 = BM25.merge([(label, index._bm25_index) for label, index in parts])
         vectors = np.vstack([index._semantic_index.vectors for _, index in parts])
 
-        # Model and content type are the same for every part, so take them from the first.
         first = parts[0][1]
         merged = cls(
             first.model,

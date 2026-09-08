@@ -137,10 +137,18 @@ def test_merge(mock_model: Any, tmp_project: Path, tmp_path_factory: pytest.Temp
     assert all(r.chunk.file_path.startswith(main) for r in merged.find_related(seed, top_k=5))
 
 
-def test_merge_rejects_duplicate_names(indexed_index: SembleIndex) -> None:
-    """Sources whose repo name collides cannot be merged, since paths would no longer be unique."""
-    with pytest.raises(ValueError, match="distinct names"):
-        SembleIndex.merge([("https://github.com/org/repo.git", indexed_index), ("/x/repo", indexed_index)])
+def test_merge_labels(indexed_index: SembleIndex) -> None:
+    """Labels come from the repo name of the path or URL; repeated names get -2, -3, ... appended."""
+    sources = ["https://github.com/org/repo.git", "/x/repo", "/y/repo", "/z/other"]
+    merged = SembleIndex.merge([(source, indexed_index) for source in sources])
+    assert list(merged.sources) == ["repo", "repo-2", "repo-3", "other"]
+    assert {c.file_path.split("/")[0] for c in merged.chunks} == set(merged.sources)
+
+
+def test_merge_rejects_different_models(indexed_index: SembleIndex) -> None:
+    """Vectors from different models are not comparable, so merging them is refused."""
+    with pytest.raises(ValueError, match="same model"):
+        SembleIndex.merge([("/x/a", indexed_index), ("/x/b", MagicMock(_model_path="/other/model"))])
 
 
 def test_index_language_counts(indexed_index: SembleIndex) -> None:

@@ -203,16 +203,14 @@ class _IndexCache:
         self._model_ready = asyncio.Event()
         self._tasks: OrderedDict[_CacheKey, asyncio.Task[SembleIndex]] = OrderedDict()  # ordered for LRU eviction
         self._revalidate_after: dict[_CacheKey, float] = {}
-        self._merged: dict[tuple[str, ...], tuple[list[SembleIndex], SembleIndex]] = {}
+        self._merged: tuple[list[SembleIndex], SembleIndex] | None = None  # last merge and its parts
 
     def get_merged(self, parts: list[tuple[str, SembleIndex]]) -> SembleIndex:
-        """Return a merged index over (source, index) parts, reusing the last merge while every part is unchanged."""
-        key = tuple(source for source, _ in parts)
+        """Return a merged index over (source, index) parts, reusing the last merge while its parts are unchanged."""
         indexes = [index for _, index in parts]
-        cached = self._merged.get(key)
-        if cached is None or any(a is not b for a, b in zip(cached[0], indexes)):
-            cached = self._merged[key] = (indexes, SembleIndex.merge(parts))
-        return cached[1]
+        if self._merged is None or self._merged[0] != indexes:
+            self._merged = (indexes, SembleIndex.merge(parts))
+        return self._merged[1]
 
     async def _await_model(self) -> str:
         """Block until the model is installed; re-raise the load error if it failed."""
