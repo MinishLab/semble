@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 import os
 import subprocess
 import tempfile
@@ -49,6 +48,19 @@ def _apply_include_text_files(
         stacklevel=3,
     )
     return _ALL_CONTENT if include_text_files else _DEFAULT_CONTENT
+
+
+def _repo_labels(sources: list[str]) -> list[str]:
+    """Give each source a unique label: its repo name, with -2, -3, ... appended on collisions."""
+    labels: list[str] = []
+    for source in sources:
+        name = Path(source).name.removesuffix(".git") or source
+        label, n = name, 2
+        while label in labels:
+            label = f"{name}-{n}"
+            n += 1
+        labels.append(label)
+    return labels
 
 
 class SembleIndex:
@@ -179,33 +191,39 @@ class SembleIndex:
         )
 
     @classmethod
-    def merge(cls, members: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
-        """Merge indexes built from several repos into one; chunk paths are prefixed with a per-repo label.
+    def merge(cls, indexes: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
+        """Merge indexes built from several repos into one that searches them together.
 
-        :param members: (source, index) pairs, where source is the path or URL the index was built from.
-        :return: A new in-memory index whose ``sources`` maps each label to its git URL or absolute local path.
+        Chunk ids must stay unique across repos, so every file path is prefixed with a short
+        per-repo label (the repo name). The label to source mapping is exposed as ``sources``.
+
+        :param indexes: (source, index) pairs, where source is the local path or git URL the index was built from.
+        :return: A new in-memory index over all chunks.
         """
-        members = [(s if is_git_url(s) else str(Path(s).expanduser().resolve()), index) for s, index in members]
-        labels: list[str] = []
-        for source, _ in members:
-            label = base = Path(source).name.removesuffix(".git") or source
-            for suffix in itertools.count(2):
-                if label not in labels:
-                    break
-                label = f"{base}-{suffix}"
-            labels.append(label)
-        labelled = list(zip(labels, (index for _, index in members)))
-        first = labelled[0][1]
+        sources = [source if is_git_url(source) else str(Path(source).expanduser().resolve()) for source, _ in indexes]
+        labels = _repo_labels(sources)
+        parts = [(label, index) for label, (_, index) in zip(labels, indexes)]
+
+        chunks = [
+            replace(chunk, file_path=f"{label}/{chunk.file_path}") for label, index in parts for chunk in index.chunks
+        ]
+        bm25 = BM25.merge([(label, index._bm25_index) for label, index in parts])
+        vectors = np.vstack([index._semantic_index.vectors for _, index in parts])
+
+        # Model and content type are the same for every part, so take them from the first.
+        first = parts[0][1]
         merged = cls(
             first.model,
-            BM25.merge([(label, index._bm25_index) for label, index in labelled]),
-            SelectableBasicBackend(np.vstack([index._semantic_index.vectors for _, index in labelled]), BasicArgs()),
-            [replace(c, file_path=f"{label}/{c.file_path}") for label, index in labelled for c in index.chunks],
+            bm25,
+            SelectableBasicBackend(vectors, BasicArgs()),
+            chunks,
             first._model_path,
             content=first.content,
         )
-        merged.sources = {label: source for label, (source, _) in zip(labels, members)}
-        merged._file_sizes = {f"{label}/{p}": n for label, index in labelled for p, n in index._file_sizes.items()}
+        merged.sources = dict(zip(labels, sources))
+        merged._file_sizes = {
+            f"{label}/{path}": size for label, index in parts for path, size in index._file_sizes.items()
+        }
         return merged
 
     @classmethod

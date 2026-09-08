@@ -205,13 +205,13 @@ class _IndexCache:
         self._revalidate_after: dict[_CacheKey, float] = {}
         self._merged: dict[tuple[str, ...], tuple[list[SembleIndex], SembleIndex]] = {}
 
-    def get_merged(self, members: list[tuple[str, SembleIndex]]) -> SembleIndex:
-        """Return a merged index over members, reusing the last merge while every member index is unchanged."""
-        key = tuple(source for source, _ in members)
-        indexes = [index for _, index in members]
+    def get_merged(self, parts: list[tuple[str, SembleIndex]]) -> SembleIndex:
+        """Return a merged index over (source, index) parts, reusing the last merge while every part is unchanged."""
+        key = tuple(source for source, _ in parts)
+        indexes = [index for _, index in parts]
         cached = self._merged.get(key)
         if cached is None or any(a is not b for a, b in zip(cached[0], indexes)):
-            cached = self._merged[key] = (indexes, SembleIndex.merge(members))
+            cached = self._merged[key] = (indexes, SembleIndex.merge(parts))
         return cached[1]
 
     async def _await_model(self) -> str:

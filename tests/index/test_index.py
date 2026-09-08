@@ -118,6 +118,33 @@ def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:
     assert get_file_status(path, None) is FileStatus.VALID
 
 
+def test_merge(mock_model: Any, tmp_project: Path, tmp_path_factory: pytest.TempPathFactory) -> None:
+    """A merged index prefixes paths per repo, records sources, and searches both repos at once."""
+    other = tmp_path_factory.mktemp("other")
+    (other / "client.py").write_text("def call_login(password):\n    return http_post('/login', password)\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        parts = [(str(tmp_project), SembleIndex.from_path(tmp_project)), (str(other), SembleIndex.from_path(other))]
+    merged = SembleIndex.merge(parts)
+
+    main, side = tmp_project.name, other.name
+    assert merged.sources == {main: str(tmp_project), side: str(other)}
+    assert {c.file_path for c in merged.chunks} == {f"{main}/auth.py", f"{main}/utils.py", f"{side}/client.py"}
+    assert {r.chunk.file_path for r in merged.search("login password", top_k=5)} >= {
+        f"{main}/auth.py",
+        f"{side}/client.py",
+    }
+    seed = next(c for c in merged.chunks if c.file_path == f"{side}/client.py")
+    assert all(r.chunk.file_path.startswith(main) for r in merged.find_related(seed, top_k=5))
+
+
+def test_merge_labels(indexed_index: SembleIndex) -> None:
+    """Labels come from the repo name of the path or git URL, with duplicates suffixed."""
+    sources = ["https://github.com/org/repo.git", "/x/repo", "/y/repo"]
+    merged = SembleIndex.merge([(source, indexed_index) for source in sources])
+    assert list(merged.sources) == ["repo", "repo-2", "repo-3"]
+    assert {c.file_path.split("/")[0] for c in merged.chunks} == {"repo", "repo-2", "repo-3"}
+
+
 def test_index_language_counts(indexed_index: SembleIndex) -> None:
     """Language breakdown in stats includes python with at least one chunk."""
     stats = indexed_index.stats

@@ -39,9 +39,9 @@ def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
     )
 
 
-def _maybe_save_index(members: list[tuple[str, SembleIndex]]) -> None:
-    """Save each freshly built index to the cache folder under its source path."""
-    for path, index in members:
+def _maybe_save_index(parts: list[tuple[str, SembleIndex]]) -> None:
+    """Save each freshly built (path, index) part to the cache folder under its path."""
+    for path, index in parts:
         try:
             save_index_to_cache(index, path)
         except Exception as e:
@@ -107,33 +107,38 @@ def _resolve_content(content: list[str], include_text_files: bool) -> list[Conte
 
 
 def _load_index(paths: list[str], content: list[ContentType]) -> tuple[SembleIndex, list[tuple[str, SembleIndex]]]:
-    """Build an index per path or git URL, exiting on FileNotFoundError; returns the searchable index and its members."""
+    """Build an index per path or git URL, exiting on FileNotFoundError.
+
+    :param paths: Local paths or git URLs to index.
+    :param content: Content types to include.
+    :return: The index to search (merged when several paths are given) and the per-path (path, index) parts.
+    """
     try:
-        members = [(path, _build_index(path, content)) for path in paths]
+        parts = [(path, _build_index(path, content)) for path in paths]
     except FileNotFoundError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)
-    return (members[0][1] if len(members) == 1 else SembleIndex.merge(members)), members
+    return (parts[0][1] if len(parts) == 1 else SembleIndex.merge(parts)), parts
 
 
 def _run_search(
     paths: list[str], query: str, top_k: int, content: list[ContentType], max_snippet_lines: int | None
 ) -> None:
     """Handle the `search` subcommand."""
-    index, members = _load_index(paths, content)
+    index, parts = _load_index(paths, content)
     results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
     out = (
         format_results(query, results, max_snippet_lines, index.sources) if results else {"error": "No results found."}
     )
     print(json.dumps(out))
-    _maybe_save_index(members)
+    _maybe_save_index(parts)
 
 
 def _run_find_related(
     paths: list[str], file_path: str, line: int, top_k: int, content: list[ContentType], max_snippet_lines: int | None
 ) -> None:
     """Handle the `find-related` subcommand."""
-    index, members = _load_index(paths, content)
+    index, parts = _load_index(paths, content)
     chunk = resolve_chunk(index.chunks, file_path, line)
     if chunk is None:
         print(f"No chunk found at {file_path}:{line}.", file=sys.stderr)
@@ -146,7 +151,7 @@ def _run_find_related(
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )
     print(json.dumps(out))
-    _maybe_save_index(members)
+    _maybe_save_index(parts)
 
 
 def _clear_indexes(cache_folder: Path) -> None:

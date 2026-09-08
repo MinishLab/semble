@@ -55,6 +55,24 @@ def test_cli_search(
         assert fragment in out
 
 
+def test_cli_search_multiple_paths(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Several paths are indexed and saved separately, then searched through one merged index."""
+    merged = MagicMock(sources={"one": "/p/one", "two": "/p/two"})
+    merged.search.return_value = [SearchResult(chunk=make_chunk("x = 1", "one/a.py"), score=0.9)]
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "x", "/p/one", "/p/two"])
+    with (
+        patch("semble.cli.SembleIndex.from_path", return_value=MagicMock()) as from_path,
+        patch("semble.cli.SembleIndex.merge", return_value=merged),
+        patch("semble.cli.save_index_to_cache") as save,
+    ):
+        _cli_main()
+    assert [c.args[0] for c in from_path.call_args_list] == ["/p/one", "/p/two"]
+    assert [c.args[1] for c in save.call_args_list] == ["/p/one", "/p/two"]
+    out = json.loads(capsys.readouterr().out)
+    assert out["repos"] == merged.sources
+    assert out["results"][0]["file_path"] == "one/a.py"
+
+
 @pytest.mark.parametrize(
     ("scenario", "expected_stdout", "expected_stderr", "expected_exit_code"),
     [

@@ -358,6 +358,25 @@ async def test_tool_output(
 
 
 @pytest.mark.anyio
+async def test_search_multiple_repos(cache: _IndexCache) -> None:
+    """A list of repos is searched through one merged index, which is reused while its parts are unchanged."""
+    merged = MagicMock(sources={"one": "/p/one", "two": "/p/two"})
+    merged.search.return_value = [SearchResult(chunk=make_chunk("x = 1", "one/a.py"), score=0.9)]
+    with (
+        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch("semble.mcp.SembleIndex.merge", return_value=merged) as merge,
+        patch("semble.mcp.save_index_to_cache"),
+    ):
+        server = create_server(cache)
+        result = await server.call_tool("search", {"query": "x", "repo": ["/p/one", "/p/two"]})
+        await server.call_tool("search", {"query": "x", "repo": ["/p/one", "/p/two"]})
+    payload = json.loads(_tool_text(result))
+    assert payload["repos"] == merged.sources
+    assert payload["results"][0]["file_path"] == "one/a.py"
+    merge.assert_called_once()
+
+
+@pytest.mark.anyio
 async def test_search_builds_exact_content_indexes(
     cache: _IndexCache,
     mock_model: StaticModel,

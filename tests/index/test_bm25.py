@@ -36,6 +36,16 @@ def test_removed_and_unordered_documents_stop_scoring() -> None:
     assert np.all(index.get_scores(["authenticate"]) == 0)
 
 
+def test_merge_matches_single_corpus() -> None:
+    """Merging two indexes scores identically to one index built over all documents with prefixed ids."""
+    single = _build({"l/a": ["invoice", "client"], "l/b": ["invoice", "endpoint"], "r/c": ["config", "host"]})
+    left = _build({"a": ["invoice", "client"], "b": ["invoice", "endpoint"]})
+    right = _build({"c": ["config", "host"]})
+    merged = BM25.merge([("l", left), ("r", right)])
+    assert merged.doc_order == single.doc_order
+    np.testing.assert_allclose(merged.get_scores(["invoice", "host"]), single.get_scores(["invoice", "host"]))
+
+
 def test_duplicate_add_document_raises() -> None:
     """Re-adding an already-indexed chunk_id raises, catching caller bugs."""
     index = _build({"a": ["x"]})
