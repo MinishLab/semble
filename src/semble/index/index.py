@@ -187,7 +187,12 @@ class SembleIndex:
         """
         if len({index._model_path for _, index in indexes}) != 1:
             raise ValueError("Indexes to merge must be built with the same model.")
-        sources = [source if is_git_url(source) else str(Path(source).expanduser().resolve()) for source, _ in indexes]
+        # Sort by resolved source so the same set of repos always gets the same labels, whatever the argument order.
+        resolved = sorted(
+            ((s if is_git_url(s) else str(Path(s).expanduser().resolve()), index) for s, index in indexes),
+            key=lambda pair: pair[0],
+        )
+        sources = [source for source, _ in resolved]
         if len(set(sources)) != len(sources):
             raise ValueError(f"The same repo was passed more than once: {sources}")
         labels: list[str] = []
@@ -198,7 +203,7 @@ class SembleIndex:
                 label = f"{name}-{suffix}"
                 suffix += 1
             labels.append(label)
-        parts = [(label, index) for label, (_, index) in zip(labels, indexes)]
+        parts = [(label, index) for label, (_, index) in zip(labels, resolved)]
 
         chunks = [
             replace(chunk, file_path=f"{label}/{chunk.file_path}") for label, index in parts for chunk in index.chunks
