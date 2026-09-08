@@ -139,10 +139,11 @@ def test_merge(mock_model: Any, tmp_project: Path, tmp_path_factory: pytest.Temp
 
 def test_merge_labels(indexed_index: SembleIndex) -> None:
     """Labels are the repo name in sorted source order, so they do not depend on argument order; repeats get -N."""
-    sources = ["https://github.com/org/repo.git", "/d/repo", "/c/repo-2", "/e/other", "/a/repo", "/b/repo"]
+    url = "https://github.com/org/repo.git"
+    a, b, c, d, e = (str(Path(p).resolve()) for p in ("/a/repo", "/b/repo", "/c/repo-2", "/d/repo", "/e/other"))
+    sources = [url, d, c, e, a, b]
     merged = SembleIndex.merge([(source, indexed_index) for source in sources])
-    expected = {"repo": "/a/repo", "repo-2": "/b/repo", "repo-2-2": "/c/repo-2", "repo-3": "/d/repo"}
-    assert merged.sources == {**expected, "other": "/e/other", "repo-4": "https://github.com/org/repo.git"}
+    assert merged.sources == {"repo": a, "repo-2": b, "repo-2-2": c, "repo-3": d, "other": e, "repo-4": url}
     assert SembleIndex.merge([(source, indexed_index) for source in reversed(sources)]).sources == merged.sources
 
 
