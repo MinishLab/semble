@@ -108,11 +108,7 @@ semble search "authentication flow" ./my-project --max-snippet-lines 10
 
 `--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
 
-Passing several paths or URLs searches them as one corpus, so a query from repo A can find an endpoint defined in repo B. Each index is cached per repo and merged at query time. Result paths are prefixed with the repo name (`service-b/api/invoices.py`) and the output includes a `repos` map from prefix to absolute path or URL. Pass the prefixed path to `find-related` to search across all repos from a known location. To search a whole GitHub org, expand it with `gh`:
-
-```bash
-semble search "invoice endpoint" $(gh repo list my-org --no-archived --json url --jq '.[].url')
-```
+Passing several paths or URLs searches them as one corpus, so a query from repo A can find an endpoint defined in repo B. Each index is cached per repo and merged at query time. Result paths are prefixed with the repo name (`service-b/api/invoices.py`) and the output includes a `repos` map from prefix to absolute path or URL. Pass the prefixed path to `find-related` to search across all repos from a known location.
 
 <details>
 <summary>Controlling which files are indexed</summary>

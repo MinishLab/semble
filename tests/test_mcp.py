@@ -487,23 +487,24 @@ async def test_index_cache_propagates_model_error(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("repo", "tool", "extra_args"),
+    ("repo", "tool", "extra_args", "expected"),
     [
-        ("file:///home/user/secret", "search", {"query": "foo"}),
-        ("ssh://internal-host/repo", "search", {"query": "foo"}),
-        ("git@github.com:org/repo", "search", {"query": "foo"}),
-        ("file:///home/user/secret", "find_related", {"file_path": "src/foo.py", "line": 1}),
-        ("ssh://internal-host/repo", "find_related", {"file_path": "src/foo.py", "line": 1}),
+        ("file:///home/user/secret", "search", {"query": "foo"}, "Only https://"),
+        ("ssh://internal-host/repo", "search", {"query": "foo"}, "Only https://"),
+        ("git@github.com:org/repo", "search", {"query": "foo"}, "Only https://"),
+        ("file:///home/user/secret", "find_related", {"file_path": "src/foo.py", "line": 1}, "Only https://"),
+        ("ssh://internal-host/repo", "find_related", {"file_path": "src/foo.py", "line": 1}, "Only https://"),
+        ([], "search", {"query": "foo"}, "at least one"),
     ],
-    ids=["file_search", "ssh_search", "scp_search", "file_find_related", "ssh_find_related"],
+    ids=["file_search", "ssh_search", "scp_search", "file_find_related", "ssh_find_related", "empty_list"],
 )
-async def test_tool_rejects_unsafe_repo(
-    cache: _IndexCache, repo: str, tool: str, extra_args: dict[str, object]
+async def test_tool_rejects_invalid_repo(
+    cache: _IndexCache, repo: str | list[str], tool: str, extra_args: dict[str, object], expected: str
 ) -> None:
-    """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) supplied as repo."""
+    """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) and an empty repo list."""
     server = create_server(cache)
     result = await server.call_tool(tool, {**extra_args, "repo": repo})
-    assert "Only https://" in _tool_text(result)
+    assert expected in _tool_text(result)
 
 
 @pytest.mark.anyio

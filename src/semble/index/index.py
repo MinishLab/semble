@@ -50,19 +50,6 @@ def _apply_include_text_files(
     return _ALL_CONTENT if include_text_files else _DEFAULT_CONTENT
 
 
-def _repo_labels(sources: list[str]) -> list[str]:
-    """Give each source a unique label: its repo name, with -2, -3, ... appended on collisions."""
-    labels: list[str] = []
-    for source in sources:
-        name = Path(source).name.removesuffix(".git") or source
-        label, n = name, 2
-        while label in labels:
-            label = f"{name}-{n}"
-            n += 1
-        labels.append(label)
-    return labels
-
-
 class SembleIndex:
     """Fast local code index with hybrid search."""
 
@@ -194,14 +181,17 @@ class SembleIndex:
     def merge(cls, indexes: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
         """Merge indexes built from several repos into one that searches them together.
 
-        Chunk ids must stay unique across repos, so every file path is prefixed with a short
-        per-repo label (the repo name). The label to source mapping is exposed as ``sources``.
+        Chunk ids must stay unique across repos, so every file path is prefixed with the repo name
+        taken from its path or URL. The name to source mapping is exposed as ``sources``.
 
         :param indexes: (source, index) pairs, where source is the local path or git URL the index was built from.
         :return: A new in-memory index over all chunks.
+        :raises ValueError: If two sources have the same repo name.
         """
         sources = [source if is_git_url(source) else str(Path(source).expanduser().resolve()) for source, _ in indexes]
-        labels = _repo_labels(sources)
+        labels = [Path(source).name.removesuffix(".git") for source in sources]
+        if len(set(labels)) != len(labels):
+            raise ValueError(f"Repos to merge must have distinct names, got: {labels}")
         parts = [(label, index) for label, (_, index) in zip(labels, indexes)]
 
         chunks = [

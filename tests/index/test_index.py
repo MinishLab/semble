@@ -137,12 +137,10 @@ def test_merge(mock_model: Any, tmp_project: Path, tmp_path_factory: pytest.Temp
     assert all(r.chunk.file_path.startswith(main) for r in merged.find_related(seed, top_k=5))
 
 
-def test_merge_labels(indexed_index: SembleIndex) -> None:
-    """Labels come from the repo name of the path or git URL, with duplicates suffixed."""
-    sources = ["https://github.com/org/repo.git", "/x/repo", "/y/repo"]
-    merged = SembleIndex.merge([(source, indexed_index) for source in sources])
-    assert list(merged.sources) == ["repo", "repo-2", "repo-3"]
-    assert {c.file_path.split("/")[0] for c in merged.chunks} == {"repo", "repo-2", "repo-3"}
+def test_merge_rejects_duplicate_names(indexed_index: SembleIndex) -> None:
+    """Sources whose repo name collides cannot be merged, since paths would no longer be unique."""
+    with pytest.raises(ValueError, match="distinct names"):
+        SembleIndex.merge([("https://github.com/org/repo.git", indexed_index), ("/x/repo", indexed_index)])
 
 
 def test_index_language_counts(indexed_index: SembleIndex) -> None:
