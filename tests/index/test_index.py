@@ -145,10 +145,18 @@ def test_merge_labels(indexed_index: SembleIndex) -> None:
     assert {c.file_path.split("/")[0] for c in merged.chunks} == set(merged.sources)
 
 
-def test_merge_rejects_different_models(indexed_index: SembleIndex) -> None:
-    """Vectors from different models are not comparable, so merging them is refused."""
-    with pytest.raises(ValueError, match="same model"):
-        SembleIndex.merge([("/x/a", indexed_index), ("/x/b", MagicMock(_model_path="/other/model"))])
+@pytest.mark.parametrize(
+    ("second", "match"),
+    [
+        (("/x/b", MagicMock(_model_path="/other/model")), "same model"),
+        (("/x/a/../a", MagicMock(_model_path="")), "more than once"),
+    ],
+    ids=["different_model", "same_repo_twice"],
+)
+def test_merge_rejects_invalid_parts(indexed_index: SembleIndex, second: tuple[str, SembleIndex], match: str) -> None:
+    """Merging refuses indexes from different models and the same repo passed under two spellings."""
+    with pytest.raises(ValueError, match=match):
+        SembleIndex.merge([("/x/a", indexed_index), second])
 
 
 def test_index_language_counts(indexed_index: SembleIndex) -> None:

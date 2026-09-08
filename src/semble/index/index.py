@@ -181,22 +181,20 @@ class SembleIndex:
     def merge(cls, indexes: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
         """Merge indexes built from several repos into one that searches them together.
 
-        Chunk ids must stay unique across repos, so every file path is prefixed with a label: the repo
-        name taken from its path or URL, with ``-2``, ``-3``, ... appended when several repos share a
-        name. The label to source mapping is exposed as ``sources``.
-
         :param indexes: (source, index) pairs, where source is the local path or git URL the index was built from.
         :return: A new in-memory index over all chunks.
-        :raises ValueError: If the indexes were built with different models.
+        :raises ValueError: If the indexes were built with different models, or the same repo is passed twice.
         """
         if len({index._model_path for _, index in indexes}) != 1:
             raise ValueError("Indexes to merge must be built with the same model.")
         sources = [source if is_git_url(source) else str(Path(source).expanduser().resolve()) for source, _ in indexes]
+        if len(set(sources)) != len(sources):
+            raise ValueError(f"The same repo was passed more than once: {sources}")
         labels: list[str] = []
         for source in sources:
             name = label = Path(source).name.removesuffix(".git")
             suffix = 2
-            while label in labels:  # another repo already has this name
+            while label in labels:  # another repo already has this name, append a suffix
                 label = f"{name}-{suffix}"
                 suffix += 1
             labels.append(label)
