@@ -3,7 +3,7 @@ Output "assets/images/tour-dark.gif"
 Set Shell "bash"
 Set FontSize 18
 Set Width 1200
-Set Height 900
+Set Height 720
 Set Theme "Catppuccin Mocha"
 Set Padding 20
 Set Margin 30
@@ -38,10 +38,11 @@ Enter
 Sleep 300ms
 Show
 
-Type "cd fastapi"
+Type "cd pydantic"
 Enter
 Sleep 600ms
 
-Type@25ms `semble search "OpenAPI schema generation" -k 1 --format text`
+Type@25ms `semble search "Where is snake_case converted to camelCase?" -k 1 --format text`
 Enter
-Sleep 4500ms
+Wait@60s /\$\s*$/
+Sleep 3500ms

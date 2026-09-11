@@ -29,8 +29,8 @@ Semble is a code search library built for agents. It returns the exact code snip
 ## See it in action
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/tour-dark.gif">
-  <img src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/tour-light.gif" width="1000" alt="semble install detecting Claude Code, Cursor, and Codex, then semble search returning ranked code snippets from Flask" />
+  <source media="(prefers-color-scheme: dark)" srcset="assets/images/tour-dark.gif">
+  <img src="assets/images/tour-light.gif" width="1000" alt="semble install detecting Claude Code, Cursor, and Codex, then semble search returning ranked code snippets from pydantic" />
 </picture>
 
 ## Quickstart
