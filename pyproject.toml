@@ -33,6 +33,7 @@ dependencies = [
     "orjson",
     "questionary>=2.0,<3.0",
     "semble-grammars>=0.1.2",
+    "tqdm>=4.60",
 ]
 
 [project.optional-dependencies]

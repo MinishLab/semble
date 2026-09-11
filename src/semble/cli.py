@@ -31,11 +31,12 @@ _SHA_256_REGEX = re.compile(r"^[a-f0-9]{64}$")
 
 
 def _build_index(path: str, content: list[ContentType]) -> SembleIndex:
-    """Build an index from a local path or git URL."""
+    """Build an index from a local path or git URL, showing a progress bar on a tty."""
+    show_progress_bar = sys.stderr.isatty()  # Only show the progress bar in a terminal
     return (
-        SembleIndex.from_git(path, content=content)
+        SembleIndex.from_git(path, content=content, show_progress_bar=show_progress_bar)
         if is_git_url(path)
-        else SembleIndex.from_path(path, content=content)
+        else SembleIndex.from_path(path, content=content, show_progress_bar=show_progress_bar)
     )
 
 
@@ -114,17 +115,37 @@ def _load_index(path: str, content: list[ContentType]) -> SembleIndex:
         sys.exit(1)
 
 
-def _run_search(path: str, query: str, top_k: int, content: list[ContentType], max_snippet_lines: int | None) -> None:
+def _print_results(out: dict, output_format: str) -> None:
+    """Print a format_results() payload as JSON or as human-readable text."""
+    if output_format == "json":
+        print(json.dumps(out))
+    elif "error" in out:
+        print(out["error"])
+    else:
+        for r in out["results"]:
+            snippet = f"\n\n{r['content']}" if "content" in r else ""
+            print(f"{r['file_path']}:{r['start_line']}-{r['end_line']}{snippet}\n")
+
+
+def _run_search(
+    path: str, query: str, top_k: int, content: list[ContentType], max_snippet_lines: int | None, output_format: str
+) -> None:
     """Handle the `search` subcommand."""
     index = _load_index(path, content)
     results = index.search(query, top_k=top_k, max_snippet_lines=max_snippet_lines)
     out = format_results(query, results, max_snippet_lines) if results else {"error": "No results found."}
-    print(json.dumps(out))
+    _print_results(out, output_format)
     _maybe_save_index(index, path)
 
 
 def _run_find_related(
-    path: str, file_path: str, line: int, top_k: int, content: list[ContentType], max_snippet_lines: int | None
+    path: str,
+    file_path: str,
+    line: int,
+    top_k: int,
+    content: list[ContentType],
+    max_snippet_lines: int | None,
+    output_format: str,
 ) -> None:
     """Handle the `find-related` subcommand."""
     index = _load_index(path, content)
@@ -139,7 +160,7 @@ def _run_find_related(
         if results
         else {"error": f"No related chunks found for {file_path}:{line}."}
     )
-    print(json.dumps(out))
+    _print_results(out, output_format)
     _maybe_save_index(index, path)
 
 
@@ -241,6 +262,7 @@ def _cli_main() -> None:
         metavar="N",
         help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
     )
+    search_p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
     _add_content_args(search_p)
 
     clear_p = sub.add_parser("clear", help="Clear the index cache.")
@@ -262,6 +284,7 @@ def _cli_main() -> None:
         metavar="N",
         help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
     )
+    related_p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
     _add_content_args(related_p)
 
     sub.add_parser("savings", help="Show token savings and usage stats.")
@@ -311,6 +334,7 @@ def _cli_main() -> None:
             args.top_k,
             _resolve_content(args.content, args.include_text_files),
             args.max_snippet_lines,
+            args.format,
         )
     elif args.command == "find-related":
         _run_find_related(
@@ -320,4 +344,5 @@ def _cli_main() -> None:
             args.top_k,
             _resolve_content(args.content, args.include_text_files),
             args.max_snippet_lines,
+            args.format,
         )
