@@ -104,7 +104,14 @@ def create_index_from_path(
 
     files = list(walk_files(path, resolved_extensions))
     for file_path in tqdm(
-        files, desc="Indexing", unit="file", file=sys.stderr, leave=False, colour="green", disable=not show_progress_bar
+        files,
+        desc="Indexing",
+        unit="file",
+        file=sys.stderr,
+        leave=False,
+        colour="green",
+        miniters=1,  # tqdm's adaptive miniters stalls the bar when fast files are followed by slow ones
+        disable=not show_progress_bar,
     ):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
