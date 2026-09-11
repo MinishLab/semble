@@ -71,6 +71,6 @@ Type "cd fastapi"
 Enter
 Sleep 600ms
 
-Type@25ms `semble search "OpenAPI schema generation" -k 1 --pretty`
+Type@25ms `semble search "OpenAPI schema generation" -k 1 --format text`
 Enter
 Sleep 4500ms

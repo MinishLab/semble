@@ -110,7 +110,7 @@ semble find-related src/auth.py 42 ./my-project
 semble search "authentication flow" ./my-project --max-snippet-lines 10
 ```
 
-`--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
+`--content` accepts `code` (default), `docs`, `config`, or `all`. `--format` accepts `json` (default) or `text`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
 
 <details>
 <summary>Controlling which files are indexed</summary>
