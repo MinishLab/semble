@@ -26,12 +26,15 @@ class BM25:
 
     def add_document(self, chunk_id: str, tokens: list[str]) -> None:
         """Index one document, rejecting duplicate IDs."""
+        self._add_counts(chunk_id, Counter(tokens), len(tokens))
+
+    def _add_counts(self, chunk_id: str, counts: Counter[str], length: int) -> None:
+        """Index one document given its precomputed term counts and token length."""
         if chunk_id in self._documents:
             raise ValueError(f"chunk_id already indexed: {chunk_id}")
-        counts = Counter(tokens)
         self._documents[chunk_id] = counts
-        self._doc_lengths[chunk_id] = len(tokens)
-        self._total_doc_length += len(tokens)
+        self._doc_lengths[chunk_id] = length
+        self._total_doc_length += length
         for term, count in counts.items():
             self.postings.setdefault(term, {})[chunk_id] = count
 
@@ -85,6 +88,16 @@ class BM25:
         if weight_mask is not None:
             scores = scores * weight_mask
         return scores
+
+    @classmethod
+    def merge(cls, parts: list[tuple[str, BM25]]) -> BM25:
+        """Combine indexes into one corpus, prefixing every chunk id with its part's label."""
+        merged = cls()
+        for label, part in parts:
+            for chunk_id, counts in part._documents.items():
+                merged._add_counts(f"{label}/{chunk_id}", counts, part._doc_lengths[chunk_id])
+        merged.set_doc_order([f"{label}/{chunk_id}" for label, part in parts for chunk_id in part.doc_order])
+        return merged
 
     def save(self, path: Path) -> None:
         """Persist the index to path/index.json."""

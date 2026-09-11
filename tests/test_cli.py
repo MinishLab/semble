@@ -34,6 +34,8 @@ def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch
     [
         (["semble", "search", "query text", "/some/path"], ["query text", "0.9"]),
         (["semble", "search", "nothing", "/some/path", "--top-k", "3"], ["No results found"]),
+        (["semble", "search", "query text", "/some/path", "--format", "text"], ["src/foo.py:1-1\n\ndef foo(): pass"]),
+        (["semble", "search", "nothing", "/some/path", "--format", "text"], ["No results found."]),
     ],
 )
 def test_cli_search(
@@ -44,7 +46,7 @@ def test_cli_search(
 ) -> None:
     """_cli_main search subcommand calls index.search and prints results."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     has_results = "No results" not in expected_in_output[0]
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)] if has_results else []
     monkeypatch.setattr(sys, "argv", argv)
@@ -55,10 +57,29 @@ def test_cli_search(
         assert fragment in out
 
 
+def test_cli_search_multiple_paths(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Several paths are indexed and saved separately, then searched through one merged index."""
+    merged = MagicMock(sources={"one": "/p/one", "two": "/p/two"})
+    merged.search.return_value = [SearchResult(chunk=make_chunk("x = 1", "one/a.py"), score=0.9)]
+    monkeypatch.setattr(sys, "argv", ["semble", "search", "x", "/p/one", "/p/two"])
+    with (
+        patch("semble.cli.SembleIndex.from_path", return_value=MagicMock()) as from_path,
+        patch("semble.cli.SembleIndex.merge", return_value=merged),
+        patch("semble.cli.save_index_to_cache") as save,
+    ):
+        _cli_main()
+    assert [c.args[0] for c in from_path.call_args_list] == ["/p/one", "/p/two"]
+    assert [c.args[1] for c in save.call_args_list] == ["/p/one", "/p/two"]
+    out = json.loads(capsys.readouterr().out)
+    assert out["repos"] == merged.sources
+    assert out["results"][0]["file_path"] == "one/a.py"
+
+
 @pytest.mark.parametrize(
     ("scenario", "expected_stdout", "expected_stderr", "expected_exit_code"),
     [
         ("with_results", ["src/bar.py", "0.8"], None, None),
+        ("text", ["src/bar.py:1-1\n\nclass Bar: pass"], None, None),
         ("no_results", ["No related chunks found"], None, None),
         ("unknown_chunk", [], "No chunk found", 1),
     ],
@@ -73,11 +94,15 @@ def test_cli_find_related(
 ) -> None:
     """_cli_main find-related prints results, empty states, and missing-chunk errors."""
     chunk = make_chunk("class Bar: pass", "src/bar.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.chunks = [] if scenario == "unknown_chunk" else [chunk]
-    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8)] if scenario == "with_results" else []
+    has_results = scenario in ("with_results", "text")
+    fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8)] if has_results else []
     file_path = "unknown.py" if scenario == "unknown_chunk" else "src/bar.py"
-    monkeypatch.setattr(sys, "argv", ["semble", "find-related", file_path, "1", "/some/path"])
+    argv = ["semble", "find-related", file_path, "1", "/some/path"] + (
+        ["--format", "text"] if scenario == "text" else []
+    )
+    monkeypatch.setattr(sys, "argv", argv)
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         if expected_exit_code is None:
             _cli_main()
@@ -108,7 +133,7 @@ def test_main_dispatches_to_cli(
 ) -> None:
     """main() routes to _cli_main when first argument is a CLI subcommand."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query text", "/some/path"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
@@ -132,7 +157,7 @@ def test_cli_entrypoint_works_without_mcp_installed(
 ) -> None:
     """CLI entrypoint paths succeed even when the mcp package is not installed."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", argv)
     monkeypatch.setitem(sys.modules, "mcp", None)
@@ -186,7 +211,7 @@ def test_include_text_files_cli_deprecated(
 ) -> None:
     """--include-text-files on CLI raises DeprecationWarning."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", "--include-text-files"])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
@@ -215,7 +240,7 @@ def test_cli_content_argument(
 ) -> None:
     """--content parses into the right ContentType list (including the 'all' shorthand and default)."""
     chunk = make_chunk("def foo(): pass", "src/foo.py")
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     fake_index.search.return_value = [SearchResult(chunk=chunk, score=0.9)]
     monkeypatch.setattr(sys, "argv", ["semble", "search", "query", "/some/path", *argv_content])
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index) as mock_from_path:
@@ -225,9 +250,9 @@ def test_cli_content_argument(
 
 def test_maybe_save_index_logs_error_on_save_failure(capsys: pytest.CaptureFixture[str]) -> None:
     """_maybe_save_index prints to stderr when cache persistence fails."""
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     with patch("semble.cli.save_index_to_cache", side_effect=OSError("disk full")):
-        _maybe_save_index(fake_index, "/some/path")
+        _maybe_save_index([("/some/path", fake_index)])
     assert "Error saving index" in capsys.readouterr().err
 
 

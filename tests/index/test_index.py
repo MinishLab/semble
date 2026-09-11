@@ -118,6 +118,49 @@ def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:
     assert get_file_status(path, None) is FileStatus.VALID
 
 
+def test_merge(mock_model: Any, tmp_project: Path, tmp_path_factory: pytest.TempPathFactory) -> None:
+    """A merged index prefixes paths per repo, records sources, and searches both repos at once."""
+    other = tmp_path_factory.mktemp("other")
+    (other / "client.py").write_text("def call_login(password):\n    return http_post('/login', password)\n")
+    with patch("semble.index.index.load_model", return_value=(mock_model, "")):
+        parts = [(str(tmp_project), SembleIndex.from_path(tmp_project)), (str(other), SembleIndex.from_path(other))]
+    merged = SembleIndex.merge(parts)
+
+    main, side = tmp_project.name, other.name
+    assert merged.sources == {main: str(tmp_project), side: str(other)}
+    assert {c.file_path for c in merged.chunks} == {f"{main}/auth.py", f"{main}/utils.py", f"{side}/client.py"}
+    assert {r.chunk.file_path for r in merged.search("login password", top_k=5)} >= {
+        f"{main}/auth.py",
+        f"{side}/client.py",
+    }
+    seed = next(c for c in merged.chunks if c.file_path == f"{side}/client.py")
+    assert all(r.chunk.file_path.startswith(main) for r in merged.find_related(seed, top_k=5))
+
+
+def test_merge_labels(indexed_index: SembleIndex) -> None:
+    """Labels are the repo name in sorted source order, so they do not depend on argument order; repeats get -N."""
+    url = "https://github.com/org/repo.git"
+    a, b, c, d, e = (str(Path(p).resolve()) for p in ("/a/repo", "/b/repo", "/c/repo-2", "/d/repo", "/e/other"))
+    sources = [url, d, c, e, a, b]
+    merged = SembleIndex.merge([(source, indexed_index) for source in sources])
+    assert merged.sources == {"repo": a, "repo-2": b, "repo-2-2": c, "repo-3": d, "other": e, "repo-4": url}
+    assert SembleIndex.merge([(source, indexed_index) for source in reversed(sources)]).sources == merged.sources
+
+
+@pytest.mark.parametrize(
+    ("second", "match"),
+    [
+        (("/x/b", MagicMock(_model_path="/other/model")), "same model"),
+        (("/x/a/../a", MagicMock(_model_path="")), "more than once"),
+    ],
+    ids=["different_model", "same_repo_twice"],
+)
+def test_merge_rejects_invalid_parts(indexed_index: SembleIndex, second: tuple[str, SembleIndex], match: str) -> None:
+    """Merging refuses indexes from different models and the same repo passed under two spellings."""
+    with pytest.raises(ValueError, match=match):
+        SembleIndex.merge([("/x/a", indexed_index), second])
+
+
 def test_index_language_counts(indexed_index: SembleIndex) -> None:
     """Language breakdown in stats includes python with at least one chunk."""
     stats = indexed_index.stats

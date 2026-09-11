@@ -26,13 +26,14 @@ classifiers = [
     "Natural Language :: English",
 ]
 dependencies = [
-    "model2vec>=0.4.0",
-    "vicinity>=0.4.4",
+    "model2vec>=0.4.0,<0.10",
+    "vicinity>=0.4.4,<0.5",
     "numpy>=1.24.0",
     "pathspec>=0.12",
     "orjson",
     "questionary>=2.0,<3.0",
-    "semble-grammars>=0.1.2",
+    "semble-grammars>=0.1.2,<0.2",
+    "tqdm>=4.60",
 ]
 
 [project.optional-dependencies]
@@ -127,7 +128,7 @@ check-return-types = false
 require-return-section-when-returning-nothing = false
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 warn_unused_configs = true
 ignore_missing_imports = true
 

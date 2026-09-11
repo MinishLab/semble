@@ -24,7 +24,12 @@
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~99% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, matching the retrieval quality of a code-specialized transformer while indexing ~340x faster and querying ~17x faster (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an MCP server, a CLI tool via AGENTS.md, or a dedicated sub-agent, and any coding agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~99% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second for most repos, matching the retrieval quality of a code-specialized transformer while indexing ~380x faster and querying ~17x faster (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an MCP server, a CLI tool via AGENTS.md, or a dedicated sub-agent, and any coding agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/demo-dark.gif">
+  <img src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/demo-light.gif" width="1000" alt="semble install detecting Claude Code, Cursor, and Codex, then semble search returning ranked code snippets from pydantic" />
+</picture>
 
 ## Quickstart
 
@@ -77,7 +82,7 @@ semble install --agent claude --type mcp subagent --yes
 - **Token-efficient**: returns only the relevant chunks, using [~99% fewer tokens than grep+read](#benchmarks).
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
 - **MCP server**: works with Claude Code, Cursor, Codex, OpenCode, VS Code, and any other MCP-compatible agent.
-- **Local and remote**: pass a local path or a git URL.
+- **Local and remote**: pass a local path or a git URL, or several of them to search related repos together.
 
 ## CLI
 
@@ -89,6 +94,9 @@ semble search "authentication flow" ./my-project
 
 # Search a remote repo (cloned on demand)
 semble search "save model to disk" https://github.com/MinishLab/model2vec
+
+# Search several repos at once (results are prefixed with the repo name)
+semble search "invoice endpoint" ./service-a ./service-b
 
 # Limit results
 semble search "save model to disk" ./my-project --top-k 10
@@ -103,7 +111,9 @@ semble find-related src/auth.py 42 ./my-project
 semble search "authentication flow" ./my-project --max-snippet-lines 10
 ```
 
-`--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
+`--content` accepts `code` (default), `docs`, `config`, or `all`. `--format` accepts `json` (default) or `text`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
+
+Passing several paths or URLs searches them as one corpus, so a query from repo A can find an endpoint defined in repo B. Each index is cached per repo and merged at query time. Result paths are prefixed with the repo name (`service-b/api/invoices.py`) and the output includes a `repos` map from prefix to absolute path or URL. Pass the prefixed path to `find-related` to search across all repos from a known location.
 
 <details>
 <summary>Controlling which files are indexed</summary>
@@ -205,6 +215,9 @@ index = SembleIndex.from_path("./my-project", content=[ContentType.CODE, Content
 # Index a remote git repository
 index = SembleIndex.from_git("https://github.com/MinishLab/model2vec")
 
+# Merge indexes from several repos into one (chunk paths are prefixed with the repo name)
+index = SembleIndex.merge([("./service-a", SembleIndex.from_path("./service-a")), ("./service-b", SembleIndex.from_path("./service-b"))])
+
 # Search the index with a natural-language or code query
 results = index.search("save model to disk", top_k=3)
 
@@ -227,7 +240,7 @@ Semble runs as an MCP server so agents can search any codebase directly as a nat
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL and `content` as `code`, `docs`, `config`, or `all` (default: `code`). |
+| `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL (or a list of them to search several repos together) and `content` as `code`, `docs`, `config`, or `all` (default: `code`). |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
 For per-agent setup instructions, see the [installation docs](docs/installation.md#mcp-server).
@@ -244,7 +257,7 @@ We benchmark quality and speed across ~1,250 queries over 63 repositories in 19 
 </tr>
 </table>
 
-The quality benchmark (left) scores retrieval quality (NDCG@10) against total latency; semble matches the quality of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) while indexing 340x faster. The token efficiency benchmark (right) measures how many tokens each method needs to reach a given recall level; semble uses 99% fewer tokens on average and hits 97% recall at only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and full methodology.
+The quality benchmark (left) scores retrieval quality (NDCG@10) against total latency; semble matches the quality of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) while indexing 380x faster. The token efficiency benchmark (right) measures how many tokens each method needs to reach a given recall level; semble uses 99% fewer tokens on average and hits 97% recall at only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and full methodology.
 
 ## How it works
 

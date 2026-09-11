@@ -45,6 +45,17 @@ def test_chunk_source_language() -> None:
         chunk_line_spy.assert_called_once()
 
 
+@pytest.mark.parametrize("language", [None, "python"])
+def test_chunk_source_line_numbers_match_content(language: str | None) -> None:
+    """chunk_source line numbers point at the lines each chunk's content comes from."""
+    source = "".join(f"def f{i}():\n    return {i}\n\n" for i in range(200))
+    lines = source.splitlines(keepends=True)
+    chunks = chunk_source(source, "foo.py", language)
+    assert len(chunks) > 1
+    for c in chunks:
+        assert c.content in "".join(lines[c.start_line - 1 : c.end_line])
+
+
 def test_core_chunk_empty_input() -> None:
     """core.chunk returns [] for whitespace-only input."""
     assert chunk("   \n", "python", 100) == []

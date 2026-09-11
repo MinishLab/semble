@@ -104,7 +104,7 @@ _METHODS: list[_Method] = [
     {
         "name": "semble",
         "ndcg10": 0.8544,
-        "index_ms": 343.5,
+        "index_ms": 305.6,
         "query_p50_ms": 0.91,
         "color": "#1a5fa8",
         "params_m": 16,
@@ -122,6 +122,13 @@ _CBRT_LABEL_DELTA_WARM = 0.2
 _FRONTIER_NAMES: dict[str, set[str]] = {
     "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed"},
     "warm": {"BM25", "CodeRankEmbed"},
+}
+
+# Methods labelled left of their point, per mode, where a right-hand label would collide or leave the plot.
+# Cold: zvec-grep sits just left of ColGREP. Warm: zvec-grep is the slowest method, near the right edge.
+_LEFT_LABELS: dict[str, set[str]] = {
+    "cold": {"zvec-grep"},
+    "warm": {"zvec-grep"},
 }
 
 
@@ -209,7 +216,8 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             edgecolors="white",
         )
 
-        x_label = (x ** (1 / 3) + cbrt_label_delta) ** 3
+        left = m["name"] in _LEFT_LABELS[mode]
+        x_label = (x ** (1 / 3) + (-cbrt_label_delta if left else cbrt_label_delta)) ** 3
         ax.text(
             x_label,
             y,
@@ -217,7 +225,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             fontsize=8.5,
             fontweight="bold" if m["name"] == "semble" else "normal",
             color=m["color"],
-            ha="left",
+            ha="right" if left else "left",
             va="center",
             zorder=4,
         )

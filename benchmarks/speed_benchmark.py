@@ -1,3 +1,4 @@
+import argparse
 import subprocess
 import sys
 import time
@@ -237,6 +238,12 @@ def _build_summary(results: list[ToolResult], tools: list[str]) -> dict[str, obj
 
 def main() -> None:
     """Run cold-start index + query latency benchmark over a curated 1-per-language subset."""
+    parser = argparse.ArgumentParser(description="Benchmark cold-start index time and query latency per language.")
+    parser.add_argument(
+        "--semble-only", action="store_true", help="Only benchmark semble (skip BM25, CodeRankEmbed, ColGREP, ripgrep)."
+    )
+    args = parser.parse_args()
+
     specs = available_repo_specs()
     all_tasks = load_tasks(repo_specs=specs)
     repo_tasks: dict[str, list[Task]] = {repo: [t for t in all_tasks if t.repo == repo] for repo in _REPOS}
@@ -246,13 +253,15 @@ def main() -> None:
     load_model(DEFAULT_MODEL_NAME)  # warms semble's internal model cache so repo #1 isn't penalized
     print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
 
-    print("Loading CodeRankEmbed...", file=sys.stderr)
-    started = time.perf_counter()
-    cre_model = _AsymmetricWrapper(SentenceTransformer(_CRE_MODEL_NAME, trust_remote_code=True, device="cpu"))
-    print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
+    cre_model = None
+    if not args.semble_only:
+        print("Loading CodeRankEmbed...", file=sys.stderr)
+        started = time.perf_counter()
+        cre_model = _AsymmetricWrapper(SentenceTransformer(_CRE_MODEL_NAME, trust_remote_code=True, device="cpu"))
+        print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
     print(file=sys.stderr)
 
-    tools = ["semble", "bm25", "coderankembed", "colgrep", "ripgrep"]
+    tools = ["semble"] if args.semble_only else ["semble", "bm25", "coderankembed", "colgrep", "ripgrep"]
 
     print(
         f"{'Repo':<22} {'Language':<14} {'Tool':<16} {'Index':>10} {'p50':>8} {'p90':>8} {'p95':>8} {'p99':>8}",
@@ -272,6 +281,8 @@ def main() -> None:
         )
         all_results.append(result)
         print(f"{repo:<22} {spec.language:<14} {'semble':<16} {index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr)
+        if cre_model is None:
+            continue
 
         bm25_index_ms, latencies_ms = _bench_bm25(semble_index, tasks)
         result = ToolResult(
