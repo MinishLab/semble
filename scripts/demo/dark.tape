@@ -3,7 +3,7 @@ Output "assets/images/tour-dark.gif"
 Set Shell "bash"
 Set FontSize 18
 Set Width 1200
-Set Height 720
+Set Height 672
 Set Theme "Catppuccin Mocha"
 Set Padding 20
 Set Margin 30
