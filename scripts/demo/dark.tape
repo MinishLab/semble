@@ -1,4 +1,4 @@
-Output "assets/images/tour-dark.gif"
+Output "assets/images/demo-dark.gif"
 
 Set Shell "bash"
 Set FontSize 18

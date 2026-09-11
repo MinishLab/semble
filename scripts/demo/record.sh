@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Records the README demo GIFs (assets/images/tour-{dark,light}.gif) from dark.tape and light.tape.
+# Records the README demo GIFs (assets/images/demo-{dark,light}.gif) from dark.tape and light.tape.
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
@@ -31,4 +31,4 @@ DEMO_HOME="$light" vhs scripts/demo/light.tape >/dev/null &
 light_pid=$!
 wait "$dark_pid"
 wait "$light_pid"
-echo "Recorded assets/images/tour-dark.gif and assets/images/tour-light.gif"
+echo "Recorded assets/images/demo-dark.gif and assets/images/demo-light.gif"
