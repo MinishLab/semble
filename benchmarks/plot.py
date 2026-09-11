@@ -112,7 +112,7 @@ _METHODS: list[_Method] = [
 ]
 
 # Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
-# The warm plot spans ~0.01–500 ms so needs a much smaller delta than the cold plot (~100 ms–100 s).
+# The warm plot spans ~0.01 ms–1 s so needs a much smaller delta than the cold plot (~100 ms–100 s).
 _CBRT_LABEL_DELTA_COLD = 2.0
 _CBRT_LABEL_DELTA_WARM = 0.2
 
@@ -122,13 +122,6 @@ _CBRT_LABEL_DELTA_WARM = 0.2
 _FRONTIER_NAMES: dict[str, set[str]] = {
     "cold": {"ripgrep", "BM25", "ColGREP", "CodeRankEmbed"},
     "warm": {"BM25", "CodeRankEmbed"},
-}
-
-# Methods labelled left of their point, per mode, where a right-hand label would collide or leave the plot.
-# Cold: zvec-grep sits just left of ColGREP. Warm: zvec-grep is the slowest method, near the right edge.
-_LEFT_LABELS: dict[str, set[str]] = {
-    "cold": {"zvec-grep"},
-    "warm": {"zvec-grep"},
 }
 
 
@@ -165,7 +158,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     mode = "warm" if warm else "cold"
     cbrt_label_delta = _CBRT_LABEL_DELTA_WARM if warm else _CBRT_LABEL_DELTA_COLD
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(10, 6.25))
 
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
@@ -188,7 +181,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             if m["name"] in _FRONTIER_NAMES[mode]
         ]
     )
-    xlim = (0.01, 500) if warm else (5, 200_000)
+    xlim = (0.01, 1_000) if warm else (5, 200_000)
     # Shade the incumbent zone: region below the frontier, closed to the plot edges.
     shade_xs = [xlim[0]] + [p[0] for p in frontier] + [xlim[1]]
     shade_ys = [frontier[0][1]] + [p[1] for p in frontier] + [frontier[-1][1]]
@@ -216,8 +209,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             edgecolors="white",
         )
 
-        left = m["name"] in _LEFT_LABELS[mode]
-        x_label = (x ** (1 / 3) + (-cbrt_label_delta if left else cbrt_label_delta)) ** 3
+        x_label = (x ** (1 / 3) + cbrt_label_delta) ** 3
         ax.text(
             x_label,
             y,
@@ -225,7 +217,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             fontsize=8.5,
             fontweight="bold" if m["name"] == "semble" else "normal",
             color=m["color"],
-            ha="right" if left else "left",
+            ha="left",
             va="center",
             zorder=4,
         )
@@ -236,8 +228,8 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
 
     ax.set_xlabel("Query latency", fontsize=10, color="#444444")
     if warm:
-        ax.set_xlim(0.01, 500)
-        ax.set_xticks([0.1, 1, 10, 100])
+        ax.set_xlim(0.01, 1_000)
+        ax.set_xticks([0.1, 1, 10, 100, 1_000])
         ax.set_title("Code search quality vs. latency (warm)", fontsize=12, color="#222222", pad=12)
     else:
         ax.set_xlim(5, 200_000)
