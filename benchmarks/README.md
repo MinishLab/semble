@@ -188,6 +188,7 @@ Full runs write to `benchmarks/results/semble-hybrid-<sha12>.json`.
 
 ```bash
 uv run python -m benchmarks.speed_benchmark
+uv run python -m benchmarks.speed_benchmark --semble-only  # skip the baselines
 ```
 
 Writes to `benchmarks/results/speed-<sha12>.json`.
