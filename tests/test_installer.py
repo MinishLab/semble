@@ -520,13 +520,17 @@ def test_checkbox(monkeypatch):
     assert _checkbox("Pick:", [("Option A", "a", False)]) == ["a"]
 
 
-def test_print_plan(capsys, claude_agent):
-    """_print_plan prints each agent, integration, and resolved path (or 'not supported')."""
+@pytest.mark.parametrize("under_home", [True, False])
+def test_print_plan(capsys, claude_agent, monkeypatch, tmp_path, under_home):
+    """_print_plan prints each agent, integration, and path (shortened to ~ under home, or 'not supported')."""
+    monkeypatch.setattr(Path, "home", lambda: tmp_path if under_home else tmp_path / "elsewhere")
     no_mcp = replace(claude_agent, display_name="No MCP Agent", mcp=None)
     _print_plan([claude_agent, no_mcp], _INTEGRATIONS)
     out = capsys.readouterr().out
     assert "Claude Code" in out
     assert "not supported" in out  # no_mcp has no MCP
+    expected = Path("~") / ".claude" / "CLAUDE.md" if under_home else claude_agent.instructions_path
+    assert str(expected) in out
 
 
 def test_run_completes(run_setup, monkeypatch, capsys):

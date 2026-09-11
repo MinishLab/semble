@@ -43,7 +43,9 @@ def embed_chunks(model: StaticModel, chunks: list[Chunk]) -> npt.NDArray[np.floa
     """Embed chunks using the configured model."""
     if not chunks:
         return np.empty((0, model.dim), dtype=np.float32)
-    return np.array(model.encode([c.content for c in chunks], use_multiprocessing=False), dtype=np.float32)
+    return np.array(
+        model.encode([c.content for c in chunks], use_multiprocessing=False, max_length=None), dtype=np.float32
+    )
 
 
 class SelectableBasicBackend(CosineBasicBackend):

@@ -155,6 +155,12 @@ def _checkbox(prompt: str, items: Sequence[tuple[str, _T, bool]]) -> list[_T] | 
     return questionary.checkbox(prompt, choices=choices, style=style, instruction=instruction).ask()
 
 
+def _display_path(path: Path) -> str:
+    """Return path with the home directory shortened to ~, keeping installer output readable."""
+    home = Path.home()
+    return str(Path("~") / path.relative_to(home)) if path.is_relative_to(home) else str(path)
+
+
 def _print_plan(agents: list[AgentTarget], integrations: list[_Integration]) -> None:
     """Print what will be written or removed for each selected agent and integration."""
     print(f"\n  {_BOLD}Plan:{_RESET}\n")
@@ -162,8 +168,8 @@ def _print_plan(agents: list[AgentTarget], integrations: list[_Integration]) -> 
         print(f"  {_BOLD}{agent.display_name}{_RESET}")
         for integ in integrations:
             path = integ.plan_path(agent)
-            ok = path is not None
-            print(f"    {integ.label:<13} {_tick(ok)}  {path if ok else '(not supported)'}")
+            shown = _display_path(path) if path is not None else "(not supported)"
+            print(f"    {integ.label:<13} {_tick(path is not None)}  {shown}")
     print()
 
 
@@ -180,7 +186,7 @@ def _apply(mode: Mode, agents: list[AgentTarget], integrations: list[_Integratio
             ok = result.action in ("created", "updated", "removed", "unchanged")
             detail = _ACTION_DETAIL.get(result.action, "")
             suffix = f" — {detail}" if detail else ""
-            print(f"    {_tick(ok)} {integ.id.value} ({result.action}){suffix} → {result.path}")
+            print(f"    {_tick(ok)} {integ.id.value} ({result.action}){suffix} → {_display_path(result.path)}")
         print()
 
 

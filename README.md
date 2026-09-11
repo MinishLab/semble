@@ -24,7 +24,12 @@
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~99% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second, matching the retrieval quality of a code-specialized transformer while indexing ~340x faster and querying ~17x faster (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an MCP server, a CLI tool via AGENTS.md, or a dedicated sub-agent, and any coding agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~99% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second for most repos, matching the retrieval quality of a code-specialized transformer while indexing ~340x faster and querying ~17x faster (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an MCP server, a CLI tool via AGENTS.md, or a dedicated sub-agent, and any coding agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/demo-dark.gif">
+  <img src="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/demo-light.gif" width="1000" alt="semble install detecting Claude Code, Cursor, and Codex, then semble search returning ranked code snippets from pydantic" />
+</picture>
 
 ## Quickstart
 
@@ -106,7 +111,7 @@ semble find-related src/auth.py 42 ./my-project
 semble search "authentication flow" ./my-project --max-snippet-lines 10
 ```
 
-`--content` accepts `code` (default), `docs`, `config`, or `all`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
+`--content` accepts `code` (default), `docs`, `config`, or `all`. `--format` accepts `json` (default) or `text`. `path` defaults to the current directory when omitted; git URLs are accepted. If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place. `semble --version` (or `-V`) prints the installed version.
 
 Passing several paths or URLs searches them as one corpus, so a query from repo A can find an endpoint defined in repo B. Each index is cached per repo and merged at query time. Result paths are prefixed with the repo name (`service-b/api/invoices.py`) and the output includes a `repos` map from prefix to absolute path or URL. Pass the prefixed path to `find-related` to search across all repos from a known location.
 
