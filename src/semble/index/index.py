@@ -6,6 +6,7 @@ import tempfile
 import warnings
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +14,7 @@ import numpy as np
 import numpy.typing as npt
 import orjson
 from model2vec.model import StaticModel
+from vicinity.backends.basic import BasicArgs
 
 from semble.cache import get_validated_cache, load_previous_for_incremental
 from semble.index.bm25 import BM25
@@ -23,6 +25,7 @@ from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, Persiste
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, ContentType, IndexStats, SearchResult
+from semble.utils import is_git_url
 
 _GIT_CLONE_TIMEOUT = int(os.environ.get("SEMBLE_CLONE_TIMEOUT", 60))
 _DEFAULT_CONTENT: tuple[ContentType, ...] = (ContentType.CODE,)
@@ -85,6 +88,7 @@ class SembleIndex:
         self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
         self._manifest: dict[str, FileManifestEntry] = manifest or {}
+        self.sources: dict[str, str] = {}  # repo label -> source, only set on indexes built by merge()
 
     def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
         """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
@@ -175,6 +179,53 @@ class SembleIndex:
         return SembleIndex(
             model, bm25_index, semantic_index, chunks, model_path, root=path, content=normalized, manifest=manifest
         )
+
+    @classmethod
+    def merge(cls, indexes: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
+        """Merge indexes built from several repos into one that searches them together.
+
+        :param indexes: (source, index) pairs, where source is the local path or git URL the index was built from.
+        :return: A new in-memory index over all chunks.
+        :raises ValueError: If the indexes were built with different models, or the same repo is passed twice.
+        """
+        if len({index._model_path for _, index in indexes}) != 1:
+            raise ValueError("Indexes to merge must be built with the same model.")
+        normalized = [(s if is_git_url(s) else str(Path(s).expanduser().resolve()), index) for s, index in indexes]
+        # Sort by resolved source so the same set of repos always gets the same labels, whatever the argument order.
+        resolved = sorted(normalized, key=lambda pair: pair[0])
+        sources = [source for source, _ in resolved]
+        if duplicates := sorted({source for source in sources if sources.count(source) > 1}):
+            raise ValueError(f"The same repo was passed more than once: {duplicates}")
+        labels: list[str] = []
+        for source in sources:
+            name = label = Path(source).name.removesuffix(".git")
+            suffix = 2
+            while label in labels:  # another repo already has this name, append a suffix
+                label = f"{name}-{suffix}"
+                suffix += 1
+            labels.append(label)
+        parts = [(label, index) for label, (_, index) in zip(labels, resolved)]
+
+        chunks = [
+            replace(chunk, file_path=f"{label}/{chunk.file_path}") for label, index in parts for chunk in index.chunks
+        ]
+        bm25 = BM25.merge([(label, index._bm25_index) for label, index in parts])
+        vectors = np.vstack([index._semantic_index.vectors for _, index in parts])
+
+        first = parts[0][1]
+        merged = cls(
+            first.model,
+            bm25,
+            SelectableBasicBackend(vectors, BasicArgs()),
+            chunks,
+            first._model_path,
+            content=first.content,
+        )
+        merged.sources = dict(zip(labels, sources))
+        merged._file_sizes = {
+            f"{label}/{path}": size for label, index in parts for path, size in index._file_sizes.items()
+        }
+        return merged
 
     @classmethod
     def from_git(

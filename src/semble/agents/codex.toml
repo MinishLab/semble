@@ -25,7 +25,11 @@ Use `semble find-related` to discover code similar to a known location (pass `fi
 semble find-related src/auth.py 42 ./my-project
 ```
 
-`path` defaults to the current directory when omitted; git URLs are accepted.
+`path` defaults to the current directory when omitted; git URLs are accepted. Pass several paths or URLs to search related repos together, e.g. when this project calls a service defined in a sibling repo. Result paths are then prefixed with the repo name and the output includes a `repos` map from prefix to location:
+
+```bash
+semble search "invoice endpoint" ./service-a ../service-b
+```
 
 If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its place.
 
@@ -35,5 +39,6 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 2. Use `--content docs` for documentation, `--content config` for config files, or `--content all` for everything.
 3. Navigate directly to the returned file and line. Do not re-search or grep for the same content.
 4. Optionally use `semble find-related` with a promising result's `file_path` and `line` to discover related implementations.
-5. Use grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
+5. If the answer may live in a dependent or sibling repo, pass all relevant repo paths to one `semble search` call.
+6. Use grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
 """

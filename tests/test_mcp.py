@@ -30,7 +30,7 @@ async def _call_tool(
     index_chunks: list[Chunk] | None = None,
 ) -> str:
     """Patch SembleIndex.from_path with a fake index and invoke the tool, returning the text."""
-    fake_index = MagicMock()
+    fake_index = MagicMock(sources={})
     getattr(fake_index, index_method).return_value = index_return
     if index_chunks is not None:
         fake_index.chunks = index_chunks
@@ -358,6 +358,25 @@ async def test_tool_output(
 
 
 @pytest.mark.anyio
+async def test_search_multiple_repos(cache: _IndexCache) -> None:
+    """A list of repos is searched through one merged index, which is reused while its parts are unchanged."""
+    merged = MagicMock(sources={"one": "/p/one", "two": "/p/two"})
+    merged.search.return_value = [SearchResult(chunk=make_chunk("x = 1", "one/a.py"), score=0.9)]
+    with (
+        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch("semble.mcp.SembleIndex.merge", return_value=merged) as merge,
+        patch("semble.mcp.save_index_to_cache"),
+    ):
+        server = create_server(cache)
+        result = await server.call_tool("search", {"query": "x", "repo": ["/p/one", "/p/two"]})
+        await server.call_tool("search", {"query": "x", "repo": ["/p/one", "/p/two"]})
+    payload = json.loads(_tool_text(result))
+    assert payload["repos"] == merged.sources
+    assert payload["results"][0]["file_path"] == "one/a.py"
+    merge.assert_called_once()
+
+
+@pytest.mark.anyio
 async def test_search_builds_exact_content_indexes(
     cache: _IndexCache,
     mock_model: StaticModel,
@@ -468,23 +487,24 @@ async def test_index_cache_propagates_model_error(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("repo", "tool", "extra_args"),
+    ("repo", "tool", "extra_args", "expected"),
     [
-        ("file:///home/user/secret", "search", {"query": "foo"}),
-        ("ssh://internal-host/repo", "search", {"query": "foo"}),
-        ("git@github.com:org/repo", "search", {"query": "foo"}),
-        ("file:///home/user/secret", "find_related", {"file_path": "src/foo.py", "line": 1}),
-        ("ssh://internal-host/repo", "find_related", {"file_path": "src/foo.py", "line": 1}),
+        ("file:///home/user/secret", "search", {"query": "foo"}, "Only https://"),
+        ("ssh://internal-host/repo", "search", {"query": "foo"}, "Only https://"),
+        ("git@github.com:org/repo", "search", {"query": "foo"}, "Only https://"),
+        ("file:///home/user/secret", "find_related", {"file_path": "src/foo.py", "line": 1}, "Only https://"),
+        ("ssh://internal-host/repo", "find_related", {"file_path": "src/foo.py", "line": 1}, "Only https://"),
+        ([], "search", {"query": "foo"}, "at least one"),
     ],
-    ids=["file_search", "ssh_search", "scp_search", "file_find_related", "ssh_find_related"],
+    ids=["file_search", "ssh_search", "scp_search", "file_find_related", "ssh_find_related", "empty_list"],
 )
-async def test_tool_rejects_unsafe_repo(
-    cache: _IndexCache, repo: str, tool: str, extra_args: dict[str, object]
+async def test_tool_rejects_invalid_repo(
+    cache: _IndexCache, repo: str | list[str], tool: str, extra_args: dict[str, object], expected: str
 ) -> None:
-    """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) supplied as repo."""
+    """Both tools reject unsafe git transport schemes (ssh://, file://, SCP-form) and an empty repo list."""
     server = create_server(cache)
     result = await server.call_tool(tool, {**extra_args, "repo": repo})
-    assert "Only https://" in _tool_text(result)
+    assert expected in _tool_text(result)
 
 
 @pytest.mark.anyio
