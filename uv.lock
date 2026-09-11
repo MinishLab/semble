@@ -3873,7 +3873,7 @@ requires-dist = [
     { name = "einops", marker = "extra == 'benchmark'", specifier = ">=0.8.2" },
     { name = "matplotlib", marker = "extra == 'benchmark'", specifier = ">=3.7" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0,<2.0" },
-    { name = "model2vec", specifier = ">=0.9,<0.10" },
+    { name = "model2vec", specifier = ">=0.4.0,<0.10" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "numpy", marker = "extra == 'benchmark'", specifier = ">=1.24.0" },
