@@ -148,9 +148,9 @@ cbm = [codebase-memory-mcp](#methods).
 - **[grepai](https://github.com/nicholasgasior/grepai)**: semantic search using [nomic-embed-text](https://huggingface.co/nomic-ai/nomic-embed-text-v1) (137M params) via a local Ollama daemon.
 - **[codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)**: code intelligence engine that indexes a repo into a SQLite/graph store. We benchmark its `search_graph` tool in `fast` mode, which does BM25 full-text search with structural boosting.
 - **[ck](https://github.com/BeaconBay/ck)**: hybrid regex + semantic search using [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5).
-- **[zvec-grep](https://github.com/zvec-ai/zvec-grep)**: hybrid FTS + vector code search CLI (v0.2.1), benchmarked with its local `potion-code-16m-v2` embedding model in `direct` mode, one process per query like the other CLI baselines (its server mode is ~2x faster on warm queries).
+- **[zvec-grep](https://github.com/zvec-ai/zvec-grep)**: [potion-code-16M-v2](https://huggingface.co/minishlab/potion-code-16M-v2) static embeddings + BM25. Benchmarked in `direct` mode.
 - **[CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed)**: 137M-param transformer embedding model for code retrieval, used for semantic-only dense search.
-- **[semble](https://github.com/your-repo/semble)**: this library. [potion-code-16M](https://huggingface.co/minishlab/potion-code-16M) static embeddings + BM25 + the semble reranking stack.
+- **[semble](https://github.com/your-repo/semble)**: this library. [potion-code-16M-v2](https://huggingface.co/minishlab/potion-code-16M-v2) static embeddings + BM25 + the semble reranking stack.
 
 ## Excluded methods
 
@@ -285,7 +285,7 @@ uv run python -m benchmarks.baselines.ck --repo fastapi --repo axios
 <details>
 <summary>zvec-grep</summary>
 
-Needs `zg` on `$PATH` (`npm install -g @zvec/zvec-grep`, requires Node.js 22+). Downloads its local `potion-code-16m-v2` embedding model on first index; no API key needed.
+Needs `zg` on `$PATH` (`npm install -g @zvec/zvec-grep`, requires Node.js 22+). Downloads the `potion-code-16m-v2` embedding model on first index.
 
 ```bash
 uv run python -m benchmarks.baselines.zvecgrep
