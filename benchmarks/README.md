@@ -103,9 +103,9 @@ cbm = [codebase-memory-mcp](#methods).
 
 | Retrieval              |   Raw | + ranking |
 | ---------------------- | ----: | --------: |
-| BM25                   | 0.675 |     0.834 |
-| potion-code-16M        | 0.650 |     0.821 |
-| BM25 + potion-code-16M |     — | **0.854** |
+| BM25                      | 0.675 |     0.834 |
+| potion-code-16M-v2        | 0.650 |     0.821 |
+| BM25 + potion-code-16M-v2 |     — | **0.854** |
 
 <details>
 <summary>By query category</summary>
@@ -170,7 +170,7 @@ uv run python -m benchmarks.sync_repos          # clone / update
 uv run python -m benchmarks.sync_repos --check  # verify only
 ```
 
-All tools run CPU-only. semble uses `minishlab/potion-code-16M`; CodeRankEmbed uses `nomic-ai/CodeRankEmbed` (137M params). The speed benchmark touches one repo per language with a cold-start index and 5 query runs per repo.
+All tools run CPU-only. semble uses `minishlab/potion-code-16M-v2`; CodeRankEmbed uses `nomic-ai/CodeRankEmbed` (137M params). The speed benchmark touches one repo per language with a cold-start index and 5 query runs per repo.
 
 <details>
 <summary>semble</summary>
@@ -285,7 +285,7 @@ uv run python -m benchmarks.baselines.ck --repo fastapi --repo axios
 <details>
 <summary>zvec-grep</summary>
 
-Needs `zg` on `$PATH` (`npm install -g @zvec/zvec-grep`, requires Node.js 22+). Downloads the `potion-code-16m-v2` embedding model on first index.
+Needs `zg` on `$PATH` (`npm install -g @zvec/zvec-grep@0.2.1`, requires Node.js 22+). Downloads the `potion-code-16m-v2` embedding model on first index. The published numbers were measured with 0.2.1; the runner records the installed version in its results file, and pinning matters because it parses `zg`'s human-readable output.
 
 ```bash
 uv run python -m benchmarks.baselines.zvecgrep

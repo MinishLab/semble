@@ -134,6 +134,15 @@ def _run_repo(spec: RepoSpec, tasks: list[Task], *, verbose: bool) -> RepoResult
     return RepoResult(repo=spec.name, language=spec.language, ndcg10=ndcg10, p50_ms=p50_ms, index_ms=index_ms)
 
 
+def _zg_version() -> str:
+    """Return the installed zvec-grep version, or 'unknown' if zg cannot be queried."""
+    try:
+        proc = subprocess.run([_ZG, "--version"], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired):
+        return "unknown"
+    return proc.stdout.strip() or "unknown" if proc.returncode == 0 else "unknown"
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Benchmark zvec-grep on the semble benchmark suite.")
     add_filter_args(parser, verbose=True)
@@ -178,6 +187,7 @@ def main() -> None:
 
     summary = {
         "tool": "zvec-grep",
+        "version": _zg_version(),
         "note": f"hybrid FTS + {_EMBEDDING} vector search",
         "repos": [
             {
