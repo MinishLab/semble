@@ -113,7 +113,7 @@ _METHODS: list[_Method] = [
 
 # Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
 # The warm plot spans ~0.01 ms–1 s so needs a much smaller delta than the cold plot (~100 ms–100 s).
-_CBRT_LABEL_DELTA_COLD = 2.0
+_CBRT_LABEL_DELTA_COLD = 1.55
 _CBRT_LABEL_DELTA_WARM = 0.2
 
 # Frontier methods per mode.
