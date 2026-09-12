@@ -62,6 +62,14 @@ _METHODS: list[_Method] = [
         "params_m": 33,
     },
     {
+        "name": "zvec-grep",
+        "ndcg10": 0.6701,
+        "index_ms": 3402.0,
+        "query_p50_ms": 391.09,
+        "color": "#c23b6e",
+        "params_m": 16,
+    },
+    {
         "name": "BM25",
         "ndcg10": 0.673,
         "index_ms": 46.6,  # standalone BM25 build time, not shared with semble's dense index
@@ -103,10 +111,9 @@ _METHODS: list[_Method] = [
     },
 ]
 
-# Fixed label offset in cube-root(ms) space — gives a consistent visual gap at every x-position.
-# The warm plot spans ~0.01–500 ms so needs a much smaller delta than the cold plot (~100 ms–100 s).
-_CBRT_LABEL_DELTA_COLD = 2.0
-_CBRT_LABEL_DELTA_WARM = 0.2
+# Gap between a marker's edge and its label, in points. Offsetting from the edge (rather than in data
+# space) keeps the gap identical for every marker size, axis range and figure size.
+_LABEL_GAP_POINTS = 3.0
 
 # Frontier methods per mode.
 # Cold: incumbent prior-art curve (ripgrep → BM25 → ColGREP → CodeRankEmbed); semble floats above it.
@@ -148,9 +155,8 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     :param warm: If True, use per-query latency (index pre-built). If False, use index + query latency.
     """
     mode = "warm" if warm else "cold"
-    cbrt_label_delta = _CBRT_LABEL_DELTA_WARM if warm else _CBRT_LABEL_DELTA_COLD
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(9, 5.6))
 
     fig.patch.set_facecolor("white")
     ax.set_facecolor("white")
@@ -173,7 +179,7 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             if m["name"] in _FRONTIER_NAMES[mode]
         ]
     )
-    xlim = (0.01, 500) if warm else (5, 200_000)
+    xlim = (0.01, 1_000) if warm else (5, 200_000)
     # Shade the incumbent zone: region below the frontier, closed to the plot edges.
     shade_xs = [xlim[0]] + [p[0] for p in frontier] + [xlim[1]]
     shade_ys = [frontier[0][1]] + [p[1] for p in frontier] + [frontier[-1][1]]
@@ -190,10 +196,11 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
     for m in _METHODS:
         x = m["query_p50_ms"] if warm else m["index_ms"] + m["query_p50_ms"]
         y = m["ndcg10"]
+        size = _marker_size(m["params_m"])
         ax.scatter(
             x,
             y,
-            s=_marker_size(m["params_m"]),
+            s=size,
             color=m["color"],
             marker="o",
             zorder=3,
@@ -201,12 +208,13 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
             edgecolors="white",
         )
 
-        x_label = (x ** (1 / 3) + cbrt_label_delta) ** 3
-        ax.text(
-            x_label,
-            y,
+        # scatter sizes are areas in points², so the marker's radius is half of sqrt(size).
+        ax.annotate(
             m["name"],
-            fontsize=8.5,
+            (x, y),
+            textcoords="offset points",
+            xytext=(size**0.5 / 2 + _LABEL_GAP_POINTS, 0),
+            fontsize=9.5,
             fontweight="bold" if m["name"] == "semble" else "normal",
             color=m["color"],
             ha="left",
@@ -220,8 +228,8 @@ def _make_plot(out_path: Path, *, warm: bool = False) -> None:
 
     ax.set_xlabel("Query latency", fontsize=10, color="#444444")
     if warm:
-        ax.set_xlim(0.01, 500)
-        ax.set_xticks([0.1, 1, 10, 100])
+        ax.set_xlim(0.01, 1_000)
+        ax.set_xticks([0.1, 1, 10, 100, 1_000])
         ax.set_title("Code search quality vs. latency (warm)", fontsize=12, color="#222222", pad=12)
     else:
         ax.set_xlim(5, 200_000)
