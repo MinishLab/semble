@@ -21,7 +21,7 @@ Quality and speed across all methods.
 | CodeRankEmbed        |     0.839 |      116 s |       16 ms |
 | ColGREP              |     0.693 |      5.4 s |      122 ms |
 | BM25                 |     0.673 |      47 ms |     0.17 ms |
-| zvec-grep            |     0.670 |      4.0 s |      386 ms |
+| zvec-grep            |     0.670 |      3.4 s |      391 ms |
 | ck                   |     0.642 |       96 s |      187 ms |
 | codebase-memory-mcp  |     0.630 |     454 ms |       46 ms |
 | grepai               |     0.561 |       35 s |       48 ms |
@@ -190,7 +190,8 @@ Full runs write to `benchmarks/results/semble-hybrid-<sha12>.json`.
 
 ```bash
 uv run python -m benchmarks.speed_benchmark
-uv run python -m benchmarks.speed_benchmark --semble-only  # skip the baselines
+uv run python -m benchmarks.speed_benchmark --tools semble zvec-grep   # subset of tools
+uv run python -m benchmarks.speed_benchmark --repo flask --repo axios  # subset of repos
 ```
 
 Writes to `benchmarks/results/speed-<sha12>.json`.

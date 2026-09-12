@@ -64,8 +64,8 @@ _METHODS: list[_Method] = [
     {
         "name": "zvec-grep",
         "ndcg10": 0.6701,
-        "index_ms": 3953.0,
-        "query_p50_ms": 385.6,
+        "index_ms": 3402.0,
+        "query_p50_ms": 391.09,
         "color": "#c23b6e",
         "params_m": 16,
     },

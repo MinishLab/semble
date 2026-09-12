@@ -1,8 +1,9 @@
 import argparse
+import shutil
 import subprocess
 import sys
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 import numpy as np
@@ -47,6 +48,8 @@ _REPOS: list[str] = [
 
 _TOP_K = 10
 _COLGREP = "colgrep"
+_ZG = "zg"
+_ZG_EMBEDDING = "local/potion-code-16m-v2"
 
 
 @dataclass(frozen=True)
@@ -95,8 +98,12 @@ class _AsymmetricWrapper:
         self._model = model
         self._model.max_seq_length = max_seq_length
 
-    def encode(self, texts: Sequence[str], use_multiprocessing: object = _UNSET) -> np.ndarray:
-        """Encode with the query prompt only when use_multiprocessing wasn't passed."""
+    def encode(self, texts: Sequence[str], use_multiprocessing: object = _UNSET, **_kwargs: object) -> np.ndarray:
+        """Encode with the query prompt only when use_multiprocessing wasn't passed.
+
+        Extra keyword arguments are swallowed: semble passes max_length, which does not apply here because
+        max_seq_length is pinned on the wrapped model in __init__.
+        """
         text_list = list(texts)
         if use_multiprocessing is _UNSET:
             return self._model.encode(text_list, prompt_name="query", batch_size=1)  # type: ignore[return-value]
@@ -203,6 +210,37 @@ def _bench_colgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, tuple[floa
     return index_ms, tuple(latencies)
 
 
+def _bench_zvecgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, tuple[float, ...]] | None:
+    """Index a repo with zvec-grep and measure query latency; return (index_ms, latencies_ms) or None on failure."""
+    shutil.rmtree(spec.benchmark_dir / ".zvec-grep", ignore_errors=True)
+    started = time.perf_counter()
+    proc = subprocess.run(
+        [_ZG, "index", str(spec.benchmark_dir), "--embedding", _ZG_EMBEDDING, "--mode", "direct"],
+        capture_output=True,
+        text=True,
+        timeout=1800,
+    )
+    index_ms = (time.perf_counter() - started) * 1000
+    if proc.returncode != 0:
+        print(f"  WARNING: zg index failed: {proc.stderr.strip()[:200]}", file=sys.stderr)
+        shutil.rmtree(spec.benchmark_dir / ".zvec-grep", ignore_errors=True)
+        return None
+    latencies: list[float] = []
+    for task in tasks:
+        for _ in range(5):
+            started = time.perf_counter()
+            subprocess.run(
+                [_ZG, "query", task.query, "--limit", str(_TOP_K), "--mode", "direct", "--refresh", "off"],
+                cwd=spec.benchmark_dir,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            latencies.append((time.perf_counter() - started) * 1000)
+    shutil.rmtree(spec.benchmark_dir / ".zvec-grep", ignore_errors=True)
+    return index_ms, tuple(latencies)
+
+
 def _bench_ripgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, tuple[float, ...]]:
     """Measure ripgrep query latency (no index step); return (0.0, latencies_ms)."""
     latencies: list[float] = []
@@ -212,6 +250,39 @@ def _bench_ripgrep(spec: RepoSpec, tasks: list[Task]) -> tuple[float, tuple[floa
             run_ripgrep_count(task.query, spec.benchmark_dir, top_k=_TOP_K)
             latencies.append((time.perf_counter() - started) * 1000)
     return 0.0, tuple(latencies)
+
+
+# Tools benched by dispatching on the name; semble, bm25, coderankembed and ripgrep are special-cased in _run_tool
+# because they need an extra argument (a model, semble's index) or return no index time.
+_TOOL_BENCHES: dict[str, Callable[[RepoSpec, list[Task]], tuple[float, tuple[float, ...]] | None]] = {
+    "colgrep": _bench_colgrep,
+    "zvec-grep": _bench_zvecgrep,
+}
+
+# Benchmark order: semble first (bm25 reuses its chunks), then the indexed baselines, then ripgrep.
+_ALL_TOOLS: tuple[str, ...] = ("semble", "bm25", "coderankembed", "colgrep", "zvec-grep", "ripgrep")
+
+
+def _run_tool(
+    tool: str,
+    spec: RepoSpec,
+    tasks: list[Task],
+    semble_index: "SembleIndex | None",
+    cre_model: "_AsymmetricWrapper | None",
+) -> tuple[tuple[float | None, tuple[float, ...]] | None, "SembleIndex | None"]:
+    """Benchmark one tool on one repo; return ((index_ms, latencies_ms) or None, semble's index for bm25 to reuse)."""
+    if tool == "semble":
+        index_ms, semble_index, latencies_ms = _bench_semble(spec, tasks)
+        return (index_ms, latencies_ms), semble_index
+    if tool == "bm25":
+        assert semble_index is not None
+        return _bench_bm25(semble_index, tasks), semble_index
+    if tool == "coderankembed":
+        assert cre_model is not None
+        return _bench_coderankembed(spec, tasks, cre_model), semble_index
+    if tool == "ripgrep":
+        return (None, _bench_ripgrep(spec, tasks)[1]), semble_index
+    return _TOOL_BENCHES[tool](spec, tasks), semble_index
 
 
 def _fmt_stats(result: ToolResult) -> str:
@@ -240,28 +311,39 @@ def main() -> None:
     """Run cold-start index + query latency benchmark over a curated 1-per-language subset."""
     parser = argparse.ArgumentParser(description="Benchmark cold-start index time and query latency per language.")
     parser.add_argument(
-        "--semble-only", action="store_true", help="Only benchmark semble (skip BM25, CodeRankEmbed, ColGREP, ripgrep)."
+        "--tools",
+        nargs="+",
+        default=list(_ALL_TOOLS),
+        choices=list(_ALL_TOOLS),
+        metavar="TOOL",
+        help=f"Tools to benchmark (default: all). Choices: {', '.join(_ALL_TOOLS)}. bm25 reuses semble's chunks, "
+        "so selecting it also runs semble.",
     )
+    parser.add_argument("--repo", action="append", help="Limit to these repos (repeatable); default: all 19.")
     args = parser.parse_args()
+
+    tools = [tool for tool in _ALL_TOOLS if tool in args.tools]
+    if "bm25" in tools and "semble" not in tools:
+        tools.insert(0, "semble")
+    repos = [r for r in _REPOS if r in args.repo] if args.repo else list(_REPOS)
 
     specs = available_repo_specs()
     all_tasks = load_tasks(repo_specs=specs)
-    repo_tasks: dict[str, list[Task]] = {repo: [t for t in all_tasks if t.repo == repo] for repo in _REPOS}
+    repo_tasks: dict[str, list[Task]] = {repo: [t for t in all_tasks if t.repo == repo] for repo in repos}
 
-    print("Loading semble model...", file=sys.stderr)
-    started = time.perf_counter()
-    load_model(DEFAULT_MODEL_NAME)  # warms semble's internal model cache so repo #1 isn't penalized
-    print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
+    if {"semble", "bm25"} & set(tools):
+        print("Loading semble model...", file=sys.stderr)
+        started = time.perf_counter()
+        load_model(DEFAULT_MODEL_NAME)  # warms semble's internal model cache so repo #1 isn't penalized
+        print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
 
     cre_model = None
-    if not args.semble_only:
+    if "coderankembed" in tools:
         print("Loading CodeRankEmbed...", file=sys.stderr)
         started = time.perf_counter()
         cre_model = _AsymmetricWrapper(SentenceTransformer(_CRE_MODEL_NAME, trust_remote_code=True, device="cpu"))
         print(f"  loaded in {(time.perf_counter() - started) * 1000:.0f}ms", file=sys.stderr)
     print(file=sys.stderr)
-
-    tools = ["semble"] if args.semble_only else ["semble", "bm25", "coderankembed", "colgrep", "ripgrep"]
 
     print(
         f"{'Repo':<22} {'Language':<14} {'Tool':<16} {'Index':>10} {'p50':>8} {'p90':>8} {'p95':>8} {'p99':>8}",
@@ -271,53 +353,28 @@ def main() -> None:
 
     all_results: list[ToolResult] = []
 
-    for repo in _REPOS:
+    for repo in repos:
         spec = specs[repo]
         tasks = repo_tasks[repo]
+        semble_index: SembleIndex | None = None
+        repo_label = repo
 
-        index_ms, semble_index, latencies_ms = _bench_semble(spec, tasks)
-        result = ToolResult(
-            repo=repo, language=spec.language, tool="semble", index_ms=index_ms, latencies_ms=latencies_ms
-        )
-        all_results.append(result)
-        print(f"{repo:<22} {spec.language:<14} {'semble':<16} {index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr)
-        if cre_model is None:
-            continue
+        for tool in tools:
+            outcome, semble_index = _run_tool(tool, spec, tasks, semble_index, cre_model)
 
-        bm25_index_ms, latencies_ms = _bench_bm25(semble_index, tasks)
-        result = ToolResult(
-            repo=repo, language=spec.language, tool="bm25", index_ms=bm25_index_ms, latencies_ms=latencies_ms
-        )
-        all_results.append(result)
-        print(f"{'':22} {spec.language:<14} {'bm25':<16} {bm25_index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr)
+            if outcome is None:
+                print(f"{repo_label:<22} {spec.language:<14} {tool:<16} {'N/A (failed)':>18}", file=sys.stderr)
+                repo_label = ""
+                continue
 
-        cre_index_ms, latencies_ms = _bench_coderankembed(spec, tasks, cre_model)
-        result = ToolResult(
-            repo=repo, language=spec.language, tool="coderankembed", index_ms=cre_index_ms, latencies_ms=latencies_ms
-        )
-        all_results.append(result)
-        print(
-            f"{'':22} {spec.language:<14} {'coderankembed':<16} {cre_index_ms:>8.0f}ms {_fmt_stats(result)}",
-            file=sys.stderr,
-        )
-
-        colgrep_result = _bench_colgrep(spec, tasks)
-        if colgrep_result is not None:
-            index_ms, latencies_ms = colgrep_result
+            index_ms_opt, latencies_ms = outcome
             result = ToolResult(
-                repo=repo, language=spec.language, tool="colgrep", index_ms=index_ms, latencies_ms=latencies_ms
+                repo=repo, language=spec.language, tool=tool, index_ms=index_ms_opt, latencies_ms=latencies_ms
             )
             all_results.append(result)
-            print(
-                f"{'':22} {spec.language:<14} {'colgrep':<16} {index_ms:>8.0f}ms {_fmt_stats(result)}", file=sys.stderr
-            )
-        else:
-            print(f"{'':22} {spec.language:<14} {'colgrep':<16} {'N/A (unsupported)':>18}", file=sys.stderr)
-
-        _, latencies_ms = _bench_ripgrep(spec, tasks)
-        result = ToolResult(repo=repo, language=spec.language, tool="ripgrep", index_ms=None, latencies_ms=latencies_ms)
-        all_results.append(result)
-        print(f"{'':22} {spec.language:<14} {'ripgrep':<16} {'N/A':>10} {_fmt_stats(result)}", file=sys.stderr)
+            idx_col = f"{index_ms_opt:>8.0f}ms" if index_ms_opt is not None else f"{'N/A':>10}"
+            print(f"{repo_label:<22} {spec.language:<14} {tool:<16} {idx_col} {_fmt_stats(result)}", file=sys.stderr)
+            repo_label = ""
 
     summary = _build_summary(all_results, tools)
 
