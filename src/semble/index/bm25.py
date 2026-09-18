@@ -114,11 +114,7 @@ class BM25:
         documents = data["documents"]
         if len(doc_order) != len(set(doc_order)) or set(documents) != set(doc_order):
             raise ValueError("Persisted BM25 document state is inconsistent")
-        index._documents = {chunk_id: Counter(counts) for chunk_id, counts in documents.items()}
-        for chunk_id, counts in index._documents.items():
-            for term, count in counts.items():
-                index.postings.setdefault(term, {})[chunk_id] = count
-        index._doc_lengths = {chunk_id: sum(counts.values()) for chunk_id, counts in index._documents.items()}
-        index._total_doc_length = sum(index._doc_lengths.values())
+        for chunk_id, counts in documents.items():
+            index._add_counts(chunk_id, Counter(counts), sum(counts.values()))
         index.set_doc_order(doc_order)
         return index

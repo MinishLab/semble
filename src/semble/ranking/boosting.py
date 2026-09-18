@@ -78,6 +78,9 @@ _STEM_BOOST_MULTIPLIER = 1.0
 # Fraction of max_score added to each file's top chunk, scaled by its aggregate candidate score.
 _FILE_COHERENCE_BOOST_FRAC = 0.2
 
+_ALPHA_SYMBOL = 0.3  # lean BM25 for exact keyword matching
+_ALPHA_NL = 0.5  # balanced semantic + BM25
+
 # Common English stopwords excluded from file-stem matching for NL queries.
 _STOPWORDS = frozenset(
     "a an and are as at be by do does for from has have how if in is it not of on or the to was"
@@ -134,6 +137,13 @@ def is_symbol_query(query: str) -> bool:
     return _SYMBOL_QUERY_RE.match(query.strip()) is not None
 
 
+def resolve_alpha(query: str, alpha: float | None) -> float:
+    """Return the blending weight for semantic scores, auto-detecting from query type."""
+    if alpha is not None:
+        return alpha
+    return _ALPHA_SYMBOL if is_symbol_query(query) else _ALPHA_NL
+
+
 def _extract_symbol_name(query: str) -> str:
     """Extract the final identifier from a possibly namespace-qualified query.
 
@@ -180,14 +190,17 @@ def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
     return boost_unit * (1.5 if any(_stem_matches(stem, name.lower()) for name in names) else 1.0)
 
 
-def _scan_non_candidates(
+def _boost_definitions(
     boosted: dict[Chunk, float],
     names: set[str],
     boost_unit: float,
     all_chunks: list[Chunk],
     stem_ok: Callable[[str], bool],
 ) -> None:
-    """Boost non-candidate chunks whose lowercased file stem satisfies stem_ok (in-place)."""
+    """Boost candidates defining one of names, then add non-candidates whose lowercased file stem satisfies stem_ok."""
+    for chunk in list(boosted):
+        if tier := _definition_tier(chunk, names, boost_unit):
+            boosted[chunk] += tier
     for chunk in all_chunks:
         if chunk in boosted:
             continue
@@ -210,12 +223,7 @@ def _boost_symbol_definitions(
         names.add(query.strip())
 
     boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER
-
-    for chunk in list(boosted):
-        if tier := _definition_tier(chunk, names, boost_unit):
-            boosted[chunk] += tier
-
-    _scan_non_candidates(
+    _boost_definitions(
         boosted,
         names,
         boost_unit,
@@ -240,34 +248,24 @@ def _boost_embedded_symbols(
         return
 
     boost_unit = max_score * _DEFINITION_BOOST_MULTIPLIER * _EMBEDDED_SYMBOL_BOOST_SCALE
-
-    for chunk in list(boosted):
-        if tier := _definition_tier(chunk, names, boost_unit):
-            boosted[chunk] += tier
-
     symbols_lower = frozenset(s.lower() for s in names)
-    for chunk in all_chunks:
-        if chunk in boosted:
-            continue
-        stem = Path(chunk.file_path).stem.lower()
+
+    def stem_ok(stem: str) -> bool:
         stem_norm = stem.replace("_", "")
-        if not any(
+        return any(
             stem == symbol_lower
             or stem_norm == symbol_lower
             or (len(stem) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem))
             or (len(stem_norm) >= _EMBEDDED_STEM_MIN_LEN and symbol_lower.startswith(stem_norm))
             for symbol_lower in symbols_lower
-        ):
-            continue
-        if tier := _definition_tier(chunk, names, boost_unit):
-            boosted[chunk] = tier
+        )
+
+    _boost_definitions(boosted, names, boost_unit, all_chunks, stem_ok)
 
 
 def _count_keyword_matches(keywords: set[str], parts: set[str]) -> int:
     """Count query keywords that match path parts, allowing prefix overlap (min 3 chars)."""
     exact = keywords & parts
-    if len(exact) == len(keywords):
-        return len(exact)
     n_matches = len(exact)
     for keyword in keywords - exact:
         for part in parts:

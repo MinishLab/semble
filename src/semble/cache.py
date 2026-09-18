@@ -2,7 +2,6 @@ import hashlib
 import json
 import logging
 import os
-import shutil
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -10,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import orjson
 
+from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
 from semble.index.bm25 import BM25
 from semble.index.dense import SelectableBasicBackend
 from semble.index.file_walker import walk_files
@@ -89,11 +89,6 @@ def resolve_cache_folder() -> Path:
     return cache_dir
 
 
-def clear_cache(path: str) -> None:
-    """Clear all exact content indexes for the given path."""
-    shutil.rmtree(find_index_from_cache_folder(path).parent, ignore_errors=True)
-
-
 def save_index_to_cache(index: "SembleIndex", path: str) -> None:
     """Save an index to the cache folder if it was freshly built."""
     if not index.loaded_from_disk:
@@ -102,8 +97,6 @@ def save_index_to_cache(index: "SembleIndex", path: str) -> None:
 
 def _metadata_matches(metadata: dict, model_path: str, content: Sequence[ContentType]) -> bool:
     """Return True if the stored metadata is compatible with the requested parameters."""
-    from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
-
     try:
         content_type = tuple(ContentType(s) for s in metadata["content_type"])
         # chunk_size and cache_version are absent in indexes built before those fields were added;
@@ -117,22 +110,28 @@ def _metadata_matches(metadata: dict, model_path: str, content: Sequence[Content
         return False
 
 
-def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:
-    """Validates the cache folder and returns the index path."""
-    index_path = find_index_from_cache_folder(path, content)
-    if not index_path.exists():
-        return None
-
-    persistence_path = PersistencePath.from_path(index_path)
+def _load_matching_metadata(
+    path: str, model_path: str | None, content: Sequence[ContentType]
+) -> tuple[PersistencePath, dict] | None:
+    """Return the cached index files and metadata for path, or None if absent or built with other settings."""
+    persistence_path = PersistencePath.from_path(find_index_from_cache_folder(path, content))
     if persistence_path.non_existing():
         return None
-
+    metadata = json.loads(persistence_path.metadata.read_text(encoding="utf-8"))
     if model_path is None:
         model_path = resolve_model_name()
-    with open(persistence_path.metadata, encoding="utf-8") as f:
-        metadata = json.load(f)
     if not _metadata_matches(metadata, model_path, content):
         return None
+    return persistence_path, metadata
+
+
+def get_validated_cache(path: str, model_path: str | None, content: Sequence[ContentType]) -> Path | None:
+    """Validates the cache folder and returns the index path."""
+    loaded = _load_matching_metadata(path, model_path, content)
+    if loaded is None:
+        return None
+    persistence_path, metadata = loaded
+    index_path = persistence_path.metadata.parent
 
     if is_git_url(str(path)):
         return index_path
@@ -168,25 +167,17 @@ def load_previous_for_incremental(
     :return: Previous index state, or None if the cache is unavailable or invalid.
     """
     try:
-        index_path = find_index_from_cache_folder(path, content)
-        persistence_path = PersistencePath.from_path(index_path)
-        if persistence_path.non_existing():
+        loaded = _load_matching_metadata(path, model_path, content)
+        if loaded is None:
             return None
-
-        if model_path is None:
-            model_path = resolve_model_name()
-        with open(persistence_path.metadata, encoding="utf-8") as f:
-            metadata = json.load(f)
-        if not _metadata_matches(metadata, model_path, content):
-            return None
+        persistence_path, metadata = loaded
 
         raw_manifest = metadata.get("files")
         if not raw_manifest:
             return None
         manifest = {indexed_path: FileManifestEntry(**entry) for indexed_path, entry in raw_manifest.items()}
 
-        with open(persistence_path.chunks, "rb") as f:
-            chunks = [Chunk.from_dict(item) for item in orjson.loads(f.read())]
+        chunks = [Chunk.from_dict(item) for item in orjson.loads(persistence_path.chunks.read_bytes())]
 
         vectors = SelectableBasicBackend.load(persistence_path.semantic_index).vectors
         bm25_index = BM25.load(persistence_path.bm25_index)

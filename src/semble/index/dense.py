@@ -28,14 +28,9 @@ def _load_cached(model_path: str) -> StaticModel:
     disable_progress_bars()
     logging.getLogger("huggingface_hub.utils._http").addFilter(_drop_unauthenticated_warning)
     try:
-        try:
-            model = StaticModel.from_pretrained(model_path, force_download=False)
-        except ValueError:
-            model = StaticModel.from_pretrained(model_path, force_download=True)
-    finally:
-        disable_progress_bars()
-
-    return model
+        return StaticModel.from_pretrained(model_path, force_download=False)
+    except ValueError:
+        return StaticModel.from_pretrained(model_path, force_download=True)
 
 
 def load_model(model_path: str | None = None) -> tuple[StaticModel, str]:
