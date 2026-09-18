@@ -1,5 +1,5 @@
 import re
-from functools import cache
+from functools import lru_cache
 from pathlib import Path
 
 from semble.types import Chunk
@@ -136,7 +136,7 @@ def rerank_topk(
     return [(chunk, score) for score, chunk in selected[:top_k]]
 
 
-@cache
+@lru_cache(maxsize=4096)
 def _file_path_penalty(file_path: str) -> float:
     """Return a combined multiplicative penalty for all applicable path patterns."""
     normalised = file_path.replace("\\", "/")
