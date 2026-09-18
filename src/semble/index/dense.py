@@ -16,9 +16,9 @@ from semble.types import Chunk
 from semble.utils import resolve_model_name
 
 
-def _drop_hf_token_warning(record: logging.LogRecord) -> bool:
+def _drop_unauthenticated_warning(record: logging.LogRecord) -> bool:
     """Drop the Hub's unauthenticated-request warning; the public model downloads fine without a token."""
-    return "HF_TOKEN" not in record.getMessage()
+    return "unauthenticated requests" not in record.getMessage()
 
 
 @cache
@@ -26,7 +26,7 @@ def _load_cached(model_path: str) -> StaticModel:
     """Load a model and cache it, but only after the path resolves."""
     # Disable HF progress bars since the model is loaded silently in the background during indexing.
     disable_progress_bars()
-    logging.getLogger("huggingface_hub.utils._http").addFilter(_drop_hf_token_warning)
+    logging.getLogger("huggingface_hub.utils._http").addFilter(_drop_unauthenticated_warning)
     try:
         try:
             model = StaticModel.from_pretrained(model_path, force_download=False)
