@@ -524,21 +524,27 @@ async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> N
 
 
 @pytest.mark.anyio
-async def test_index_cache_idle_ttl_eviction(cache: _IndexCache, tmp_path: Path) -> None:
-    """Entries are dropped from memory once unused for the idle TTL, and each access resets the timer."""
+async def test_index_cache_idle_timeout_eviction(cache: _IndexCache, tmp_path: Path) -> None:
+    """Entries are dropped once unused for the idle timeout, which starts after the build and resets on access."""
+
+    def slow_build(*args: Any, **kwargs: Any) -> MagicMock:
+        time.sleep(0.15)  # longer than the timeout
+        return MagicMock()
+
     key = cache._compute_cache_key(str(tmp_path))
     with (
-        patch("semble.mcp._CACHE_IDLE_TTL", 0.05),
-        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch("semble.mcp._CACHE_IDLE_TIMEOUT", 0.1),
+        patch("semble.mcp.SembleIndex.from_path", side_effect=slow_build),
         patch("semble.mcp.get_validated_cache", return_value=MagicMock()),
     ):
         await cache.get(str(tmp_path))
-        cache._merged = ([], MagicMock())
-        await asyncio.sleep(0.03)
-        await cache.get(str(tmp_path))
-        await asyncio.sleep(0.03)
         assert key in cache._tasks
-        await asyncio.sleep(0.05)
+        first_timer = cache._idle_timers[key]
+        cache._merged = ([], MagicMock())
+        await cache.get(str(tmp_path))
+        assert first_timer.cancelled()
+        assert key in cache._tasks
+        await asyncio.sleep(0.3)
     assert key not in cache._tasks
     assert key not in cache._idle_timers
     assert cache._merged is None

@@ -28,7 +28,9 @@ _REPO_DESCRIPTION = (
 )
 
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
-_CACHE_IDLE_TTL = float(os.environ.get("SEMBLE_MCP_CACHE_TTL", 0))  # Idle seconds before dropping an index (0 = never)
+_CACHE_IDLE_TIMEOUT = float(
+    os.environ.get("SEMBLE_MCP_IDLE_TIMEOUT", 0)
+)  # Idle seconds before dropping an index (0 = never)
 _MIN_REVALIDATE_FACTOR = 3  # Don't recheck staleness sooner than this many times the last build's duration
 ContentSelection = Literal["code", "docs", "config", "all"]
 _CacheKey = tuple[str, tuple[ContentType, ...]]
@@ -270,7 +272,7 @@ class _IndexCache:
             timer.cancel()
 
     def _evict_idle(self, cache_key: _CacheKey) -> None:
-        """Drop an entry that has not been accessed within the idle TTL; the disk cache is kept."""
+        """Drop an entry that has not been accessed within the idle timeout; the disk cache is kept."""
         self.evict(cache_key)
         self._merged = None  # may hold a reference to the evicted index
 
@@ -318,15 +320,9 @@ class _IndexCache:
                     self.evict(next(iter(self._tasks)))
                 self._tasks[cache_key] = asyncio.create_task(self._build_tracked(source, ref, model_path, cache_key))
         self._tasks.move_to_end(cache_key)
-        if _CACHE_IDLE_TTL > 0:
-            if timer := self._idle_timers.get(cache_key):
-                timer.cancel()
-            self._idle_timers[cache_key] = asyncio.get_running_loop().call_later(
-                _CACHE_IDLE_TTL, self._evict_idle, cache_key
-            )
         task = self._tasks[cache_key]
         try:
-            return await asyncio.shield(task)
+            index = await asyncio.shield(task)
         except asyncio.CancelledError:  # pragma: no cover
             if task.done():
                 self.evict(cache_key)
@@ -336,3 +332,11 @@ class _IndexCache:
             if self._tasks.get(cache_key) is task:
                 self.evict(cache_key)
             raise
+        # Start the idle timer only once the index is ready, so slow builds are not evicted mid-build.
+        if _CACHE_IDLE_TIMEOUT > 0 and self._tasks.get(cache_key) is task:
+            if timer := self._idle_timers.get(cache_key):
+                timer.cancel()
+            self._idle_timers[cache_key] = asyncio.get_running_loop().call_later(
+                _CACHE_IDLE_TIMEOUT, self._evict_idle, cache_key
+            )
+        return index

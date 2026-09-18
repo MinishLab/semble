@@ -329,7 +329,7 @@ The MCP server indexes each requested content selection on first use and caches 
 claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all
 ```
 
-Indexes stay in memory for the lifetime of the server. To free memory while idle, set `SEMBLE_MCP_CACHE_TTL` to a number of seconds; indexes unused for that long are dropped from memory and reloaded from the disk cache on the next search.
+Indexes stay in memory for the lifetime of the server. To free memory while idle, set `SEMBLE_MCP_IDLE_TIMEOUT` to a number of seconds; indexes unused for that long are dropped from memory and reloaded from the disk cache on the next search.
 
 ### Instructions (AGENTS.md / CLAUDE.md)
 
