@@ -526,9 +526,9 @@ async def test_index_cache_lru_eviction(cache: _IndexCache, tmp_path: Path) -> N
 @pytest.mark.anyio
 async def test_index_cache_idle_ttl_eviction(cache: _IndexCache, tmp_path: Path) -> None:
     """Entries are dropped from memory once unused for the idle TTL, and each access resets the timer."""
-    cache._idle_ttl = 0.05
     key = cache._compute_cache_key(str(tmp_path))
     with (
+        patch("semble.mcp._CACHE_IDLE_TTL", 0.05),
         patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
         patch("semble.mcp.get_validated_cache", return_value=MagicMock()),
     ):

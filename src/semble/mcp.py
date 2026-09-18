@@ -173,7 +173,7 @@ async def serve(
     content: Sequence[ContentType] = (ContentType.CODE,),
 ) -> None:
     """Start an MCP stdio server."""
-    cache = _IndexCache(idle_ttl=_CACHE_IDLE_TTL)
+    cache = _IndexCache()
 
     async def _load_and_prewarm() -> None:
         """Pre-load the embedding model in parallel with starting the server."""
@@ -198,9 +198,8 @@ async def serve(
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self, idle_ttl: float = 0.0) -> None:
-        """Initialise an empty cache; entries unused for `idle_ttl` seconds are dropped from memory (0 = never)."""
-        self._idle_ttl = idle_ttl
+    def __init__(self) -> None:
+        """Initialise an empty cache."""
         self._idle_timers: dict[_CacheKey, asyncio.TimerHandle] = {}
         self._model_path: str | None = None
         self._model_error: BaseException | None = None
@@ -272,7 +271,6 @@ class _IndexCache:
 
     def _evict_idle(self, cache_key: _CacheKey) -> None:
         """Drop an entry that has not been accessed within the idle TTL; the disk cache is kept."""
-        logger.info("Evicting idle index %r from memory", cache_key)
         self.evict(cache_key)
         self._merged = None  # may hold a reference to the evicted index
 
@@ -320,11 +318,12 @@ class _IndexCache:
                     self.evict(next(iter(self._tasks)))
                 self._tasks[cache_key] = asyncio.create_task(self._build_tracked(source, ref, model_path, cache_key))
         self._tasks.move_to_end(cache_key)
-        if self._idle_ttl > 0:
-            if (timer := self._idle_timers.get(cache_key)) is not None:
+        if _CACHE_IDLE_TTL > 0:
+            if timer := self._idle_timers.get(cache_key):
                 timer.cancel()
-            loop = asyncio.get_running_loop()
-            self._idle_timers[cache_key] = loop.call_later(self._idle_ttl, self._evict_idle, cache_key)
+            self._idle_timers[cache_key] = asyncio.get_running_loop().call_later(
+                _CACHE_IDLE_TTL, self._evict_idle, cache_key
+            )
         task = self._tasks[cache_key]
         try:
             return await asyncio.shield(task)
