@@ -109,7 +109,7 @@ _INTEGRATIONS: list[_Integration] = [
         "MCP server",
         "lets the agent call semble directly as a tool",
         _apply_mcp,
-        AgentTarget.resolved_mcp_path,
+        lambda a: a.mcp.path if a.mcp else None,
     ),
     _Integration(
         IntegrationType.INSTRUCTIONS,

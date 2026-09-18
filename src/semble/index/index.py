@@ -17,11 +17,12 @@ from model2vec.model import StaticModel
 from vicinity.backends.basic import BasicArgs
 
 from semble.cache import get_validated_cache, load_previous_for_incremental
+from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
 from semble.index.bm25 import BM25
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.index.files import read_file_text
-from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, PersistencePath
+from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, PersistencePath, PreviousIndex
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
 from semble.types import CallType, Chunk, ContentType, IndexStats, SearchResult
@@ -117,15 +118,10 @@ class SembleIndex:
     @property
     def stats(self) -> IndexStats:
         """Stats of an index."""
-        language_counts: dict[str, int] = defaultdict(int)
-        for chunk in self.chunks:
-            if chunk.language:
-                language_counts[chunk.language] += 1
-
         return IndexStats(
             indexed_files=len(self._file_mapping),
             total_chunks=len(self.chunks),
-            languages=dict(language_counts),
+            languages={language: len(ids) for language, ids in self._language_mapping.items()},
         )
 
     @property
@@ -167,18 +163,7 @@ class SembleIndex:
 
         path = path.resolve()
         previous = load_previous_for_incremental(str(path), model_path, normalized)
-        bm25_index, semantic_index, chunks, manifest = create_index_from_path(
-            path,
-            model=model,
-            content=normalized,
-            display_root=path,
-            previous=previous,
-            show_progress_bar=show_progress_bar,
-        )
-
-        return SembleIndex(
-            model, bm25_index, semantic_index, chunks, model_path, root=path, content=normalized, manifest=manifest
-        )
+        return _build(path, model, model_path, normalized, show_progress_bar, previous)
 
     @classmethod
     def merge(cls, indexes: Sequence[tuple[str, SembleIndex]]) -> SembleIndex:
@@ -274,25 +259,7 @@ class SembleIndex:
                 raise RuntimeError(f"git clone failed for {url!r}:\n{result.stderr.strip()}")
 
             model, model_path = load_model(model_path)
-            resolved_path = Path(tmp_dir).resolve()
-            bm25_index, semantic_index, chunks, manifest = create_index_from_path(
-                resolved_path,
-                model=model,
-                content=normalized,
-                display_root=resolved_path,
-                show_progress_bar=show_progress_bar,
-            )
-
-            return SembleIndex(
-                model,
-                bm25_index,
-                semantic_index,
-                chunks,
-                model_path,
-                root=resolved_path,
-                content=normalized,
-                manifest=manifest,
-            )
+            return _build(Path(tmp_dir).resolve(), model, model_path, normalized, show_progress_bar)
 
     def find_related(
         self, source: Chunk | SearchResult, *, top_k: int = 5, max_snippet_lines: int | None = None
@@ -380,8 +347,7 @@ class SembleIndex:
             missing = ", ".join(str(p) for p in non_existent)
             raise FileNotFoundError(f"Index not found at {path}. Missing: {missing}")
 
-        with open(persistence_paths.metadata, "rb") as f:
-            metadata = orjson.loads(f.read())
+        metadata = orjson.loads(persistence_paths.metadata.read_bytes())
         found_version = metadata.get("cache_version")
         if found_version != CACHE_FORMAT_VERSION:
             raise ValueError(
@@ -391,12 +357,7 @@ class SembleIndex:
 
         bm25_index = BM25.load(persistence_paths.bm25_index)
         semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
-        with open(persistence_paths.chunks, "rb") as f:
-            chunk_data = orjson.loads(f.read())
-
-        chunks = []
-        for chunk_item in chunk_data:
-            chunks.append(Chunk.from_dict(chunk_item))
+        chunks = [Chunk.from_dict(item) for item in orjson.loads(persistence_paths.chunks.read_bytes())]
         if not (len(chunks) == len(bm25_index.doc_order) == semantic_index.vectors.shape[0]):
             raise ValueError("Persisted index components have inconsistent document counts")
         root_path = metadata["root_path"]
@@ -431,10 +392,7 @@ class SembleIndex:
 
         self._bm25_index.save(persistence_paths.bm25_index)
         self._semantic_index.save(persistence_paths.semantic_index)
-        with open(persistence_paths.chunks, "wb") as f:
-            data = orjson.dumps(self.chunks)
-            f.write(data)
-        from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS  # avoid circular import at module level
+        persistence_paths.chunks.write_bytes(orjson.dumps(self.chunks))
 
         root_str = None if self._root is None else str(self._root)
         metadata = {
@@ -446,6 +404,21 @@ class SembleIndex:
             "cache_version": CACHE_FORMAT_VERSION,
             "files": self._manifest,
         }
-        with open(persistence_paths.metadata, "wb") as f:
-            data = orjson.dumps(metadata)
-            f.write(data)
+        persistence_paths.metadata.write_bytes(orjson.dumps(metadata))
+
+
+def _build(
+    path: Path,
+    model: StaticModel,
+    model_path: str,
+    content: tuple[ContentType, ...],
+    show_progress_bar: bool,
+    previous: PreviousIndex | None = None,
+) -> SembleIndex:
+    """Index a resolved directory, storing chunk paths relative to it."""
+    bm25_index, semantic_index, chunks, manifest = create_index_from_path(
+        path, model=model, content=content, display_root=path, previous=previous, show_progress_bar=show_progress_bar
+    )
+    return SembleIndex(
+        model, bm25_index, semantic_index, chunks, model_path, root=path, content=content, manifest=manifest
+    )
