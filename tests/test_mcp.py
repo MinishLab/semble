@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from model2vec import StaticModel
 
-from semble.mcp import _CACHE_MAX_SIZE, _idle_ttl, _IndexCache, create_server, serve
+from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
 from semble.types import Chunk, ContentType, SearchResult
 from semble.utils import format_results, is_git_url, resolve_chunk
 from tests.conftest import make_chunk
@@ -528,7 +528,10 @@ async def test_index_cache_idle_ttl_eviction(cache: _IndexCache, tmp_path: Path)
     """Entries are dropped from memory once unused for the idle TTL, and each access resets the timer."""
     cache._idle_ttl = 0.05
     key = cache._compute_cache_key(str(tmp_path))
-    with patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()):
+    with (
+        patch("semble.mcp.SembleIndex.from_path", return_value=MagicMock()),
+        patch("semble.mcp.get_validated_cache", return_value=MagicMock()),
+    ):
         await cache.get(str(tmp_path))
         cache._merged = ([], MagicMock())
         await asyncio.sleep(0.03)
@@ -539,16 +542,6 @@ async def test_index_cache_idle_ttl_eviction(cache: _IndexCache, tmp_path: Path)
     assert key not in cache._tasks
     assert key not in cache._idle_timers
     assert cache._merged is None
-
-
-@pytest.mark.parametrize(("value", "expected"), [(None, 0.0), ("300", 300.0), ("-1", 0.0), ("abc", 0.0)])
-def test_idle_ttl_from_env(monkeypatch: pytest.MonkeyPatch, value: str | None, expected: float) -> None:
-    """SEMBLE_MCP_CACHE_TTL is parsed as seconds, with unset, negative, or invalid values disabling it."""
-    if value is None:
-        monkeypatch.delenv("SEMBLE_MCP_CACHE_TTL", raising=False)
-    else:
-        monkeypatch.setenv("SEMBLE_MCP_CACHE_TTL", value)
-    assert _idle_ttl() == expected
 
 
 def test_cache_evict(cache: _IndexCache, tmp_path: Path) -> None:

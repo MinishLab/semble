@@ -28,6 +28,7 @@ _REPO_DESCRIPTION = (
 )
 
 _CACHE_MAX_SIZE = 10  # Max number of cached indexes to keep in memory
+_CACHE_IDLE_TTL = float(os.environ.get("SEMBLE_MCP_CACHE_TTL", 0))  # Idle seconds before dropping an index (0 = never)
 _MIN_REVALIDATE_FACTOR = 3  # Don't recheck staleness sooner than this many times the last build's duration
 ContentSelection = Literal["code", "docs", "config", "all"]
 _CacheKey = tuple[str, tuple[ContentType, ...]]
@@ -63,16 +64,6 @@ def _resolve_content_selection(
     if content == "all":
         return tuple(ContentType)
     return (ContentType(content),)
-
-
-def _idle_ttl() -> float:
-    """Read the idle TTL in seconds for in-memory indexes from SEMBLE_MCP_CACHE_TTL; 0 disables it."""
-    value = os.getenv("SEMBLE_MCP_CACHE_TTL", "0")
-    try:
-        return max(float(value), 0.0)
-    except ValueError:
-        logger.warning("Ignoring invalid SEMBLE_MCP_CACHE_TTL: %r", value)
-        return 0.0
 
 
 def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (ContentType.CODE,)) -> FastMCP:
@@ -182,7 +173,7 @@ async def serve(
     content: Sequence[ContentType] = (ContentType.CODE,),
 ) -> None:
     """Start an MCP stdio server."""
-    cache = _IndexCache(idle_ttl=_idle_ttl())
+    cache = _IndexCache(idle_ttl=_CACHE_IDLE_TTL)
 
     async def _load_and_prewarm() -> None:
         """Pre-load the embedding model in parallel with starting the server."""
