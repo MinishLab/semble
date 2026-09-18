@@ -163,7 +163,11 @@ def test_load_model(model_path: str | None, expected_call_arg: str, incomplete_c
 @pytest.mark.parametrize(
     ("message", "shown"),
     [
-        ("You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN.", False),
+        (
+            "Warning: You are sending unauthenticated requests to the HF Hub. "
+            "Please set a HF_TOKEN to enable higher rate limits and faster downloads.",
+            False,
+        ),
         ("Rate limited. Waiting 1s before retry [Retry 1/5].", True),
     ],
 )
