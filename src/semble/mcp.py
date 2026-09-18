@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import time
 from collections import OrderedDict
 from collections.abc import Sequence
@@ -62,6 +63,16 @@ def _resolve_content_selection(
     if content == "all":
         return tuple(ContentType)
     return (ContentType(content),)
+
+
+def _idle_ttl() -> float:
+    """Read the idle TTL in seconds for in-memory indexes from SEMBLE_MCP_CACHE_TTL; 0 disables it."""
+    value = os.getenv("SEMBLE_MCP_CACHE_TTL", "0")
+    try:
+        return max(float(value), 0.0)
+    except ValueError:
+        logger.warning("Ignoring invalid SEMBLE_MCP_CACHE_TTL: %r", value)
+        return 0.0
 
 
 def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (ContentType.CODE,)) -> FastMCP:
@@ -171,7 +182,7 @@ async def serve(
     content: Sequence[ContentType] = (ContentType.CODE,),
 ) -> None:
     """Start an MCP stdio server."""
-    cache = _IndexCache()
+    cache = _IndexCache(idle_ttl=_idle_ttl())
 
     async def _load_and_prewarm() -> None:
         """Pre-load the embedding model in parallel with starting the server."""
@@ -196,8 +207,10 @@ async def serve(
 class _IndexCache:
     """Cache of indexed repos and local paths for the lifetime of the MCP server process."""
 
-    def __init__(self) -> None:
-        """Initialise an empty cache."""
+    def __init__(self, idle_ttl: float = 0.0) -> None:
+        """Initialise an empty cache; entries unused for `idle_ttl` seconds are dropped from memory (0 = never)."""
+        self._idle_ttl = idle_ttl
+        self._idle_timers: dict[_CacheKey, asyncio.TimerHandle] = {}
         self._model_path: str | None = None
         self._model_error: BaseException | None = None
         self._model_ready = asyncio.Event()
@@ -263,6 +276,14 @@ class _IndexCache:
         """Evict one exact index variant from memory."""
         self._tasks.pop(cache_key, None)
         self._revalidate_after.pop(cache_key, None)
+        if (timer := self._idle_timers.pop(cache_key, None)) is not None:
+            timer.cancel()
+
+    def _evict_idle(self, cache_key: _CacheKey) -> None:
+        """Drop an entry that has not been accessed within the idle TTL; the disk cache is kept."""
+        logger.info("Evicting idle index %r from memory", cache_key)
+        self.evict(cache_key)
+        self._merged = None  # may hold a reference to the evicted index
 
     async def _evict_if_stale(self, cache_key: _CacheKey) -> None:
         """Evict a cached local-path entry whose on-disk cache no longer matches its files.
@@ -305,10 +326,14 @@ class _IndexCache:
             # Re-check after the await: another caller may have populated the entry.
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
-                    evicted_key, _ = self._tasks.popitem(last=False)
-                    self._revalidate_after.pop(evicted_key, None)
+                    self.evict(next(iter(self._tasks)))
                 self._tasks[cache_key] = asyncio.create_task(self._build_tracked(source, ref, model_path, cache_key))
         self._tasks.move_to_end(cache_key)
+        if self._idle_ttl > 0:
+            if (timer := self._idle_timers.get(cache_key)) is not None:
+                timer.cancel()
+            loop = asyncio.get_running_loop()
+            self._idle_timers[cache_key] = loop.call_later(self._idle_ttl, self._evict_idle, cache_key)
         task = self._tasks[cache_key]
         try:
             return await asyncio.shield(task)
