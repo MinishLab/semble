@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from unittest.mock import MagicMock, call, patch
 
@@ -157,6 +158,21 @@ def test_load_model(model_path: str | None, expected_call_arg: str, incomplete_c
     if incomplete_cache:
         expected_calls.append(call(expected_call_arg, force_download=True))
     assert mock_fp.call_args_list == expected_calls
+
+
+@pytest.mark.parametrize(
+    ("message", "shown"),
+    [
+        ("You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN.", False),
+        ("Rate limited. Waiting 1s before retry [Retry 1/5].", True),
+    ],
+)
+def test_load_model_hides_only_hf_token_warning(caplog: pytest.LogCaptureFixture, message: str, shown: bool) -> None:
+    """Loading the model hides the Hub's HF_TOKEN nag but keeps other Hub warnings."""
+    with patch("semble.index.dense.StaticModel.from_pretrained"):
+        load_model(f"filter/test-{shown}")
+    logging.getLogger("huggingface_hub.utils._http").warning(message)
+    assert (message in caplog.text) is shown
 
 
 def test_embed_chunks_empty_returns_empty_array(mock_model: Any) -> None:
