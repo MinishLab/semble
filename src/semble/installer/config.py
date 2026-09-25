@@ -90,6 +90,14 @@ def _delete_member(src: bytes, member: Node) -> bytes:
     return src[:start] + src[end:]
 
 
+def _json_equals(raw: bytes, value: object) -> bool:
+    """Return True if raw parses as strict JSON equal to value; JSON5-only syntax counts as different."""
+    try:
+        return json.loads(raw) == value
+    except ValueError:
+        return False
+
+
 def _reparse_ok(text: str) -> bool:
     """True if text still parses as error-free JSON5 — the guard run before every write."""
     parser = _json5_parser()
@@ -152,13 +160,13 @@ def merge_json_member(path: Path, section_key: str, member_key: str, value: dict
         value_json = json.dumps(value)
         if (existing := _member(resolved, src, member_key)) is not None:
             val_node = _value_of(existing)
+            if _json_equals(src[val_node.start_byte : val_node.end_byte], value):
+                return "unchanged"  # same entry, possibly formatted differently (e.g. a fresh indented file)
             new_src = src[: val_node.start_byte] + value_json.encode("utf-8") + src[val_node.end_byte :]
         else:
             new_src = _insert_first_member(src, resolved, f"{member_key_json}: {value_json}")
 
     new_text = new_src.decode("utf-8")
-    if new_text == text:
-        return "unchanged"
     if not _reparse_ok(new_text):
         return "error"
     path.write_text(new_text, encoding="utf-8")

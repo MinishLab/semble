@@ -81,6 +81,10 @@ _BARE_STDIO_SERVER_CONFIG: dict[str, object] = {  # Windsurf: command/args only,
     "args": ["--from", SEMBLE_PIN, "semble"],
 }
 
+_CLINE_SERVER_CONFIG: dict[str, object] = {  # Cline: nested "transport" (the flat shape is legacy)
+    "transport": {"type": "stdio", "command": "uvx", "args": ["--from", SEMBLE_PIN, "semble"]},
+}
+
 _ZED_SERVER_CONFIG: dict[str, object] = {  # Zed: command/args only, no "source"
     "command": "uvx",
     "args": ["--from", SEMBLE_PIN, "semble"],
@@ -153,12 +157,12 @@ class AgentTarget:
     subagent_path: Path | None = None  # global (user-level) sub-agent file; None = unsupported
 
 
-def _opencode_mcp_path() -> Path:
-    """Return the opencode config path, preferring .jsonc over .json."""
+def _xdg_jsonc_path(app: str) -> Path:
+    """Return an XDG app's config path (e.g. opencode, kilo), preferring .jsonc over .json."""
     xdg = os.environ.get("XDG_CONFIG_HOME")
-    base = Path(xdg) / "opencode" if xdg else _HOME / ".config" / "opencode"
-    jsonc = base / "opencode.jsonc"
-    json_ = base / "opencode.json"
+    base = Path(xdg) / app if xdg else _HOME / ".config" / app
+    jsonc = base / f"{app}.jsonc"
+    json_ = base / f"{app}.json"
     return jsonc if _exists_or_denied(jsonc) else (json_ if _exists_or_denied(json_) else jsonc)
 
 
@@ -215,7 +219,7 @@ AGENTS: list[AgentTarget] = [
         display_name="Opencode",
         binary="opencode",
         config_dir=_HOME / ".config" / "opencode",
-        mcp=McpConfig(_opencode_mcp_path(), "mcp", _OPENCODE_SERVER_CONFIG),
+        mcp=McpConfig(_xdg_jsonc_path("opencode"), "mcp", _OPENCODE_SERVER_CONFIG),
         instructions_path=_HOME / ".config" / "opencode" / "AGENTS.md",
         subagent_path=_HOME / ".config" / "opencode" / "agents" / "semble-search.md",
     ),
@@ -308,6 +312,45 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".gemini" / "config" / "mcp_config.json", "mcpServers", _STDIO_SERVER_CONFIG),
         instructions_path=_HOME / ".gemini" / "GEMINI.md",
         subagent_path=_HOME / ".gemini" / "config" / "skills" / "semble-search" / "SKILL.md",
+    ),
+    AgentTarget(
+        id="grok",
+        display_name="Grok Build",
+        binary="grok",
+        config_dir=_HOME / ".grok",
+        mcp=McpConfig(_HOME / ".grok" / "config.toml", "mcp_servers", _STDIO_SERVER_CONFIG, format="toml"),
+        instructions_path=_HOME / ".grok" / "AGENTS.md",
+        subagent_path=_HOME / ".grok" / "agents" / "semble-search.md",
+    ),
+    AgentTarget(
+        id="qwen",
+        display_name="Qwen Code",
+        binary="qwen",
+        config_dir=_HOME / ".qwen",
+        mcp=McpConfig(_HOME / ".qwen" / "settings.json", "mcpServers", _STDIO_SERVER_CONFIG),
+        instructions_path=_HOME / ".qwen" / "QWEN.md",
+        subagent_path=_HOME / ".qwen" / "agents" / "semble-search.md",
+    ),
+    AgentTarget(
+        id="cline",
+        display_name="Cline",
+        binary="cline",
+        config_dir=_HOME / ".cline",
+        # Shared by the Cline IDE extensions, CLI, and SDK.
+        mcp=McpConfig(
+            _HOME / ".cline" / "data" / "settings" / "cline_mcp_settings.json", "mcpServers", _CLINE_SERVER_CONFIG
+        ),
+        instructions_path=_HOME / ".cline" / "rules" / "semble.md",
+        subagent_path=None,  # Cline agents are YAML team definitions with Cline-specific tool names
+    ),
+    AgentTarget(
+        id="kilo",
+        display_name="Kilo Code",
+        binary="kilo",
+        config_dir=_HOME / ".config" / "kilo",
+        mcp=McpConfig(_xdg_jsonc_path("kilo"), "mcp", _OPENCODE_SERVER_CONFIG),
+        instructions_path=_HOME / ".config" / "kilo" / "AGENTS.md",
+        subagent_path=_HOME / ".config" / "kilo" / "agents" / "semble-search.md",
     ),
 ]
 

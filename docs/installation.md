@@ -21,7 +21,7 @@ To undo:
 semble uninstall
 ```
 
-Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, Pi, Command Code, Antigravity, and ZCode.
+Supported agents: Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, VS Code, Windsurf, Zed, Reasonix, Pi, Command Code, Antigravity, ZCode, Grok Build, Qwen Code, Cline, and Kilo Code.
 
 > **Pi prerequisite:** Pi requires the MCP extension to be installed before semble can connect. Run `pi install npm:pi-mcp-extension` once, then `semble install`.
 
@@ -323,6 +323,82 @@ Add to `~/.zcode/cli/config.json` under the nested `mcp.servers` key (or use Set
 
 </details>
 
+<details>
+<summary>Grok Build</summary>
+
+Add to `~/.grok/config.toml`:
+
+```toml
+[mcp_servers.semble]
+command = "uvx"
+args = ["--from", "semble[mcp]", "semble"]
+```
+
+</details>
+
+<details>
+<summary>Qwen Code</summary>
+
+Add to `~/.qwen/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "command": "uvx",
+      "args": ["--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary>Cline</summary>
+
+Add to `~/.cline/data/settings/cline_mcp_settings.json` (shared by the Cline IDE extensions and CLI):
+
+```json
+{
+  "mcpServers": {
+    "semble": {
+      "transport": {
+        "type": "stdio",
+        "command": "uvx",
+        "args": ["--from", "semble[mcp]", "semble"]
+      }
+    }
+  }
+}
+```
+
+Or use the CLI:
+
+```bash
+cline mcp add semble --yes -- uvx --from "semble[mcp]" semble
+```
+
+</details>
+
+<details>
+<summary>Kilo Code</summary>
+
+Add to `~/.config/kilo/kilo.jsonc`:
+
+```json
+{
+  "mcp": {
+    "semble": {
+      "type": "local",
+      "command": ["uvx", "--from", "semble[mcp]", "semble"]
+    }
+  }
+}
+```
+
+</details>
+
 The MCP server indexes each requested content selection on first use and caches it separately. Searches default to code; append `--content docs`, `--content config`, or `--content all` to the server command to change that default. The `content` argument on an individual MCP search overrides it. For example, in Claude Code:
 
 ```bash
@@ -382,7 +458,7 @@ If `semble` is not on `$PATH`, use `uvx --from "semble[mcp]" semble` in its plac
 
 ### Sub-agent
 
-For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, Reasonix, Pi, Command Code, Antigravity, ZCode), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
+For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, OpenCode, GitHub Copilot, Codex, Reasonix, Pi, Command Code, Antigravity, ZCode, Grok Build, Qwen Code, Kilo Code), you can install a dedicated `semble-search` sub-agent. Copy the appropriate file from [`src/semble/agents/`](../src/semble/agents/) to your agent's agents directory:
 
 > **Pi prerequisite:** Pi sub-agents require the Pi agents extension. Run `pi install npm:pi-agents` once before installing.
 
@@ -400,3 +476,6 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Command Code | `commandcode.md` | `~/.commandcode/agents/semble-search.md` |
 | Antigravity | `antigravity.md` | `~/.gemini/config/skills/semble-search/SKILL.md` |
 | ZCode | `zcode.md` | `~/.zcode/agents/semble-search.md` |
+| Grok Build | `grok.md` | `~/.grok/agents/semble-search.md` |
+| Qwen Code | `qwen.md` | `~/.qwen/agents/semble-search.md` |
+| Kilo Code | `kilo.md` | `~/.config/kilo/agents/semble-search.md` |

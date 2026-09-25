@@ -97,7 +97,10 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
         src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
-        dest.write_text(src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"'), encoding="utf-8")
+        content = src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
+        if existed and dest.read_text(encoding="utf-8") == content:
+            return WriteResult(dest, "unchanged")
+        dest.write_text(content, encoding="utf-8")
     except Exception:
         return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")

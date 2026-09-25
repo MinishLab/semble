@@ -15,8 +15,8 @@ from semble.installer.agents import (
     SEMBLE_PIN,
     SEMBLE_START,
     IntegrationType,
-    _opencode_mcp_path,
     _vscode_mcp_path,
+    _xdg_jsonc_path,
     is_detected,
     semble_pin,
 )
@@ -113,10 +113,23 @@ def test_merge_mcp_into_empty_object_produces_valid_json(claude_agent, initial):
     json.loads(claude_agent.mcp.path.read_text())  # raises if invalid
 
 
-def test_merge_mcp_idempotent(claude_agent):
-    """Running merge twice adds semble once and reports unchanged the second time."""
-    claude_agent.mcp.path.write_text('{\n  "mcpServers": {}\n}\n')
+@pytest.mark.parametrize(
+    "stale",
+    ['{"command": "old"}', '{"command": "uvx",}'],  # outdated entry; JSON5-only syntax is rewritten too
+)
+def test_merge_mcp_replaces_stale_entry(claude_agent, stale):
+    """merge_mcp rewrites an existing semble entry that differs from the current one."""
+    claude_agent.mcp.path.write_text(f'{{"mcpServers": {{"semble": {stale}}}}}')
     assert merge_mcp(claude_agent).action == "updated"
+    assert json.loads(claude_agent.mcp.path.read_text())["mcpServers"]["semble"] == claude_agent.mcp.entry
+
+
+@pytest.mark.parametrize(("initial", "first"), [('{\n  "mcpServers": {}\n}\n', "updated"), (None, "created")])
+def test_merge_mcp_idempotent(claude_agent, initial, first):
+    """Running merge twice adds semble once and reports unchanged the second time, also for a fresh file."""
+    if initial is not None:
+        claude_agent.mcp.path.write_text(initial)
+    assert merge_mcp(claude_agent).action == first
     assert merge_mcp(claude_agent).action == "unchanged"
     assert claude_agent.mcp.path.read_text().count('"semble":') == 1  # the member key, once
 
@@ -160,6 +173,9 @@ def test_merge_and_remove_json_member_nested_section_key(tmp_path):
         ("pi", "mcpServers"),
         ("commandcode", "mcpServers"),
         ("antigravity", "mcpServers"),
+        ("qwen", "mcpServers"),
+        ("cline", "mcpServers"),
+        ("kilo", "mcp"),
         ("zcode", "mcp.servers"),  # dotted key: nested two levels deep
     ],
 )
@@ -330,30 +346,32 @@ def test_vscode_mcp_path(monkeypatch, platform, env_vars):
     assert "Code" in str(p)
 
 
-def test_opencode_mcp_path(monkeypatch, tmp_path):
-    """_opencode_mcp_path respects XDG_CONFIG_HOME and prefers .jsonc over .json."""
+@pytest.mark.parametrize("app", ["opencode", "kilo"])
+def test_xdg_jsonc_path(monkeypatch, tmp_path, app):
+    """_xdg_jsonc_path respects XDG_CONFIG_HOME and prefers .jsonc over .json."""
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
-    assert _opencode_mcp_path().parent == tmp_path / "opencode"
-    assert _opencode_mcp_path().name == "opencode.jsonc"  # fallback when neither exists
+    assert _xdg_jsonc_path(app) == tmp_path / app / f"{app}.jsonc"  # fallback when neither exists
 
-    (tmp_path / "opencode").mkdir()
-    json_ = tmp_path / "opencode" / "opencode.json"
+    (tmp_path / app).mkdir()
+    json_ = tmp_path / app / f"{app}.json"
     json_.touch()
-    assert _opencode_mcp_path() == json_  # json when no jsonc
+    assert _xdg_jsonc_path(app) == json_  # json when no jsonc
 
-    jsonc = tmp_path / "opencode" / "opencode.jsonc"
+    jsonc = tmp_path / app / f"{app}.jsonc"
     jsonc.touch()
-    assert _opencode_mcp_path() == jsonc  # jsonc preferred
+    assert _xdg_jsonc_path(app) == jsonc  # jsonc preferred
 
 
-def test_apply_mcp(tmp_path):
-    """_apply_mcp returns None for mcp=None agents and uses the TOML path for codex."""
+@pytest.mark.parametrize("agent_id", ["codex", "grok"])
+def test_apply_mcp(tmp_path, agent_id):
+    """_apply_mcp returns None for mcp=None agents and writes a [mcp_servers.semble] table for TOML agents."""
     no_mcp = replace(next(a for a in AGENTS if a.id == "claude"), mcp=None)
     assert _apply_mcp(no_mcp, "install") is None
 
-    codex = next(a for a in AGENTS if a.id == "codex")
-    codex = replace(codex, mcp=replace(codex.mcp, path=tmp_path / "config.toml"))
-    assert _apply_mcp(codex, "install").action in ("created", "updated")
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    agent = replace(agent, mcp=replace(agent.mcp, path=tmp_path / "config.toml"))
+    assert _apply_mcp(agent, "install").action == "created"
+    assert "[mcp_servers.semble]" in (tmp_path / "config.toml").read_text()
 
 
 def test_apply_instructions_none():
@@ -369,12 +387,24 @@ def test_apply_subagent(tmp_path):
 
     assert _apply_subagent(agent, "install").action == "created"
     assert dest.exists()
+    assert _apply_subagent(agent, "install").action == "unchanged"
+    dest.write_text("stale")
     assert _apply_subagent(agent, "install").action == "updated"
     assert _apply_subagent(agent, "uninstall").action == "removed"
     assert not dest.exists()
     assert _apply_subagent(agent, "uninstall").action == "not-found"
     assert _apply_subagent(replace(agent, subagent_path=None), "install") is None
     assert _apply_subagent(replace(agent, id="zzz"), "install").action == "error"
+
+
+@pytest.mark.parametrize("agent", [a for a in AGENTS if a.subagent_path is not None], ids=lambda a: a.id)
+def test_apply_subagent_bundled_file_for_every_agent(tmp_path, agent):
+    """Every agent with a sub-agent path ships a bundled file that installs with the pinned uvx spec."""
+    dest = tmp_path / agent.subagent_path.name
+    assert _apply_subagent(replace(agent, subagent_path=dest), "install").action == "created"
+    text = dest.read_text()
+    assert "semble-search" in text or "semble_search" in text
+    assert '"semble[mcp]"' not in text
 
 
 def test_apply_subagent_codex_toml(tmp_path):
