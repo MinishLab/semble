@@ -160,6 +160,9 @@ The following tools were considered but not included in the main comparison:
 - **[claude-context](https://github.com/zilliztech/claude-context)**: retrieval-augmented code search using OpenAI embeddings and a vector database. Excluded because it requires a paid OpenAI API key and a running vector-DB service.
 - **[GitNexus](https://github.com/abhigyanpatwari/GitNexus)**: knowledge-graph code search (BM25 + local embeddings + RRF). Excluded because it does not support Bash, Elixir, Haskell, Lua, Scala, or Zig (6 of the 19 benchmark languages).
 - **[codegraph](https://github.com/colbymchenry/codegraph)**: SQLite FTS5 symbol search + graph traversal. Excluded because it does not support Haskell, Bash, Elixir, or Zig (4 of the 19 benchmark languages).
+- **[tgrep](https://github.com/microsoft/tgrep)**: indexed regex search. Excluded
+  because its results are nearly identical to ripgrep (0.1255 vs 0.1259 NDCG@10), and
+  ripgrep is already fast enough that indexing adds nothing in our benchmarks.
 
 ## Running the benchmarks
 
