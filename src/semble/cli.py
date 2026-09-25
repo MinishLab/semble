@@ -6,6 +6,7 @@ import logging
 import re
 import sys
 import warnings
+from collections.abc import Iterator
 from importlib.util import find_spec
 from pathlib import Path
 from shutil import rmtree
@@ -47,6 +48,26 @@ def _maybe_save_index(parts: list[tuple[str, SembleIndex]]) -> None:
             save_index_to_cache(index, path)
         except Exception as e:
             print(f"Error saving index: {e}", file=sys.stderr)
+
+
+def _add_query_args(p: argparse.ArgumentParser) -> None:
+    """Add the path, result-shaping, and content arguments shared by search and find-related."""
+    p.add_argument(
+        "path",
+        nargs="*",
+        default=["."],
+        help="Local paths or git URLs to search together (default: current directory).",
+    )
+    p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
+    p.add_argument(
+        "--max-snippet-lines",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
+    )
+    p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
+    _add_content_args(p)
 
 
 def _add_content_args(p: argparse.ArgumentParser) -> None:
@@ -178,15 +199,16 @@ def _run_find_related(
     _maybe_save_index(parts)
 
 
+def _cached_index_paths(cache_folder: Path) -> Iterator[Path]:
+    """Yield index folders in the cache that sit under a sha256 cache key."""
+    return (path for path in cache_folder.glob("*/index*") if _SHA_256_REGEX.match(path.parent.name))
+
+
 def _clear_indexes(cache_folder: Path) -> None:
     """Remove all valid index entries from the cache folder."""
-    indexes: set[Path] = set()
-    for path in cache_folder.glob("*/index*"):
-        if not _SHA_256_REGEX.match(path.parent.name):
-            continue
-        if PersistencePath.from_path(path).non_existing():
-            continue
-        indexes.add(path.parent)
+    indexes = {
+        path.parent for path in _cached_index_paths(cache_folder) if not PersistencePath.from_path(path).non_existing()
+    }
 
     if not indexes:
         print(f"No indexes found to clear in `{cache_folder}`")
@@ -209,9 +231,7 @@ def _clear_savings(cache_folder: Path) -> None:
 def _clear_orphans(cache_folder: Path) -> None:
     """Remove index entries whose local root_path no longer exists."""
     orphans: dict[Path, str] = {}
-    for path in cache_folder.glob("*/index*"):
-        if not _SHA_256_REGEX.match(path.parent.name):
-            continue
+    for path in _cached_index_paths(cache_folder):
         try:
             with open(path / "metadata.json", encoding="utf-8") as f:
                 metadata = json.load(f)
@@ -243,46 +263,15 @@ def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
         _clear_orphans(cache_folder)
 
 
-class _CliLogHandler(logging.StreamHandler):
-    """stderr handler owned by the CLI; setup is idempotent on this type, not on foreign handlers."""
-
-
-def _configure_cli_logging() -> None:
-    """Surface semble warnings (e.g. skipped oversized files) on stderr without touching the root logger."""
-    package_logger = logging.getLogger("semble")
-    if any(isinstance(handler, _CliLogHandler) for handler in package_logger.handlers):
-        return
-    handler = _CliLogHandler(sys.stderr)
-    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
-    package_logger.addHandler(handler)
-    if package_logger.level == logging.NOTSET:
-        package_logger.setLevel(logging.WARNING)
-
-
 def _cli_main() -> None:
-    _configure_cli_logging()
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(prog="semble")
     parser.add_argument("-V", "--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command")
 
     search_p = sub.add_parser("search", help="Search a codebase.")
     search_p.add_argument("query", help="Natural language or code query.")
-    search_p.add_argument(
-        "path",
-        nargs="*",
-        default=["."],
-        help="Local paths or git URLs to search together (default: current directory).",
-    )
-    search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    search_p.add_argument(
-        "--max-snippet-lines",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
-    )
-    search_p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
-    _add_content_args(search_p)
+    _add_query_args(search_p)
 
     clear_p = sub.add_parser("clear", help="Clear the index cache.")
     clear_p.add_argument(
@@ -294,22 +283,7 @@ def _cli_main() -> None:
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
-    related_p.add_argument(
-        "path",
-        nargs="*",
-        default=["."],
-        help="Local paths or git URLs to search together (default: current directory).",
-    )
-    related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    related_p.add_argument(
-        "--max-snippet-lines",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
-    )
-    related_p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
-    _add_content_args(related_p)
+    _add_query_args(related_p)
 
     sub.add_parser("savings", help="Show token savings and usage stats.")
 

@@ -14,11 +14,11 @@ from semble.index.bm25 import BM25
 from semble.index.dense import SelectableBasicBackend, embed_chunks
 from semble.index.file_walker import walk_files
 from semble.index.files import (
+    MAX_FILE_BYTES,
     FileStatus,
     detect_language,
     get_extensions,
     get_file_status,
-    get_max_file_bytes,
     read_file_text,
 )
 from semble.index.sparse import enrich_for_bm25
@@ -36,7 +36,7 @@ def _warn_skipped_large(skipped_large: list[str]) -> None:
             "Skipped %d file(s) exceeding the maximum file size of %d bytes "
             "(raise SEMBLE_MAX_FILE_BYTES to include them): %s%s",
             len(skipped_large),
-            get_max_file_bytes(),
+            MAX_FILE_BYTES,
             ", ".join(skipped_large[:5]),
             " ..." if len(skipped_large) > 5 else "",
         )

@@ -21,11 +21,7 @@ def _exists_or_denied(path: Path) -> bool:
     """Distinguish between existence and permission issues."""
     try:
         path.stat()
-    except FileNotFoundError:
-        return False
-    # PermissionError is a subclass of OSError
-    # which is why this looks the way it does.
-    except PermissionError:
+    except PermissionError:  # checked before OSError, its parent class
         return True
     except OSError:
         return False
@@ -155,10 +151,6 @@ class AgentTarget:
     mcp: McpConfig | None
     instructions_path: Path | None  # None = not supported for this agent
     subagent_path: Path | None = None  # global (user-level) sub-agent file; None = unsupported
-
-    def resolved_mcp_path(self) -> Path | None:
-        """Return the resolved MCP config path, or None if MCP is unsupported."""
-        return self.mcp.path if self.mcp else None
 
 
 def _opencode_mcp_path() -> Path:

@@ -97,10 +97,9 @@ def search(
 
     semantic = _search_semantic(query, model, semantic_index, chunks, candidate_count, selector)
     semantic_scores: dict[Chunk, float] = {result.chunk: result.score for result in semantic}
-    bm25_scores = {}
-    for result in _search_bm25(query, bm25_index, chunks, candidate_count, selector):
-        if result.score:
-            bm25_scores[result.chunk] = result.score
+    bm25_scores = {
+        result.chunk: result.score for result in _search_bm25(query, bm25_index, chunks, candidate_count, selector)
+    }
 
     normalized_semantic = _rrf_scores(semantic_scores)
     normalized_bm25 = _rrf_scores(bm25_scores)

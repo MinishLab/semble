@@ -5,19 +5,21 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from functools import cache
-from importlib import import_module
 from pathlib import Path
-from types import ModuleType
 
 from semble.cache import resolve_cache_folder
 from semble.types import CallType, SearchResult
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover
+    fcntl = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
 
 def _get_stats_file() -> Path:
-    """Safely create a stats file."""
+    """Return the path of the savings stats file."""
     return resolve_cache_folder() / "savings.jsonl"
 
 
@@ -52,15 +54,6 @@ class SavingsSummary:
     call_type_counts: dict[str, int]
 
 
-@cache
-def _import_fcntl() -> ModuleType | None:
-    """Return fcntl when available, otherwise None."""
-    try:
-        return import_module("fcntl")
-    except ImportError:  # pragma: no cover
-        return None
-
-
 def save_search_stats(
     results: list[SearchResult],
     call_type: CallType,
@@ -91,14 +84,11 @@ def save_search_stats(
         stats_file = _get_stats_file()
         stats_file.parent.mkdir(parents=True, exist_ok=True)
         with stats_file.open("a") as f:
-            fcntl = _import_fcntl()
             try:
                 if fcntl is not None:
                     fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            except BlockingIOError:  # pragma: no cover
-                return  # another process holds the lock; skip this record
             except OSError:  # pragma: no cover
-                return  # lock contention or unsupported filesystem; skip
+                return  # another process holds the lock, or the filesystem doesn't support locking; skip
             f.write(json.dumps(record) + "\n")
     except OSError:
         pass
@@ -156,6 +146,11 @@ def _format_calls(calls: int) -> str:
     return f"{calls / 1_000:.1f}k" if calls >= 1_000 else str(calls)
 
 
+def _bar(filled: int, width: int, enabled: bool) -> str:
+    """Render a green filled bar followed by its grey remainder."""
+    return _color("32", "█" * filled, enabled) + _color("38;5;244", "░" * (width - filled), enabled)
+
+
 def _color_ratio(pct: int, enabled: bool) -> str:
     """Color a savings percentage according to its value."""
     code = "32" if pct >= 80 else "33" if pct >= 50 else "31"
@@ -180,8 +175,7 @@ def format_savings_report(path: Path | None = None) -> str:
     total_saved_tokens = all_time.saved_chars // 4
     overall_pct = round(all_time.saved_chars / all_time.file_chars * 100) if all_time.file_chars else 0
     efficiency_filled = round(overall_pct / 100 * bar_width)
-    efficiency_bar = _color("32", "█" * efficiency_filled, color)
-    efficiency_bar += _color("38;5;244", "░" * (bar_width - efficiency_filled), color)
+    efficiency_bar = _bar(efficiency_filled, bar_width, color)
 
     lines = [
         "",
@@ -206,7 +200,7 @@ def format_savings_report(path: Path | None = None) -> str:
         if bucket.file_chars > 0:
             ratio = bucket.saved_chars / bucket.file_chars
             filled = round(ratio * bar_width)
-            row_bar = _color("32", "█" * filled, color) + _color("38;5;244", "░" * (bar_width - filled), color)
+            row_bar = _bar(filled, bar_width, color)
             ratio_str = _color_ratio(round(ratio * 100), color)
         else:
             row_bar = _color("38;5;244", "░" * bar_width, color)
@@ -229,7 +223,7 @@ def format_savings_report(path: Path | None = None) -> str:
         for i, (call_type, count) in enumerate(top, start=1):
             share = count / total
             filled = max(1, round(share * 16))
-            bar = _color("32", "█" * filled, color) + _color("38;5;244", "░" * (16 - filled), color)
+            bar = _bar(filled, 16, color)
             rank = f"{i}."
             lines.append(
                 f"  {_color('38;5;244', f'{rank:<4}', color)}  {call_type:<16}  "

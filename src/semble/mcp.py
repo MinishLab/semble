@@ -225,23 +225,17 @@ class _IndexCache:
         assert self._model_path is not None
         return self._model_path
 
-    def _compute_cache_key(
-        self,
-        source: str,
-        ref: str | None = None,
-        content: Sequence[ContentType] = (ContentType.CODE,),
-    ) -> _CacheKey:
+    def _compute_cache_key(self, source: str, content: Sequence[ContentType] = (ContentType.CODE,)) -> _CacheKey:
         """Compute the canonical key for an exact index variant."""
-        is_git = is_git_url(source)
-        source_key = (f"{source}@{ref}" if ref else source) if is_git else str(Path(source).resolve())
+        source_key = source if is_git_url(source) else str(Path(source).resolve())
         normalized = tuple(content_type for content_type in ContentType if content_type in content)
         return source_key, normalized
 
-    def _build_index(self, source: str, ref: str | None, model_path: str, cache_key: _CacheKey) -> SembleIndex:
+    def _build_index(self, source: str, model_path: str, cache_key: _CacheKey) -> SembleIndex:
         """Build an index for the given source and cache it."""
         source_key, content = cache_key
         index = (
-            SembleIndex.from_git(source, ref=ref, model_path=model_path, content=content)
+            SembleIndex.from_git(source, model_path=model_path, content=content)
             if is_git_url(source)
             else SembleIndex.from_path(source_key, model_path=model_path, content=content)
         )
@@ -251,14 +245,14 @@ class _IndexCache:
             logger.warning("Failed to save index cache for %r", source_key, exc_info=True)
         return index
 
-    async def _build_tracked(self, source: str, ref: str | None, model_path: str, cache_key: _CacheKey) -> SembleIndex:
+    async def _build_tracked(self, source: str, model_path: str, cache_key: _CacheKey) -> SembleIndex:
         """Build an index and, for local paths, record when its staleness cooldown ends.
 
         The cooldown write happens after the await, i.e. back on the event loop thread,
         regardless of which thread `_build_index` itself ran on.
         """
         start = time.monotonic()
-        index = await asyncio.to_thread(self._build_index, source, ref, model_path, cache_key)
+        index = await asyncio.to_thread(self._build_index, source, model_path, cache_key)
         if not is_git_url(source):
             finished = time.monotonic()
             self._revalidate_after[cache_key] = finished + (finished - start) * _MIN_REVALIDATE_FACTOR
@@ -298,18 +292,13 @@ class _IndexCache:
         if validated is None and self._tasks.get(cache_key) is cached:
             self.evict(cache_key)
 
-    async def get(
-        self,
-        source: str,
-        ref: str | None = None,
-        content: Sequence[ContentType] = (ContentType.CODE,),
-    ) -> SembleIndex:
+    async def get(self, source: str, content: Sequence[ContentType] = (ContentType.CODE,)) -> SembleIndex:
         """Return an index for the requested source, building and caching it on first access.
 
         Local paths are revalidated against the on-disk cache on every call (subject to a
         cooldown scaled by build time), so an entry is rebuilt once its files change.
         """
-        cache_key = self._compute_cache_key(source, ref, content)
+        cache_key = self._compute_cache_key(source, content)
         await self._evict_if_stale(cache_key)
 
         if cache_key not in self._tasks:
@@ -318,7 +307,7 @@ class _IndexCache:
             if cache_key not in self._tasks:
                 if len(self._tasks) >= _CACHE_MAX_SIZE:
                     self.evict(next(iter(self._tasks)))
-                self._tasks[cache_key] = asyncio.create_task(self._build_tracked(source, ref, model_path, cache_key))
+                self._tasks[cache_key] = asyncio.create_task(self._build_tracked(source, model_path, cache_key))
         self._tasks.move_to_end(cache_key)
         task = self._tasks[cache_key]
         try:

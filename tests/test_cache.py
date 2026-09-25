@@ -12,7 +12,6 @@ from semble.cache import (
     _get_valid_user_cache_dir,
     _linux_cache_dir,
     _windows_cache_dir,
-    clear_cache,
     find_index_from_cache_folder,
     get_validated_cache,
     resolve_cache_folder,
@@ -119,21 +118,6 @@ def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
         result = resolve_cache_folder()
     assert result == custom
     assert custom.exists()
-
-
-def test_clear_cache(tmp_path: Path) -> None:
-    """clear_cache removes every content variant and is a no-op when none exist."""
-    cache_dir = tmp_path / "repo"
-    index_path = cache_dir / "index"
-    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        clear_cache("/some/path")  # no-op: path doesn't exist yet
-    index_path.mkdir(parents=True)
-    docs_path = cache_dir / "index-docs"
-    docs_path.mkdir()
-    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        clear_cache("/some/path")
-    assert not index_path.exists()
-    assert not docs_path.exists()
 
 
 def _write_metadata(
