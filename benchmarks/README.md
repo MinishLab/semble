@@ -70,7 +70,7 @@ semble returns the top-50 ranked chunks. `ripgrep+read` splits the query into ke
 
 ## By language
 
-NDCG@10 per language, sorted by CodeRankEmbed (CRE in the table). Best score per row is bolded.
+NDCG@10 per language, sorted by CodeRankEmbed. CRE = CodeRankEmbed, cbm = codebase-memory-mcp. Best score per row is bolded.
 
 | Language    |    semble |       CRE |   ColGREP |  zvec-grep |        ck |       cbm |    grepai |     probe |        cs |   ripgrep |
 | ----------- | --------: | --------: | --------: | ---------: | --------: | --------: | --------: | --------: | --------: | --------: |
@@ -93,9 +93,7 @@ NDCG@10 per language, sorted by CodeRankEmbed (CRE in the table). Best score per
 | rust        | **0.856** |     0.754 |     0.662 |      0.541 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
 | go          | **0.895** |     0.713 |     0.785 |      0.512 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
 | typescript  | **0.706** |     0.671 |     0.430 |      0.476 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
-| **overall** | **0.854** |     0.839 | **0.693** |  **0.670** | **0.634** | **0.630** | **0.561** | **0.387** | **0.200** | **0.126** |
-
-cbm = [codebase-memory-mcp](#methods).
+| **overall** | **0.854** |     0.839 |     0.693 |      0.670 |     0.642 |     0.630 |     0.561 |     0.387 |     0.200 |     0.126 |
 
 ## Ablations
 
