@@ -97,10 +97,11 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
         src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
-        content = src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
-        if existed and dest.read_bytes() == content.encode("utf-8"):  # bytes: an undecodable file is just stale
+        # Bytes on both sides: no newline translation on Windows, and an undecodable file is just stale.
+        content = src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"').encode("utf-8")
+        if existed and dest.read_bytes() == content:
             return WriteResult(dest, "unchanged")
-        dest.write_text(content, encoding="utf-8")
+        dest.write_bytes(content)
     except Exception:
         return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")
