@@ -157,10 +157,15 @@ class AgentTarget:
     subagent_path: Path | None = None  # global (user-level) sub-agent file; None = unsupported
 
 
+def _xdg_config_dir(app: str) -> Path:
+    """Return an XDG app's config directory (e.g. opencode, kilo), honoring XDG_CONFIG_HOME."""
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    return Path(xdg) / app if xdg else _HOME / ".config" / app
+
+
 def _xdg_jsonc_path(app: str) -> Path:
     """Return an XDG app's config path (e.g. opencode, kilo), preferring .jsonc over .json."""
-    xdg = os.environ.get("XDG_CONFIG_HOME")
-    base = Path(xdg) / app if xdg else _HOME / ".config" / app
+    base = _xdg_config_dir(app)
     jsonc = base / f"{app}.jsonc"
     json_ = base / f"{app}.json"
     return jsonc if _exists_or_denied(jsonc) else (json_ if _exists_or_denied(json_) else jsonc)
@@ -218,10 +223,10 @@ AGENTS: list[AgentTarget] = [
         id="opencode",
         display_name="Opencode",
         binary="opencode",
-        config_dir=_HOME / ".config" / "opencode",
+        config_dir=_xdg_config_dir("opencode"),
         mcp=McpConfig(_xdg_jsonc_path("opencode"), "mcp", _OPENCODE_SERVER_CONFIG),
-        instructions_path=_HOME / ".config" / "opencode" / "AGENTS.md",
-        subagent_path=_HOME / ".config" / "opencode" / "agents" / "semble-search.md",
+        instructions_path=_xdg_config_dir("opencode") / "AGENTS.md",
+        subagent_path=_xdg_config_dir("opencode") / "agents" / "semble-search.md",
     ),
     AgentTarget(
         id="copilot",
@@ -347,10 +352,10 @@ AGENTS: list[AgentTarget] = [
         id="kilo",
         display_name="Kilo Code",
         binary="kilo",
-        config_dir=_HOME / ".config" / "kilo",
+        config_dir=_xdg_config_dir("kilo"),
         mcp=McpConfig(_xdg_jsonc_path("kilo"), "mcp", _OPENCODE_SERVER_CONFIG),
-        instructions_path=_HOME / ".config" / "kilo" / "AGENTS.md",
-        subagent_path=_HOME / ".config" / "kilo" / "agents" / "semble-search.md",
+        instructions_path=_xdg_config_dir("kilo") / "AGENTS.md",
+        subagent_path=_xdg_config_dir("kilo") / "agents" / "semble-search.md",
     ),
 ]
 

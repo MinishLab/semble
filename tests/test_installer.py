@@ -388,8 +388,9 @@ def test_apply_subagent(tmp_path):
     assert _apply_subagent(agent, "install").action == "created"
     assert dest.exists()
     assert _apply_subagent(agent, "install").action == "unchanged"
-    dest.write_text("stale")
-    assert _apply_subagent(agent, "install").action == "updated"
+    for stale in (b"stale", b"\xff\xfe"):  # outdated or not valid UTF-8
+        dest.write_bytes(stale)
+        assert _apply_subagent(agent, "install").action == "updated"
     assert _apply_subagent(agent, "uninstall").action == "removed"
     assert not dest.exists()
     assert _apply_subagent(agent, "uninstall").action == "not-found"

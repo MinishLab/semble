@@ -98,7 +98,7 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     try:
         src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
         content = src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
-        if existed and dest.read_text(encoding="utf-8") == content:
+        if existed and dest.read_bytes() == content.encode("utf-8"):  # bytes: an undecodable file is just stale
             return WriteResult(dest, "unchanged")
         dest.write_text(content, encoding="utf-8")
     except Exception:
