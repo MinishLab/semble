@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import json
 import signal
@@ -24,7 +25,9 @@ from tests.conftest import make_chunk
 def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
     """main() serves MCP, then hard-exits with 0 on stdin EOF or SIGTERM instead of joining worker threads."""
     monkeypatch.setattr(sys, "argv", argv)
+    loop = asyncio.new_event_loop()
     with (
+        patch("semble.cli.asyncio.new_event_loop", return_value=loop),
         patch("semble.mcp.serve", new=AsyncMock()) as mock_serve,
         patch("semble.cli.signal.signal") as mock_signal,
         patch("semble.cli.os._exit") as mock_exit,
@@ -36,6 +39,7 @@ def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch
         assert signum == signal.SIGTERM
         handler(signum, None)
         mock_exit.assert_called_with(0)
+    loop.close()
 
 
 @pytest.mark.parametrize(

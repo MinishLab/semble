@@ -114,15 +114,10 @@ def _mcp_main() -> None:
     from semble.mcp import serve
 
     content = _resolve_content(args.content, args.include_text_files)
-
-    async def _serve_and_exit() -> None:
-        await serve(content)
-        # Exit without joining worker threads: an in-flight model load or index build would otherwise
-        # keep the process alive after the client closes stdin.
-        os._exit(0)
-
     signal.signal(signal.SIGTERM, lambda *_: os._exit(0))
-    asyncio.run(_serve_and_exit())
+    asyncio.new_event_loop().run_until_complete(serve(content))
+    # Skip asyncio.run's shutdown, which waits for threads still loading the model or building an index.
+    os._exit(0)
 
 
 def _resolve_content(content: list[str], include_text_files: bool) -> list[ContentType]:
