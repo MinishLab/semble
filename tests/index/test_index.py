@@ -93,7 +93,7 @@ def test_tiny_invalid_utf8_file_status_does_not_crash(tmp_path: Path) -> None:
     """Tiny files with invalid UTF-8 bytes are treated as non-empty."""
     path = tmp_path / "latin1.py"
     path.write_bytes(b"\xff")
-    assert get_file_status(path, None) is FileStatus.VALID
+    assert get_file_status(path) is FileStatus.VALID
 
 
 def test_merge(mock_model: Any, tmp_project: Path, tmp_path_factory: pytest.TempPathFactory) -> None:

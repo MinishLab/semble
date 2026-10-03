@@ -472,7 +472,6 @@ def get_extensions(types: Sequence[ContentType]) -> list[str]:
 
 
 class FileStatus(str, Enum):
-    NEWER = "newer"
     TOO_LARGE = "too_large"
     EMPTY = "empty"
     VALID = "valid"
@@ -483,13 +482,9 @@ def read_file_text(file_path: Path) -> str:
     return file_path.read_text(encoding="utf-8", errors="replace")
 
 
-def get_file_status(file_path: Path, write_time: float | None) -> FileStatus:
-    """Checks if a file should be indexed based on its size and modification time."""
-    stat = file_path.stat()
-    if write_time is not None and stat.st_mtime > write_time:
-        # Index invalid, file invalid
-        return FileStatus.NEWER
-    size = stat.st_size
+def get_file_status(file_path: Path) -> FileStatus:
+    """Checks if a file should be indexed based on its size."""
+    size = file_path.stat().st_size
     if size > MAX_FILE_BYTES:
         # index valid, file invalid
         return FileStatus.TOO_LARGE

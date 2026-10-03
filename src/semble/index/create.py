@@ -115,7 +115,7 @@ def create_index_from_path(
     ):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
-            file_status = get_file_status(file_path, None)
+            file_status = get_file_status(file_path)
             if file_status is FileStatus.TOO_LARGE:
                 skipped_large.append(str(file_path))
             if file_status != FileStatus.VALID:
