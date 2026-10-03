@@ -277,18 +277,19 @@ def test_get_validated_cache_git_url_returns_immediately(tmp_path: Path) -> None
 
 
 @pytest.mark.parametrize(
-    ("mtime_offset_ns", "expected_valid"),
+    ("text", "mtime_offset_ns", "expected_valid"),
     [
-        (0, True),  # unchanged since indexing
-        (1_000_000_000, False),  # modified, newer mtime
-        (-1_000_000_000, False),  # modified, older mtime (edit during indexing, cp -p)
+        ("x = 1", 0, True),  # unchanged since indexing
+        ("x = 1", 1_000_000_000, False),  # modified, newer mtime
+        ("x = 1", -1_000_000_000, False),  # modified, older mtime (edit during indexing, cp -p)
+        ("", 0, False),  # emptied since indexing, so skipped and missing from current files
     ],
 )
-def test_get_validated_cache_mtime(mtime_offset_ns: int, expected_valid: bool, tmp_path: Path) -> None:
+def test_get_validated_cache_mtime(text: str, mtime_offset_ns: int, expected_valid: bool, tmp_path: Path) -> None:
     """Returns None when a tracked file's mtime differs from its manifest entry; the path otherwise."""
     index_path = tmp_path / "index"
     src = tmp_path / "src.py"
-    src.write_text("x = 1")
+    src.write_text(text)
     recorded_ns = src.stat().st_mtime_ns
     _write_metadata(index_path, "my/model", ["code"], recorded_ns / 1e9, file_paths=["src.py"])
     metadata = json.loads((index_path / "metadata.json").read_text())
