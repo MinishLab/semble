@@ -117,7 +117,10 @@ def _load_matching_metadata(
     persistence_path = PersistencePath.from_path(find_index_from_cache_folder(path, content))
     if persistence_path.non_existing():
         return None
-    metadata = json.loads(persistence_path.metadata.read_text(encoding="utf-8"))
+    try:
+        metadata = json.loads(persistence_path.metadata.read_text(encoding="utf-8"))
+    except ValueError:  # Truncated by a process killed mid-save; treat as a miss so the index is rebuilt.
+        return None
     if model_path is None:
         model_path = resolve_model_name()
     if not _metadata_matches(metadata, model_path, content):

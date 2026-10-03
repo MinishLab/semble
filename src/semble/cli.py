@@ -102,6 +102,7 @@ def main() -> None:
 
 
 def _mcp_main() -> None:
+    signal.signal(signal.SIGTERM, lambda *_: os._exit(0))
     parser = argparse.ArgumentParser(
         prog="semble",
         description="Instant local code search for agents.",
@@ -114,7 +115,6 @@ def _mcp_main() -> None:
     from semble.mcp import serve
 
     content = _resolve_content(args.content, args.include_text_files)
-    signal.signal(signal.SIGTERM, lambda *_: os._exit(0))
     asyncio.new_event_loop().run_until_complete(serve(content))
     # Skip asyncio.run's shutdown, which waits for threads still loading the model or building an index.
     os._exit(0)

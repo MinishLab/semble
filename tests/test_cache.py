@@ -148,7 +148,7 @@ def _write_metadata(
 
 
 def test_get_validated_cache_invalid_index(tmp_path: Path) -> None:
-    """Returns None when the index directory is missing or incomplete."""
+    """Returns None when the index directory is missing, incomplete, or has truncated metadata."""
     with patch("semble.cache.find_index_from_cache_folder", return_value=tmp_path / "missing"):
         assert get_validated_cache("/path", None, [ContentType.CODE]) is None
 
@@ -156,6 +156,12 @@ def test_get_validated_cache_invalid_index(tmp_path: Path) -> None:
     index_path.mkdir()
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         assert get_validated_cache("/path", None, [ContentType.CODE]) is None
+
+    _write_metadata(index_path, "my/model", ["code"], 0.0)
+    metadata = index_path / "metadata.json"
+    metadata.write_text(metadata.read_text()[:20])
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
 
 
 @pytest.mark.parametrize(

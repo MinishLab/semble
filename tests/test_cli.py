@@ -22,7 +22,7 @@ from tests.conftest import make_chunk
         ["semble"],
     ],
 )
-def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mcp_main_serves_then_exits(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
     """main() serves MCP, then hard-exits with 0 on stdin EOF or SIGTERM instead of joining worker threads."""
     monkeypatch.setattr(sys, "argv", argv)
     loop = asyncio.new_event_loop()

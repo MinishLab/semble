@@ -135,10 +135,7 @@ def test_load_previous_for_incremental_fails_closed(corrupt: str, tmp_path: Path
             bm25["doc_order"].reverse()
             bm25_path.write_bytes(orjson.dumps(bm25))
         elif corrupt == "corrupt_json":
-            (index_path / "metadata.json").write_bytes(b"{not json")
-            with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-                assert load_previous_for_incremental("/some/path", "my/model", [ContentType.CODE]) is None
-            return
+            (index_path / "chunks.json").write_bytes(b"{not json")
         (index_path / "metadata.json").write_bytes(orjson.dumps(metadata))
 
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
