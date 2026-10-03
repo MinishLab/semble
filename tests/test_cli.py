@@ -1,10 +1,11 @@
 import hashlib
 import json
+import signal
 import sys
 import warnings
 from importlib.resources import files
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -21,12 +22,20 @@ from tests.conftest import make_chunk
     ],
 )
 def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
-    """main() delegates to asyncio.run(serve(...)) when no CLI subcommand is given."""
+    """main() serves MCP, then hard-exits with 0 on stdin EOF or SIGTERM instead of joining worker threads."""
     monkeypatch.setattr(sys, "argv", argv)
-    with patch("asyncio.run") as mock_run:
-        mock_run.side_effect = lambda coro: coro.close()
+    with (
+        patch("semble.mcp.serve", new=AsyncMock()) as mock_serve,
+        patch("semble.cli.signal.signal") as mock_signal,
+        patch("semble.cli.os._exit") as mock_exit,
+    ):
         main()
-    mock_run.assert_called_once()
+        mock_serve.assert_awaited_once()
+        mock_exit.assert_called_once_with(0)
+        signum, handler = mock_signal.call_args.args
+        assert signum == signal.SIGTERM
+        handler(signum, None)
+        mock_exit.assert_called_with(0)
 
 
 @pytest.mark.parametrize(
