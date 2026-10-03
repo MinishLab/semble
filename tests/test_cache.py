@@ -283,9 +283,12 @@ def test_get_validated_cache_git_url_returns_immediately(tmp_path: Path) -> None
         ("x = 1", 1_000_000_000, False),  # modified, newer mtime
         ("x = 1", -1_000_000_000, False),  # modified, older mtime (edit during indexing, cp -p)
         ("", 0, False),  # emptied since indexing, so skipped and missing from current files
+        ("x = 1", None, False),  # deleted mid-walk, so skipped and missing from current files
     ],
 )
-def test_get_validated_cache_mtime(text: str, mtime_offset_ns: int, expected_valid: bool, tmp_path: Path) -> None:
+def test_get_validated_cache_mtime(
+    text: str, mtime_offset_ns: int | None, expected_valid: bool, tmp_path: Path
+) -> None:
     """Returns None when a tracked file's mtime differs from its manifest entry; the path otherwise."""
     index_path = tmp_path / "index"
     src = tmp_path / "src.py"
@@ -295,7 +298,10 @@ def test_get_validated_cache_mtime(text: str, mtime_offset_ns: int, expected_val
     metadata = json.loads((index_path / "metadata.json").read_text())
     metadata["files"]["src.py"] = {"mtime_ns": recorded_ns}
     (index_path / "metadata.json").write_text(json.dumps(metadata))
-    os.utime(src, ns=(recorded_ns + mtime_offset_ns, recorded_ns + mtime_offset_ns))
+    if mtime_offset_ns is None:
+        src.unlink()
+    else:
+        os.utime(src, ns=(recorded_ns + mtime_offset_ns, recorded_ns + mtime_offset_ns))
 
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         with patch("semble.cache.walk_files", return_value=[src]):
