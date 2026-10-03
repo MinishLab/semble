@@ -115,14 +115,15 @@ def create_index_from_path(
     ):
         language = detect_language(file_path)
         with contextlib.suppress(OSError):
-            file_status = get_file_status(file_path)
+            stat = file_path.stat()
+            file_status = get_file_status(file_path, stat)
             if file_status is FileStatus.TOO_LARGE:
                 skipped_large.append(str(file_path))
             if file_status != FileStatus.VALID:
                 continue
 
             indexed_path = str(file_path.relative_to(display_root) if display_root else file_path)
-            mtime_ns = file_path.stat().st_mtime_ns
+            mtime_ns = stat.st_mtime_ns
             previous_entry = previous_manifest.get(indexed_path)
 
             if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:

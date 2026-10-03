@@ -482,9 +482,9 @@ def read_file_text(file_path: Path) -> str:
     return file_path.read_text(encoding="utf-8", errors="replace")
 
 
-def get_file_status(file_path: Path) -> FileStatus:
+def get_file_status(file_path: Path, stat: os.stat_result) -> FileStatus:
     """Checks if a file should be indexed based on its size."""
-    size = file_path.stat().st_size
+    size = stat.st_size
     if size > MAX_FILE_BYTES:
         # index valid, file invalid
         return FileStatus.TOO_LARGE
