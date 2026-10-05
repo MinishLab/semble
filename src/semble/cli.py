@@ -3,7 +3,9 @@ import asyncio
 import io
 import json
 import logging
+import os
 import re
+import signal
 import sys
 import warnings
 from collections.abc import Iterator
@@ -100,6 +102,7 @@ def main() -> None:
 
 
 def _mcp_main() -> None:
+    signal.signal(signal.SIGTERM, lambda *_: os._exit(0))
     parser = argparse.ArgumentParser(
         prog="semble",
         description="Instant local code search for agents.",
@@ -112,7 +115,9 @@ def _mcp_main() -> None:
     from semble.mcp import serve
 
     content = _resolve_content(args.content, args.include_text_files)
-    asyncio.run(serve(content))
+    asyncio.new_event_loop().run_until_complete(serve(content))
+    # Skip asyncio.run's shutdown, which waits for threads still loading the model or building an index.
+    os._exit(0)
 
 
 def _resolve_content(content: list[str], include_text_files: bool) -> list[ContentType]:
