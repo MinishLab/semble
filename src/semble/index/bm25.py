@@ -14,38 +14,33 @@ _B = 0.75  # Document length normalization
 
 
 class BM25:
-    """BM25 inverted index supporting incremental document updates.
-
-    Postings are stored as flat arrays sorted by term: the documents containing term id t are
-    _posting_docs[_offsets[t] : _offsets[t + 1]], with their term frequencies at the same slice of
-    _posting_tfs. Documents are numbered by their position in doc_order. Added and removed documents
-    take effect on the next set_doc_order.
-    """
+    """BM25 inverted index supporting incremental document updates."""
 
     def __init__(self) -> None:
         """Create an empty index."""
-        self.doc_order: list[str] = []
-        self._positions: dict[str, int] = {}  # chunk id -> position in doc_order
-        self._pending: dict[str, Counter[str]] = {}  # term counts of added documents not yet in the arrays
+        self._pending: dict[str, Counter[str]] = {}  # added documents, applied by set_doc_order
         self._terms: dict[str, int] = {}  # term -> term id, assigned in insertion order
+        # Postings sorted by term: term id t's postings are at [_offsets[t], _offsets[t + 1]) in the arrays below.
         self._offsets: npt.NDArray[np.int64] = np.zeros(1, dtype=np.int64)
         self._posting_docs: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
         self._posting_tfs: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
         self._doc_lengths: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
+        self.doc_order: list[str] = []
+        self._positions: dict[str, int] = {}
 
     def add_document(self, chunk_id: str, tokens: list[str]) -> None:
-        """Index one document, rejecting duplicate IDs. Takes effect on the next set_doc_order."""
+        """Index one document, rejecting duplicate IDs."""
         if chunk_id in self._positions or chunk_id in self._pending:
             raise ValueError(f"chunk_id already indexed: {chunk_id}")
         self._pending[chunk_id] = Counter(tokens)
 
     def remove_document(self, chunk_id: str) -> None:
-        """Remove a document; no-op if chunk_id is not indexed. Takes effect on the next set_doc_order."""
+        """Remove a document's postings; no-op if chunk_id is not indexed."""
         if self._positions.pop(chunk_id, None) is None:
             self._pending.pop(chunk_id, None)
 
     def set_doc_order(self, chunk_ids: list[str]) -> None:
-        """Apply pending changes and number documents by their position in chunk_ids, the order get_scores uses."""
+        """Apply added and removed documents, and set the chunk-list order that get_scores' output is aligned to."""
         target = {chunk_id: i for i, chunk_id in enumerate(chunk_ids)}
         if len(target) != len(chunk_ids) or target.keys() != self._positions.keys() | self._pending.keys():
             raise ValueError("Document order must list every indexed document exactly once")
@@ -117,7 +112,7 @@ class BM25:
         return merged
 
     def save(self, path: Path) -> None:
-        """Persist the index to path/index.json (doc order and terms) and path/postings.npz (posting arrays)."""
+        """Persist the index to path/index.json and path/postings.npz."""
         path.mkdir(parents=True, exist_ok=True)
         (path / "index.json").write_bytes(orjson.dumps({"doc_order": self.doc_order, "terms": list(self._terms)}))
         with (path / "postings.npz").open("wb") as f:
@@ -126,7 +121,7 @@ class BM25:
             )
 
     @classmethod
-    def load(cls, path: Path) -> BM25:
+    def load(cls, path: Path) -> "BM25":
         """Load an index from path/index.json and path/postings.npz."""
         data = orjson.loads((path / "index.json").read_bytes())
         with np.load(path / "postings.npz") as arrays:
@@ -149,7 +144,7 @@ class BM25:
         return index
 
     def _posting_terms(self) -> npt.NDArray[np.int64]:
-        """Return the term id of each posting, aligned with _posting_docs."""
+        """Return the term id of each posting."""
         return np.repeat(np.arange(len(self._offsets) - 1), np.diff(self._offsets))
 
     def _set_postings(
@@ -159,11 +154,7 @@ class BM25:
         terms: npt.NDArray[np.integer],
         tfs: npt.NDArray[np.integer],
     ) -> None:
-        """Replace all documents and postings.
-
-        docs, terms and tfs hold one entry per posting, in any order; they are sorted by term here.
-        Every term id in terms must already be in self._terms.
-        """
+        """Replace all postings, given one (doc, term, tf) entry per posting in any order; terms must be in _terms."""
         order = np.argsort(terms, kind="stable")
         self.doc_order = doc_order
         self._positions = {chunk_id: i for i, chunk_id in enumerate(doc_order)}

@@ -94,14 +94,15 @@ def test_save_load_preserves_scores_and_doc_order(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("corrupt", ["unknown_document", "negative_posting"])
-def test_load_rejects_inconsistent_state(corrupt: str, tmp_path: Path) -> None:
-    """Persisted document order and posting indices must describe the same documents."""
+def test_load_rejects_inconsistent_document_order(corrupt: str, tmp_path: Path) -> None:
+    """Persisted document order must describe the same documents as the postings."""
     index = _build({"a": ["authenticate"]})
     index.save(tmp_path)
+    index_path = tmp_path / "index.json"
     if corrupt == "unknown_document":
-        data = orjson.loads((tmp_path / "index.json").read_bytes())
+        data = orjson.loads(index_path.read_bytes())
         data["doc_order"] = ["a", "other"]
-        (tmp_path / "index.json").write_bytes(orjson.dumps(data))
+        index_path.write_bytes(orjson.dumps(data))
     else:
         with np.load(tmp_path / "postings.npz") as arrays:
             postings = dict(arrays)
