@@ -139,7 +139,7 @@ class BM25:
             or len(offsets) != len(terms) + 1
             or offsets[-1] != len(docs)
             or len(tfs) != len(docs)
-            or (docs.size and docs.max() >= len(doc_order))
+            or (docs.size and (docs.min() < 0 or docs.max() >= len(doc_order)))
         ):
             raise ValueError("Persisted BM25 document state is inconsistent")
         index = cls()
