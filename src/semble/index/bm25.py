@@ -14,15 +14,21 @@ _B = 0.75  # Document length normalization
 
 
 class BM25:
-    """BM25 inverted index stored as term-sorted posting arrays, supporting incremental document updates."""
+    """BM25 inverted index supporting incremental document updates.
+
+    Postings are stored as flat arrays sorted by term: the documents containing term id t are
+    _posting_docs[_offsets[t] : _offsets[t + 1]], with their term frequencies at the same slice of
+    _posting_tfs. Documents are numbered by their position in doc_order. Added and removed documents
+    take effect on the next set_doc_order.
+    """
 
     def __init__(self) -> None:
         """Create an empty index."""
         self.doc_order: list[str] = []
         self._positions: dict[str, int] = {}  # chunk id -> position in doc_order
-        self._pending: dict[str, Counter[str]] = {}  # added documents, applied by set_doc_order
-        self._terms: dict[str, int] = {}  # term -> term id, in id order
-        self._offsets: npt.NDArray[np.int64] = np.zeros(1, dtype=np.int64)  # term id -> slice of the posting arrays
+        self._pending: dict[str, Counter[str]] = {}  # term counts of added documents not yet in the arrays
+        self._terms: dict[str, int] = {}  # term -> term id, assigned in insertion order
+        self._offsets: npt.NDArray[np.int64] = np.zeros(1, dtype=np.int64)
         self._posting_docs: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
         self._posting_tfs: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
         self._doc_lengths: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
@@ -39,36 +45,30 @@ class BM25:
             self._pending.pop(chunk_id, None)
 
     def set_doc_order(self, chunk_ids: list[str]) -> None:
-        """Apply pending changes and order documents as in chunk_ids, which get_scores' output is aligned to."""
-        position = {chunk_id: i for i, chunk_id in enumerate(chunk_ids)}
-        if len(position) != len(chunk_ids) or position.keys() != self._positions.keys() | self._pending.keys():
+        """Apply pending changes and number documents by their position in chunk_ids, the order get_scores uses."""
+        target = {chunk_id: i for i, chunk_id in enumerate(chunk_ids)}
+        if len(target) != len(chunk_ids) or target.keys() != self._positions.keys() | self._pending.keys():
             raise ValueError("Document order must list every indexed document exactly once")
-        # Removed documents map to -1, so their postings are dropped.
-        new_positions = np.full(len(self._doc_lengths), -1, dtype=np.int64)
-        new_positions[list(self._positions.values())] = [position[chunk_id] for chunk_id in self._positions]
-        kept_docs = new_positions >= 0
-        posting_docs = new_positions[self._posting_docs]
-        kept_postings = posting_docs >= 0
-        lengths = np.zeros(len(chunk_ids), dtype=np.int64)
-        lengths[new_positions[kept_docs]] = self._doc_lengths[kept_docs]
 
-        # Packed arrays rather than lists keep peak memory low when a full build adds millions of postings.
-        new_terms, new_tfs = array("q"), array("q")
-        terms_per_doc: list[int] = []
+        # Existing postings, renumbered to their position in chunk_ids. Removed documents get -1 and are dropped.
+        renumber = np.full(len(self._doc_lengths), -1, dtype=np.int64)
+        renumber[list(self._positions.values())] = [target[chunk_id] for chunk_id in self._positions]
+        docs = renumber[self._posting_docs]
+        kept = docs >= 0
+
+        # Postings of added documents. Packed arrays keep memory low when a full build adds millions.
+        new_docs, new_terms, new_tfs = array("q"), array("q"), array("q")
         for chunk_id, counts in self._pending.items():
+            new_docs.extend([target[chunk_id]] * len(counts))
             new_terms.extend(self._terms.setdefault(term, len(self._terms)) for term in counts)
             new_tfs.extend(counts.values())
-            terms_per_doc.append(len(counts))
-            lengths[position[chunk_id]] = counts.total()
-        pending_positions = np.array([position[chunk_id] for chunk_id in self._pending], dtype=np.int64)
         self._pending.clear()
 
         self._set_postings(
             chunk_ids,
-            lengths,
-            np.concatenate([posting_docs[kept_postings], np.repeat(pending_positions, terms_per_doc)]),
-            np.concatenate([self._posting_terms()[kept_postings], np.frombuffer(new_terms, dtype=np.int64)]),
-            np.concatenate([self._posting_tfs[kept_postings], np.frombuffer(new_tfs, dtype=np.int64)]),
+            np.concatenate([docs[kept], np.frombuffer(new_docs, dtype=np.int64)]),
+            np.concatenate([self._posting_terms()[kept], np.frombuffer(new_terms, dtype=np.int64)]),
+            np.concatenate([self._posting_tfs[kept], np.frombuffer(new_tfs, dtype=np.int64)]),
         )
 
     def get_scores(
@@ -110,7 +110,6 @@ class BM25:
         ]
         merged._set_postings(
             [f"{label}/{chunk_id}" for label, part in parts for chunk_id in part.doc_order],
-            np.concatenate([part._doc_lengths for _, part in parts]),
             np.concatenate([part._posting_docs + start for (_, part), start in zip(parts, starts)]),
             np.concatenate([ids[part._posting_terms()] for (_, part), ids in zip(parts, new_term_ids)]),
             np.concatenate([part._posting_tfs for _, part in parts]),
@@ -150,19 +149,19 @@ class BM25:
         return index
 
     def _posting_terms(self) -> npt.NDArray[np.int64]:
-        """Return the term id of every posting."""
+        """Return the term id of each posting, aligned with _posting_docs."""
         return np.repeat(np.arange(len(self._offsets) - 1), np.diff(self._offsets))
 
     def _set_postings(
         self,
         doc_order: list[str],
-        doc_lengths: npt.NDArray[np.integer],
         docs: npt.NDArray[np.integer],
         terms: npt.NDArray[np.integer],
         tfs: npt.NDArray[np.integer],
     ) -> None:
-        """Replace all documents and postings, given one (doc, term, tf) entry per posting in any order.
+        """Replace all documents and postings.
 
+        docs, terms and tfs hold one entry per posting, in any order; they are sorted by term here.
         Every term id in terms must already be in self._terms.
         """
         order = np.argsort(terms, kind="stable")
@@ -171,4 +170,4 @@ class BM25:
         self._offsets = np.concatenate([[0], np.cumsum(np.bincount(terms, minlength=len(self._terms)))])
         self._posting_docs = docs[order].astype(np.int32)
         self._posting_tfs = tfs[order].astype(np.int32)
-        self._doc_lengths = doc_lengths.astype(np.int32)
+        self._doc_lengths = np.bincount(docs, weights=tfs, minlength=len(doc_order)).astype(np.int32)
