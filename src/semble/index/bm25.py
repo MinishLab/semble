@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import math
+import zipfile
 from array import array
 from collections import Counter
+from collections.abc import Iterable
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
-import orjson
 
 _K1 = 1.5  # Term-frequency saturation
 _B = 0.75  # Document length normalization
@@ -51,7 +52,7 @@ class BM25:
         docs = renumber[self._posting_docs]
         kept = docs >= 0
 
-        # Postings of added documents. Packed arrays keep memory low when a full build adds millions.
+        # Postings of added documents.
         new_docs, new_terms, new_tfs = array("q"), array("q"), array("q")
         for chunk_id, counts in self._pending.items():
             new_docs.extend([target[chunk_id]] * len(counts))
@@ -112,25 +113,34 @@ class BM25:
         return merged
 
     def save(self, path: Path) -> None:
-        """Persist the index to path/index.json and path/postings.npz."""
+        """Persist the index to path/index.npz."""
         path.mkdir(parents=True, exist_ok=True)
-        (path / "index.json").write_bytes(orjson.dumps({"doc_order": self.doc_order, "terms": list(self._terms)}))
-        with (path / "postings.npz").open("wb") as f:
+        with (path / "index.npz").open("wb") as f:
             np.savez(
-                f, offsets=self._offsets, docs=self._posting_docs, tfs=self._posting_tfs, doc_lengths=self._doc_lengths
+                f,
+                doc_order=_pack(self.doc_order),
+                terms=_pack(self._terms),
+                offsets=self._offsets,
+                docs=self._posting_docs,
+                tfs=self._posting_tfs,
+                doc_lengths=self._doc_lengths,
             )
 
     @classmethod
     def load(cls, path: Path) -> "BM25":
-        """Load an index from path/index.json and path/postings.npz."""
-        data = orjson.loads((path / "index.json").read_bytes())
-        with np.load(path / "postings.npz") as arrays:
-            offsets, docs, tfs, doc_lengths = (arrays[key] for key in ("offsets", "docs", "tfs", "doc_lengths"))
-        doc_order, terms = data["doc_order"], data["terms"]
+        """Load an index from path/index.npz."""
+        try:
+            with np.load(path / "index.npz") as arrays:
+                doc_order, terms = _unpack(arrays["doc_order"]), _unpack(arrays["terms"])
+                offsets, docs, tfs, doc_lengths = (arrays[key] for key in ("offsets", "docs", "tfs", "doc_lengths"))
+        except zipfile.BadZipFile as exc:  # e.g. truncated by an interrupted save
+            raise ValueError("Persisted BM25 index is unreadable") from exc
         if (
             len(set(doc_order)) != len(doc_order)
             or len(doc_lengths) != len(doc_order)
             or len(offsets) != len(terms) + 1
+            or offsets[0] != 0
+            or np.any(np.diff(offsets) < 0)
             or offsets[-1] != len(docs)
             or len(tfs) != len(docs)
             or (docs.size and (docs.min() < 0 or docs.max() >= len(doc_order)))
@@ -155,10 +165,27 @@ class BM25:
         tfs: npt.NDArray[np.integer],
     ) -> None:
         """Replace all postings, given one (doc, term, tf) entry per posting in any order; terms must be in _terms."""
+        term_counts = np.bincount(terms, minlength=len(self._terms))
+        used = term_counts > 0
+        if not used.all():
+            # Drop terms that no document contains any more, keeping the remaining ids in order.
+            self._terms = {term: i for i, term in enumerate(t for t, keep in zip(self._terms, used) if keep)}
+            terms = (np.cumsum(used) - 1)[terms]
+            term_counts = term_counts[used]
         order = np.argsort(terms, kind="stable")
         self.doc_order = doc_order
         self._positions = {chunk_id: i for i, chunk_id in enumerate(doc_order)}
-        self._offsets = np.concatenate([[0], np.cumsum(np.bincount(terms, minlength=len(self._terms)))])
+        self._offsets = np.concatenate([[0], np.cumsum(term_counts)])
         self._posting_docs = docs[order].astype(np.int32)
         self._posting_tfs = tfs[order].astype(np.int32)
         self._doc_lengths = np.bincount(docs, weights=tfs, minlength=len(doc_order)).astype(np.int32)
+
+
+def _pack(strings: Iterable[str]) -> npt.NDArray[np.uint8]:
+    """Encode strings, which must not contain NUL, as one NUL-separated UTF-8 byte array for saving in an .npz."""
+    return np.frombuffer("\0".join(strings).encode(), dtype=np.uint8)
+
+
+def _unpack(packed: npt.NDArray[np.uint8]) -> list[str]:
+    """Decode strings encoded by _pack."""
+    return packed.tobytes().decode().split("\0") if packed.size else []

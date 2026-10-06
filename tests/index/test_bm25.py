@@ -2,7 +2,6 @@ import math
 from pathlib import Path
 
 import numpy as np
-import orjson
 import pytest
 
 from semble.index.bm25 import BM25
@@ -40,6 +39,7 @@ def test_removed_documents_stop_scoring() -> None:
     index.set_doc_order(["b"])
     assert index.get_scores(["login"])[0] == 0
     assert index.get_scores(["authenticate"])[0] > 0
+    assert "login" not in index._terms
 
 
 def test_merge_matches_single_corpus() -> None:
@@ -93,21 +93,26 @@ def test_save_load_preserves_scores_and_doc_order(tmp_path: Path) -> None:
     np.testing.assert_array_equal(loaded.get_scores(["authenticate"]), index.get_scores(["authenticate"]))
 
 
-@pytest.mark.parametrize("corrupt", ["unknown_document", "negative_posting"])
-def test_load_rejects_inconsistent_document_order(corrupt: str, tmp_path: Path) -> None:
-    """Persisted document order must describe the same documents as the postings."""
-    index = _build({"a": ["authenticate"]})
-    index.save(tmp_path)
-    index_path = tmp_path / "index.json"
-    if corrupt == "unknown_document":
-        data = orjson.loads(index_path.read_bytes())
-        data["doc_order"] = ["a", "other"]
-        index_path.write_bytes(orjson.dumps(data))
+@pytest.mark.parametrize(
+    "corrupt",
+    [
+        {"doc_order": np.frombuffer(b"a\0other", dtype=np.uint8)},
+        {"docs": np.array([-1], dtype=np.int32)},
+        {"offsets": np.array([1, 1])},
+        None,
+    ],
+    ids=["unknown_document", "negative_posting", "offsets_not_from_zero", "truncated_file"],
+)
+def test_load_rejects_corrupt_index(corrupt: dict[str, np.ndarray] | None, tmp_path: Path) -> None:
+    """A saved index whose arrays don't describe the same documents, or that can't be read, is rejected."""
+    _build({"a": ["authenticate"]}).save(tmp_path)
+    index_path = tmp_path / "index.npz"
+    if corrupt is None:
+        index_path.write_bytes(index_path.read_bytes()[:50])
     else:
-        with np.load(tmp_path / "postings.npz") as arrays:
-            postings = dict(arrays)
-        postings["docs"] = np.array([-1], dtype=np.int32)
-        np.savez(tmp_path / "postings.npz", **postings)
+        with np.load(index_path) as arrays:
+            saved = dict(arrays)
+        np.savez(index_path, **{**saved, **corrupt})
 
-    with pytest.raises(ValueError, match="document state"):
+    with pytest.raises(ValueError, match="Persisted BM25"):
         BM25.load(tmp_path)

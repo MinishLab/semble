@@ -7,6 +7,7 @@ import orjson
 import pytest
 
 from semble.cache import load_previous_for_incremental
+from semble.index.bm25 import BM25
 from semble.index.create import create_index_from_path
 from semble.index.index import SembleIndex
 from semble.index.types import PreviousIndex, make_chunk_id
@@ -130,10 +131,9 @@ def test_load_previous_for_incremental_fails_closed(corrupt: str, tmp_path: Path
         elif corrupt == "overlapping_entries":
             metadata["files"]["b.py"]["start"] = metadata["files"]["a.py"]["start"]
         elif corrupt == "bm25_order_mismatch":
-            bm25_path = index_path / "bm25_index" / "index.json"
-            bm25 = orjson.loads(bm25_path.read_bytes())
-            bm25["doc_order"].reverse()
-            bm25_path.write_bytes(orjson.dumps(bm25))
+            bm25 = BM25.load(index_path / "bm25_index")
+            bm25.doc_order.reverse()
+            bm25.save(index_path / "bm25_index")
         elif corrupt == "corrupt_json":
             (index_path / "chunks.json").write_bytes(b"{not json")
         (index_path / "metadata.json").write_bytes(orjson.dumps(metadata))
