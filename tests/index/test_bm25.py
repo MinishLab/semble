@@ -24,15 +24,14 @@ def test_scoring_matches_lucene_formula() -> None:
     assert scores[1] == 0
 
 
-def test_removed_and_unordered_documents_stop_scoring() -> None:
-    """Only documents retained in the current order contribute scores."""
+def test_removed_documents_stop_scoring() -> None:
+    """Removed documents stop scoring, and the new order must list exactly the remaining documents."""
     index = _build({"a": ["authenticate"], "b": ["login"]})
     index.remove_document("missing")
-    index.set_doc_order(["b"])
-    assert np.all(index.get_scores(["authenticate"]) == 0)
-
     index.remove_document("a")
-    index.set_doc_order(["a", "b"])
+    with pytest.raises(ValueError, match="exactly once"):
+        index.set_doc_order(["a", "b"])
+    index.set_doc_order(["b"])
     assert np.all(index.get_scores(["authenticate"]) == 0)
 
 
@@ -93,7 +92,7 @@ def test_load_rejects_inconsistent_document_order(tmp_path: Path) -> None:
     index.save(tmp_path)
     index_path = tmp_path / "index.json"
     data = orjson.loads(index_path.read_bytes())
-    data["doc_order"] = ["other"]
+    data["doc_order"] = ["a", "other"]
     index_path.write_bytes(orjson.dumps(data))
 
     with pytest.raises(ValueError, match="document state"):
