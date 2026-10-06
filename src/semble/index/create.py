@@ -88,7 +88,7 @@ def create_index_from_path(
     :return: A BM25 index, semantic index, list of chunks, and file manifest.
     """
     # PreviousIndex is consumed; mutate BM25 in place to avoid a copy.
-    bm25_index = previous.bm25_index if previous is not None else BM25()
+    bm25_index = previous.bm25_index if previous is not None else BM25.empty()
     previous_manifest = previous.manifest if previous is not None else {}
 
     normalized = (content,) if isinstance(content, ContentType) else content

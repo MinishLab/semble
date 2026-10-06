@@ -160,7 +160,7 @@ def _bench_bm25(index: SembleIndex, tasks: list[Task]) -> tuple[float, tuple[flo
     number meaningless as a "BM25 index time".
     """
     started = time.perf_counter()
-    bm25_index = BM25()
+    bm25_index = BM25.empty()
     doc_ids: list[str] = []
     slot = 0
     prev_path = None

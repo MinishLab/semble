@@ -18,7 +18,7 @@ from tests.conftest import make_chunk
 
 def _build_bm25(chunks: list[Chunk]) -> BM25:
     """Build a BM25 index over chunks, keyed by their position."""
-    index = BM25()
+    index = BM25.empty()
     doc_ids = [f"c{i}" for i in range(len(chunks))]
     for doc_id, chunk in zip(doc_ids, chunks):
         index.add_document(doc_id, tokenize(chunk.content))
