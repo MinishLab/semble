@@ -21,7 +21,6 @@ from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
 from semble.index.bm25 import BM25
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
-from semble.index.files import read_file_text
 from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, PersistencePath, PreviousIndex
 from semble.search import _search_semantic, search
 from semble.stats import save_search_stats
@@ -110,7 +109,7 @@ class SembleIndex:
             if chunk.file_path in sizes:
                 continue
             try:
-                sizes[chunk.file_path] = len(read_file_text(root / chunk.file_path))
+                sizes[chunk.file_path] = (root / chunk.file_path).stat().st_size
             except OSError:
                 pass
         return sizes
