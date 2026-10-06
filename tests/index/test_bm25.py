@@ -8,7 +8,7 @@ from semble.index.bm25 import BM25
 
 
 def _build(docs: dict[str, list[str]]) -> BM25:
-    index = BM25()
+    index = BM25.empty()
     for chunk_id, tokens in docs.items():
         index.add_document(chunk_id, tokens)
     index.set_doc_order(list(docs))
@@ -93,10 +93,16 @@ def test_save_load_preserves_scores_and_doc_order(tmp_path: Path) -> None:
     np.testing.assert_array_equal(loaded.get_scores(["authenticate"]), index.get_scores(["authenticate"]))
 
 
+def test_save_rejects_nul_in_chunk_ids(tmp_path: Path) -> None:
+    """Chunk ids are saved NUL-terminated, so an id containing NUL can't be saved."""
+    with pytest.raises(ValueError, match="NUL"):
+        _build({"a\0b": ["x"]}).save(tmp_path)
+
+
 @pytest.mark.parametrize(
     "corrupt",
     [
-        {"doc_order": np.frombuffer(b"a\0other", dtype=np.uint8)},
+        {"doc_order": np.frombuffer(b"a\0other\0", dtype=np.uint8)},
         {"docs": np.array([-1], dtype=np.int32)},
         {"offsets": np.array([1, 1])},
         None,

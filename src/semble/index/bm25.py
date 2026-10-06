@@ -4,7 +4,7 @@ import math
 import zipfile
 from array import array
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Collection
 from pathlib import Path
 
 import numpy as np
@@ -17,17 +17,23 @@ _B = 0.75  # Document length normalization
 class BM25:
     """BM25 inverted index supporting incremental document updates."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        doc_order: list[str],
+        terms: list[str],
+        offsets: npt.NDArray[np.int64],
+        docs: npt.NDArray[np.int32],
+        tfs: npt.NDArray[np.int32],
+        doc_lengths: npt.NDArray[np.int32],
+    ) -> None:
+        """Create an index from postings sorted by term: term id t's postings are at [offsets[t], offsets[t + 1])."""
+        self._set_state(doc_order, terms, offsets, docs, tfs, doc_lengths)
+
+    @classmethod
+    def empty(cls) -> BM25:
         """Create an empty index."""
-        self._pending: dict[str, Counter[str]] = {}  # added documents, applied by set_doc_order
-        self._terms: dict[str, int] = {}  # term -> term id, assigned in insertion order
-        # Postings sorted by term: term id t's postings are at [_offsets[t], _offsets[t + 1]) in the arrays below.
-        self._offsets: npt.NDArray[np.int64] = np.zeros(1, dtype=np.int64)
-        self._posting_docs: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
-        self._posting_tfs: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
-        self._doc_lengths: npt.NDArray[np.int32] = np.zeros(0, dtype=np.int32)
-        self.doc_order: list[str] = []
-        self._positions: dict[str, int] = {}
+        no_postings = np.zeros(0, dtype=np.int32)
+        return cls([], [], np.zeros(1, dtype=np.int64), no_postings, no_postings, no_postings)
 
     def add_document(self, chunk_id: str, tokens: list[str]) -> None:
         """Index one document, rejecting duplicate IDs."""
@@ -47,24 +53,28 @@ class BM25:
             raise ValueError("Document order must list every indexed document exactly once")
 
         # Existing postings, renumbered to their position in chunk_ids. Removed documents get -1 and are dropped.
+        moves = [(doc, target[chunk_id]) for chunk_id, doc in self._positions.items()]
+        old_docs, new_docs = np.array(moves, dtype=np.int64).reshape(-1, 2).T
         renumber = np.full(len(self._doc_lengths), -1, dtype=np.int64)
-        renumber[list(self._positions.values())] = [target[chunk_id] for chunk_id in self._positions]
+        renumber[old_docs] = new_docs
         docs = renumber[self._posting_docs]
         kept = docs >= 0
 
         # Postings of added documents.
-        new_docs, new_terms, new_tfs = array("q"), array("q"), array("q")
+        added_docs, added_terms, added_tfs = array("q"), array("q"), array("q")
         for chunk_id, counts in self._pending.items():
-            new_docs.extend([target[chunk_id]] * len(counts))
-            new_terms.extend(self._terms.setdefault(term, len(self._terms)) for term in counts)
-            new_tfs.extend(counts.values())
-        self._pending.clear()
+            added_docs.extend([target[chunk_id]] * len(counts))
+            added_terms.extend(self._terms.setdefault(term, len(self._terms)) for term in counts)
+            added_tfs.extend(counts.values())
 
-        self._set_postings(
-            chunk_ids,
-            np.concatenate([docs[kept], np.frombuffer(new_docs, dtype=np.int64)]),
-            np.concatenate([self._posting_terms()[kept], np.frombuffer(new_terms, dtype=np.int64)]),
-            np.concatenate([self._posting_tfs[kept], np.frombuffer(new_tfs, dtype=np.int64)]),
+        self._set_state(
+            *_sort_postings(
+                chunk_ids,
+                list(self._terms),
+                np.concatenate([docs[kept], np.frombuffer(added_docs, dtype=np.int64)]),
+                np.concatenate([self._posting_terms()[kept], np.frombuffer(added_terms, dtype=np.int64)]),
+                np.concatenate([self._posting_tfs[kept], np.frombuffer(added_tfs, dtype=np.int64)]),
+            )
         )
 
     def get_scores(
@@ -98,19 +108,20 @@ class BM25:
     @classmethod
     def merge(cls, parts: list[tuple[str, BM25]]) -> BM25:
         """Combine indexes into one corpus, prefixing every chunk id with its part's label."""
-        merged = cls()
-        starts = np.cumsum([0] + [len(part.doc_order) for _, part in parts])
+        terms: dict[str, int] = {}
         new_term_ids = [
-            np.array([merged._terms.setdefault(term, len(merged._terms)) for term in part._terms], dtype=np.int64)
-            for _, part in parts
+            np.array([terms.setdefault(term, len(terms)) for term in part._terms], dtype=np.int64) for _, part in parts
         ]
-        merged._set_postings(
-            [f"{label}/{chunk_id}" for label, part in parts for chunk_id in part.doc_order],
-            np.concatenate([part._posting_docs + start for (_, part), start in zip(parts, starts)]),
-            np.concatenate([ids[part._posting_terms()] for (_, part), ids in zip(parts, new_term_ids)]),
-            np.concatenate([part._posting_tfs for _, part in parts]),
+        starts = np.cumsum([0] + [len(part.doc_order) for _, part in parts])
+        return cls(
+            *_sort_postings(
+                [f"{label}/{chunk_id}" for label, part in parts for chunk_id in part.doc_order],
+                list(terms),
+                np.concatenate([part._posting_docs + start for (_, part), start in zip(parts, starts)]),
+                np.concatenate([ids[part._posting_terms()] for (_, part), ids in zip(parts, new_term_ids)]),
+                np.concatenate([part._posting_tfs for _, part in parts]),
+            )
         )
-        return merged
 
     def save(self, path: Path) -> None:
         """Persist the index to path/index.npz."""
@@ -135,57 +146,86 @@ class BM25:
                 offsets, docs, tfs, doc_lengths = (arrays[key] for key in ("offsets", "docs", "tfs", "doc_lengths"))
         except zipfile.BadZipFile as exc:  # e.g. truncated by an interrupted save
             raise ValueError("Persisted BM25 index is unreadable") from exc
-        if (
-            len(set(doc_order)) != len(doc_order)
-            or len(doc_lengths) != len(doc_order)
-            or len(offsets) != len(terms) + 1
-            or offsets[0] != 0
-            or np.any(np.diff(offsets) < 0)
-            or offsets[-1] != len(docs)
-            or len(tfs) != len(docs)
-            or (docs.size and (docs.min() < 0 or docs.max() >= len(doc_order)))
-        ):
-            raise ValueError("Persisted BM25 document state is inconsistent")
-        index = cls()
-        index.doc_order = doc_order
-        index._positions = {chunk_id: i for i, chunk_id in enumerate(doc_order)}
-        index._terms = {term: i for i, term in enumerate(terms)}
-        index._offsets, index._posting_docs, index._posting_tfs, index._doc_lengths = offsets, docs, tfs, doc_lengths
-        return index
+        _check_consistent(doc_order, terms, offsets, docs, tfs, doc_lengths)
+        return cls(doc_order, terms, offsets, docs, tfs, doc_lengths)
+
+    def _set_state(
+        self,
+        doc_order: list[str],
+        terms: list[str],
+        offsets: npt.NDArray[np.int64],
+        docs: npt.NDArray[np.int32],
+        tfs: npt.NDArray[np.int32],
+        doc_lengths: npt.NDArray[np.int32],
+    ) -> None:
+        """Replace the whole index with the given postings and clear pending changes."""
+        self.doc_order = doc_order
+        self._positions = {chunk_id: i for i, chunk_id in enumerate(doc_order)}
+        self._terms = {term: i for i, term in enumerate(terms)}  # term -> term id
+        self._offsets = offsets
+        self._posting_docs = docs
+        self._posting_tfs = tfs
+        self._doc_lengths = doc_lengths
+        self._pending: dict[str, Counter[str]] = {}  # added documents, applied by set_doc_order
 
     def _posting_terms(self) -> npt.NDArray[np.int64]:
         """Return the term id of each posting."""
         return np.repeat(np.arange(len(self._offsets) - 1), np.diff(self._offsets))
 
-    def _set_postings(
-        self,
-        doc_order: list[str],
-        docs: npt.NDArray[np.integer],
-        terms: npt.NDArray[np.integer],
-        tfs: npt.NDArray[np.integer],
-    ) -> None:
-        """Replace all postings, given one (doc, term, tf) entry per posting in any order; terms must be in _terms."""
-        term_counts = np.bincount(terms, minlength=len(self._terms))
-        used = term_counts > 0
-        if not used.all():
-            # Drop terms that no document contains any more, keeping the remaining ids in order.
-            self._terms = {term: i for i, term in enumerate(t for t, keep in zip(self._terms, used) if keep)}
-            terms = (np.cumsum(used) - 1)[terms]
-            term_counts = term_counts[used]
-        order = np.argsort(terms, kind="stable")
-        self.doc_order = doc_order
-        self._positions = {chunk_id: i for i, chunk_id in enumerate(doc_order)}
-        self._offsets = np.concatenate([[0], np.cumsum(term_counts)])
-        self._posting_docs = docs[order].astype(np.int32)
-        self._posting_tfs = tfs[order].astype(np.int32)
-        self._doc_lengths = np.bincount(docs, weights=tfs, minlength=len(doc_order)).astype(np.int32)
+
+def _sort_postings(
+    doc_order: list[str],
+    terms: list[str],
+    docs: npt.NDArray[np.integer],
+    term_ids: npt.NDArray[np.integer],
+    tfs: npt.NDArray[np.integer],
+) -> tuple[
+    list[str], list[str], npt.NDArray[np.int64], npt.NDArray[np.int32], npt.NDArray[np.int32], npt.NDArray[np.int32]
+]:
+    """Build BM25 constructor arguments from one (doc, term id, tf) entry per posting, given in any order."""
+    term_counts = np.bincount(term_ids, minlength=len(terms))
+    used = term_counts > 0
+    if not used.all():
+        # Drop terms that no document contains any more, keeping the remaining ids in order.
+        terms = [term for term, keep in zip(terms, used) if keep]
+        term_ids = (np.cumsum(used) - 1)[term_ids]
+        term_counts = term_counts[used]
+    order = np.argsort(term_ids, kind="stable")
+    offsets = np.concatenate([[0], np.cumsum(term_counts)]).astype(np.int64)
+    doc_lengths = np.bincount(docs, weights=tfs, minlength=len(doc_order)).astype(np.int32)
+    return doc_order, terms, offsets, docs[order].astype(np.int32), tfs[order].astype(np.int32), doc_lengths
 
 
-def _pack(strings: Iterable[str]) -> npt.NDArray[np.uint8]:
-    """Encode strings, which must not contain NUL, as one NUL-separated UTF-8 byte array for saving in an .npz."""
-    return np.frombuffer("\0".join(strings).encode(), dtype=np.uint8)
+def _check_consistent(
+    doc_order: list[str],
+    terms: list[str],
+    offsets: npt.NDArray[np.integer],
+    docs: npt.NDArray[np.integer],
+    tfs: npt.NDArray[np.integer],
+    doc_lengths: npt.NDArray[np.integer],
+) -> None:
+    """Raise ValueError unless loaded postings and document order describe the same documents and terms."""
+    if (
+        len(set(doc_order)) != len(doc_order)
+        or len(doc_lengths) != len(doc_order)
+        or len(offsets) != len(terms) + 1
+        or offsets[0] != 0
+        or np.any(np.diff(offsets) < 0)
+        or offsets[-1] != len(docs)
+        or len(tfs) != len(docs)
+        or (docs.size and (docs.min() < 0 or docs.max() >= len(doc_order)))
+    ):
+        raise ValueError("Persisted BM25 document state is inconsistent")
+
+
+def _pack(strings: Collection[str]) -> npt.NDArray[np.uint8]:
+    """Encode strings as NUL-terminated UTF-8 in one byte array, so they can be saved in an .npz."""
+    packed = "\0".join([*strings, ""])
+    if packed.count("\0") != len(strings):
+        raise ValueError("Cannot save strings that contain a NUL character")
+    return np.frombuffer(packed.encode(), dtype=np.uint8)
 
 
 def _unpack(packed: npt.NDArray[np.uint8]) -> list[str]:
     """Decode strings encoded by _pack."""
-    return packed.tobytes().decode().split("\0") if packed.size else []
+    return packed.tobytes().decode().split("\0")[:-1]
