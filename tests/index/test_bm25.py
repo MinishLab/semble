@@ -34,6 +34,13 @@ def test_removed_documents_stop_scoring() -> None:
     index.set_doc_order(["b"])
     assert np.all(index.get_scores(["authenticate"]) == 0)
 
+    # Re-adding an id removed before set_doc_order replaces its postings, as incremental reindexing does.
+    index.remove_document("b")
+    index.add_document("b", ["authenticate"])
+    index.set_doc_order(["b"])
+    assert index.get_scores(["login"])[0] == 0
+    assert index.get_scores(["authenticate"])[0] > 0
+
 
 def test_merge_matches_single_corpus() -> None:
     """Merging two indexes scores identically to one index built over all documents with prefixed ids."""
