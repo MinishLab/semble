@@ -182,7 +182,7 @@ def _stem_matches(stem: str, name: str) -> bool:
     return stem == name or stem_norm == name or stem.rstrip("s") == name or stem_norm.rstrip("s") == name
 
 
-@functools.cache
+@functools.lru_cache(maxsize=4096)
 def _file_stem(file_path: str) -> str:
     """Return the lowercased file stem, cached because definition boosting checks it for every chunk."""
     return Path(file_path).stem.lower()
