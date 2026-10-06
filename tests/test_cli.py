@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from semble.cli import _cli_main, _maybe_save_index, _run_clear, main
+from semble.index.chunks import ChunkTable
 from semble.types import ContentType, SearchResult
 from semble.version import __version__
 from tests.conftest import make_chunk
@@ -108,7 +109,7 @@ def test_cli_find_related(
     """_cli_main find-related prints results, empty states, and missing-chunk errors."""
     chunk = make_chunk("class Bar: pass", "src/bar.py")
     fake_index = MagicMock(sources={})
-    fake_index.chunks = [] if scenario == "unknown_chunk" else [chunk]
+    fake_index.chunks = ChunkTable.from_chunks([] if scenario == "unknown_chunk" else [chunk])
     has_results = scenario in ("with_results", "text")
     fake_index.find_related.return_value = [SearchResult(chunk=chunk, score=0.8)] if has_results else []
     file_path = "unknown.py" if scenario == "unknown_chunk" else "src/bar.py"
@@ -285,7 +286,7 @@ def _make_valid_index_dir(
     index_dir = cache_folder / sha / index_name
     index_dir.mkdir(parents=True)
     # Create the files that PersistencePath.non_existing checks
-    (index_dir / "chunks.json").write_text("[]")
+    (index_dir / "chunks.npz").write_text("")
     (index_dir / "bm25_index").write_text("")
     (index_dir / "semantic_index").write_text("")
     (index_dir / "metadata.json").write_text(metadata)
@@ -311,7 +312,7 @@ def test_run_clear_index(
     elif scenario == "non_sha":
         bad_dir = tmp_path / "not-a-sha" / "index"
         bad_dir.mkdir(parents=True)
-        (bad_dir / "chunks.json").write_text("[]")
+        (bad_dir / "chunks.npz").write_text("")
         (bad_dir / "bm25_index").write_text("")
         (bad_dir / "semantic_index").write_text("")
         (bad_dir / "metadata.json").write_text("{}")

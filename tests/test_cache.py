@@ -131,7 +131,7 @@ def _write_metadata(
     cache_version: int | None = None,
 ) -> None:
     path.mkdir(parents=True, exist_ok=True)
-    (path / "chunks.json").write_text("[]")
+    (path / "chunks.npz").write_text("")
     (path / "bm25_index").write_text("")
     (path / "semantic_index").write_text("")
     (path / "metadata.json").write_text(
@@ -191,7 +191,7 @@ def test_get_validated_cache_reads_utf8_metadata_with_non_ascii_file_paths(tmp_p
     """Cache metadata is always UTF-8, even when the system default encoding is not."""
     index_path = tmp_path / "index"
     index_path.mkdir(parents=True)
-    (index_path / "chunks.json").write_text("[]")
+    (index_path / "chunks.npz").write_text("")
     (index_path / "bm25_index").write_text("")
     (index_path / "semantic_index").write_text("")
 
@@ -255,7 +255,7 @@ def test_get_validated_cache_legacy_metadata_returns_none(tmp_path: Path) -> Non
     """Old cache metadata missing content_type returns None instead of crashing."""
     index_path = tmp_path / "index"
     index_path.mkdir(parents=True)
-    (index_path / "chunks.json").write_text("[]")
+    (index_path / "chunks.npz").write_text("")
     (index_path / "bm25_index").write_text("")
     (index_path / "semantic_index").write_text("")
     (index_path / "metadata.json").write_text(json.dumps({"model_path": "my/model", "time": 0.0}))

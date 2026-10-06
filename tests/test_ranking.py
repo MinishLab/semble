@@ -1,5 +1,6 @@
 import pytest
 
+from semble.index.chunks import ChunkTable
 from semble.ranking.boosting import apply_query_boost, boost_multi_chunk_files, resolve_alpha
 from semble.ranking.penalties import rerank_topk
 from tests.conftest import make_chunk
@@ -64,7 +65,7 @@ def test_apply_query_boost_boosts_defining_chunk(query: str) -> None:
     other = make_chunk("x = MyService()", "src/utils.py")
     scores: dict = {defining: 0.5, other: 0.4}
 
-    boosted = apply_query_boost(scores, query, [defining, other])
+    boosted = apply_query_boost(scores, query, ChunkTable.from_chunks([defining, other]))
 
     assert boosted[defining] > boosted[other]
 
@@ -82,7 +83,7 @@ def test_apply_query_boost_scans_non_candidates(query: str) -> None:
     candidate = make_chunk("x = 1", "src/other.py")
     scores: dict = {candidate: 0.5}
 
-    boosted = apply_query_boost(scores, query, [defining, candidate])
+    boosted = apply_query_boost(scores, query, ChunkTable.from_chunks([defining, candidate]))
 
     assert defining in boosted
     assert boosted[defining] > 0
@@ -100,7 +101,7 @@ def test_apply_query_boost_skips_non_matching_stem(query: str) -> None:
     defining = make_chunk("class UserService:\n    pass", "src/user_service.py")
     unrelated = make_chunk("x = 1", "src/totally_unrelated_name.py")
     scores: dict = {defining: 0.5}
-    boosted = apply_query_boost(scores, query, [defining, unrelated])
+    boosted = apply_query_boost(scores, query, ChunkTable.from_chunks([defining, unrelated]))
     assert unrelated not in boosted
 
 
@@ -115,19 +116,19 @@ def test_apply_query_boost_nl_stem_match_boosts(query: str, file_path: str) -> N
     """NL query keywords matching file-stem parts boost the chunk above its baseline score."""
     chunk = make_chunk("def authenticate(): pass", file_path)
     scores: dict = {chunk: 0.5}
-    boosted = apply_query_boost(scores, query, [chunk])
+    boosted = apply_query_boost(scores, query, ChunkTable.from_chunks([chunk]))
     assert boosted[chunk] > 0.5
 
 
 def test_apply_query_boost_edge_cases() -> None:
     """apply_query_boost: stopwords → noop; namespace-qualified → boosts leaf; empty scores → {}."""
     chunk = make_chunk("def foo(): pass", "src/auth.py")
-    assert apply_query_boost({chunk: 0.5}, "the and or", [chunk])[chunk] == pytest.approx(0.5)
+    assert apply_query_boost({chunk: 0.5}, "the and or", ChunkTable.from_chunks([chunk]))[chunk] == pytest.approx(0.5)
 
     defining = make_chunk("class Base:\n    pass", "src/base.py")
-    assert apply_query_boost({defining: 0.5}, "Sinatra::Base", [defining])[defining] > 0.5
+    assert apply_query_boost({defining: 0.5}, "Sinatra::Base", ChunkTable.from_chunks([defining]))[defining] > 0.5
 
-    assert apply_query_boost({}, "SomeQuery", []) == {}
+    assert apply_query_boost({}, "SomeQuery", ChunkTable.from_chunks([])) == {}
 
 
 def test_boost_multi_chunk_files() -> None:
@@ -151,5 +152,5 @@ def test_boost_multi_chunk_files() -> None:
 
 def test_boosting_with_empty() -> None:
     """Test that boosting with empty chunks return None."""
-    boosted = apply_query_boost({}, "query", [])
+    boosted = apply_query_boost({}, "query", ChunkTable.from_chunks([]))
     assert boosted == {}

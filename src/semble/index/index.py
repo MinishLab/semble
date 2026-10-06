@@ -4,7 +4,6 @@ import os
 import subprocess
 import tempfile
 import warnings
-from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import replace
 from datetime import datetime
@@ -19,6 +18,7 @@ from vicinity.backends.basic import BasicArgs
 from semble.cache import get_validated_cache, load_previous_for_incremental
 from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
 from semble.index.bm25 import BM25
+from semble.index.chunks import ChunkTable
 from semble.index.create import create_index_from_path
 from semble.index.dense import SelectableBasicBackend, load_model
 from semble.index.files import read_file_text
@@ -59,7 +59,7 @@ class SembleIndex:
         model: StaticModel,
         bm25_index: BM25,
         semantic_index: SelectableBasicBackend,
-        chunks: list[Chunk],
+        chunks: Sequence[Chunk],
         model_path: str,
         root: Path | None = None,
         content: ContentType | Sequence[ContentType] = _DEFAULT_CONTENT,
@@ -71,7 +71,7 @@ class SembleIndex:
         :param model: Embedding model to use.
         :param bm25_index: The bm25 index.
         :param semantic_index: The semantic index.
-        :param chunks: The found chunks.
+        :param chunks: The found chunks, as a ChunkTable or any sequence of chunks.
         :param model_path: Path to the model file.
         :param root: Root directory used to read file sizes for token-savings stats.
         :param content: Content type used when indexing; controls the search pipeline.
@@ -79,38 +79,23 @@ class SembleIndex:
         :param manifest: File modification times and chunk ranges used for incremental reindexing.
         """
         self.model = model
-        self.chunks: list[Chunk] = chunks
+        self.chunks = chunks if isinstance(chunks, ChunkTable) else ChunkTable.from_chunks(chunks)
         self._bm25_index: BM25 = bm25_index
         self._semantic_index: SelectableBasicBackend = semantic_index
         self._model_path: str = model_path
         self._root: Path | None = root
         self._content: tuple[ContentType, ...] = (content,) if isinstance(content, ContentType) else tuple(content)
         self._file_sizes: dict[str, int] = self._compute_file_sizes(root) if root else {}
-        self._file_mapping, self._language_mapping = self._populate_mapping()
         self.loaded_from_disk: bool = loaded_from_disk
         self._manifest: dict[str, FileManifestEntry] = manifest or {}
         self.sources: dict[str, str] = {}  # repo label -> source, only set on indexes built by merge()
 
-    def _populate_mapping(self) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
-        """Build (file → chunk indices, language → chunk indices) mappings, in that order."""
-        language_to_id = defaultdict(list)
-        file_to_id = defaultdict(list)
-        for i, chunk in enumerate(self.chunks):
-            language = chunk.language
-            if language:
-                language_to_id[language].append(i)
-            file_to_id[chunk.file_path].append(i)
-
-        return dict(file_to_id), dict(language_to_id)
-
     def _compute_file_sizes(self, root: Path) -> dict[str, int]:
         """Return a mapping of repo-relative file path to total character count."""
         sizes: dict[str, int] = {}
-        for chunk in self.chunks:
-            if chunk.file_path in sizes:
-                continue
+        for file_path in self.chunks.files:
             try:
-                sizes[chunk.file_path] = len(read_file_text(root / chunk.file_path))
+                sizes[file_path] = len(read_file_text(root / file_path))
             except OSError:
                 pass
         return sizes
@@ -119,9 +104,9 @@ class SembleIndex:
     def stats(self) -> IndexStats:
         """Stats of an index."""
         return IndexStats(
-            indexed_files=len(self._file_mapping),
+            indexed_files=len(self.chunks.files),
             total_chunks=len(self.chunks),
-            languages={language: len(ids) for language, ids in self._language_mapping.items()},
+            languages={language: len(ids) for language, ids in self.chunks.indices_by_language.items()},
         )
 
     @property
@@ -191,9 +176,9 @@ class SembleIndex:
             labels.append(label)
         parts = [(label, index) for label, (_, index) in zip(labels, resolved)]
 
-        chunks = [
+        chunks = ChunkTable.from_chunks(
             replace(chunk, file_path=f"{label}/{chunk.file_path}") for label, index in parts for chunk in index.chunks
-        ]
+        )
         bm25 = BM25.merge([(label, index._bm25_index) for label, index in parts])
         vectors = np.vstack([index._semantic_index.vectors for _, index in parts])
 
@@ -284,9 +269,9 @@ class SembleIndex:
         """Create a vector of chunk indices to restrict retrieval to."""
         selector = []
         for language in filter_languages or []:
-            selector.extend(self._language_mapping.get(language, []))
+            selector.extend(self.chunks.indices_by_language.get(language, []))
         for filename in filter_paths or []:
-            selector.extend(self._file_mapping.get(filename, []))
+            selector.extend(self.chunks.indices_by_file.get(filename, []))
 
         return np.unique(selector) if selector else None
 
@@ -357,7 +342,7 @@ class SembleIndex:
 
         bm25_index = BM25.load(persistence_paths.bm25_index)
         semantic_index = SelectableBasicBackend.load(persistence_paths.semantic_index)
-        chunks = [Chunk.from_dict(item) for item in orjson.loads(persistence_paths.chunks.read_bytes())]
+        chunks = ChunkTable.load(persistence_paths.chunks)
         if not (len(chunks) == len(bm25_index.doc_order) == semantic_index.vectors.shape[0]):
             raise ValueError("Persisted index components have inconsistent document counts")
         root_path = metadata["root_path"]
@@ -392,7 +377,7 @@ class SembleIndex:
 
         self._bm25_index.save(persistence_paths.bm25_index)
         self._semantic_index.save(persistence_paths.semantic_index)
-        persistence_paths.chunks.write_bytes(orjson.dumps(self.chunks))
+        self.chunks.save(persistence_paths.chunks)
 
         root_str = None if self._root is None else str(self._root)
         metadata = {

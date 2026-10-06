@@ -11,6 +11,7 @@ from vicinity.backends.basic import BasicArgs
 
 from semble.chunking import chunk_source
 from semble.index.bm25 import BM25
+from semble.index.chunks import ChunkTable
 from semble.index.dense import SelectableBasicBackend, embed_chunks
 from semble.index.file_walker import walk_files
 from semble.index.files import (
@@ -75,7 +76,7 @@ def create_index_from_path(
     display_root: Path | None = None,
     previous: PreviousIndex | None = None,
     show_progress_bar: bool = False,
-) -> tuple[BM25, SelectableBasicBackend, list[Chunk], dict[str, FileManifestEntry]]:
+) -> tuple[BM25, SelectableBasicBackend, ChunkTable, dict[str, FileManifestEntry]]:
     """Create an index from a resolved directory, optionally reusing a previous index's unchanged files.
 
     :param path: Resolved absolute path to index.
@@ -85,7 +86,7 @@ def create_index_from_path(
     :param previous: A previously built index to reuse unchanged files' chunks/embeddings/postings from.
     :param show_progress_bar: Show a progress bar on stderr while indexing.
     :raises ValueError: if no items were found, no index can be created.
-    :return: A BM25 index, semantic index, list of chunks, and file manifest.
+    :return: A BM25 index, semantic index, chunk table, and file manifest.
     """
     # PreviousIndex is consumed; mutate BM25 in place to avoid a copy.
     bm25_index = previous.bm25_index if previous is not None else BM25.empty()
@@ -159,4 +160,4 @@ def create_index_from_path(
     bm25_index.set_doc_order(chunk_ids)
     semantic_index = SelectableBasicBackend(embeddings, BasicArgs())
 
-    return bm25_index, semantic_index, chunks, manifest
+    return bm25_index, semantic_index, ChunkTable.from_chunks(chunks), manifest

@@ -11,11 +11,12 @@ import orjson
 
 from semble.chunking.chunking import _DESIRED_CHUNK_LENGTH_CHARS
 from semble.index.bm25 import BM25
+from semble.index.chunks import ChunkTable
 from semble.index.dense import SelectableBasicBackend
 from semble.index.file_walker import walk_files
 from semble.index.files import FileStatus, get_extensions, get_file_status
 from semble.index.types import CACHE_FORMAT_VERSION, FileManifestEntry, PersistencePath, PreviousIndex, make_chunk_id
-from semble.types import Chunk, ContentType
+from semble.types import ContentType
 from semble.utils import is_git_url, resolve_model_name
 
 logger = logging.getLogger(__name__)
@@ -184,7 +185,7 @@ def load_previous_for_incremental(
             return None
         manifest = {indexed_path: FileManifestEntry(**entry) for indexed_path, entry in raw_manifest.items()}
 
-        chunks = [Chunk.from_dict(item) for item in orjson.loads(persistence_path.chunks.read_bytes())]
+        chunks = ChunkTable.load(persistence_path.chunks)
 
         vectors = SelectableBasicBackend.load(persistence_path.semantic_index).vectors
         bm25_index = BM25.load(persistence_path.bm25_index)
@@ -195,7 +196,7 @@ def load_previous_for_incremental(
         next_start = 0
         for indexed_path, entry in manifest.items():
             if entry.start != next_start or any(
-                chunk.file_path != indexed_path for chunk in chunks[entry.start : entry.end]
+                chunks.file_path(i) != indexed_path for i in range(entry.start, entry.end)
             ):
                 return None
             expected_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(entry.count))

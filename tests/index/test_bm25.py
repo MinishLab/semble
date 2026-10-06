@@ -120,5 +120,5 @@ def test_load_rejects_corrupt_index(corrupt: dict[str, np.ndarray] | None, tmp_p
             saved = dict(arrays)
         np.savez(index_path, **{**saved, **corrupt})
 
-    with pytest.raises(ValueError, match="Persisted BM25"):
+    with pytest.raises(ValueError, match="Persisted"):
         BM25.load(tmp_path)

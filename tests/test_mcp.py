@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from model2vec import StaticModel
 
+from semble.index.chunks import ChunkTable
 from semble.mcp import _CACHE_MAX_SIZE, _IndexCache, create_server, serve
 from semble.types import Chunk, ContentType, SearchResult
 from semble.utils import format_results, is_git_url, resolve_chunk
@@ -33,7 +34,7 @@ async def _call_tool(
     fake_index = MagicMock(sources={})
     getattr(fake_index, index_method).return_value = index_return
     if index_chunks is not None:
-        fake_index.chunks = index_chunks
+        fake_index.chunks = ChunkTable.from_chunks(index_chunks)
     with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
         server = create_server(cache)
         result = await server.call_tool(tool, args)
@@ -55,20 +56,20 @@ def test_resolve_chunk() -> None:
     boundary = make_chunk("last line", "src/a.py")  # start=1, end=1 (single-line)
 
     # Line strictly inside a multi-line chunk hits the early-return path.
-    assert resolve_chunk([interior], "src/a.py", 2) is interior
+    assert resolve_chunk(ChunkTable.from_chunks([interior]), "src/a.py", 2) == interior
 
     # Line equal to end_line of a single-line chunk hits the fallback path.
-    assert resolve_chunk([boundary], "src/a.py", 1) is boundary
+    assert resolve_chunk(ChunkTable.from_chunks([boundary]), "src/a.py", 1) == boundary
 
     # Unknown file returns None.
-    assert resolve_chunk([interior], "src/other.py", 1) is None
+    assert resolve_chunk(ChunkTable.from_chunks([interior]), "src/other.py", 1) is None
 
     # Line out of range returns None.
-    assert resolve_chunk([interior], "src/a.py", 99) is None
+    assert resolve_chunk(ChunkTable.from_chunks([interior]), "src/a.py", 99) is None
 
     # Separator mismatch (e.g. backslash-stored path, forward-slash query) still matches.
     backslash_chunk = make_chunk("line1\nline2\nline3", "src\\a.py")
-    assert resolve_chunk([backslash_chunk], "src/a.py", 2) is backslash_chunk
+    assert resolve_chunk(ChunkTable.from_chunks([backslash_chunk]), "src/a.py", 2) == backslash_chunk
 
 
 @pytest.mark.parametrize(

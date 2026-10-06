@@ -8,6 +8,7 @@ import pytest
 from model2vec import StaticModel
 
 from semble import SembleIndex
+from semble.index.chunks import ChunkTable
 from semble.index.create import create_index_from_path
 from semble.index.files import FileStatus, get_file_status
 from semble.types import ContentType
@@ -223,7 +224,7 @@ def test_compute_file_sizes(
     for name, content in disk_files.items():
         (tmp_path / name).write_text(content)
     index = SembleIndex.__new__(SembleIndex)
-    index.chunks = [make_chunk("c", p) for p in chunk_paths]
+    index.chunks = ChunkTable.from_chunks([make_chunk("c", p) for p in chunk_paths])
     assert index._compute_file_sizes(tmp_path) == expected
 
 
@@ -246,10 +247,9 @@ def test_roundtrip(tmp_path: Path, indexed_index: SembleIndex) -> None:
     """Test that saving and loading a folder leads to the same data."""
     assert indexed_index.chunks[0].to_dict()["location"] == indexed_index.chunks[0].location
     indexed_index.save(tmp_path)
-    assert "location" not in orjson.loads((tmp_path / "chunks.json").read_bytes())[0]
     with patch.object(StaticModel, "from_pretrained"):
         index_2 = SembleIndex.load_from_disk(tmp_path)
-    assert index_2.chunks == indexed_index.chunks
+    assert list(index_2.chunks) == list(indexed_index.chunks)
     assert index_2._root == indexed_index._root
 
 
@@ -280,7 +280,7 @@ def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:
     index_dir = tmp_path / "incomplete_index"
     index_dir.mkdir()
     # Create only one of the four expected files so the rest are reported as missing.
-    (index_dir / "chunks.json").write_text("[]")
+    (index_dir / "chunks.npz").write_text("")
 
     with pytest.raises(FileNotFoundError, match="Missing:") as exc_info:
         SembleIndex.load_from_disk(index_dir)
@@ -291,7 +291,7 @@ def test_load_from_disk_missing_files_reports_them(tmp_path: Path) -> None:
     assert "semantic_index" in error_msg
     assert "metadata.json" in error_msg
     # The file we did create should NOT be listed as missing.
-    assert "chunks.json" not in error_msg
+    assert "chunks.npz" not in error_msg
 
 
 @pytest.mark.parametrize(
@@ -307,10 +307,10 @@ def test_load_from_disk_rejects_incompatible_state(
         path = tmp_path / "metadata.json"
         data = orjson.loads(path.read_bytes())
         del data["cache_version"]
+        path.write_bytes(orjson.dumps(data))
     else:
-        path = tmp_path / "chunks.json"
-        data = orjson.loads(path.read_bytes())[:-1]
-    path.write_bytes(orjson.dumps(data))
+        chunks_path = tmp_path / "chunks.npz"
+        ChunkTable.from_chunks(ChunkTable.load(chunks_path)[:-1]).save(chunks_path)
 
     with pytest.raises(ValueError, match=message):
         SembleIndex.load_from_disk(tmp_path)

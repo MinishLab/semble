@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from semble.index.bm25 import BM25
-from semble.types import Chunk, EmbeddingMatrix
+from semble.index.chunks import ChunkTable
+from semble.types import EmbeddingMatrix
 
 CACHE_FORMAT_VERSION = 2  # Bump when the persisted index schema changes.
 
@@ -33,7 +34,7 @@ class PersistencePath:
     def from_path(cls: type[PersistencePath], path: Path) -> PersistencePath:
         """Create a PersistencePath from a base path."""
         return PersistencePath(
-            chunks=path / "chunks.json",
+            chunks=path / "chunks.npz",
             bm25_index=path / "bm25_index",
             semantic_index=path / "semantic_index",
             metadata=path / "metadata.json",
@@ -58,7 +59,7 @@ class FileManifestEntry:
 class PreviousIndex:
     """A previously built index, loaded for reuse during incremental reindexing."""
 
-    chunks: list[Chunk]
+    chunks: ChunkTable
     vectors: EmbeddingMatrix
     manifest: dict[str, FileManifestEntry]
     bm25_index: BM25

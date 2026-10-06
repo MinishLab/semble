@@ -8,6 +8,7 @@ import pytest
 
 from semble.cache import load_previous_for_incremental
 from semble.index.bm25 import BM25
+from semble.index.chunks import ChunkTable
 from semble.index.create import create_index_from_path
 from semble.index.index import SembleIndex
 from semble.index.types import PreviousIndex, make_chunk_id
@@ -109,7 +110,7 @@ def _build_valid_cache(index_path: Path, mock_model: Any) -> dict:
         "length_mismatch",
         "overlapping_entries",
         "bm25_order_mismatch",
-        "corrupt_json",
+        "corrupt_chunks",
     ],
 )
 def test_load_previous_for_incremental_fails_closed(corrupt: str, tmp_path: Path, mock_model: Any) -> None:
@@ -123,9 +124,8 @@ def test_load_previous_for_incremental_fails_closed(corrupt: str, tmp_path: Path
         elif corrupt == "metadata_mismatch":
             metadata["model_path"] = "other/model"
         elif corrupt == "component_length_mismatch":
-            chunks_path = index_path / "chunks.json"
-            chunks = orjson.loads(chunks_path.read_bytes())
-            chunks_path.write_bytes(orjson.dumps(chunks[:-1]))
+            chunks_path = index_path / "chunks.npz"
+            ChunkTable.from_chunks(ChunkTable.load(chunks_path)[:-1]).save(chunks_path)
         elif corrupt == "length_mismatch":
             metadata["files"]["a.py"]["count"] += 5
         elif corrupt == "overlapping_entries":
@@ -134,8 +134,8 @@ def test_load_previous_for_incremental_fails_closed(corrupt: str, tmp_path: Path
             bm25 = BM25.load(index_path / "bm25_index")
             bm25.doc_order.reverse()
             bm25.save(index_path / "bm25_index")
-        elif corrupt == "corrupt_json":
-            (index_path / "chunks.json").write_bytes(b"{not json")
+        elif corrupt == "corrupt_chunks":
+            (index_path / "chunks.npz").write_bytes(b"not an npz file")
         (index_path / "metadata.json").write_bytes(orjson.dumps(metadata))
 
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):

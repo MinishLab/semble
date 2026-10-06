@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import functools
 import re
 from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from semble.tokens import split_identifier
 from semble.types import Chunk
+
+if TYPE_CHECKING:
+    from semble.index.chunks import ChunkTable
 
 # Symbol-lookup queries: namespace-qualified, leading-underscore, or containing
 # uppercase/underscore. Plain lowercase words (e.g. "session") are NL, not symbols.
@@ -91,7 +97,7 @@ _STOPWORDS = frozenset(
 def apply_query_boost(
     combined_scores: dict[Chunk, float],
     query: str,
-    all_chunks: list[Chunk],
+    all_chunks: ChunkTable,
 ) -> dict[Chunk, float]:
     """Apply query-type boosts to candidate scores."""
     if not combined_scores:
@@ -194,27 +200,26 @@ def _boost_definitions(
     boosted: dict[Chunk, float],
     names: set[str],
     boost_unit: float,
-    all_chunks: list[Chunk],
+    all_chunks: ChunkTable,
     stem_ok: Callable[[str], bool],
 ) -> None:
     """Boost candidates defining one of names, then add non-candidates whose lowercased file stem satisfies stem_ok."""
     for chunk in list(boosted):
         if tier := _definition_tier(chunk, names, boost_unit):
             boosted[chunk] += tier
-    for chunk in all_chunks:
-        if chunk in boosted:
+    for file_path, indices in all_chunks.indices_by_file.items():
+        if not stem_ok(Path(file_path).stem.lower()):
             continue
-        if not stem_ok(Path(chunk.file_path).stem.lower()):
-            continue
-        if tier := _definition_tier(chunk, names, boost_unit):
-            boosted[chunk] = tier
+        for chunk in map(all_chunks.__getitem__, indices):
+            if chunk not in boosted and (tier := _definition_tier(chunk, names, boost_unit)):
+                boosted[chunk] = tier
 
 
 def _boost_symbol_definitions(
     boosted: dict[Chunk, float],
     query: str,
     max_score: float,
-    all_chunks: list[Chunk],
+    all_chunks: ChunkTable,
 ) -> None:
     """Boost chunks that define the queried symbol, scanning candidates and stem-matched non-candidates (in-place)."""
     symbol_name = _extract_symbol_name(query)
@@ -236,7 +241,7 @@ def _boost_embedded_symbols(
     boosted: dict[Chunk, float],
     query: str,
     max_score: float,
-    all_chunks: list[Chunk],
+    all_chunks: ChunkTable,
 ) -> None:
     """Boost chunks defining CamelCase/camelCase symbols embedded in NL queries (in-place).
 

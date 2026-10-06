@@ -1,8 +1,11 @@
+from collections.abc import Sequence
+
 import numpy as np
 import numpy.typing as npt
 from model2vec import StaticModel
 
 from semble.index.bm25 import BM25
+from semble.index.chunks import ChunkTable
 from semble.index.dense import SelectableBasicBackend
 from semble.index.sparse import selector_to_mask
 from semble.ranking import apply_query_boost, boost_multi_chunk_files, rerank_topk, resolve_alpha
@@ -24,7 +27,7 @@ def _search_semantic(
     query: str,
     model: StaticModel,
     semantic_index: SelectableBasicBackend,
-    chunks: list[Chunk],
+    chunks: Sequence[Chunk],
     top_k: int,
     selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
@@ -47,7 +50,7 @@ def _sort_top_k(arr: npt.NDArray, top_k: int) -> npt.NDArray[np.int_]:
 def _search_bm25(
     query: str,
     bm25_index: BM25,
-    chunks: list[Chunk],
+    chunks: Sequence[Chunk],
     top_k: int,
     selector: npt.NDArray[np.int_] | None,
 ) -> list[SearchResult]:
@@ -68,7 +71,7 @@ def search(
     model: StaticModel,
     semantic_index: SelectableBasicBackend,
     bm25_index: BM25,
-    chunks: list[Chunk],
+    chunks: ChunkTable,
     top_k: int,
     alpha: float | None = None,
     selector: npt.NDArray[np.int_] | None = None,

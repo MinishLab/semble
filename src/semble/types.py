@@ -46,12 +46,6 @@ class Chunk:
         d["location"] = self.location
         return d
 
-    @classmethod
-    def from_dict(cls: type[Chunk], data: dict[str, Any]) -> Chunk:
-        """Create a Chunk from a dict."""
-        data.pop("location", None)
-        return cls(**data)
-
 
 @dataclass(frozen=True, slots=True)
 class SearchResult:

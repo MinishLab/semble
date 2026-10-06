@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import math
-import zipfile
 from array import array
 from collections import Counter
-from collections.abc import Collection
 from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
+
+from semble.index.npz import pack_strings, read_npz, unpack_strings
 
 _K1 = 1.5  # Term-frequency saturation
 _B = 0.75  # Document length normalization
@@ -129,8 +129,8 @@ class BM25:
         with (path / "index.npz").open("wb") as f:
             np.savez(
                 f,
-                doc_order=_pack(self.doc_order),
-                terms=_pack(self._terms),
+                doc_order=pack_strings(self.doc_order),
+                terms=pack_strings(self._terms),
                 offsets=self._offsets,
                 docs=self._posting_docs,
                 tfs=self._posting_tfs,
@@ -140,12 +140,9 @@ class BM25:
     @classmethod
     def load(cls, path: Path) -> "BM25":
         """Load an index from path/index.npz."""
-        try:
-            with np.load(path / "index.npz") as arrays:
-                doc_order, terms = _unpack(arrays["doc_order"]), _unpack(arrays["terms"])
-                offsets, docs, tfs, doc_lengths = (arrays[key] for key in ("offsets", "docs", "tfs", "doc_lengths"))
-        except zipfile.BadZipFile as exc:  # e.g. truncated by an interrupted save
-            raise ValueError("Persisted BM25 index is unreadable") from exc
+        arrays = read_npz(path / "index.npz")
+        doc_order, terms = unpack_strings(arrays["doc_order"]), unpack_strings(arrays["terms"])
+        offsets, docs, tfs, doc_lengths = (arrays[key] for key in ("offsets", "docs", "tfs", "doc_lengths"))
         _check_consistent(doc_order, terms, offsets, docs, tfs, doc_lengths)
         return cls(doc_order, terms, offsets, docs, tfs, doc_lengths)
 
@@ -216,16 +213,3 @@ def _check_consistent(
         or (docs.size and (docs.min() < 0 or docs.max() >= len(doc_order)))
     ):
         raise ValueError("Persisted BM25 document state is inconsistent")
-
-
-def _pack(strings: Collection[str]) -> npt.NDArray[np.uint8]:
-    """Encode strings as NUL-terminated UTF-8 in one byte array, so they can be saved in an .npz."""
-    packed = "\0".join([*strings, ""])
-    if packed.count("\0") != len(strings):
-        raise ValueError("Cannot save strings that contain a NUL character")
-    return np.frombuffer(packed.encode(), dtype=np.uint8)
-
-
-def _unpack(packed: npt.NDArray[np.uint8]) -> list[str]:
-    """Decode strings encoded by _pack."""
-    return packed.tobytes().decode().split("\0")[:-1]
