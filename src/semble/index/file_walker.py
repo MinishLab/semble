@@ -75,7 +75,9 @@ def _is_ignored(path: Path, is_dir: bool, specs: list[IgnoreSpec]) -> tuple[bool
     ignored = False
     found = False
     for ignore_spec in specs:
-        base = os.path.join(str(ignore_spec.base), "")
+        base = str(ignore_spec.base)
+        # Paths under Path(".") have no "./" prefix.
+        base = "" if base == "." else os.path.join(base, "")
         # If the base is not an ancestor of the path, this spec does not apply.
         if not path_str.startswith(base):
             continue
@@ -117,9 +119,12 @@ def _walk(
             IgnoreSpec(base=directory, spec=spec),
         ]
 
-    with os.scandir(directory) as entries:
-        # Don't follow symlinks
-        items = sorted((Path(entry.path), entry) for entry in entries if not entry.is_symlink())
+    try:
+        with os.scandir(directory) as entries:
+            # Don't follow symlinks
+            items = sorted((Path(entry.path), entry) for entry in entries if not entry.is_symlink())
+    except (FileNotFoundError, NotADirectoryError):
+        return  # removed or replaced since its parent was listed
     for item, entry in items:
         is_dir = entry.is_dir()
         is_ignored, found = _is_ignored(item, is_dir, inherited_specs)

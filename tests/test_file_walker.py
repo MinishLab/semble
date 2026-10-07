@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 import pytest
@@ -169,3 +170,26 @@ def test_walk_files_skips_symlinks(tmp_path: Path) -> None:
     # Symlink-based paths are absent
     assert "wrapper/src/linked/mod.py" not in found
     assert "link_to_original.py" not in found
+
+
+def test_walk_files_skips_directory_deleted_during_walk(tmp_path: Path) -> None:
+    """A directory removed after its parent was listed is skipped instead of raising."""
+    _touch(tmp_path / "a" / "one.py")
+    _touch(tmp_path / "b" / "two.py")
+
+    walker = walk_files(tmp_path, [".py"])
+    first = next(walker)
+    shutil.rmtree(tmp_path / "b")
+
+    assert [first, *walker] == [tmp_path / "a" / "one.py"]
+
+
+def test_walk_files_applies_ignores_for_relative_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Default and .gitignore rules still apply when walking Path(".")."""
+    _touch(tmp_path / "keep.py")
+    _touch(tmp_path / ".venv" / "lib.py")
+    _touch(tmp_path / "ignored_dir" / "x.py")
+    (tmp_path / ".gitignore").write_text("ignored_dir/\n")
+    monkeypatch.chdir(tmp_path)
+
+    assert list(walk_files(Path("."), [".py"])) == [Path("keep.py")]
