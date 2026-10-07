@@ -8,7 +8,7 @@ import signal
 import sys
 import threading
 from collections import deque
-from collections.abc import Iterator, Sequence
+from collections.abc import Generator, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -36,8 +36,7 @@ from semble.types import Chunk, ContentType, EmbeddingMatrix
 
 logger = logging.getLogger(__name__)
 
-# Processes that chunk files when at least _MIN_FILES_FOR_PROCESSES need chunking; 0 chunks in the main process.
-_WORKERS = int(os.environ.get("SEMBLE_INDEX_WORKERS", 4))
+# Below this many files to chunk, SEMBLE_INDEX_WORKERS is ignored and files are chunked in the main process.
 _MIN_FILES_FOR_PROCESSES = 200
 # Files handed to the workers but not yet consumed by the main process.
 _MAX_FILES_IN_FLIGHT = 256
@@ -82,19 +81,23 @@ def _init_worker() -> None:
     threading.Thread(target=wait_and_exit, daemon=True).start()
 
 
-def _chunk_files(files: list[tuple[Path, str]]) -> Iterator[_ChunkedFile | None]:
-    """Chunk files in order, in worker processes when there are enough of them."""
-    if _WORKERS == 0 or len(files) < _MIN_FILES_FOR_PROCESSES:
+def _chunk_files(files: list[tuple[Path, str]]) -> Generator[_ChunkedFile | None, None, None]:
+    """Chunk files in order, in SEMBLE_INDEX_WORKERS worker processes when there are enough files."""
+    workers = int(os.environ.get("SEMBLE_INDEX_WORKERS", 0))
+    if workers == 0 or len(files) < _MIN_FILES_FOR_PROCESSES:
         yield from itertools.starmap(_chunk_file, files)
     else:
-        with ProcessPoolExecutor(
-            max_workers=_WORKERS, mp_context=multiprocessing.get_context("spawn"), initializer=_init_worker
-        ) as executor:
+        executor = ProcessPoolExecutor(
+            workers, mp_context=multiprocessing.get_context("spawn"), initializer=_init_worker
+        )
+        try:
             submitted = (executor.submit(_chunk_file, *file) for file in files)
             pending = deque(itertools.islice(submitted, _MAX_FILES_IN_FLIGHT))
             while pending:
                 yield pending.popleft().result()
                 pending.extend(itertools.islice(submitted, 1))
+        finally:
+            executor.shutdown(cancel_futures=True)
 
 
 def _stat_files(
@@ -187,34 +190,34 @@ def create_index_from_path(
         if previous_entry is None or previous_entry.mtime_ns != mtime_ns
     ]
 
-    chunked = _chunk_files(stale)
-    for _, indexed_path, mtime_ns, previous_entry in tqdm(
-        files,
-        desc="Indexing",
-        unit="file",
-        file=sys.stderr,
-        leave=False,
-        colour="green",
-        miniters=1,  # tqdm's adaptive miniters stalls the bar when fast files are followed by slow ones
-        disable=not show_progress_bar,
-    ):
-        if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:
-            file_chunks = previous.chunks[previous_entry.start : previous_entry.end]
-            vector_parts.append(previous.vectors[previous_entry.start : previous_entry.end])
-        else:
-            result = next(chunked)
-            if result is None:
-                continue
-            file_chunks, file_tokens = result
-            _reindex_file(bm25_index, indexed_path, file_tokens, previous_entry)
+    with contextlib.closing(_chunk_files(stale)) as chunked:
+        for _, indexed_path, mtime_ns, previous_entry in tqdm(
+            files,
+            desc="Indexing",
+            unit="file",
+            file=sys.stderr,
+            leave=False,
+            colour="green",
+            miniters=1,  # tqdm's adaptive miniters stalls the bar when fast files are followed by slow ones
+            disable=not show_progress_bar,
+        ):
+            if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:
+                file_chunks = previous.chunks[previous_entry.start : previous_entry.end]
+                vector_parts.append(previous.vectors[previous_entry.start : previous_entry.end])
+            else:
+                result = next(chunked)
+                if result is None:
+                    continue
+                file_chunks, file_tokens = result
+                _reindex_file(bm25_index, indexed_path, file_tokens, previous_entry)
 
-            embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-            vector_parts.append(embed_chunks(model, file_chunks))
+                embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
+                vector_parts.append(embed_chunks(model, file_chunks))
 
-        start = len(chunks)
-        chunks.extend(file_chunks)
-        chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
-        manifest[indexed_path] = FileManifestEntry(mtime_ns=mtime_ns, start=start, count=len(file_chunks))
+            start = len(chunks)
+            chunks.extend(file_chunks)
+            chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
+            manifest[indexed_path] = FileManifestEntry(mtime_ns=mtime_ns, start=start, count=len(file_chunks))
 
     for indexed_path in previous_manifest.keys() - manifest.keys():
         _reindex_file(bm25_index, indexed_path, [], previous_manifest[indexed_path])

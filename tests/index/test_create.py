@@ -32,6 +32,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(
     """One incremental pass reuses unchanged vectors, re-embeds changes, and keeps BM25 slots current."""
     if in_processes:
         monkeypatch.setattr(create, "_MIN_FILES_FOR_PROCESSES", 0)
+        monkeypatch.setenv("SEMBLE_INDEX_WORKERS", "2")
     _write_files(
         tmp_path,
         {
