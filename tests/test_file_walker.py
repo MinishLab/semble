@@ -131,7 +131,7 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
 
     # With only the unrelated spec the file is not ignored (spec is skipped),
     # and, crucially, no exception is raised.
-    ignored, _ = _is_ignored(target_file, [unrelated_spec])
+    ignored, _ = _is_ignored(target_file, False, [unrelated_spec])
     assert ignored is False
 
     # Spec rooted at project_a that ignores .py files
@@ -141,7 +141,7 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
     )
 
     # The unrelated spec is safely skipped; the matching spec ignores the file.
-    ignored, _ = _is_ignored(target_file, [unrelated_spec, matching_spec])
+    ignored, _ = _is_ignored(target_file, False, [unrelated_spec, matching_spec])
     assert ignored is True
 
 

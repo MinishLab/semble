@@ -142,6 +142,7 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
     extensions = get_extensions(content)
 
     path_as_path = Path(path).resolve()
+    root_prefix = os.path.join(str(path_as_path), "")
     stored_files = metadata.get("files", {})
     current_files = []
     for file_path in walk_files(path_as_path, extensions=extensions):
@@ -151,7 +152,7 @@ def get_validated_cache(path: str, model_path: str | None, content: Sequence[Con
                 continue
         except FileNotFoundError:
             continue  # deleted mid-walk
-        indexed_path = str(file_path.relative_to(path_as_path))
+        indexed_path = str(file_path)[len(root_prefix) :]
         stored = stored_files.get(indexed_path)
         if stored is not None and stored.get("mtime_ns") != stat.st_mtime_ns:
             return None
