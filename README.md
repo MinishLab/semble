@@ -186,6 +186,8 @@ By default, your Semble savings statistics and any saved indexes are stored in t
 
 Files larger than 1 MB are skipped during indexing to keep index builds lean. Skipped files are reported as a warning at index time. If you work with large generated or ingested documents, you can raise (or lower) this limit with the `SEMBLE_MAX_FILE_BYTES` environment variable (in bytes).
 
+When many files need indexing, Semble chunks them in 4 worker processes. Set `SEMBLE_INDEX_WORKERS` to change the number of workers, or to `0` to index in a single process.
+
 On first use, Semble also downloads the embedding model from Hugging Face and caches it in the standard Hugging Face cache (`~/.cache/huggingface/` by default, or `$HF_HOME` if set); this only happens once and requires network access.
 
 Use `semble clear` to remove cached data: `semble clear index` (saved indexes), `semble clear savings` (usage stats), `semble clear orphans` (indexes for repos no longer present on disk), or `semble clear all` (everything).

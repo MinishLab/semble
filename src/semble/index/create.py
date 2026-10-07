@@ -9,7 +9,7 @@ import sys
 import threading
 from collections import deque
 from collections.abc import Iterator, Sequence
-from concurrent.futures import Future, ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -36,12 +36,14 @@ from semble.types import Chunk, ContentType, EmbeddingMatrix
 
 logger = logging.getLogger(__name__)
 
-# Below this many files to chunk, starting worker processes costs more than it saves.
+# Processes that chunk files when at least _MIN_FILES_FOR_PROCESSES need chunking; 0 chunks in the main process.
+_WORKERS = int(os.environ.get("SEMBLE_INDEX_WORKERS", 4))
 _MIN_FILES_FOR_PROCESSES = 200
-# Chunking in a few processes keeps up with embedding in the main process.
-_WORKERS = 4
-# Bounds the chunked files waiting to be embedded.
+# Files handed to the workers but not yet consumed by the main process.
 _MAX_FILES_IN_FLIGHT = 256
+
+# A file's chunks and their BM25 tokens.
+_ChunkedFile = tuple[list[Chunk], list[list[str]]]
 
 
 def _warn_skipped_large(skipped_large: list[str]) -> None:
@@ -57,7 +59,7 @@ def _warn_skipped_large(skipped_large: list[str]) -> None:
         )
 
 
-def _chunk_file(file_path: Path, indexed_path: str) -> tuple[list[Chunk], list[list[str]]] | None:
+def _chunk_file(file_path: Path, indexed_path: str) -> _ChunkedFile | None:
     """Chunk a file and tokenize its chunks for BM25, or return None if it can't be read."""
     try:
         source = read_file_text(file_path)
@@ -80,20 +82,19 @@ def _init_worker() -> None:
     threading.Thread(target=wait_and_exit, daemon=True).start()
 
 
-def _chunk_files(files: list[tuple[Path, str]]) -> Iterator[tuple[list[Chunk], list[list[str]]] | None]:
+def _chunk_files(files: list[tuple[Path, str]]) -> Iterator[_ChunkedFile | None]:
     """Chunk files in order, in worker processes when there are enough of them."""
-    if len(files) < _MIN_FILES_FOR_PROCESSES:
+    if _WORKERS == 0 or len(files) < _MIN_FILES_FOR_PROCESSES:
         yield from itertools.starmap(_chunk_file, files)
     else:
         with ProcessPoolExecutor(
             max_workers=_WORKERS, mp_context=multiprocessing.get_context("spawn"), initializer=_init_worker
         ) as executor:
-            pending: deque[Future[tuple[list[Chunk], list[list[str]]] | None]] = deque()
-            for file_path, indexed_path in files:
-                pending.append(executor.submit(_chunk_file, file_path, indexed_path))
-                if len(pending) == _MAX_FILES_IN_FLIGHT:
-                    yield pending.popleft().result()
-            yield from (future.result() for future in pending)
+            submitted = (executor.submit(_chunk_file, *file) for file in files)
+            pending = deque(itertools.islice(submitted, _MAX_FILES_IN_FLIGHT))
+            while pending:
+                yield pending.popleft().result()
+                pending.extend(itertools.islice(submitted, 1))
 
 
 def _stat_files(
