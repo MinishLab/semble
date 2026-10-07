@@ -1,7 +1,15 @@
 import contextlib
+import itertools
 import logging
+import multiprocessing
+import multiprocessing.connection
+import os
+import signal
 import sys
-from collections.abc import Sequence
+import threading
+from collections import deque
+from collections.abc import Iterator, Sequence
+from concurrent.futures import Future, ProcessPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -28,6 +36,13 @@ from semble.types import Chunk, ContentType, EmbeddingMatrix
 
 logger = logging.getLogger(__name__)
 
+# Below this many files to chunk, starting worker processes costs more than it saves.
+_MIN_FILES_FOR_PROCESSES = 200
+# Chunking in a few processes keeps up with embedding in the main process.
+_WORKERS = 4
+# Bounds the chunked files waiting to be embedded.
+_MAX_FILES_IN_FLIGHT = 256
+
 
 def _warn_skipped_large(skipped_large: list[str]) -> None:
     """Warn about files skipped for exceeding the maximum indexable file size."""
@@ -42,18 +57,80 @@ def _warn_skipped_large(skipped_large: list[str]) -> None:
         )
 
 
+def _chunk_file(file_path: Path, indexed_path: str) -> tuple[list[Chunk], list[list[str]]] | None:
+    """Chunk a file and tokenize its chunks for BM25, or return None if it can't be read."""
+    try:
+        source = read_file_text(file_path)
+    except OSError:
+        return None
+    file_chunks = chunk_source(source, indexed_path, detect_language(file_path))
+    return file_chunks, [tokenize(enrich_for_bm25(chunk)) for chunk in file_chunks]
+
+
+def _init_worker() -> None:
+    """Leave Ctrl-C to the parent, and exit this worker once the parent is gone, even if it never shut the pool down."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    parent = multiprocessing.parent_process()
+    assert parent is not None
+
+    def wait_and_exit() -> None:
+        multiprocessing.connection.wait([parent.sentinel])
+        os._exit(0)
+
+    threading.Thread(target=wait_and_exit, daemon=True).start()
+
+
+def _chunk_files(files: list[tuple[Path, str]]) -> Iterator[tuple[list[Chunk], list[list[str]]] | None]:
+    """Chunk files in order, in worker processes when there are enough of them."""
+    if len(files) < _MIN_FILES_FOR_PROCESSES:
+        yield from itertools.starmap(_chunk_file, files)
+    else:
+        with ProcessPoolExecutor(
+            max_workers=_WORKERS, mp_context=multiprocessing.get_context("spawn"), initializer=_init_worker
+        ) as executor:
+            pending: deque[Future[tuple[list[Chunk], list[list[str]]] | None]] = deque()
+            for file_path, indexed_path in files:
+                pending.append(executor.submit(_chunk_file, file_path, indexed_path))
+                if len(pending) == _MAX_FILES_IN_FLIGHT:
+                    yield pending.popleft().result()
+            yield from (future.result() for future in pending)
+
+
+def _stat_files(
+    path: Path,
+    extensions: Sequence[str],
+    display_root: Path | None,
+    previous_manifest: dict[str, FileManifestEntry],
+    skipped_large: list[str],
+) -> list[tuple[Path, str, int, FileManifestEntry | None]]:
+    """Return each indexable file's path, indexed path, mtime and previous manifest entry."""
+    files = []
+    for file_path in walk_files(path, extensions):
+        with contextlib.suppress(OSError):
+            stat = file_path.stat()
+            file_status = get_file_status(file_path, stat)
+            if file_status is FileStatus.TOO_LARGE:
+                skipped_large.append(str(file_path))
+            if file_status != FileStatus.VALID:
+                continue
+
+            indexed_path = str(file_path.relative_to(display_root) if display_root else file_path)
+            files.append((file_path, indexed_path, stat.st_mtime_ns, previous_manifest.get(indexed_path)))
+    return files
+
+
 def _reindex_file(
     bm25_index: BM25,
     indexed_path: str,
-    file_chunks: list[Chunk],
+    file_tokens: list[list[str]],
     previous_entry: FileManifestEntry | None,
 ) -> None:
     """Replace a file's BM25 postings: remove its old slots (if any), then add its new ones."""
     if previous_entry is not None:
         for slot in range(previous_entry.count):
             bm25_index.remove_document(make_chunk_id(indexed_path, slot))
-    for slot, chunk in enumerate(file_chunks):
-        bm25_index.add_document(make_chunk_id(indexed_path, slot), tokenize(enrich_for_bm25(chunk)))
+    for slot, tokens in enumerate(file_tokens):
+        bm25_index.add_document(make_chunk_id(indexed_path, slot), tokens)
 
 
 def _has_same_vector_layout(
@@ -102,8 +179,15 @@ def create_index_from_path(
 
     skipped_large: list[str] = []
 
-    files = list(walk_files(path, resolved_extensions))
-    for file_path in tqdm(
+    files = _stat_files(path, resolved_extensions, display_root, previous_manifest, skipped_large)
+    stale = [
+        (file_path, indexed_path)
+        for file_path, indexed_path, mtime_ns, previous_entry in files
+        if previous_entry is None or previous_entry.mtime_ns != mtime_ns
+    ]
+
+    chunked = _chunk_files(stale)
+    for _, indexed_path, mtime_ns, previous_entry in tqdm(
         files,
         desc="Indexing",
         unit="file",
@@ -113,34 +197,23 @@ def create_index_from_path(
         miniters=1,  # tqdm's adaptive miniters stalls the bar when fast files are followed by slow ones
         disable=not show_progress_bar,
     ):
-        language = detect_language(file_path)
-        with contextlib.suppress(OSError):
-            stat = file_path.stat()
-            file_status = get_file_status(file_path, stat)
-            if file_status is FileStatus.TOO_LARGE:
-                skipped_large.append(str(file_path))
-            if file_status != FileStatus.VALID:
+        if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:
+            file_chunks = previous.chunks[previous_entry.start : previous_entry.end]
+            vector_parts.append(previous.vectors[previous_entry.start : previous_entry.end])
+        else:
+            result = next(chunked)
+            if result is None:
                 continue
+            file_chunks, file_tokens = result
+            _reindex_file(bm25_index, indexed_path, file_tokens, previous_entry)
 
-            indexed_path = str(file_path.relative_to(display_root) if display_root else file_path)
-            mtime_ns = stat.st_mtime_ns
-            previous_entry = previous_manifest.get(indexed_path)
+            embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
+            vector_parts.append(embed_chunks(model, file_chunks))
 
-            if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:
-                file_chunks = previous.chunks[previous_entry.start : previous_entry.end]
-                vector_parts.append(previous.vectors[previous_entry.start : previous_entry.end])
-            else:
-                source = read_file_text(file_path)
-                file_chunks = chunk_source(source, indexed_path, language)
-                _reindex_file(bm25_index, indexed_path, file_chunks, previous_entry)
-
-                embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-                vector_parts.append(embed_chunks(model, file_chunks))
-
-            start = len(chunks)
-            chunks.extend(file_chunks)
-            chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
-            manifest[indexed_path] = FileManifestEntry(mtime_ns=mtime_ns, start=start, count=len(file_chunks))
+        start = len(chunks)
+        chunks.extend(file_chunks)
+        chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
+        manifest[indexed_path] = FileManifestEntry(mtime_ns=mtime_ns, start=start, count=len(file_chunks))
 
     for indexed_path in previous_manifest.keys() - manifest.keys():
         _reindex_file(bm25_index, indexed_path, [], previous_manifest[indexed_path])

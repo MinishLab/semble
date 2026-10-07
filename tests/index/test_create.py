@@ -1,4 +1,7 @@
+import multiprocessing
+import threading
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
@@ -7,6 +10,7 @@ import orjson
 import pytest
 
 from semble.cache import load_previous_for_incremental
+from semble.index import create
 from semble.index.bm25 import BM25
 from semble.index.create import create_index_from_path
 from semble.index.index import SembleIndex
@@ -21,8 +25,14 @@ def _write_files(root: Path, files: dict[str, str]) -> None:
         path.write_text(content)
 
 
-def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path: Path) -> None:
+@pytest.mark.parametrize("in_processes", [False, True])
+def test_incremental_reindex_reuses_updates_and_prunes(
+    mock_model: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, in_processes: bool
+) -> None:
     """One incremental pass reuses unchanged vectors, re-embeds changes, and keeps BM25 slots current."""
+    if in_processes:
+        monkeypatch.setattr(create, "_MIN_FILES_FOR_PROCESSES", 0)
+        monkeypatch.setattr(create, "_MAX_FILES_IN_FLIGHT", 2)
     _write_files(
         tmp_path,
         {
@@ -87,6 +97,35 @@ def test_incremental_reindex_reuses_updates_and_prunes(mock_model: Any, tmp_path
         for slot in range(entry.count)
     }
     assert set(bm25_after.doc_order) == expected_ids
+
+
+def test_unreadable_file_is_skipped(mock_model: Any, tmp_path: Path) -> None:
+    """A file that can't be read is left out of the index."""
+    _write_files(tmp_path, {"a.py": "def a():\n    return 1\n", "b.py": "def b():\n    return 2\n"})
+    read_file_text = create.read_file_text
+
+    def read_or_fail(file_path: Path) -> str:
+        if file_path.name == "b.py":
+            raise PermissionError(file_path)
+        return read_file_text(file_path)
+
+    with patch.object(create, "read_file_text", read_or_fail):
+        _, _, _, manifest = create_index_from_path(tmp_path, mock_model, display_root=tmp_path)
+    assert list(manifest) == ["a.py"]
+
+
+def test_worker_exits_with_parent(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A chunking worker exits once its parent process is gone."""
+    parent_end, worker_end = multiprocessing.Pipe()
+    exited = threading.Event()
+    monkeypatch.setattr(multiprocessing, "parent_process", lambda: SimpleNamespace(sentinel=worker_end))
+    monkeypatch.setattr(create.os, "_exit", lambda _: exited.set())
+    monkeypatch.setattr(create.signal, "signal", lambda *_: None)
+
+    create._init_worker()
+    assert not exited.wait(0.1)
+    parent_end.close()
+    assert exited.wait(5)
 
 
 def _build_valid_cache(index_path: Path, mock_model: Any) -> dict:
