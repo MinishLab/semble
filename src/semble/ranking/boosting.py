@@ -182,11 +182,17 @@ def _stem_matches(stem: str, name: str) -> bool:
     return stem == name or stem_norm == name or stem.rstrip("s") == name or stem_norm.rstrip("s") == name
 
 
+@functools.lru_cache(maxsize=4096)
+def _file_stem(file_path: str) -> str:
+    """Return the lowercased file stem, cached because definition boosting checks it for every chunk."""
+    return Path(file_path).stem.lower()
+
+
 def _definition_tier(chunk: Chunk, names: set[str], boost_unit: float) -> float:
     """Return the boost amount for a chunk that defines one of *names* (0.0 if none match)."""
     if not any(_chunk_defines_symbol(chunk, name) for name in names):
         return 0.0
-    stem = Path(chunk.file_path).stem.lower()
+    stem = _file_stem(chunk.file_path)
     return boost_unit * (1.5 if any(_stem_matches(stem, name.lower()) for name in names) else 1.0)
 
 
@@ -202,9 +208,7 @@ def _boost_definitions(
         if tier := _definition_tier(chunk, names, boost_unit):
             boosted[chunk] += tier
     for chunk in all_chunks:
-        if chunk in boosted:
-            continue
-        if not stem_ok(Path(chunk.file_path).stem.lower()):
+        if not stem_ok(_file_stem(chunk.file_path)) or chunk in boosted:
             continue
         if tier := _definition_tier(chunk, names, boost_unit):
             boosted[chunk] = tier
