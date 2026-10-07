@@ -1,3 +1,4 @@
+import os
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -68,19 +69,20 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     yield from _walk(root, [s], extensions_set)
 
 
-def _is_ignored(path: Path, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
+def _is_ignored(path: Path, is_dir: bool, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
     """Check if a path is ignored by any of the provided ignore specs."""
-    is_dir = path.is_dir()
+    path_str = str(path)
     ignored = False
     found = False
     for ignore_spec in specs:
-        try:
-            # If there is no relative path, this is invalid.
-            relative = path.relative_to(ignore_spec.base)
-        except ValueError:
+        base = str(ignore_spec.base)
+        # Paths under Path(".") have no "./" prefix.
+        base = "" if base == "." else os.path.join(base, "")
+        # If the base is not an ancestor of the path, this spec does not apply.
+        if not path_str.startswith(base):
             continue
 
-        relative_str = relative.as_posix()
+        relative_str = path_str[len(base) :].replace(os.sep, "/")
         # We need to add a trailing slash. Gitignore
         # matches dirs as trailing '/'.
         if is_dir:
@@ -117,15 +119,19 @@ def _walk(
             IgnoreSpec(base=directory, spec=spec),
         ]
 
-    for item in sorted(directory.iterdir()):
-        # Don't follow symlinks
-        if item.is_symlink():
-            continue
-        is_ignored, found = _is_ignored(item, inherited_specs)
+    try:
+        with os.scandir(directory) as entries:
+            # Don't follow symlinks
+            items = sorted((Path(entry.path), entry) for entry in entries if not entry.is_symlink())
+    except (FileNotFoundError, NotADirectoryError):
+        return  # removed or replaced since its parent was listed
+    for item, entry in items:
+        is_dir = entry.is_dir()
+        is_ignored, found = _is_ignored(item, is_dir, inherited_specs)
         if is_ignored:
             continue
 
-        if item.is_dir():
+        if is_dir:
             yield from _walk(item, inherited_specs, extensions)
-        elif item.is_file() and (found or item.suffix.lower() in extensions):
+        elif entry.is_file() and (found or item.suffix.lower() in extensions):
             yield item
