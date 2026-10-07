@@ -12,6 +12,7 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
     path.write_text(content)
 
 
+@pytest.mark.parametrize("relative_root", [False, True])
 @pytest.mark.parametrize(
     ("files", "gitignore", "sembleignore", "expected"),
     [
@@ -81,9 +82,15 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
     ],
 )
 def test_walk_files_filtering(
-    tmp_path: Path, files: list[str], gitignore: str | None, sembleignore: str | None, expected: set[str]
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    files: list[str],
+    gitignore: str | None,
+    sembleignore: str | None,
+    expected: set[str],
+    relative_root: bool,
 ) -> None:
-    """Directory defaults, gitignore patterns, and negations filter the yielded files."""
+    """Directory defaults, gitignore patterns, and negations filter the yielded files, also from a relative root."""
     for rel in files:
         _touch(tmp_path / rel)
     if gitignore is not None:
@@ -91,7 +98,10 @@ def test_walk_files_filtering(
     if sembleignore is not None:
         (tmp_path / ".sembleignore").write_text(sembleignore)
 
-    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
+    if relative_root:
+        monkeypatch.chdir(tmp_path)
+    root = Path(".") if relative_root else tmp_path
+    found = {p.relative_to(root).as_posix() for p in walk_files(root, [".py"])}
     assert found == expected
 
 
@@ -182,14 +192,3 @@ def test_walk_files_skips_directory_deleted_during_walk(tmp_path: Path) -> None:
     shutil.rmtree(tmp_path / "b")
 
     assert [first, *walker] == [tmp_path / "a" / "one.py"]
-
-
-def test_walk_files_applies_ignores_for_relative_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Default and .gitignore rules still apply when walking Path(".")."""
-    _touch(tmp_path / "keep.py")
-    _touch(tmp_path / ".venv" / "lib.py")
-    _touch(tmp_path / "ignored_dir" / "x.py")
-    (tmp_path / ".gitignore").write_text("ignored_dir/\n")
-    monkeypatch.chdir(tmp_path)
-
-    assert list(walk_files(Path("."), [".py"])) == [Path("keep.py")]
