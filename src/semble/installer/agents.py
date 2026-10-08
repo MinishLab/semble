@@ -94,7 +94,7 @@ INSTRUCTIONS = f"""\
 {SEMBLE_START}
 ## Semble Code Search
 
-A `semble` MCP server is available with two tools (your client may show them with a prefix, e.g. `mcp__semble__search` or `semble__search`):
+A `semble` MCP server is available with two tools:
 - `search` — search the codebase with a natural-language or code query.
 - `find_related` — find code similar to a specific file and line.
 
