@@ -269,13 +269,17 @@ def test_maybe_save_index_logs_error_on_save_failure(capsys: pytest.CaptureFixtu
     assert "Error saving index" in capsys.readouterr().err
 
 
-def test_agent_file_tools_are_bash_only() -> None:
-    """The agent file must list only Bash and Read — no MCP tools that require schema loading."""
+def test_agent_file_tools_allow_mcp_plus_bash_and_read() -> None:
+    """The agent file allows the semble MCP tools alongside Bash and Read."""
     frontmatter = files("semble").joinpath("agents/claude.md").read_text(encoding="utf-8").split("---")[1]
     tools_line = next(line for line in frontmatter.splitlines() if line.startswith("tools:"))
     tools = [t.strip() for t in tools_line.removeprefix("tools:").split(",")]
-    assert set(tools) == {"Bash", "Read"}, f"Unexpected tools in agent file: {tools}"
-    assert not any("mcp__" in t for t in tools)
+    assert set(tools) == {
+        "mcp__semble__search",
+        "mcp__semble__find_related",
+        "Bash",
+        "Read",
+    }, f"Unexpected tools in agent file: {tools}"
 
 
 def _make_valid_index_dir(

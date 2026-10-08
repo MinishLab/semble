@@ -505,6 +505,132 @@ def test_apply_subagent_pins_version(tmp_path):
     assert '"semble[mcp]"' not in text
 
 
+@pytest.mark.parametrize(
+    ("agent_id", "gate_snippets"),
+    [
+        ("claude", ["tools: mcp__semble__search, mcp__semble__find_related, Bash, Read"]),
+        (
+            "opencode",
+            ["bash: allow", "read: allow", "semble_search: allow", "semble_find_related: allow"],
+        ),
+        (
+            "kilo",
+            ["bash: allow", "read: allow", "semble_search: allow", "semble_find_related: allow"],
+        ),
+    ],
+)
+def test_subagent_gate_lists_mcp_tools_with_original_entries(tmp_path, agent_id, gate_snippets):
+    """Tier A definitions allow the confirmed semble MCP tools alongside the original shell/read entries."""
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    dest = tmp_path / agent.subagent_path.name
+    assert _apply_subagent(replace(agent, subagent_path=dest), "install").action == "created"
+    text = dest.read_text()
+    for snippet in gate_snippets:
+        assert snippet in text
+
+
+@pytest.mark.parametrize(
+    ("agent_id", "mcp_tools"),
+    [
+        ("claude", ["mcp__semble__search", "mcp__semble__find_related"]),
+        ("opencode", ["semble_search", "semble_find_related"]),
+        ("kilo", ["semble_search", "semble_find_related"]),
+    ],
+)
+def test_subagent_body_is_mcp_first_with_cli_fallback(tmp_path, agent_id, mcp_tools):
+    """Tier A bodies reference the MCP tools by name and keep a CLI fallback with the pinned uvx line."""
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    dest = tmp_path / agent.subagent_path.name
+    _apply_subagent(replace(agent, subagent_path=dest), "install")
+    text = dest.read_text()
+    for tool in mcp_tools:
+        assert f"`{tool}`" in text
+    assert "CLI fallback" in text
+    assert f'uvx --from "{SEMBLE_PIN}" semble' in text
+    assert '"semble[mcp]"' not in text
+
+
+@pytest.mark.parametrize(
+    ("agent_id", "gate_snippets"),
+    [
+        ("gemini", ["- run_shell_command", "- read_file", "- mcp_semble_search", "- mcp_semble_find_related"]),
+        ("qwen", ["- run_shell_command", "- read_file", "- mcp__semble__search", "- mcp__semble__find_related"]),
+        ("copilot", ["tools: Bash, Read, semble/search, semble/find_related"]),
+        ("kiro", ["- shell", "- read", "- mcp_semble_search", "- mcp_semble_find_related"]),
+        ("zcode", ["tools: Bash, Read, mcp__semble__search, mcp__semble__find_related"]),
+        ("commandcode", ["tools: shell_command, read_file, mcp__semble__search, mcp__semble__find_related"]),
+        ("reasonix", ["allowed-tools: bash, read_file, mcp__semble__search, mcp__semble__find_related"]),
+    ],
+)
+def test_subagent_gate_lists_mcp_tools_tier_b(tmp_path, agent_id, gate_snippets):
+    """Confirmed Tier B definitions allow the harness-specific semble MCP tools alongside shell/read entries."""
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    dest = tmp_path / agent.subagent_path.name
+    assert _apply_subagent(replace(agent, subagent_path=dest), "install").action == "created"
+    text = dest.read_text()
+    for snippet in gate_snippets:
+        assert snippet in text
+
+
+@pytest.mark.parametrize(
+    ("agent_id", "mcp_tools"),
+    [
+        ("gemini", ["mcp_semble_search", "mcp_semble_find_related"]),
+        ("qwen", ["mcp__semble__search", "mcp__semble__find_related"]),
+        ("copilot", ["semble/search", "semble/find_related"]),
+        ("kiro", ["mcp_semble_search", "mcp_semble_find_related"]),
+        ("zcode", ["mcp__semble__search", "mcp__semble__find_related"]),
+        ("commandcode", ["mcp__semble__search", "mcp__semble__find_related"]),
+        ("reasonix", ["mcp__semble__search", "mcp__semble__find_related"]),
+    ],
+)
+def test_subagent_body_is_mcp_first_with_cli_fallback_tier_b(tmp_path, agent_id, mcp_tools):
+    """Tier B bodies reference the harness-specific MCP tools and keep a CLI fallback with the pinned uvx line."""
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    dest = tmp_path / agent.subagent_path.name
+    _apply_subagent(replace(agent, subagent_path=dest), "install")
+    text = dest.read_text()
+    for tool in mcp_tools:
+        assert f"`{tool}`" in text
+    assert "CLI fallback" in text
+    assert f'uvx --from "{SEMBLE_PIN}" semble' in text
+    assert '"semble[mcp]"' not in text
+
+
+@pytest.mark.parametrize(
+    ("agent_id", "unchanged_markers"),
+    [
+        ("cursor", ["name: semble-search", "description: Code search agent for exploring any codebase"]),
+        ("codex", ['name = "semble_search"', 'description = "Code search agent for exploring any codebase']),
+        ("pi", ["name: semble-search", "description: Code search agent for exploring any codebase"]),
+        ("grok", ["name: semble-search", "description: Code search agent for exploring any codebase"]),
+    ],
+)
+def test_subagent_frontmatter_unchanged_tier_c(tmp_path, agent_id, unchanged_markers):
+    """Tier C definitions keep their frontmatter untouched (no tool gate to extend)."""
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    dest = tmp_path / agent.subagent_path.name
+    _apply_subagent(replace(agent, subagent_path=dest), "install")
+    text = dest.read_text()
+    for marker in unchanged_markers:
+        assert marker in text
+    assert "tools:" not in text
+
+
+@pytest.mark.parametrize("agent_id", ["cursor", "codex", "pi", "grok"])
+def test_subagent_body_is_mcp_first_tier_c(tmp_path, agent_id):
+    """Tier C bodies reference the installer's MCP tool names and keep a CLI fallback with the pinned uvx line."""
+    agent = next(a for a in AGENTS if a.id == agent_id)
+    dest = tmp_path / agent.subagent_path.name
+    _apply_subagent(replace(agent, subagent_path=dest), "install")
+    text = dest.read_text()
+    assert "`mcp__semble__search`" in text
+    assert "`mcp__semble__find_related`" in text
+    assert "CLI fallback" in text
+    assert f'uvx --from "{SEMBLE_PIN}" semble' in text
+    assert '"semble[mcp]"' not in text
+
+
 def test_is_detected(monkeypatch, tmp_path):
     """is_detected returns True when binary is on PATH or config dir exists."""
     agent = next(a for a in AGENTS if a.id == "claude")
