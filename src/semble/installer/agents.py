@@ -94,11 +94,11 @@ INSTRUCTIONS = f"""\
 {SEMBLE_START}
 ## Semble Code Search
 
-A `semble` MCP server is available with two tools:
-- `mcp__semble__search` — search the codebase with a natural-language or code query.
-- `mcp__semble__find_related` — find code similar to a specific file and line.
+A `semble` MCP server is available with two tools (your client may show them with a prefix, e.g. `mcp__semble__search` or `semble__search`):
+- `search` — search the codebase with a natural-language or code query.
+- `find_related` — find code similar to a specific file and line.
 
-Use `mcp__semble__search` to find where something is implemented — instead of using Grep or Glob to discover files. After semble returns the file and line, navigate there directly and read that file. Do not grep for the same content again.
+Use semble's `search` tool to find where something is implemented — instead of using Grep or Glob to discover files. After semble returns the file and line, navigate there directly and read that file. Do not grep for the same content again.
 
 Pass `content="docs"` to the MCP search tool for documentation and prose, `content="config"` for config files, or `content="all"` for everything. On the CLI, use `--content docs`, `--content config`, or `--content all` instead.
 
@@ -116,11 +116,11 @@ The index is built on first run and cached automatically. If `semble` is not on 
 
 ### Workflow
 
-1. Call `mcp__semble__search` with a query describing what the code does or its name. The tool returns results with 10 lines of context each (function/class signature + first body lines, enough to confirm the location).
+1. Call semble's `search` tool with a query describing what the code does or its name. The tool returns results with 10 lines of context each (function/class signature + first body lines, enough to confirm the location).
 2. Navigate directly to the top result's file and line. Read only the function or class at that location.
 3. Make the edit. Do not re-search or grep for the same content.
 4. Set the MCP search tool's `content` field to `docs`, `config`, or `all` when searching beyond code.
-5. Optionally use `mcp__semble__find_related` with `file_path`, `line`, and the same `content` selection to discover similar code elsewhere.
+5. Optionally use semble's `find_related` tool with `file_path`, `line`, and the same `content` selection to discover similar code elsewhere.
 6. Use Grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
 {SEMBLE_END}
 """
