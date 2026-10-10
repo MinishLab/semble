@@ -186,8 +186,6 @@ By default, your Semble savings statistics and any saved indexes are stored in t
 
 Files larger than 1 MB are skipped during indexing to keep index builds lean. Skipped files are reported as a warning at index time. If you work with large generated or ingested documents, you can raise (or lower) this limit with the `SEMBLE_MAX_FILE_BYTES` environment variable (in bytes).
 
-When many files need indexing, the CLI and MCP server chunk them in 4 worker processes. Set `SEMBLE_INDEX_WORKERS` to change the number of workers, or to `0` to index in a single process. In the Python API, workers are off by default; set `SEMBLE_INDEX_WORKERS` to turn them on, and guard your script with `if __name__ == "__main__":`.
-
 On first use, Semble also downloads the embedding model from Hugging Face and caches it in the standard Hugging Face cache (`~/.cache/huggingface/` by default, or `$HF_HOME` if set); this only happens once and requires network access.
 
 Use `semble clear` to remove cached data: `semble clear index` (saved indexes), `semble clear savings` (usage stats), `semble clear orphans` (indexes for repos no longer present on disk), or `semble clear all` (everything).
@@ -233,6 +231,8 @@ result.chunk.start_line  # 127
 result.chunk.end_line    # 150
 result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 ```
+
+When many files need indexing, the CLI and MCP server chunk them in 4 worker processes (`SEMBLE_INDEX_WORKERS` sets the number, `0` turns them off). In the Python API they are off by default. To turn them on, set `SEMBLE_INDEX_WORKERS` and call Semble from inside an `if __name__ == "__main__":` block, since each worker re-imports your script.
 
 </details>
 
