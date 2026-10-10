@@ -8,7 +8,7 @@ import signal
 import sys
 import threading
 from collections import deque
-from collections.abc import Generator, Sequence
+from collections.abc import Generator, Iterator, Sequence
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -81,6 +81,34 @@ def _init_worker() -> None:
     threading.Thread(target=wait_and_exit, daemon=True).start()
 
 
+if sys.platform == "win32":  # pragma: no cover
+    import ctypes
+    import msvcrt
+
+    @contextlib.contextmanager
+    def _stdin_as_nul() -> Iterator[None]:
+        """Give processes started in this block NUL as stdin.
+
+        A Windows pipe serves one operation at a time, so a child that shares a stdin this process is blocked
+        reading (as the MCP server is) hangs in Python's startup until the next line arrives.
+        """
+        kernel32 = ctypes.WinDLL("kernel32")
+        kernel32.GetStdHandle.restype = ctypes.c_void_p
+        kernel32.GetStdHandle.argtypes = [ctypes.c_uint32]
+        kernel32.SetStdHandle.argtypes = [ctypes.c_uint32, ctypes.c_void_p]
+        std_input_handle = ctypes.c_uint32(-10).value
+        stdin = kernel32.GetStdHandle(std_input_handle)
+        with open(os.devnull, "rb") as nul:
+            kernel32.SetStdHandle(std_input_handle, msvcrt.get_osfhandle(nul.fileno()))
+            try:
+                yield
+            finally:
+                kernel32.SetStdHandle(std_input_handle, stdin)
+
+else:
+    _stdin_as_nul = contextlib.nullcontext
+
+
 def _chunk_files(files: list[tuple[Path, str]]) -> Generator[_ChunkedFile | None, None, None]:
     """Chunk files in order, in SEMBLE_INDEX_WORKERS worker processes when there are enough files."""
     workers = int(os.environ.get("SEMBLE_INDEX_WORKERS", 0))
@@ -92,7 +120,9 @@ def _chunk_files(files: list[tuple[Path, str]]) -> Generator[_ChunkedFile | None
         )
         try:
             submitted = (executor.submit(_chunk_file, *file) for file in files)
-            pending = deque(itertools.islice(submitted, _MAX_FILES_IN_FLIGHT))
+            # Workers start on the first submits.
+            with _stdin_as_nul():
+                pending = deque(itertools.islice(submitted, _MAX_FILES_IN_FLIGHT))
             while pending:
                 yield pending.popleft().result()
                 pending.extend(itertools.islice(submitted, 1))
