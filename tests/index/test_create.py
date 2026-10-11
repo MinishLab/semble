@@ -26,10 +26,17 @@ def _write_files(root: Path, files: dict[str, str]) -> None:
 
 
 @pytest.mark.parametrize("in_processes", [False, True])
+@pytest.mark.parametrize(("embed_batch_size", "encode_calls"), [(1024, 1), (1, 4)])
 def test_incremental_reindex_reuses_updates_and_prunes(
-    mock_model: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, in_processes: bool
+    mock_model: Any,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    in_processes: bool,
+    embed_batch_size: int,
+    encode_calls: int,
 ) -> None:
     """One incremental pass reuses unchanged vectors, re-embeds changes, and keeps BM25 slots current."""
+    monkeypatch.setattr(create, "_EMBED_BATCH_SIZE", embed_batch_size)
     if in_processes:
         monkeypatch.setattr(create, "_MIN_FILES_FOR_PROCESSES", 0)
         monkeypatch.setenv("SEMBLE_INDEX_WORKERS", "2")
@@ -45,7 +52,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(
     bm25_before, semantic_before, chunks_before, manifest_before = create_index_from_path(
         tmp_path, mock_model, display_root=tmp_path
     )
-    assert mock_model.encode.call_count == 4  # once per file, no second full pass
+    assert mock_model.encode.call_count == encode_calls
     a_entry = manifest_before["a.py"]
     b_entry = manifest_before["b.py"]
     a_vectors_before = semantic_before.vectors[a_entry.start : a_entry.end].copy()
