@@ -175,7 +175,7 @@ def test_cli_entrypoint_works_without_mcp_installed(
     monkeypatch.setattr(sys, "argv", argv)
     monkeypatch.setitem(sys.modules, "mcp", None)
     monkeypatch.setitem(sys.modules, "mcp.server", None)
-    monkeypatch.setitem(sys.modules, "mcp.server.fastmcp", None)
+    monkeypatch.setitem(sys.modules, "mcp.server.mcpserver", None)
     monkeypatch.setitem(sys.modules, "semble.mcp", None)
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         if expect_system_exit:

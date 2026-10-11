@@ -16,8 +16,8 @@ from tests.conftest import make_chunk
 
 
 def _tool_text(result: Any) -> str:
-    """Extract the text string from a FastMCP call_tool result."""
-    return result[0][0].text
+    """Extract the text string from an MCP call_tool result."""
+    return result.content[0].text
 
 
 async def _call_tool(
@@ -430,7 +430,7 @@ async def test_serve_runs_stdio(
     )
     with (
         patch("semble.mcp.load_model", **load_kwargs),
-        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_stdio) as mock_run,
+        patch("mcp.server.mcpserver.MCPServer.run_stdio_async", side_effect=fake_stdio) as mock_run,
     ):
         await serve()
 
@@ -452,7 +452,7 @@ async def test_serve_opens_stdio_before_model_loads() -> None:
 
     with (
         patch("semble.mcp.load_model", side_effect=blocking_load_model),
-        patch("mcp.server.fastmcp.FastMCP.run_stdio_async", side_effect=fake_run_stdio),
+        patch("mcp.server.mcpserver.MCPServer.run_stdio_async", side_effect=fake_run_stdio),
     ):
         await serve()
 
