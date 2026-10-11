@@ -38,7 +38,7 @@ dependencies = [
 
 [project.optional-dependencies]
 mcp = [
-    "mcp>=1.0,<2.0",
+    "mcp>=2.0,<3.0",
 ]
 benchmark = [
     "sentence-transformers>=3.0",

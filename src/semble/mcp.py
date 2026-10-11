@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Annotated, Literal
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from pydantic import Field
 
 from semble.cache import get_validated_cache, save_index_to_cache
@@ -18,6 +18,7 @@ from semble.index import SembleIndex
 from semble.index.dense import load_model
 from semble.types import ContentType
 from semble.utils import format_results, is_git_url, resolve_chunk
+from semble.version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -68,10 +69,11 @@ def _resolve_content_selection(
     return (ContentType(content),)
 
 
-def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (ContentType.CODE,)) -> FastMCP:
-    """Build and return a configured FastMCP server backed by the given cache."""
-    server = FastMCP(
+def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (ContentType.CODE,)) -> MCPServer:
+    """Build and return a configured MCP server backed by the given cache."""
+    server = MCPServer(
         "semble",
+        version=__version__,
         instructions=(
             "Instant code search for any local or remote git repository. "
             "Call `search` once with a focused query, it returns the file path and exact line. "
