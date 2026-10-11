@@ -232,6 +232,8 @@ result.chunk.end_line    # 150
 result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 ```
 
+When many files need indexing, the CLI and MCP server chunk them in 4 worker processes (`SEMBLE_INDEX_WORKERS` sets the number, `0` turns them off). In the Python API they are off by default. To turn them on, set `SEMBLE_INDEX_WORKERS` and call Semble from inside an `if __name__ == "__main__":` block, since each worker re-imports your script.
+
 </details>
 
 ## MCP Server

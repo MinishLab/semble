@@ -95,6 +95,8 @@ def main() -> None:
     for stream in (sys.stdout, sys.stderr):
         if isinstance(stream, io.TextIOWrapper):
             stream.reconfigure(errors="replace")
+    # Worker processes re-import __main__, so only guarded entry points like this one turn them on by default.
+    os.environ.setdefault("SEMBLE_INDEX_WORKERS", "4")
     if len(sys.argv) > 1 and sys.argv[1] in _CLI_DISPATCH_ARGS:
         _cli_main()
     else:
