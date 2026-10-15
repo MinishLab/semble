@@ -471,6 +471,11 @@ def get_extensions(types: Sequence[ContentType]) -> list[str]:
     )
 
 
+def get_excluded_extensions() -> list[str]:
+    """Returns the data file extensions that are not indexed under any content type."""
+    return sorted(ext for lang in _DATA_LANGUAGES for ext in _LANGUAGE_TO_EXTENSIONS[lang])
+
+
 class FileStatus(str, Enum):
     TOO_LARGE = "too_large"
     EMPTY = "empty"
