@@ -481,18 +481,19 @@ def test_cli_clear_command(
 
 
 @pytest.mark.parametrize(
-    ("content", "expected_keys"),
+    ("content", "expected"),
     [
-        ([], ["code", "docs", "config"]),
-        (["--content", "docs"], ["docs"]),
+        ([], {"code": ".py", "docs": ".md", "config": ".toml"}),
+        (["--content", "docs"], {"docs": ".md"}),
     ],
 )
 def test_cli_file_types(
-    content: list[str], expected_keys: list[str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    content: list[str], expected: dict[str, str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """`semble file-types` prints the indexed extensions per requested content type."""
     monkeypatch.setattr(sys, "argv", ["semble", "file-types", *content])
     main()
     out = json.loads(capsys.readouterr().out)
-    assert list(out) == expected_keys
+    assert list(out) == list(expected)
+    assert all(extension in out[content_type] for content_type, extension in expected.items())
     assert all(".json" not in extensions for extensions in out.values())
