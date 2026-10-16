@@ -483,16 +483,16 @@ def test_cli_clear_command(
 @pytest.mark.parametrize(
     ("content", "expected_keys"),
     [
-        ([], ["code", "docs", "config", "excluded"]),
-        (["--content", "docs"], ["docs", "excluded"]),
+        ([], ["code", "docs", "config", "data"]),
+        (["--content", "docs"], ["docs", "data"]),
     ],
 )
 def test_cli_file_types(
     content: list[str], expected_keys: list[str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """`semble file-types` prints extensions per requested content type plus the excluded data extensions."""
+    """`semble file-types` prints extensions per requested content type plus the data extensions."""
     monkeypatch.setattr(sys, "argv", ["semble", "file-types", *content])
     main()
     out = json.loads(capsys.readouterr().out)
     assert list(out) == expected_keys
-    assert ".json" in out["excluded"]
+    assert ".json" in out["data"]
