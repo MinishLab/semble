@@ -40,6 +40,8 @@ logger = logging.getLogger(__name__)
 _MIN_FILES_FOR_PROCESSES = 200
 # Files handed to the workers but not yet consumed by the main process.
 _MAX_FILES_IN_FLIGHT = 256
+# New chunks are embedded together once this many have accumulated.
+_EMBED_BATCH_SIZE = 1024
 
 # A file's chunks and their BM25 tokens.
 _ChunkedFile = tuple[list[Chunk], list[list[str]]]
@@ -177,9 +179,10 @@ def create_index_from_path(
 
     chunks: list[Chunk] = []
     chunk_ids: list[str] = []
-    vector_parts: list[EmbeddingMatrix] = []
     manifest: dict[str, FileManifestEntry] = {}
-    embedding_parts: list[tuple[int, int, int]] = []
+    reused_parts: list[tuple[int, EmbeddingMatrix]] = []
+    embedded_parts: list[tuple[list[int], EmbeddingMatrix]] = []
+    new_rows: list[int] = []
 
     skipped_large: list[str] = []
 
@@ -201,23 +204,25 @@ def create_index_from_path(
             miniters=1,  # tqdm's adaptive miniters stalls the bar when fast files are followed by slow ones
             disable=not show_progress_bar,
         ):
+            start = len(chunks)
             if previous is not None and previous_entry is not None and previous_entry.mtime_ns == mtime_ns:
                 file_chunks = previous.chunks[previous_entry.start : previous_entry.end]
-                vector_parts.append(previous.vectors[previous_entry.start : previous_entry.end])
+                reused_parts.append((start, previous.vectors[previous_entry.start : previous_entry.end]))
             else:
                 result = next(chunked)
                 if result is None:
                     continue
                 file_chunks, file_tokens = result
                 _reindex_file(bm25_index, indexed_path, file_tokens, previous_entry)
+                new_rows.extend(range(start, start + len(file_chunks)))
 
-                embedding_parts.append((len(vector_parts), len(chunks), len(file_chunks)))
-                vector_parts.append(embed_chunks(model, file_chunks))
-
-            start = len(chunks)
             chunks.extend(file_chunks)
             chunk_ids.extend(make_chunk_id(indexed_path, slot) for slot in range(len(file_chunks)))
             manifest[indexed_path] = FileManifestEntry(mtime_ns=mtime_ns, start=start, count=len(file_chunks))
+            if len(new_rows) >= _EMBED_BATCH_SIZE:
+                embedded_parts.append((new_rows, embed_chunks(model, [chunks[row] for row in new_rows])))
+                new_rows = []
+    embedded_parts.append((new_rows, embed_chunks(model, [chunks[row] for row in new_rows])))
 
     for indexed_path in previous_manifest.keys() - manifest.keys():
         _reindex_file(bm25_index, indexed_path, [], previous_manifest[indexed_path])
@@ -229,10 +234,12 @@ def create_index_from_path(
 
     if previous is not None and _has_same_vector_layout(manifest, previous_manifest):
         embeddings = previous.vectors
-        for vector_part, start, count in embedding_parts:
-            embeddings[start : start + count] = vector_parts[vector_part]
     else:
-        embeddings = np.vstack(vector_parts)
+        embeddings = np.empty((len(chunks), model.dim), dtype=np.float32)
+        for start, vectors in reused_parts:
+            embeddings[start : start + len(vectors)] = vectors
+    for rows, vectors in embedded_parts:
+        embeddings[rows] = vectors
     bm25_index.set_doc_order(chunk_ids)
     semantic_index = SelectableBasicBackend(embeddings, BasicArgs())
 

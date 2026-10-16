@@ -1,5 +1,6 @@
 import multiprocessing
 import threading
+import zlib
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -26,10 +27,20 @@ def _write_files(root: Path, files: dict[str, str]) -> None:
 
 
 @pytest.mark.parametrize("in_processes", [False, True])
+@pytest.mark.parametrize(("embed_batch_size", "encode_calls"), [(1024, 1), (3, 2)])
 def test_incremental_reindex_reuses_updates_and_prunes(
-    mock_model: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, in_processes: bool
+    mock_model: Any,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    in_processes: bool,
+    embed_batch_size: int,
+    encode_calls: int,
 ) -> None:
     """One incremental pass reuses unchanged vectors, re-embeds changes, and keeps BM25 slots current."""
+    monkeypatch.setattr(create, "_EMBED_BATCH_SIZE", embed_batch_size)
+    mock_model.encode.side_effect = lambda texts, **_: np.eye(mock_model.dim, dtype=np.float32)[
+        [zlib.crc32(text.encode()) % mock_model.dim for text in texts]
+    ]
     if in_processes:
         monkeypatch.setattr(create, "_MIN_FILES_FOR_PROCESSES", 0)
         monkeypatch.setenv("SEMBLE_INDEX_WORKERS", "2")
@@ -45,7 +56,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(
     bm25_before, semantic_before, chunks_before, manifest_before = create_index_from_path(
         tmp_path, mock_model, display_root=tmp_path
     )
-    assert mock_model.encode.call_count == 4  # once per file, no second full pass
+    assert mock_model.encode.call_count == encode_calls
     a_entry = manifest_before["a.py"]
     b_entry = manifest_before["b.py"]
     a_vectors_before = semantic_before.vectors[a_entry.start : a_entry.end].copy()
@@ -74,7 +85,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(
     (tmp_path / "c.py").unlink()
     (tmp_path / "emptying.py").write_text(" " * 128)
     _write_files(tmp_path, {"d.py": "def brand_new_term():\n    return 4\n"})
-    bm25_after, semantic_after, _, manifest_after = create_index_from_path(
+    bm25_after, semantic_after, chunks_after, manifest_after = create_index_from_path(
         tmp_path, mock_model, display_root=tmp_path, previous=previous
     )
 
@@ -85,6 +96,7 @@ def test_incremental_reindex_reuses_updates_and_prunes(
         b_vectors_before,
         semantic_after.vectors[b_entry_after.start : b_entry_after.end],
     )
+    np.testing.assert_array_equal(semantic_after.vectors, mock_model.encode([chunk.content for chunk in chunks_after]))
     assert "c.py" not in manifest_after
     assert "d.py" in manifest_after
     assert manifest_after["emptying.py"].count == 0

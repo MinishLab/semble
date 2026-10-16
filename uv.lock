@@ -16,6 +16,7 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
+model2vec = false
 semble-grammars = false
 
 [[package]]
@@ -1881,9 +1882,10 @@ wheels = [
 
 [[package]]
 name = "model2vec"
-version = "0.9.0"
+version = "0.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "huggingface-hub" },
     { name = "jinja2" },
     { name = "joblib" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -1893,9 +1895,9 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/e5/118c4a8af078ff97d9228718fbcd7d4f7e9cae93c3af59652d6f3407010a/model2vec-0.9.0.tar.gz", hash = "sha256:f50229cea128c9db5cfa7b2173478294be3c84e5d3d7fb8487ebd7af285383ab", size = 4590528, upload-time = "2026-08-12T14:24:38.524Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/04/48/2ceace43798ca7cb8c32c50c7956d7446d7f90a3b3f65b201fb7fd87344c/model2vec-0.10.0.tar.gz", hash = "sha256:47119ef1f917b4da7a0010bf10c587c923639a6af4ea51cb2d424fc329d09d2f", size = 4622501, upload-time = "2026-10-11T10:47:59.266Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/af/ea/80246465cafa36a6c8c8ac767778423940e5b826fa57c10ebd957b570c1c/model2vec-0.9.0-py3-none-any.whl", hash = "sha256:8bcf3258d5668678739c13226a562d39eeaeb8fcac9b142bc4aceef8800d5b9d", size = 59865, upload-time = "2026-08-12T14:24:36.626Z" },
+    { url = "https://files.pythonhosted.org/packages/84/c5/2b1b5648195bfcada5de6a1164d560c968ded8fc68f2ddd6118b21cb26b7/model2vec-0.10.0-py3-none-any.whl", hash = "sha256:a39c40de4f82c5e0e50c14bbb87a935c1c62094f3f0f0d8fde8e24f4a4f35b16", size = 89504, upload-time = "2026-10-11T10:47:57.679Z" },
 ]
 
 [[package]]
@@ -3866,7 +3868,7 @@ requires-dist = [
     { name = "einops", marker = "extra == 'benchmark'", specifier = ">=0.8.2" },
     { name = "matplotlib", marker = "extra == 'benchmark'", specifier = ">=3.7" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.0,<3.0" },
-    { name = "model2vec", specifier = ">=0.4.0,<0.10" },
+    { name = "model2vec", specifier = ">=0.10.0,<0.11" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "numpy", marker = "extra == 'benchmark'", specifier = ">=1.24.0" },
