@@ -136,7 +136,7 @@ generated/     # exclude generated dir
 !*.cob         # include COBOL files
 ```
 
-Run `semble file-types` to list the extensions indexed per content type, plus data extensions (e.g. `.json`, `.csv`) that are excluded unless force-included this way.
+Run `semble file-types` to see which extensions are indexed per content type. Extensions not listed are not indexed by default; data files (e.g. `.json`, `.csv`) are listed separately. Either can be force-included with a `!` pattern as above.
 
 Semble also always skips a set of well-known non-source directories regardless of ignore files (e.g. `node_modules/`, `.venv/`, `dist/`, `build/`, `__pycache__/`, and similar).
 
