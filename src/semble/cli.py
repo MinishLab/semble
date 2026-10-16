@@ -18,6 +18,7 @@ from model2vec.utils import get_package_extras
 
 from semble.cache import cache_key, resolve_cache_folder, save_index_to_cache
 from semble.index import SembleIndex
+from semble.index.files import get_extensions
 from semble.index.types import PersistencePath
 from semble.installer.agents import AGENTS, IntegrationType
 from semble.stats import format_savings_report
@@ -26,7 +27,19 @@ from semble.utils import format_results, is_git_url, resolve_chunk
 from semble.version import __version__
 
 _CLI_DISPATCH_ARGS = frozenset(
-    {"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear", "--version", "-V"}
+    {
+        "search",
+        "find-related",
+        "file-types",
+        "install",
+        "uninstall",
+        "savings",
+        "-h",
+        "--help",
+        "clear",
+        "--version",
+        "-V",
+    }
 )
 _CLEAR_CHOICE = Literal["all", "index", "savings", "orphans"]
 
@@ -292,6 +305,16 @@ def _cli_main() -> None:
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
     _add_query_args(related_p)
 
+    file_types_p = sub.add_parser("file-types", help="List the file extensions indexed per content type.")
+    file_types_p.add_argument(
+        "--content",
+        nargs="+",
+        default=["all"],
+        choices=[ct.value for ct in ContentType] + ["all"],
+        metavar="TYPE",
+        help="Content types to list (space-separated). Choices: code, docs, config, all. Default: all.",
+    )
+
     sub.add_parser("savings", help="Show token savings and usage stats.")
 
     install_p = sub.add_parser("install", help="Configure semble across coding agents.")
@@ -332,6 +355,8 @@ def _cli_main() -> None:
         run(args.command, agent_ids=args.agent, integration_ids=integration_ids, yes=args.yes)
     elif args.command == "clear":
         _run_clear(args.type)
+    elif args.command == "file-types":
+        print(json.dumps({ct.value: get_extensions([ct]) for ct in _resolve_content(args.content, False)}))
     elif args.command == "search":
         _run_search(
             args.path,

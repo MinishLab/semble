@@ -1,2 +1,2 @@
-__version_triple__ = (0, 6, 2)
+__version_triple__ = (0, 7, 0)
 __version__ = ".".join(map(str, __version_triple__))
