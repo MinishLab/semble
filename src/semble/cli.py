@@ -18,7 +18,7 @@ from model2vec.utils import get_package_extras
 
 from semble.cache import cache_key, resolve_cache_folder, save_index_to_cache
 from semble.index import SembleIndex
-from semble.index.files import get_data_extensions, get_extensions
+from semble.index.files import get_extensions
 from semble.index.types import PersistencePath
 from semble.installer.agents import AGENTS, IntegrationType
 from semble.stats import format_savings_report
@@ -356,8 +356,7 @@ def _cli_main() -> None:
     elif args.command == "clear":
         _run_clear(args.type)
     elif args.command == "file-types":
-        out = {ct.value: get_extensions([ct]) for ct in _resolve_content(args.content, False)}
-        print(json.dumps({**out, "data": get_data_extensions()}))
+        print(json.dumps({ct.value: get_extensions([ct]) for ct in _resolve_content(args.content, False)}))
     elif args.command == "search":
         _run_search(
             args.path,
