@@ -109,6 +109,8 @@ def test_apply_query_boost_skips_non_matching_stem(query: str) -> None:
     [
         ("authenticate user session", "src/auth.py"),  # prefix / morphological match
         ("auth service", "src/auth_service.py"),  # every keyword exact-matches a stem part
+        ("git status", "lua/telescope/__git.lua"),  # leading underscores don't hide the stem
+        ("git status", "lua/telescope/git__.lua"),  # nor do trailing ones
     ],
 )
 def test_apply_query_boost_nl_stem_match_boosts(query: str, file_path: str) -> None:

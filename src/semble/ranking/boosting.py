@@ -267,6 +267,11 @@ def _boost_embedded_symbols(
     _boost_definitions(boosted, names, boost_unit, all_chunks, stem_ok)
 
 
+def _split_path_part(name: str) -> list[str]:
+    """Split a file stem or directory name, ignoring leading/trailing underscores (``__git`` -> ``git``)."""
+    return split_identifier(name.strip("_") or name)
+
+
 def _count_keyword_matches(keywords: set[str], parts: set[str]) -> int:
     """Count query keywords that match path parts, allowing prefix overlap (min 3 chars)."""
     exact = keywords & parts
@@ -303,9 +308,9 @@ def _boost_stem_matches(
     for chunk in list(boosted):
         if chunk.file_path not in path_cache:
             path = Path(chunk.file_path)
-            parts: set[str] = set(split_identifier(path.stem))
+            parts: set[str] = set(_split_path_part(path.stem))
             if path.parent.name and path.parent.name not in (".", "/", ".."):
-                parts.update(split_identifier(path.parent.name))
+                parts.update(_split_path_part(path.parent.name))
             path_cache[chunk.file_path] = parts
         n_matches = _count_keyword_matches(keywords, path_cache[chunk.file_path])
         if n_matches > 0:
