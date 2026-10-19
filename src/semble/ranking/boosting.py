@@ -109,6 +109,33 @@ def apply_query_boost(
     return boosted
 
 
+def query_boost_deltas(
+    combined_scores: dict[Chunk, float],
+    query: str,
+    all_chunks: list[Chunk],
+) -> tuple[dict[Chunk, float], dict[Chunk, float]]:
+    """Return the (path-stem, definition) amounts apply_query_boost adds to each chunk, as separate dicts.
+
+    Chunks the definition scan adds from outside the candidates appear with their full boost.
+    Used as learned-ranker features; apply_query_boost itself is unchanged.
+    """
+    if not combined_scores:
+        return {}, {}
+    max_score = max(combined_scores.values())
+
+    def _delta(boost: Callable[[dict[Chunk, float]], None]) -> dict[Chunk, float]:
+        boosted = dict(combined_scores)
+        boost(boosted)
+        return {c: v - combined_scores.get(c, 0.0) for c, v in boosted.items() if v != combined_scores.get(c, 0.0)}
+
+    if is_symbol_query(query):
+        return {}, _delta(lambda b: _boost_symbol_definitions(b, query, max_score, all_chunks))
+    return (
+        _delta(lambda b: _boost_stem_matches(b, query, max_score)),
+        _delta(lambda b: _boost_embedded_symbols(b, query, max_score, all_chunks)),
+    )
+
+
 def boost_multi_chunk_files(scores: dict[Chunk, float]) -> None:
     """Promote files with multiple high-scoring chunks by boosting their top chunk (in-place)."""
     if not scores:

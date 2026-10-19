@@ -6,6 +6,8 @@ from semble.index.bm25 import BM25
 from semble.index.dense import SelectableBasicBackend
 from semble.index.sparse import selector_to_mask
 from semble.ranking import apply_query_boost, boost_multi_chunk_files, rerank_topk, resolve_alpha
+from semble.ranking.boosting import query_boost_deltas
+from semble.ranking.learned import RankingSignals, apply_learned_ranker, load_ranker
 from semble.tokens import tokenize
 from semble.types import Chunk, SearchResult
 
@@ -63,7 +65,7 @@ def _search_bm25(
     return [SearchResult(chunk=chunks[i], score=float(scores[i])) for i in indices if scores[i] > 0]
 
 
-def search(
+def score_candidates(
     query: str,
     model: StaticModel,
     semantic_index: SelectableBasicBackend,
@@ -73,22 +75,19 @@ def search(
     alpha: float | None = None,
     selector: npt.NDArray[np.int_] | None = None,
     rerank: bool = True,
-) -> list[SearchResult]:
-    """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
-
-    Both score sets are converted to RRF scores before combining, so alpha has
-    a consistent meaning regardless of raw score magnitude.
+) -> RankingSignals:
+    """Retrieve and fuse candidates, apply the code-tuned boosts, and return every intermediate score.
 
     :param query: Search query string.
     :param model: Embedding model for semantic search.
     :param semantic_index: Pre-built semantic (vector) index.
     :param bm25_index: Pre-built BM25 index.
     :param chunks: All indexed chunks (parallel to BM25 index).
-    :param top_k: Number of results to return.
+    :param top_k: Number of results the caller wants; candidates are over-fetched from this.
     :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
     :param selector: Optional array of chunk indices to filter results by.
-    :param rerank: Whether to perform code-tuned reranking. On by default for code search, off for docs search.
-    :return: List of search results sorted by combined score descending.
+    :param rerank: Apply the multi-chunk and query boosts. When False, boosted equals fused.
+    :return: The ranking signals for this query.
     """
     alpha_weight = resolve_alpha(query, alpha)
 
@@ -116,16 +115,58 @@ def search(
     }
 
     # Remove chunks that have 0.0 score
-    combined_scores = {chunk: score for chunk, score in combined_scores.items() if score}
+    fused = {chunk: score for chunk, score in combined_scores.items() if score}
+    if not rerank:
+        return RankingSignals(alpha_weight, semantic_scores, bm25_scores, fused, {}, {}, {}, fused)
 
+    # Boost files with multiple relevant chunks.
+    with_file_boost = dict(fused)
+    boost_multi_chunk_files(with_file_boost)
+    file_boost = {c: s - fused[c] for c, s in with_file_boost.items() if s != fused[c]}
+    # Boost queries with specific identifiers in them.
+    boosted = apply_query_boost(with_file_boost, query, chunks)
+    stem_boost, definition_boost = query_boost_deltas(with_file_boost, query, chunks)
+    return RankingSignals(
+        alpha_weight, semantic_scores, bm25_scores, fused, file_boost, stem_boost, definition_boost, boosted
+    )
+
+
+def search(
+    query: str,
+    model: StaticModel,
+    semantic_index: SelectableBasicBackend,
+    bm25_index: BM25,
+    chunks: list[Chunk],
+    top_k: int,
+    alpha: float | None = None,
+    selector: npt.NDArray[np.int_] | None = None,
+    rerank: bool = True,
+) -> list[SearchResult]:
+    """Hybrid search: alpha-weighted combination of semantic and BM25 scores.
+
+    Both score sets are converted to RRF scores before combining, so alpha has
+    a consistent meaning regardless of raw score magnitude.
+
+    :param query: Search query string.
+    :param model: Embedding model for semantic search.
+    :param semantic_index: Pre-built semantic (vector) index.
+    :param bm25_index: Pre-built BM25 index.
+    :param chunks: All indexed chunks (parallel to BM25 index).
+    :param top_k: Number of results to return.
+    :param alpha: Weight for semantic score (1-alpha goes to BM25). None = auto-detect based on query type.
+    :param selector: Optional array of chunk indices to filter results by.
+    :param rerank: Whether to perform code-tuned reranking. On by default for code search, off for docs search.
+    :return: List of search results sorted by combined score descending.
+    """
+    signals = score_candidates(query, model, semantic_index, bm25_index, chunks, top_k, alpha, selector, rerank)
     if rerank:
-        # Boost files with multiple relevant chunks.
-        boost_multi_chunk_files(combined_scores)
-        # Boost queries with specific identifiers in them.
-        combined_scores = apply_query_boost(combined_scores, query, chunks)
+        scores = signals.boosted
+        if scores and (ranker := load_ranker()) is not None:
+            # Correct the hand-tuned scores with the learned ranker.
+            scores = apply_learned_ranker(signals, ranker)
         # Rerank the top-k results by applying path-based penalties.
-        ranked = rerank_topk(combined_scores, top_k, penalise_paths=alpha_weight < 1.0)
+        ranked = rerank_topk(scores, top_k, penalise_paths=signals.alpha < 1.0)
     else:
-        sorted_by_score = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)
+        sorted_by_score = sorted(signals.fused.items(), key=lambda x: x[1], reverse=True)
         ranked = sorted_by_score[:top_k]
     return [SearchResult(chunk=chunk, score=score) for chunk, score in ranked]

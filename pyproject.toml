@@ -74,7 +74,7 @@ where = ["src"]
 include = ["semble*"]
 
 [tool.setuptools.package-data]
-semble = ["py.typed", "agents/*.md", "agents/*.toml"]
+semble = ["py.typed", "agents/*.md", "agents/*.toml", "ranking/*.json"]
 
 [tool.setuptools_scm]
 # can be empty if no extra settings are needed, presence enables setuptools_scm
