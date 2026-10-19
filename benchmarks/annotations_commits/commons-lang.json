@@ -1,0 +1,366 @@
+[
+  {
+    "query": "Fix broken Javadoc HTML tags",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/CharSequenceUtils.java",
+      "src/main/java/org/apache/commons/lang3/LocaleUtils.java",
+      "src/main/java/org/apache/commons/lang3/builder/ToStringStyle.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1da69ddc391bbafe8bb05aaf7e05ef2f46af804f"
+  },
+  {
+    "query": "Fix ObjectUtils.anyNull(Object) for empty arrays",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ObjectUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d25499cbce483544092bd69521ab62fcfdf775f"
+  },
+  {
+    "query": "ArrayUtils#hashCode Javadoc incorrectly states \u201cnull returns zero\u201d (actual result is 629)",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "42869864586c8f420dcb0e54b449af39ca62f161"
+  },
+  {
+    "query": "Remove link to now malicious site",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/StringUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "487ba4d9a60e678be874ceb9274384268bb32a13"
+  },
+  {
+    "query": "LANG-1819: Fix ArrayUtils.removeAll Javadoc for null array input",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c28cc55f0db71abcd82b6a8606dfa29d6ed73f92"
+  },
+  {
+    "query": "Fix NullPointerException in StopWatch.getStopTime",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/time/StopWatch.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "677e57f56bfae93af520637d47a615013c930266"
+  },
+  {
+    "query": "Make stopInstant be in sync with stopTimeNanos for split",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/time/StopWatch.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aa47951bd0223d674d2b85d06ccc6f7f1749a682"
+  },
+  {
+    "query": "LANG-771 Fix DateUtils.ceiling increment on exact boundary",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/time/DateUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a9a0dd8a72c51b14f0e5ea4bddfbf228685ff977"
+  },
+  {
+    "query": "Adjust Javadoc since tags",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/CharRange.java",
+      "src/main/java/org/apache/commons/lang3/Range.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "41ff88094519308750fdcca6b1f7525550bde55f"
+  },
+  {
+    "query": "CharSet now maintains iteration order",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/CharSet.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7489d6e21334673dc56399de7decaaa00f11ebcf"
+  },
+  {
+    "query": "Add usage examples to `CharSet.contains` Javadoc",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/CharSet.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2eca27e38219fadb4b685024d6065680e1f71000"
+  },
+  {
+    "query": "StringUtils.abbreviate(String, String, int) contract violations",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/StringUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4a6a98432f57e6286ba48777268a26b68dfd9547"
+  },
+  {
+    "query": "UncheckedFutureImpl clears thread interrupt status when wrapping InterruptedException",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/concurrent/UncheckedFutureImpl.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fa392404994e3e505317f2babf78560363da2330"
+  },
+  {
+    "query": "ThreadUtils.sleepQuietly(Duration) now restores the current thread's interrupt flag when catching InterruptedException",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ThreadUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1ffb6ea0b9e21ea71c4540b0fca4db8e4c1dd93"
+  },
+  {
+    "query": "LANG-1818: Fix ClassUtils.getShortClassName(Class) to correctly handle $ in valid class names",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ClassUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4052e9862bf540f0b294bcf58aad5b5e85eae4ad"
+  },
+  {
+    "query": "Fix StringIndexOutOfBoundsException message in StrBuilder.append(char[], int, int)",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/text/StrBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7bcb03a49923bc12f7e3f2c04912d0925f178978"
+  },
+  {
+    "query": "LANG-1816: ArrayUtils contains/indexOf/indexesOf with tolerance fail to match NaN values",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c477140acaa10ad56c203dfc8209f657091f3a3d"
+  },
+  {
+    "query": "ArrayUtils.subarray(..) may overflow index arithmetic and violate contract for extreme index values",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26ead6134ad55bf1350e41f05f4d0cbe6d0be4be"
+  },
+  {
+    "query": "Add ArrayUtils.concat methods for concatenating multiple arrays",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c5b1a87621fe341f343e7bc93249b4fd49a09ff4"
+  },
+  {
+    "query": "RecursiveToStringStyle and MultilineRecursiveToStringStyle shouldn't recurse into a java.math.BigDecimal",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/builder/RecursiveToStringStyle.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1418a770ba436d15693c3bb29a67e501c2008274"
+  },
+  {
+    "query": "Fix JavaDoc to reflect actual exception type thrown (IllegalArgumentException to NullPointerException)",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/DoubleRange.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b076e478e2b2fff603d75b1628430a47dfb88f53"
+  },
+  {
+    "query": "Use a single return in indexesOf methods",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "becbcffffe673ad062b2b389a2a31dce7565841e"
+  },
+  {
+    "query": "Use a single return",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a4cf528306f96784ed9c8e4cacb59e128fea92b3"
+  },
+  {
+    "query": "Fix ClassNotFoundException message variable",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ClassUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b6224451728562b0a4b33b63e8589753b1e2a57c"
+  },
+  {
+    "query": "Add long support to `BitField`",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/BitField.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2bdb0cb74a08b15439abf18df6ac2b52549394a"
+  },
+  {
+    "query": "Inline single use local variable",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/time/FastDateParser.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1db59d54a7863943014c3d6ed12f17e88f5d05a3"
+  },
+  {
+    "query": "Sort the available TimeZone IDs once",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/time/FastDateParser.java",
+      "src/main/java/org/apache/commons/lang3/time/TimeZones.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47aea5993d289b82c7febdbf9b05ffaad31b6ec9"
+  },
+  {
+    "query": "Fix NumberUtils.isParsable duplicate Long::parseLong",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/math/NumberUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "386af293e1f460d19ee4e5b8ddf795e302f16934"
+  },
+  {
+    "query": "Better exception messages from FastDateParser.parse(String)",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/time/FastDateParser.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "55611938b170e8b58d31212a888fbdd7c17b2e9f"
+  },
+  {
+    "query": "Fix handling of null marker in StringUtils.abbreviate(String, String, int, int)",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/StringUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4a5ef8ed29f0c135627f43b58c7ab7b6defe37b7"
+  },
+  {
+    "query": "Make ArrayUtils methods impl consistent with other overloads",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8a10229b89975fcf81c231b0c8313062e43a6d68"
+  },
+  {
+    "query": "NumberUtils.isParsable(\"1.f\") should return true",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/math/NumberUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8089a0c2d3207ed26531f877352336baf1c6c5bb"
+  },
+  {
+    "query": "Fix incorrect class names in RegExUtils Javadoc examples",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/RegExUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fee3e32155d684487798004a0b6d0826e2a5b451"
+  },
+  {
+    "query": "Fix incorrect exception type in Javadoc example",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/CharUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2909b27c7a556279dfcdea5fed04f0a860b71a44"
+  },
+  {
+    "query": "Deprecate SOFT_MAX_ARRAY_LENGTH in favor of MAX_ARRAY_LENGTH",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d9de2fd5b8c65506b1ab14df631cc26ffcd647dc"
+  },
+  {
+    "query": "ArrayUtils.shuffle throws NullPointerException for null array input",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ArrayUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "623235ebca46bea1a6e8cc02b7d7084c1698ab80"
+  },
+  {
+    "query": "Use for each on array",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "74e7fd172624111016e30bfa0258c68960afb9a0"
+  },
+  {
+    "query": "Improve handling of parameterized types and variable unrolling",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8f8cc04e65506fbe79bbc5efa6f7d44d65f0dbf1"
+  },
+  {
+    "query": "Add stricter type checks for parameterized types in method",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bcad40a502cd45b49a5e025938b9711d95c7bde7"
+  },
+  {
+    "query": "Use interface in private method signature",
+    "relevant": [
+      "src/main/java/org/apache/commons/lang3/ClassUtils.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3efb7c31e119c858f481aee8c7fdfdc75e80fff0"
+  }
+]

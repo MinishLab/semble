@@ -1,0 +1,363 @@
+[
+  {
+    "query": "Allow passing null or undefined as the value for options in app.render",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c9ecf7b658388ccaa2b8470aabad92aabde458a2"
+  },
+  {
+    "query": "do not modify the Content-Type twice when sending strings",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a479419b16f5b97eb20f5dbae5848708ff30ce2d"
+  },
+  {
+    "query": "Polish HTML structure of the response in the res.redirect function",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9a3f7ff4120d7920a2d13809ff5ae78648c8a3d6"
+  },
+  {
+    "query": "use cached slice in app.listen",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54af593b739ea44674e4a445efa15b8024f093da"
+  },
+  {
+    "query": "use req.socket over deprecated req.connection",
+    "relevant": [
+      "lib/request.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89f198c6a50ab0cb65b741767791dd1b647e3b2c"
+  },
+  {
+    "query": "add deprecation warnings for redirect arguments undefined",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c5b8d55a6a941fb5f8c783f7734a32f40142c4d9"
+  },
+  {
+    "query": "use node protocol for node builtin module",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3910323d09809f3b553af47ffd7b568d8dfd9fd6"
+  },
+  {
+    "query": "simplify `acceptsLanguages` implementation using spread operator",
+    "relevant": [
+      "lib/request.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3dc96995df98cd76d8d31f3b6825401f25899be0"
+  },
+  {
+    "query": "Extend res.links to allow adding multiple links with the same rel (closes )",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "caa4f68ee8d32474676fa29cc2086dcc1d62208b"
+  },
+  {
+    "query": "add support for ETag option in res.sendFile",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "327af123a1833239adf7eb47fee94542b692d451"
+  },
+  {
+    "query": "Added check to support Uint8Array in response sending",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "55869f49a65f1e279d92488fa6319c9fd4d8eac2"
+  },
+  {
+    "query": "Use loop for acceptParams",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "805ef52ae6156abffe1dee7fa3c25dcd7923f913"
+  },
+  {
+    "query": "Delete `back` as a magic string",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bdd81f8670975ef30fd49e92513ef48d35029eaf"
+  },
+  {
+    "query": "don't render redirect values in anchor href",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54271f69b511fea198471e6ff3400ab805d6b553"
+  },
+  {
+    "query": "replace 'path-is-absolute' dep with node:path isAbsolute method",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "09831580ec64c2b53d712dfbf47a47a5790aa560"
+  },
+  {
+    "query": "Ignore `expires` and `maxAge` in `res.clearCookie `",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "82fc12a40b3e6694e9a2c9b1376e7548d95779f6"
+  },
+  {
+    "query": "Use Array.flat instead of array-flatten",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d106bf53246eb82aeb925c84c8855c54e17741c2"
+  },
+  {
+    "query": "Throw on invalid status codes",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "723b5451bbcbab69bc8ded50ccd6545a79b8fe64"
+  },
+  {
+    "query": "Deprecate `res.clearCookie` accepting `options.maxAge` and `options.expires`",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f42b160bbc0c391c06cad1c6c37eea5305f78cd2"
+  },
+  {
+    "query": "call callback once on listen error",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee40a881f5d8cb4ce71bc45262fde8e4b7640d05"
+  },
+  {
+    "query": "Use object with null prototype for settings closes",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26801a0afdd73258ee3c3685e30d5d4040c1558d"
+  },
+  {
+    "query": "Use object with null prototype for various app properties",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "14439731f968c1ec6015227d747ede32d3fbf676"
+  },
+  {
+    "query": "Improved fix for open redirect allow list bypass",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b746953c4bd8e377123527db11f9cd866e39f94"
+  },
+  {
+    "query": "Allow passing non-strings to res.location with new encoding handling checks fixes",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a003cfab034fbadb1c78ae337ee8ab389adda217"
+  },
+  {
+    "query": "Prevent open redirect allow list bypass due to encodeurl",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0867302ddbde0e9463d0564fea5861feb708c2dd"
+  },
+  {
+    "query": "add missing JSDoc param for parseExtendedQueryString",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "506fbd63befe810783dba49d11159c7ad46c239a"
+  },
+  {
+    "query": "remove unused parameter from internal function",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1efd9d6cf968a9e863f3fdd3fef63d06ff039c4"
+  },
+  {
+    "query": "Fix behavior of null/undefined as \"maxAge\" in res.cookie",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5855339455a7f60774bef4166829e742a5056fa8"
+  },
+  {
+    "query": "Allow options without filename in res.download",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "03dc3671874b214f67dacaca90f39a1c389f822e"
+  },
+  {
+    "query": "Add \"root\" option to res.download",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0def9bb659557df1bd659411a1a6f2c5b8b9d893"
+  },
+  {
+    "query": "Deprecate string and non-integer arguments to res.status",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4847d0efa123fae8f12a2c1b88f7e1a87a5f145a"
+  },
+  {
+    "query": "Ignore Object.prototype values in settings through app.set/app.get",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c17fe058613dc7dfb7779fbe68a9738a108fe408"
+  },
+  {
+    "query": "Support proper 205 responses using res.send",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "87279c08aa46d178fe6f2e235d2345f17d6b5a37"
+  },
+  {
+    "query": "fix incomplete JSDoc comment",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf4c3ee00f3b95a329fc1dd4dd0cd17c74178121"
+  },
+  {
+    "query": "Use mime-types for file to content type mapping",
+    "relevant": [
+      "lib/response.js",
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a0276c6c91b3b119acc045640e8f4e0616734526"
+  },
+  {
+    "query": "remove unnecessary regexp for trust proxy",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6fbc269563c53297d29b69b89fd71b74c1dbd6ce"
+  },
+  {
+    "query": "Change query parser setting default to 'simple'",
+    "relevant": [
+      "lib/application.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "450c468d0469ea79c878084c623cd18642d7ad7d"
+  },
+  {
+    "query": "Fix handling of undefined when \"json escape\" is enabled",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f275e87dff1aaef86080e6931888de4968585fd8"
+  },
+  {
+    "query": "Fix handling of undefined in res.jsonp",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9dd0e7afdb6d022e18add1e009c4e3a66258c1fa"
+  },
+  {
+    "query": "Fix res.jsonp(obj, status) deprecation message",
+    "relevant": [
+      "lib/response.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1dbb113779c45a10f56a910de1bc5f7e750eaea"
+  }
+]

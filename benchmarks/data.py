@@ -9,6 +9,8 @@ from typing import Any
 BENCH_ROOT = Path.home() / ".cache" / "semble-bench"
 BENCHMARKS_DIR = Path(__file__).parent
 ANNOTATIONS_DIR = BENCHMARKS_DIR / "annotations"
+# Query sets: LLM-generated annotations, or commit subjects mined from git history (benchmarks/mine_commit_queries.py).
+QUERY_SETS = {"annotations": ANNOTATIONS_DIR, "commits": BENCHMARKS_DIR / "annotations_commits"}
 REPOS_PATH = BENCHMARKS_DIR / "repos.json"
 
 
@@ -105,11 +107,11 @@ def available_repo_specs() -> dict[str, RepoSpec]:
     }
 
 
-def load_tasks(repo_specs: dict[str, RepoSpec] | None = None) -> list[Task]:
+def load_tasks(repo_specs: dict[str, RepoSpec] | None = None, annotations_dir: Path = ANNOTATIONS_DIR) -> list[Task]:
     """Load all benchmark tasks from annotation files, filtered to available repo specs."""
     specs = load_repo_specs() if repo_specs is None else repo_specs
     tasks: list[Task] = []
-    for annotation_file in sorted(ANNOTATIONS_DIR.glob("*.json")):
+    for annotation_file in sorted(annotations_dir.glob("*.json")):
         if annotation_file.stem not in specs:
             continue
         raw = json.loads(annotation_file.read_text(encoding="utf-8"))
@@ -143,20 +145,29 @@ def apply_task_filters(
     return [task for task in filtered if not languages or task.language in languages]
 
 
-def add_filter_args(parser: argparse.ArgumentParser, *, verbose: bool = False) -> None:
-    """Add shared benchmark repo/language filter arguments."""
+def add_filter_args(parser: argparse.ArgumentParser, *, verbose: bool = False, query_set: bool = False) -> None:
+    """Add shared benchmark repo/language filter arguments (and --query-set for runners that support it)."""
     parser.add_argument("--repo", action="append", default=[], help="Limit to one or more repo names.")
     parser.add_argument("--language", action="append", default=[], help="Limit to one or more languages.")
+    if query_set:
+        parser.add_argument(
+            "--query-set",
+            choices=sorted(QUERY_SETS),
+            default="annotations",
+            help="annotations: LLM-generated queries (default); commits: commit subjects mined from git history.",
+        )
     if verbose:
         parser.add_argument("--verbose", action="store_true", help="Print per-query results.")
 
 
 def load_filtered_tasks(
-    repos: list[str] | None = None, languages: list[str] | None = None
+    repos: list[str] | None = None, languages: list[str] | None = None, query_set: str = "annotations"
 ) -> tuple[dict[str, RepoSpec], list[Task]]:
     """Load available repo specs and matching tasks, exiting if the selection is empty."""
     repo_specs = available_repo_specs()
-    tasks = apply_task_filters(load_tasks(repo_specs=repo_specs), repos=repos, languages=languages)
+    tasks = apply_task_filters(
+        load_tasks(repo_specs=repo_specs, annotations_dir=QUERY_SETS[query_set]), repos=repos, languages=languages
+    )
     if not tasks:
         raise SystemExit("No benchmark tasks matched the requested filters.")
     return repo_specs, tasks

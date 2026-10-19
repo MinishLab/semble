@@ -1,0 +1,371 @@
+[
+  {
+    "query": "handle multi-digit exponents in floatSafeRemainder",
+    "relevant": [
+      "packages/zod/src/v4/core/util.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a818de145dc2fa9b5753bc8bf97b0b8484cfbaf"
+  },
+  {
+    "query": "respect `abort: true` in `.refine ` for checks with `when` function",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts",
+      "packages/zod/src/v4/core/util.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5b5745014af2a3b0ea6339ccd7bbcbdf845f7181"
+  },
+  {
+    "query": "add map support to Uzbek locale",
+    "relevant": [
+      "packages/zod/src/v4/locales/uz.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "119376b9dc2e80f44bedd282702b46e18e2ee72c"
+  },
+  {
+    "query": "correct Georgian translation for 'string' to '\u10d5\u10d4\u10da\u10d8'",
+    "relevant": [
+      "packages/zod/src/v4/locales/ka.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44f6a03e1d7cd918bfb9d9962d967deb6718335b"
+  },
+  {
+    "query": "Avoid re-exported star modules",
+    "relevant": [
+      "packages/zod/src/mini/index.ts",
+      "packages/zod/src/v4-mini/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dfbbf1c1ae0c224b8131d80ddf0a264262144086"
+  },
+  {
+    "query": "Avoid non null assertion",
+    "relevant": [
+      "packages/zod/src/v4/core/to-json-schema.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cbf77bb12bdfda2e054818e79001f5cb3798ce76"
+  },
+  {
+    "query": "Remove .refine from ZodMiniType",
+    "relevant": [
+      "packages/zod/src/v4/mini/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "66bda7491a1b9eab83bdeec0c12f4efc7290bd48"
+  },
+  {
+    "query": "Drop iso time in fromJSONSchema",
+    "relevant": [
+      "packages/zod/src/v4/classic/from-json-schema.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9443aab00d44d5d5f4a7eada65fc0fc851781042"
+  },
+  {
+    "query": "Support patternProperties for looserecord",
+    "relevant": [
+      "packages/zod/src/v4/core/json-schema-processors.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e01cd02b2f23d7e9078d3813830b146f8a2258b4"
+  },
+  {
+    "query": "Add `.chain ` to incorporate external functions into Zod's method chain",
+    "relevant": [
+      "packages/zod/src/v4/classic/schemas.ts",
+      "packages/zod/src/v4/mini/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5d24c38af59ab24afb7b000f97c93b9d8a38b23"
+  },
+  {
+    "query": "Tweak instanceof error message",
+    "relevant": [
+      "packages/zod/src/v4/locales/en.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "15cc73fb76d63cff73504a67c0f2eec5aa49e284"
+  },
+  {
+    "query": "Drop id uniqueness enforcement at registry level",
+    "relevant": [
+      "packages/zod/src/v4/core/registries.ts",
+      "packages/zod/src/v4/core/to-json-schema.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "adf65cdef4d8de10b788293808e8d52807adb7c0"
+  },
+  {
+    "query": "Fix JSON Schema generation for `z.iso.time` with minute precision",
+    "relevant": [
+      "packages/zod/src/v4/core/json-schema-processors.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7e9ad3f0333d3284f51db089af0eaccc5a333591"
+  },
+  {
+    "query": "Required keys in records",
+    "relevant": [
+      "packages/zod/src/v4/core/json-schema-processors.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ffa58fa859a8badbb1f8dcac25e675ebcd95af75"
+  },
+  {
+    "query": "add Armenian (am) locale",
+    "relevant": [
+      "packages/zod/src/v4/locales/hy.ts",
+      "packages/zod/src/v4/locales/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3dc310b60c12cd45003d4379a4c6807ddb55f57f"
+  },
+  {
+    "query": "Fix Dutch (nl) error strings",
+    "relevant": [
+      "packages/zod/src/v4/locales/nl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "68e89b493ac310d880f02b32ec3a862d88b87dd4"
+  },
+  {
+    "query": "RecordKeys shold only care about output",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5eb047222173069001bfae54c1c7f3dfe4b862f4"
+  },
+  {
+    "query": "add Uzbek (uz) locale support",
+    "relevant": [
+      "packages/zod/src/v4/locales/index.ts",
+      "packages/zod/src/v4/locales/uz.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3456dcd09edda0adee479ac9d16b25acd6a17bba"
+  },
+  {
+    "query": "Fix error details for tuples with extraneous elements",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae68f62fddc4f7b2bbc5df5a9ca49a83c697eef2"
+  },
+  {
+    "query": "Convert `Date` instances to numbers in `minimum`/`maximum`",
+    "relevant": [
+      "packages/zod/src/v4/core/checks.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7abe4e510042cc05aafdcf4c1a80ba9c91d998f5"
+  },
+  {
+    "query": "add min, max, nonempty, & size to ZodMap",
+    "relevant": [
+      "packages/zod/src/v4/classic/schemas.ts",
+      "packages/zod/src/v4/locales/en.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a526e78a761de4a88740cd15dfda9910757fcd30"
+  },
+  {
+    "query": "Fix `includes` method params typing to accept `string | $ZodCheckIncludesParams`",
+    "relevant": [
+      "packages/zod/src/v4/classic/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae3b39c09fa38c4b9ad23ee5a51ebbbad06d7c92"
+  },
+  {
+    "query": "lazy initialize ~standard schema property",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9712a6707f3d4584f222729965f3b78f076f0435"
+  },
+  {
+    "query": "Fix numeric formats error messages to be inclusive",
+    "relevant": [
+      "packages/zod/src/v4/core/checks.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "73b071d7d08825dedb6b48b78718739118ee1308"
+  },
+  {
+    "query": "Inferred type should always be a promise",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9d6e7d0094691f7b2900d3da47480e41b2c0be64"
+  },
+  {
+    "query": "Tighten E.164 regex in regexes.ts to require a non-zero leading digit and 7\u201315 digits total",
+    "relevant": [
+      "packages/zod/src/v4/core/regexes.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b564dc90853eecb6a21957740a1dd03b33ba35a"
+  },
+  {
+    "query": "export ZodMiniJSONSchema types to prevent TS4023",
+    "relevant": [
+      "packages/zod/src/v4/mini/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb66ee123fb370a2f6fd45c622cdb00fdfacb2fd"
+  },
+  {
+    "query": "Add z.meta and z.describe",
+    "relevant": [
+      "packages/zod/src/v4/classic/schemas.ts",
+      "packages/zod/src/v4/core/api.ts",
+      "packages/zod/src/v4/mini/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "162fe298f0ec76d7f7883afbebdd732eb3c60773"
+  },
+  {
+    "query": "Do not allow unsound pick/omit",
+    "relevant": [
+      "packages/zod/src/v4/core/util.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0f4ce73ad0c5610c3c53857d05ebae619d229aa3"
+  },
+  {
+    "query": "Add support for number literal and TypeScript's enum keys in `z.record`",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d44253d6498564ecd24a6248ddca4e9bf4e43058"
+  },
+  {
+    "query": "handle non-function constructor field in isPlainObject",
+    "relevant": [
+      "packages/zod/src/v4/core/util.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "002e01ad0fcc17b17683adafc80f2a86e8d355a9"
+  },
+  {
+    "query": "prevent infinite recursion for recursive tuples",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f97e80da9197064937a58167619967bee4ebb638"
+  },
+  {
+    "query": "Clean up regex, drop backreferences",
+    "relevant": [
+      "packages/zod/src/v4/core/regexes.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "603dbe8dba6253c702ca8cf10b5299910dba3c88"
+  },
+  {
+    "query": "use oneOf for discriminated unions in JSON Schema",
+    "relevant": [
+      "packages/zod/src/v4/core/to-json-schema.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fc493f86f17a5fc550df78e7e261137885f51ea"
+  },
+  {
+    "query": "Fix dual package hazard for `globalRegistry`",
+    "relevant": [
+      "packages/zod/src/v4/core/registries.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2f0d178e1c526bc00ad0385706efad318bd44b0"
+  },
+  {
+    "query": "Improve Hebrew localization for Zod error messages",
+    "relevant": [
+      "packages/zod/src/v4/locales/he.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a4bd00aaa16276ffeb2708cc083a633bd4dd756"
+  },
+  {
+    "query": "Iterate over keys in catchall object using \"in\" operator",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88cf9441448608d9de24b47b8a4a4ba879fc2433"
+  },
+  {
+    "query": "improve Dutch (nl) localization",
+    "relevant": [
+      "packages/zod/src/v4/locales/nl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2849df8907b011ab056d67ae8e3d27577ac4ed3e"
+  },
+  {
+    "query": "Update inferred z.promise type",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8e4739fadbd7de710eb67d34ba7e06a1029a68ab"
+  },
+  {
+    "query": "reflect the specified regex correctly in error",
+    "relevant": [
+      "packages/zod/src/v4/core/schemas.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d3da530deb713c853e79405adddf770e156d50ac"
+  }
+]

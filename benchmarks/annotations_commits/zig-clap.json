@@ -1,0 +1,366 @@
+[
+  {
+    "query": "Use .empty initializer and simplify param parsing helpers",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fc1e5cc3f6d9d3001112385ee6256d694e959d2f"
+  },
+  {
+    "query": "fix (initPositionals): use ArrayListUnmanaged.empty instead of {} initializer",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "23fa3eb4b056eeacc8349aa330e9e7102daf8c71"
+  },
+  {
+    "query": "Add compile error when positional taking many values is not last",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27621cb7207643f914bae7b01902b22a8b5916e7"
+  },
+  {
+    "query": "enable building on 32-bit platforms",
+    "relevant": [
+      "clap/codepoint_counting_writer.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ae92228409d82a2c906fafc228b7920d9ff046b"
+  },
+  {
+    "query": "Use the new @Struct and @Tuple constructors",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c56c0ba49ab64b45190f8bd7e946bde9678139a5"
+  },
+  {
+    "query": "Update setup-zig to v2",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cc5c6a5d71a317ed4b0ad776842d1d0655f72d0a"
+  },
+  {
+    "query": "More than 2 positionals not parsing correctly",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d89fdc16a446c139bf37ecfe1c7ef07d89d4894"
+  },
+  {
+    "query": "add uint parsing function",
+    "relevant": [
+      "clap/parsers.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f91ba757cb8eed4a115d206f8ccb6c52b2ebad7c"
+  },
+  {
+    "query": "Support multiple positionals of different types",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4e293092fc56ebf46d9c17e4e203ca54c63a0b09"
+  },
+  {
+    "query": "positonals type now depend on the number of values taken",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "243b342a18eedbe02c5e568ac2720db836964786"
+  },
+  {
+    "query": "Add `terminating_positional` to `clap.ParseOptions`",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1e8036c50b3ae32af6998b813b03c3abe599754c"
+  },
+  {
+    "query": "Correct eval branch quota comment in `countParams`",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d71e1b6367e9a70a1c344e068caff2a103859b78"
+  },
+  {
+    "query": "Remove workaround in `parseEx` that required `anyerror`",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "51336730a3b17badf4b50626e556e0348961bf01"
+  },
+  {
+    "query": "adapt to latest zig changes",
+    "relevant": [
+      "clap.zig",
+      "clap/parsers.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2d9db156ae928860a9acf2f1260750d3b44a4c98"
+  },
+  {
+    "query": "count codepoints instead of bytes, to determine width",
+    "relevant": [
+      "clap.zig",
+      "clap/codepoint_counting_writer.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "70bc70375f8e82843830d93631ab005302057a15"
+  },
+  {
+    "query": "Allow for the assignment separator to be configured",
+    "relevant": [
+      "clap.zig",
+      "clap/streaming.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0a281ffe91fb64f116dcb04c34cecef70e8c79c"
+  },
+  {
+    "query": "Update to latest zig",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c0193e9247335a6c1688b946325060289405de2a"
+  },
+  {
+    "query": "Update for latest zig",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "32a798c1dc7becd6926c4f72a24bf9d8bc4e8d74"
+  },
+  {
+    "query": "Use b.path instead of manually setting the fields",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7a2883c7b884ab3e88c9fbf29193894a844da4d5"
+  },
+  {
+    "query": "Ensure no member of `fields` is undefined",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c98e6404b22aafc0184e999d8f068b81cc22fa1"
+  },
+  {
+    "query": "Updated to latest zig",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "209ba4da76e46412acfe18f711cb0b041ff37f10"
+  },
+  {
+    "query": "Update to latest master",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6aa5180eeadde1475359dea355ce3df534e4ab4b"
+  },
+  {
+    "query": "Remove the default allocator from `ParseOptions`",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf3a4e763831dd7e0845fef4f209f5c780eda375"
+  },
+  {
+    "query": "Fix short only params not getting fields in `Arguments`",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c394594d218c3c936547e590b461e69e6e0b20c4"
+  },
+  {
+    "query": "Update to latest zig (4d7dd1689)",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f49b94700e0761b7514abdca0e4f0e7f3f938a93"
+  },
+  {
+    "query": "help,usage: Support multiple positionals",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "988375ab791178a472ecff604aba2167b1cae87a"
+  },
+  {
+    "query": "use new addModule API which now returns a Module",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb13519431b916c05c6c783cb0ce3b232be5e400"
+  },
+  {
+    "query": "Mode addModule to the top",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b8b2cf891da782eb00433ccc5505c1fa5e4ed81a"
+  },
+  {
+    "query": "expose 'clap' module for dependeees",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9c3ac846121a03934c7460cc54989059b1f66b22"
+  },
+  {
+    "query": "Update to latest Zig master",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88edafd00ec25dcc01deb8fc69e9864a16f8717c"
+  },
+  {
+    "query": "Handle change to std.ArrayList(T).toOwnedSlice",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1b01ffeab452790790034b8a0e97aa30bbeb800"
+  },
+  {
+    "query": "Don't iterate all configs in build script",
+    "relevant": [
+      "build.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "859de57556dc5b97d6d41fa526beef0c850cf6c8"
+  },
+  {
+    "query": "Fix regression from last commit",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5d09c4b2d121025ad7195b2de704451e6306807"
+  },
+  {
+    "query": "Add function for getting the prefix of a param name",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c20bbf13df33d82d27b1d70628d90fe0b489d07e"
+  },
+  {
+    "query": "use builtin.Type instead of deprecated builtin.TypeInfo",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f4196fc3bc95c4bd3b12ce2e4a5f1050742cd3c"
+  },
+  {
+    "query": "Fix zig-clap for new default compiler",
+    "relevant": [
+      "build.zig",
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee6cb6a17bd8748c3af45467c5dabbe1d56be832"
+  },
+  {
+    "query": "Add clap.parsers.enumeration for parsing enums",
+    "relevant": [
+      "clap/parsers.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f9eabeecfde0d909ab50a8fb10ad3fedff93d03"
+  },
+  {
+    "query": "Print multi value positionals correctly in `usage`",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "996821a3e1f186c9e5cdfd971d742c9815ea590e"
+  },
+  {
+    "query": "New `help` api that provides options as to how paramters are printed",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "984c22948b70bd1cbfef9f2d514d42e27541c1f1"
+  },
+  {
+    "query": "Fix long param parsing with '-' and '\\_' in name",
+    "relevant": [
+      "clap.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0970eb827fe53ad7a6c6744019707190d7b9bb32"
+  }
+]

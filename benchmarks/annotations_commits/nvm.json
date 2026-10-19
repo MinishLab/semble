@@ -1,0 +1,362 @@
+[
+  {
+    "query": "`nvm_normalize_lts`: only reject uppercase for LTS names, not regular aliases",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d200a215594bdda07e130117c9d392fff29cba84"
+  },
+  {
+    "query": "`install.sh`: check `mkdir` return codes",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25f836f81bdaace50ee9a185131843e9cf080020"
+  },
+  {
+    "query": "`nvm which`: show alias name in infinite loop error message",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "018958cc47f07f1e99bf5c573879a43c77c67c82"
+  },
+  {
+    "query": "`nvm debug`: use default empty values for potentially unset variables",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "32863e1052a4705d315f985a75e51fb41e4b5141"
+  },
+  {
+    "query": "`nvm_iojs_version_has_solaris_binary`: fix comparison to detect non-iojs versions",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "53e6244aa6d921ad55cea97174066b85a29d52a8"
+  },
+  {
+    "query": "`nvm_download_artifact`: fix error propagation from subshells",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bda39c7c04ee0c34cad272fea3fc54e71f6ad710"
+  },
+  {
+    "query": "`nvm_install_binary`: return failure when binary download fails with `-b`",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "05d784772c9fb2390d28a480f6632d37719c32d1"
+  },
+  {
+    "query": "`nvm_get_arch`: only apply musl suffix on x64 Alpine",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "39e71eab492fa882782c8f59a2efbb27d9b839b5"
+  },
+  {
+    "query": "`nvm_get_arch`: add `command` prefix to `uname` call",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a5de7236d638afef725c4dcd87cb662c1a55b019"
+  },
+  {
+    "query": "`nvm_get_mirror`: fix awk URL validation to actually reject invalid URLs",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3c480159868746157417ce9cd1c1c69b76a8e7cc"
+  },
+  {
+    "query": "`nvm_ls_remote_combined`: propagate iojs remote listing failures",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a937cb595ed9f61cd8ae7fa7fc1c77d1f2d2b077"
+  },
+  {
+    "query": "`nvm_rc_version`: use fd 3 instead of exported env var for multiple return",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ef1620361a5c50196ad2f0a8b56c5a33aed3ceb7"
+  },
+  {
+    "query": "`nvm alias`: fix colors not showing by default",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a27a8b7da8e1624390d71899d0fe676011135f72"
+  },
+  {
+    "query": "`nvm install --offline`: install from cache without network access",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59bd32be6beac3c782e41d8ecbe9a69dc8c88462"
+  },
+  {
+    "query": "sanitize `NVM_AUTH_HEADER` in `wget` path",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44e2590cdf257faf7d885e4470be8dc66cec9506"
+  },
+  {
+    "query": "Improve uninstall error message for missing versions",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5533699ec5824c8df3c6a9a0fac05a058a626de2"
+  },
+  {
+    "query": "`nvm_strip_path`: avoid gawk-specific `RT` variable for mawk compatibility",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ba422e5615c4cf4f2571c91bb2b42e0970405d4"
+  },
+  {
+    "query": "`nvm_get_default_packages`: use portable awk patterns",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "38ffc713a72682e3bd9fdb478ac44f550975a8ff"
+  },
+  {
+    "query": "`nvm_install_source`: explicitly set SHELL=/bin/sh for make",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aa1d82910242dc1e0234b19372a446f742916b84"
+  },
+  {
+    "query": "`install.sh`: do not log when user has requested no profile modifications",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ec8906b284d000b414da78855be90d7ae8152b77"
+  },
+  {
+    "query": "Reject bare LTS codenames in nvm install",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81f13638d76e549072ec614d523e9cccfefd0ec9"
+  },
+  {
+    "query": "prevent sed errors when pattern contains `#`",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26066c10f42afdef9085a30f522b4e73cc2a4e59"
+  },
+  {
+    "query": "install.sh: Force remote name of cloned repo to be 'origin'",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c82abdbef7551b23a5d7800a242bae3abd199b7"
+  },
+  {
+    "query": "`sh` lacks `-O`; thanks shellcheck",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "18e638e42b7df5a5097c6e751514d37b1d56ca33"
+  },
+  {
+    "query": "`reinstall-packages`: do not reinstall corepack",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df9ac58f8b73f7cdddad67396f1992acb0706b02"
+  },
+  {
+    "query": "prefer `case` over if/else chains",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "759f70f1967c56e0ce9b8f51a6c0b33efdea869b"
+  },
+  {
+    "query": "combine `sed -e` invocations/arguments",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "06a91793091ee788163a6ecb051da1754c9885ae"
+  },
+  {
+    "query": "`install-latest-npm`: npm v11 is out",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b9b0ea802068630b30e94414a85d9a7b2a76fe68"
+  },
+  {
+    "query": "`install.sh`: add `$ZDOTDIR` to zsh search",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cd22c8402639747ba586e90bff2d9822b0e4ce1e"
+  },
+  {
+    "query": "`nvm_install_latest_npm`: avoid unbound variable",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b70c40f151ca051d403453bf019e1707b33bd5b"
+  },
+  {
+    "query": "give a more helpful message when `lts` alias is mistakenly used",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5dc31ac51b08f910a2de1596b37a6a3dddd5e7b7"
+  },
+  {
+    "query": "`nvm ls`, `nvm alias`, `nvm install`: error when an LTS name is invalid",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "da2720a4292d02746a6b7fdc680c7e163c347355"
+  },
+  {
+    "query": "`nvm_normalize_lts`: error when an LTS name is not lowercase",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fb9dec710e2c8d3aecb24c2a7c9f9fb45b1435b"
+  },
+  {
+    "query": "`nvm_download`: ensure all args are quoted",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ce8f5a52fd5178b4d7e3a0780c46f46e91482fe"
+  },
+  {
+    "query": "`nvm_auto`: Fix bug introduced in c31a867",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df7053524889547589211fa35e09531861b18f8e"
+  },
+  {
+    "query": "`--save`: avoid a conflict with `set -e`",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c31a867c463bbe2251bd3b996a611f8cdc3007eb"
+  },
+  {
+    "query": "`--save`: clean up some usage",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8c418558a6005171f8f7c39f5d1dd3fc57570ef"
+  },
+  {
+    "query": "`nvm_has_colors`: avoid an aliased `tput`",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d5e2c92a254cc10e95cd960a47515bec2d5c5e81"
+  },
+  {
+    "query": "`install.sh`: fix node capitalization",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81f18bc4450ec744fa594486f2c4330b109e21a5"
+  },
+  {
+    "query": "declare an unbound variable",
+    "relevant": [
+      "nvm.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4beab63631764fc381a0e56273faf8d43b8f9509"
+  }
+]

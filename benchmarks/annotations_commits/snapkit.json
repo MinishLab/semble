@@ -1,0 +1,30 @@
+[
+  {
+    "query": "Update #file to #fileID to avoid leak full path information",
+    "relevant": [
+      "Sources/ConstraintMakerRelatable+Extensions.swift",
+      "Sources/ConstraintMakerRelatable.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "19f59a63f0faac287f4e59986959859d81ec851c"
+  },
+  {
+    "query": "Add missing 'Superview' word in ConstraintMakerRelatable extension method",
+    "relevant": [
+      "Sources/ConstraintMakerRelatable+Extensions.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "58320fe80522414bf3a7e24c88123581dc586752"
+  },
+  {
+    "query": "Fix warning about `class`",
+    "relevant": [
+      "Sources/LayoutConstraintItem.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9d0adadafce49c67afd51af776169a8b26c9705a"
+  }
+]

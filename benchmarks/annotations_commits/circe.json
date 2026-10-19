@@ -1,0 +1,373 @@
+[
+  {
+    "query": "Accumulate errors in Decoder#or and Decoder#either decodeAccumulating",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6fb6bdbaf46e62dfdb4cf9871cfd11f11241816e"
+  },
+  {
+    "query": "Improve error messages for NonEmptyMap and Validated decoders",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "930a4f0104f3df4098ec9d28e5c9bba19ad74aa8"
+  },
+  {
+    "query": "Improve construction of decoders that support accumulating errors. f",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/ACursor.scala",
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8e33e325b1715a7ac2fda0e3e027e8052ae4d86b"
+  },
+  {
+    "query": "Introducing \"downFields\" for HCursor",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/ACursor.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "68ab9453d0f31b2363c3d8a7f72ec4c7286652df"
+  },
+  {
+    "query": "Make it easier to derive a `Codec` without an explicit `Codec`",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Codec.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8779e54f0d29378aaf2dca8a7a96c7ec64ab7d95"
+  },
+  {
+    "query": "issue cursor operations broken",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/SeqDecoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6bfcbfc0a52c6171bdd016f8b51890fe9a83301d"
+  },
+  {
+    "query": "Cache JNumber instead of JsonLong",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala",
+      "modules/core/shared/src/main/scala/io/circe/JsonNumber.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "065f960b459e4dfb8496b2c5e8cecff64ce53535"
+  },
+  {
+    "query": "Change ArraySeq to raw Array",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/JsonNumber.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "717ede3a0fa6c16ea3d609a2a551c46c0147d116"
+  },
+  {
+    "query": "Use values from a constant pool when possible",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala",
+      "modules/core/shared/src/main/scala/io/circe/JsonNumber.scala",
+      "modules/core/shared/src/main/scala/io/circe/JsonObject.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "158359b719334d56daa58064f3962d45215e8230"
+  },
+  {
+    "query": "Simplify non identity cases of traverse",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af70d334328fc36d84307a0eae84520d7a17fd1a"
+  },
+  {
+    "query": "Fix cursor history loss on SeqDecoder",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/SeqDecoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "84945e3ef43723fd37f4850a2707a6bbd100d769"
+  },
+  {
+    "query": "Rollback changes to imports",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Encoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eae979ef6c3f3ce71e359b3e17350bd316ba57f3"
+  },
+  {
+    "query": "Change signature to be in line with* combinators",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f70b05104f12dafe20f13ef252f321b39c0aec69"
+  },
+  {
+    "query": "Fix-2113 fix cursor`s traverse ACursor.pathToRoot",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/ACursor.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e34a1efc4542f3df946f5e39e779f48340b7d395"
+  },
+  {
+    "query": "Add helpers to create nullable properties from `Option[A]`",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10a338abcec0d4ef10a6f8e929d9f24b72f831cb"
+  },
+  {
+    "query": "Fix 2104: Proxy remaining Codec methods",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Codec.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f41263403b41de024e0c52b30c7e4313ab93ed7"
+  },
+  {
+    "query": "Move Defer[Decoder] to a separat instance",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a621f81e39ba1b68a0ab4dd7f3314c2066930211"
+  },
+  {
+    "query": "Add Defer instances for Decoder and Encoder",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala",
+      "modules/core/shared/src/main/scala/io/circe/Encoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f0ca13bd5e118ff8677cf6b8b4f8d8bbd30d141"
+  },
+  {
+    "query": "Optimize JSON equality fail fast",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala",
+      "modules/core/shared/src/main/scala/io/circe/JsonObject.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64ceb0e85928e3e2b24a2e9a1d2924df7a5db57a"
+  },
+  {
+    "query": "Add human-readable toString in errors",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Error.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ff0f96afbc5eac4fc1718d111e046e73008e489"
+  },
+  {
+    "query": "Remove redundant time arbitraries",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Encoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9c144352175268e647a1f33bba01eeced9c5265a"
+  },
+  {
+    "query": "Use human-readable cursor history for DecodingFailure getMessage",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Error.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "50e3301bdc6bfa7125d8367505da611ee4c930f4"
+  },
+  {
+    "query": "Add accumulative equivalent of `Json#as[A]`: `asAccumulating[A]`",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "150ef502293acd16bd6e508450b096084174ace3"
+  },
+  {
+    "query": "Address Some PR Feedback",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala",
+      "modules/core/shared/src/main/scala/io/circe/PathToRoot.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f89ca1d29f4223146301e53f1a33ac86b0740f44"
+  },
+  {
+    "query": "Remove `final` on `message` in `DecodingFailure`",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Error.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "622276f8808c3fa4cb696b04efc3fee0655f453f"
+  },
+  {
+    "query": "Keep toString/Show Consisent With Previous Values",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Error.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "19b18aaecae021fbc8a4c2979be1ff48215dc01d"
+  },
+  {
+    "query": "Use deprecated instead of comment",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Printer.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9bc036650cc5c6b62dce239c5894e3a074c13953"
+  },
+  {
+    "query": "Fixing bincompat issues mima found",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Error.scala",
+      "modules/core/shared/src/main/scala/io/circe/Printer.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d426252843153582996b459c855740c4afcc2df"
+  },
+  {
+    "query": "remove redundant `final` modifiers",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/CursorOp.scala",
+      "modules/core/shared/src/main/scala/io/circe/Json.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "37633cb8a2bc605831780cb9ef29db1537a078b2"
+  },
+  {
+    "query": "Fix the broken link for generic-extras",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/package.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "199685ca78a2f62c404c4de9e1ab6a74919b4033"
+  },
+  {
+    "query": "Make printToAppendable unsafe, scaladocs",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Printer.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b3a92c6a1b374829130d061731e1d4001b63ff47"
+  },
+  {
+    "query": "removed unexchaustive pattern match",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Error.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64132a6827302840924b9d7c444763a08ff645b8"
+  },
+  {
+    "query": "Add Instances ISO 4217 Currency Values",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala",
+      "modules/core/shared/src/main/scala/io/circe/Encoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6a37bb22985870bf49a895e0d5b7f76ca517d3f5"
+  },
+  {
+    "query": "Add overrides for applicative operations",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Decoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "434446cb240483e48193d455717bb5c6865e2b62"
+  },
+  {
+    "query": "added support for KeyCodec[Double]",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/KeyDecoder.scala",
+      "modules/core/shared/src/main/scala/io/circe/KeyEncoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f88652fb5e05994c12b2ba44161e1c46b2c07e1"
+  },
+  {
+    "query": "Add imap and iemap to Codec",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Codec.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "009e0c4c4c328c066ca2ad02073197ad426a91b6"
+  },
+  {
+    "query": "Add dropEmptyValues for Json",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Json.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0434ee538f51e234ed4aee8ea4d1cf3a1cadddba"
+  },
+  {
+    "query": "Avoid private class in package-private constructor on Dotty",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Printer.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4498c64199348b1d0d8b0829daf503d30ce3ab84"
+  },
+  {
+    "query": "Put find back into HCursor",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/HCursor.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b622c1c7390a0ba9b2a58230108d620a987702fb"
+  },
+  {
+    "query": "Fix by restoring using of formatters for serialization of LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZonedDateTime",
+    "relevant": [
+      "modules/core/shared/src/main/scala/io/circe/Encoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "01a47e566391c84eae3de30fc1c9fe264c799f25"
+  }
+]

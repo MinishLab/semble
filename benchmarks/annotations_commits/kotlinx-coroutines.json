@@ -1,0 +1,373 @@
+[
+  {
+    "query": "Clarify the behavior of CoroutineExceptionHandler",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineExceptionHandler.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ee6f9c634be947eb86a2cd9299d9baa9a5d2388"
+  },
+  {
+    "query": "Port Map-returning Sequence operators to Flow",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/terminal/Collection.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "597c4b22914d2abf7193c57ea707c5984c92908a"
+  },
+  {
+    "query": "Fix SharedFlow entering an invalid state",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/channels/BufferedChannel.kt",
+      "kotlinx-coroutines-core/common/src/flow/SharedFlow.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5e7cbc2cd6bde2df5bb26b69fae518cfda5e0329"
+  },
+  {
+    "query": "Include CoroutineName in TimeoutCancellationException message",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Timeout.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "559c832c18dd2c446df1a5d2170c1bbcd92dd283"
+  },
+  {
+    "query": "Fix an inconsistent KDoc for CoroutineDispatcher#dispatch",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "73592ea5062fd057c8c6a1439b5affe082d645a5"
+  },
+  {
+    "query": "Add the EXACTLY_ONCE contract to `suspendCancellableContinuation`",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CancellableContinuation.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d1c583afb9e9bffb5dab0c814c73bde5886bde83"
+  },
+  {
+    "query": "Add the `SharedFlow.asFlow` operator",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Share.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7d51152ae98511ef6651ee906c69856971468da3"
+  },
+  {
+    "query": "Refactor Flow.catchImpl to use currentCoroutineContext",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Errors.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ea765f4a9e8d77867b9671f093651771c122277"
+  },
+  {
+    "query": "Improve performance of SharingStarted.StartedLazily by changing flow to unsafeFlow",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/SharingStarted.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7a32e3e0066160de9773f043a51ac110fa92904e"
+  },
+  {
+    "query": "Convert return in expression body to labeled return in preparation for KT-22786",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/SharedFlow.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ff489dde9f6f2c81206dd04509b2f38dff70de9c"
+  },
+  {
+    "query": "Update outdated comment in CoroutineDispatcher.kt",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c64597cf71e973a8f5121d09341f623cd33177dc"
+  },
+  {
+    "query": "Update comment in Job.kt",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Job.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "afff719512adb6f4192c9b498bac9f6d0853f610"
+  },
+  {
+    "query": "Explain that `limitedParallelism(1)` is not a mutex",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "086d52a97c2c0f1a0fab27a8f41a21857f8e3550"
+  },
+  {
+    "query": "Introduce CompletableDeferred.asDeferred that prevents downcasting",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CompletableDeferred.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ba95e00ad12f01b5af4b9c630bffc3579cfa573"
+  },
+  {
+    "query": "Fix an explanation of flowOn Operator",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Context.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b32c4eaacd38759d20bd3a2fa91c05f41e888c7"
+  },
+  {
+    "query": "Fix an explanation of flow emit",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Flow.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8627cc37d4a2a2e2d683b98d4f53d1e03f59a366"
+  },
+  {
+    "query": "Specify explicit return types for some public API functions",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Migration.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f8035c108a1211deded198b7809cd8347ca07a5"
+  },
+  {
+    "query": "Improve handling of DispatchException in an undispatched case",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/intrinsics/Undispatched.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f3f4f7e802dbb76509002ad999921d79c32ee58"
+  },
+  {
+    "query": "Fix receiveAsFlow not mentioning the prompt cancellation guarantee",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Channels.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7d9467cfd8e7251573fd95d7ec7844fc3caed6fa"
+  },
+  {
+    "query": "Handle cancelled scope and empty flow in `Flow.stateIn`",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Share.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "03b81f42f16f49b7f36588a1dab10138cdd03dcc"
+  },
+  {
+    "query": "Introduce guidance functions explaining 'launch' and 'async' usage",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Guidance.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2d89b2404fbd8c48a9588bd3841d81844f6fde3b"
+  },
+  {
+    "query": "Reach target parallelism in .limitedParallelism even if dispatcher throws",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt",
+      "kotlinx-coroutines-core/common/src/internal/LimitedDispatcher.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ec0d2c66f28c6feb626a169ebd807935b19b4028"
+  },
+  {
+    "query": "Introduce Flow.any, Flow.all, Flow.none",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/terminal/Logic.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bed3d29acc39083151da11802a5dc212acb60bb8"
+  },
+  {
+    "query": "Rethrow AbortFlowException upon cancellation",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Limit.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96cad1f33d5e06d9c7e88d1ffee40956a9c31d73"
+  },
+  {
+    "query": "Explicitly endorse usage of currentCoroutineContext over kotlin.coroutines.coroutineContext",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineScope.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "588df1410f456cabbf2b8d1e62e6d83fc6a19de6"
+  },
+  {
+    "query": "Remove unnecessary lambda from 'first(predicate)' error message",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/terminal/Reduce.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf4fcd16889ce6e389e9c769c060b47fc1674bda"
+  },
+  {
+    "query": "Rework the KDoc for `CoroutineStart`",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CoroutineDispatcher.kt",
+      "kotlinx-coroutines-core/common/src/CoroutineStart.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cc34948215393a9bbcefe8fdee690495c1bdfa1b"
+  },
+  {
+    "query": "Fix too many `the` and `it` on some comments",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/Migration.kt",
+      "kotlinx-coroutines-core/common/src/flow/operators/Limit.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5ce2c90395d0775868624950cb0fea500d482f51"
+  },
+  {
+    "query": "Extend the KDoc for some channel APIs",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/channels/BufferOverflow.kt",
+      "kotlinx-coroutines-core/common/src/channels/Channels.common.kt",
+      "kotlinx-coroutines-core/common/src/channels/Produce.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc8160b72a8c083048f59eed6b5c81fb685dd595"
+  },
+  {
+    "query": "Remove some constant parameters and simplify the implementation",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/CompletionState.kt",
+      "kotlinx-coroutines-core/common/src/internal/DispatchedContinuation.kt",
+      "kotlinx-coroutines-core/common/src/intrinsics/Cancellable.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ab279a765450cbfc214f9dad9cf9a1f8fd2d274d"
+  },
+  {
+    "query": "Forbid casting a Mutex to a Semaphore",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/sync/Mutex.kt",
+      "kotlinx-coroutines-core/common/src/sync/Semaphore.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5e03ca20ebe76ab59227e4dcf592d0990cb073c0"
+  },
+  {
+    "query": "Preserve the relative order of delayed and non-delayed tasks in event loops",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/EventLoop.common.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fd6966347ec10984d339135768bf414007a41d04"
+  },
+  {
+    "query": "Introduce basic Flow<T>.chunked operator",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Transform.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c9c735a17df6445849e8d1172e93ec85156cec5b"
+  },
+  {
+    "query": "Fix `Flow.timeout` swallowing the channel closure exception",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/operators/Delay.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ca735851f0a225b6a7582232a1c9847a27fd059"
+  },
+  {
+    "query": "Ensure that inline functions only access atomics from the same class",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/channels/BufferedChannel.kt",
+      "kotlinx-coroutines-core/common/src/channels/ConflatedBufferedChannel.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29e821302f2b18b75252489997cc22d4a3fbdc09"
+  },
+  {
+    "query": "Improve the explanation of how `await` throws exceptions",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Deferred.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8eb49638c75a0f0dab205a6c58ea6a97b790fbc3"
+  },
+  {
+    "query": "Ensure that non-local returns work properly in inline functions",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/sync/Mutex.kt",
+      "kotlinx-coroutines-core/common/src/sync/Semaphore.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7bb06388447368a841d67c71c9513ca8e374e664"
+  },
+  {
+    "query": "Properly round `Duration` instances to milliseconds",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/Delay.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ff95ab767c39a5b2110be66e5efbce6ddbb5c2f6"
+  },
+  {
+    "query": "Specify that `subscriptionCount` not conflating is a guarantee",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/SharedFlow.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3dd48ace1fda25b298ca9c30532f4bb808be2d45"
+  },
+  {
+    "query": "Document that SharedFlow.collect subscribes by its first suspension",
+    "relevant": [
+      "kotlinx-coroutines-core/common/src/flow/SharedFlow.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fd5a58bd1ccc5727d0ce423aa01d1be78b993bef"
+  }
+]

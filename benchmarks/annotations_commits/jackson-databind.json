@@ -1,0 +1,373 @@
+[
+  {
+    "query": "Fix : property-based EnumMap parsing after skipped unknown enum keys",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/jdk/EnumMapDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "09fca7940e4d5bcc142013bca1da4cedb805eab8"
+  },
+  {
+    "query": "Fix : consider mergeability of map entry values",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/jdk/MapDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f288b7145077de96c417c667ac8bbeb414b9a312"
+  },
+  {
+    "query": "Minor Locale building change",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/jdk/JDKFromStringDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7aed125c189e8c9b460f333d429f02c53ee1be47"
+  },
+  {
+    "query": "Fix : @JsonAlias, @JsonUnwrapped, conflict",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanPropertyMap.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "37e1424dadfc159becebcedf5cb1fb85496b17d0"
+  },
+  {
+    "query": "Fix for [dataformats-text ], for yaml anchors",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializer.java",
+      "src/main/java/tools/jackson/databind/jsontype/impl/AsPropertyTypeDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8ecad7a1f79de85bc39ffad4901f2a71e9ac6200"
+  },
+  {
+    "query": "Part of [dataformats-text ] fix",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "293737a61f8623d0a3db61dbf7b07f1465e9df13"
+  },
+  {
+    "query": "Fix for [dataformats-text ]",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BuilderBasedDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "72b63b2a740beaf38d9d45cff196501099f6b5f9"
+  },
+  {
+    "query": "Fix : support `@JsonDeserialize(contentConverter)` for `EnumMap`/`EnumSet` properties",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/jdk/EnumMapDeserializer.java",
+      "src/main/java/tools/jackson/databind/deser/jdk/EnumSetDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0521ec2aab877553efee18e0b34aed5fd5fd07ac"
+  },
+  {
+    "query": "Fix : Object Id with Builder, abstract type",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/BeanDeserializerFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "75b1793d6ee70aad54c2d1257fe43b896fe64b57"
+  },
+  {
+    "query": "Fix a minor bug wrt @JsonIgnoreProperties on POJOs",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "343afa79580a90dc6b34bbb4160ab059457b3e4e"
+  },
+  {
+    "query": "Tiny fix to `ObjectNode._valueDesc `",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/node/ObjectNode.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25d35aa5c05f2052df3cc678bfb6f6254d7438c3"
+  },
+  {
+    "query": "Fix Map.Entry deserialization for property-level NATURAL override",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/jdk/MapEntryDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8ed56f0f730bf01947f7dc854eefbd17359cb418"
+  },
+  {
+    "query": "Fix problem wrt (for ); restore `TypeSerializerBase` ctor as deprecated",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/jsontype/impl/TypeSerializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "72a4f3f6b1aafb02170c493bf468eb1ef6ee285f"
+  },
+  {
+    "query": "Fix : support @JsonIgnoreProperties for Creator props",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializer.java",
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "60d2afaf32d778db3b6930eed3f60d659c6694e4"
+  },
+  {
+    "query": "Implement : Allow injecting `MissingNode` for \"absent\" `JsonNode` via Creator",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/cfg/JsonNodeFeature.java",
+      "src/main/java/tools/jackson/databind/deser/jackson/JsonNodeDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "562a1ed6315db942eeb0e2f45c7b92e9cf9655d7"
+  },
+  {
+    "query": "Minor error message improvement wrt \"missing fallback setter\"",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/CreatorProperty.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2952f874ccd5a23a80eae117bf2daba82b763167"
+  },
+  {
+    "query": "Fix : StackOverflowError in TypeFactory with mutually recursive generic wildcard bounds",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/type/TypeFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fd2789b3a839068d3900430632dc5772f9886f9e"
+  },
+  {
+    "query": "Fix : regression wrt Type+Object Id handling",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/bean/BeanSerializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1247b0ee9741f6145b454d25ac1a266806ba3db"
+  },
+  {
+    "query": "Add support wrt [dataformats-text ] for native Object Ids, @JsonCreator",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializer.java",
+      "src/main/java/tools/jackson/databind/deser/bean/BuilderBasedDeserializer.java",
+      "src/main/java/tools/jackson/databind/deser/bean/PropertyValueBuffer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5cf2be626c3b1d68b0a710f3e39448c90e7a031a"
+  },
+  {
+    "query": "Fix a minor regression from",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/jsontype/TypeResolverProvider.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e7a0198e6a37d3a0022d5ec1707189ac62cd9232"
+  },
+  {
+    "query": "Fix :`@JsonTypeInfo` location actual baseType via hierarchy",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/jsontype/TypeResolverProvider.java",
+      "src/main/java/tools/jackson/databind/jsontype/impl/StdTypeResolverBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "590acf6d262d65b39b88604b8bed5f3473acf30f"
+  },
+  {
+    "query": "Fix : allow update of local/anonymous classes",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/BeanDeserializerFactory.java",
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eaa7a3555ba78c3bc3c9d066602f4b7d959967cb"
+  },
+  {
+    "query": "Implement : allow `@JsonAnyGetter` on `ObjectNode` fields",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/introspect/BasicBeanDescription.java",
+      "src/main/java/tools/jackson/databind/ser/AnyGetterWriter.java",
+      "src/main/java/tools/jackson/databind/ser/BeanSerializerFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71d3cdab4597a440b2163690bef2ae006f4b66e3"
+  },
+  {
+    "query": "One more fix wrt concurrency failures",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/util/internal/UnreflectHandleSupplier.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f4ec2196dd9fe99185cfd5da8a6de84f5db538f1"
+  },
+  {
+    "query": "One more tweak to fully resolve",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/BeanSerializerFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "778d90f6e917d8156a0ebd215ca25b0ec5ea38f3"
+  },
+  {
+    "query": "SerializerCache refactoring: use HashMap for _inProgressMap",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/SerializerCache.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ed72e257731408eae61aec25b69e93dab57865e5"
+  },
+  {
+    "query": "Fix race condition in SerializerCache causing wrong converter to be used under concurrency",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/SerializerCache.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e755604df066dee43d277a9add9045e768cf08ae"
+  },
+  {
+    "query": "Fix dead code and side-effect bug in `BeanPropertyWriter.toString `",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/BeanPropertyWriter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f5c18670e81bb2d63f60c987dbed770ae1f9fd6"
+  },
+  {
+    "query": "One tweak wrt fix",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/node/TreeBuildingGenerator.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "87667cefc6625677e6827c6565500a2c3e88d395"
+  },
+  {
+    "query": "Fix : `JsonNodeFeature.STRIP_TRAILING_BIGDECIMAL_ZEROES` not working with `ObjectMapper.valueToTree `",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/node/TreeBuildingGenerator.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "99fa609e1598c8cc544ba493d3e26ff6f9c06a2e"
+  },
+  {
+    "query": "Fix : `JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_VALUES` not working for Enums",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/jdk/EnumDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29387e788cafd478afec3d4a985065d594f22f57"
+  },
+  {
+    "query": "Fix : wrong path in InvalidFormatException for nested fields and BuilderBasedDeserializer",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BuilderBasedDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e263871863e1a33fbadf8f983153b901cb11a701"
+  },
+  {
+    "query": "Fix : @JsonManagedReference vs `Nulls.AS_EMPTY`",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/impl/ManagedReferenceProperty.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bbdd5ca35064f1d7dbb8cb9c948cb18911dbfa69"
+  },
+  {
+    "query": "Add method in `AnnotationIntrospector.XmlExtensions` needed by `jackson-dataformat-xml`",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/AnnotationIntrospector.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4b4b7e49dc8c593ecb392b53ff8eaea78343393"
+  },
+  {
+    "query": "Fix : Regression in `TokenBuffer.forceUseOfBigDecimal`",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/util/TokenBuffer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "220d3827a11405bd85826b071c384f7842653aa5"
+  },
+  {
+    "query": "Implement : allow use of `@JsonIncludeProperties` for ordering",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/introspect/JacksonAnnotationIntrospector.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc4c186f715d9d4591adcce012e8d7e0c4e4b584"
+  },
+  {
+    "query": "Fix needed to resolve https://github.com/FasterXML/jackson-dataformat-xml/issues/802",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/BeanPropertyWriter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10e1e7960a4fc517418539042d5988afa340d130"
+  },
+  {
+    "query": "Fix : allow `Include.NON_EMPTY` for POJOs with non-default constructors",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/std/StdDeserializer.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b53d10a38561ede599573eec93cc2f75b2f8af72"
+  },
+  {
+    "query": "Resolve : fail on combo of `@JsonUnwrapped`, external type id",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/deser/bean/BeanDeserializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dfd074759d0297ec3c4ae1201e318a177a7f2421"
+  },
+  {
+    "query": "Fix : Default Typing, @JsonIdentityInfo",
+    "relevant": [
+      "src/main/java/tools/jackson/databind/ser/WritableObjectId.java",
+      "src/main/java/tools/jackson/databind/ser/bean/BeanSerializerBase.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96fe986f3cdf12d7e37e4a3a69d5b60c9d0c1677"
+  }
+]

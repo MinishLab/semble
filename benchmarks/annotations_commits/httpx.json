@@ -1,0 +1,373 @@
+[
+  {
+    "query": "Expose `FunctionAuth` in `__all__`",
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae1b9f66238f75ced3ced5e4485408435de10768"
+  },
+  {
+    "query": "Upgrade Python formatter ruff",
+    "relevant": [
+      "httpx/_exceptions.py",
+      "httpx/_urls.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "364697efcafe39290358745da8be451a40a3eab2"
+  },
+  {
+    "query": "Display proxy protocol scheme on error",
+    "relevant": [
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "336204f0121a9aefdebac5cacd81f912bafe8057"
+  },
+  {
+    "query": "Fix `verify=False`, `cert=...` case",
+    "relevant": [
+      "httpx/_config.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89599a9541af14bcf906fc4ed58ccbdf403802ba"
+  },
+  {
+    "query": "Updating deprecated docstring Client class",
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "15e21e9ea3cad4f06e22a7e704aabefdf43d2e29"
+  },
+  {
+    "query": "Fix `extensions` type annotation",
+    "relevant": [
+      "httpx/_models.py",
+      "httpx/_types.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a33c87852b8a0dddc65e5f739af1e0a6fca4b91f"
+  },
+  {
+    "query": "Error on verify as str",
+    "relevant": [
+      "httpx/_config.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ce7e14da27abba6574be9b3ea7cd5990556a9343"
+  },
+  {
+    "query": "Handle empty zstd responses",
+    "relevant": [
+      "httpx/__version__.py",
+      "httpx/_decoders.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47f4a96ffaaaa07dca1614409549b5d7a6e7af49"
+  },
+  {
+    "query": "Move utility functions from _utils.py to _client.py",
+    "relevant": [
+      "httpx/_client.py",
+      "httpx/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b19cd5f4b749064c6452892a5e58a3758da1d1b"
+  },
+  {
+    "query": "Import ssl on demand",
+    "relevant": [
+      "httpx/_config.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2ea2286db4da3ba6d318e617ac03217225e9f962"
+  },
+  {
+    "query": "Move remaining utility functions from _utils.py to _models.py",
+    "relevant": [
+      "httpx/_models.py",
+      "httpx/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "41597adffa9d34171a63f7511fc0f702558dd08c"
+  },
+  {
+    "query": "Move utility functions from _utils.py to _multipart.py",
+    "relevant": [
+      "httpx/_multipart.py",
+      "httpx/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6212e8fa3bf90154b891c7721f6d29737caac861"
+  },
+  {
+    "query": "Move normalize header functions from _utils.py to _models.py",
+    "relevant": [
+      "httpx/_models.py",
+      "httpx/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "83a85189c79708b732d04e7b906e388fb0fbde94"
+  },
+  {
+    "query": "add socks5h proxy support",
+    "relevant": [
+      "httpx/_config.py",
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12be5c44caa7a34bfe19f82eace5150ddeba2612"
+  },
+  {
+    "query": "Just use default `safe=...` characters for `urlescape`",
+    "relevant": [
+      "httpx/_urls.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5dda2aa30692e8529555f57efa7bcd203a7d5ac1"
+  },
+  {
+    "query": "Review urlescape percent-safe set, and use + behavior for form spaces",
+    "relevant": [
+      "httpx/_urlparse.py",
+      "httpx/_urls.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ba2e51215e4e619540f2a24282b84ed8a738e6fd"
+  },
+  {
+    "query": "Review URL percent escaping sets, from whatwg",
+    "relevant": [
+      "httpx/_urlparse.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d293374b6603816420a2bb8e7f4fe5a5f09cbfcc"
+  },
+  {
+    "query": "Clarified error when header value is None",
+    "relevant": [
+      "httpx/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "49d74a2e7f773f88a84dd4af900d7a8543636ae2"
+  },
+  {
+    "query": "Improve InvalidURL error message",
+    "relevant": [
+      "httpx/_urlparse.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c0cda153d301bde9a011e1dd7157d7e2b20889d"
+  },
+  {
+    "query": "Fast path returns for normalize_path cases",
+    "relevant": [
+      "httpx/_urlparse.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "37593c1952f4972040f6163da67e3777fd3d2e94"
+  },
+  {
+    "query": "Use proxy ssl context consistently",
+    "relevant": [
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88a81c5d31a4a8b4bd0a860dedd3bb12dc09ff86"
+  },
+  {
+    "query": "Keep clients in sync",
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f3eb3c90fdd19d2e4c5239e19a3588d072ff53fb"
+  },
+  {
+    "query": "Update /advanced/#<anchor> links -> /advanced/clients/#<anchor>",
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6045186f7d3a665b965c13dec413e3a346b1a01d"
+  },
+  {
+    "query": "Fix client.send timeout new Request instance",
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d852d319acd5d97caf14037dff15ede04b37542"
+  },
+  {
+    "query": "Use more permissible types in ASGIApp",
+    "relevant": [
+      "httpx/_transports/asgi.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4de13707ee0fbc6e3ea5b30c90cf64aae0af7fb2"
+  },
+  {
+    "query": "Deprecate `app=...` in favor of explicit `WSGITransport`/`ASGITransport`",
+    "relevant": [
+      "httpx/_client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cabd1c095e52e2f67ab63ec17941d3a539d7c877"
+  },
+  {
+    "query": "Fix RFC 2069 mode digest authentication",
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "99cba6ac642b12f0331d069ae324402c54c4c600"
+  },
+  {
+    "query": "Remove unused type: ignore",
+    "relevant": [
+      "httpx/_config.py",
+      "httpx/_multipart.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6907c22034e2739c4c1af89908e3c9f90602788"
+  },
+  {
+    "query": "Remove unused curio check",
+    "relevant": [
+      "httpx/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4b27ff6777c8906c2b31dd879bd4cc1d9e4f6ce"
+  },
+  {
+    "query": "Fixed `iter_text` adding an empty string",
+    "relevant": [
+      "httpx/_decoders.py",
+      "httpx/_models.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1e110964736a95d822144390b99d7ecf17fca527"
+  },
+  {
+    "query": "Ensure that ASGI 'raw_path' does not include query component of URL",
+    "relevant": [
+      "httpx/_transports/asgi.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "90538a3b4610ba49ce16c997bcfdb9101f9503be"
+  },
+  {
+    "query": "Allow URLs where username or password contains unescaped '@'",
+    "relevant": [
+      "httpx/_urlparse.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b471f01d668b9ef730e8843531b07b1c21b74c47"
+  },
+  {
+    "query": "Lazily import 'netrc' module",
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ad06741d1e0cfe4f5143c957c54f9a3fb8002e76"
+  },
+  {
+    "query": "Drop unneccessary `binascii` import",
+    "relevant": [
+      "httpx/_multipart.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9751f76186c1c89d71baa571ebd4a5b6be76d117"
+  },
+  {
+    "query": "Raise ValueError on `Response.encoding` being set after `Response.text` has been accessed",
+    "relevant": [
+      "httpx/_models.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59df8190a4c72c58238dda315ad446f1c132dcdc"
+  },
+  {
+    "query": "Add cookies to the retried request when performing digest authentication",
+    "relevant": [
+      "httpx/_auth.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88e84314378b31336027363af862619c519a4a3a"
+  },
+  {
+    "query": "Always encode forward slashes as `%2F` in query parameters",
+    "relevant": [
+      "httpx/_urlparse.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "920333ea98118e9cf617f246905d7b202510941c"
+  },
+  {
+    "query": "Add `socket_options` argument to `httpx.HTTPTransport` class",
+    "relevant": [
+      "httpx/_transports/default.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "733595037ac26d272f74ee6d702150b017913d11"
+  },
+  {
+    "query": "Fix exception suppression in asgi transport",
+    "relevant": [
+      "httpx/_transports/asgi.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a682f6f1c7f1c5e10c66ae5bef139aea37ef0c4e"
+  },
+  {
+    "query": "Ensure all WSGITransport environs have a SERVER_PROTOCOL",
+    "relevant": [
+      "httpx/_transports/wsgi.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "abb994c0c24b4899f1f7a39e460ef8572f7e4431"
+  }
+]

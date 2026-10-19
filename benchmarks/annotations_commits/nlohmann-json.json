@@ -1,0 +1,196 @@
+[
+  {
+    "query": "Add coverage exclusion comments, as requested",
+    "relevant": [
+      "include/nlohmann/detail/exceptions.hpp",
+      "include/nlohmann/detail/input/binary_reader.hpp",
+      "include/nlohmann/json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "364a21be6b6bba5d83550f12f40e17608cc3aef7"
+  },
+  {
+    "query": "bug: fix leak for strings",
+    "relevant": [
+      "include/nlohmann/detail/conversions/to_json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c1298e69a6b308bbe3f0db41415f24c8cdbc5a73"
+  },
+  {
+    "query": "include io only if JSON_NO_IO is not set for",
+    "relevant": [
+      "include/nlohmann/detail/input/input_adapters.hpp",
+      "include/nlohmann/detail/output/output_adapters.hpp",
+      "include/nlohmann/json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae9bbbc9412656e9d71be0862ba919dccf0b21ec"
+  },
+  {
+    "query": "Refactor json::get to use priority_tag",
+    "relevant": [
+      "include/nlohmann/json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ef1614fa92879aec9b328e95ade3be2a97cc820"
+  },
+  {
+    "query": "construction: fix preprocessor check",
+    "relevant": [
+      "include/nlohmann/json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6e7fa21eddf614d530b1dba9acb81855f5d74d5"
+  },
+  {
+    "query": "Change argument name \"subtype\" in byte_container_with_subtype",
+    "relevant": [
+      "include/nlohmann/byte_container_with_subtype.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71cb7d12daaf2ad4d6bb8542e9f165ac9fdb3c52"
+  },
+  {
+    "query": "add break to binary_reader::get_binary and get_string",
+    "relevant": [
+      "include/nlohmann/detail/input/binary_reader.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3a9d5665e1663b52d026dc475c84b97973aae8a"
+  },
+  {
+    "query": "add inline specifier for detail::combine",
+    "relevant": [
+      "include/nlohmann/detail/hash.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "281349d0d68542935f1c96a2ac50577fe0b5e243"
+  },
+  {
+    "query": "use the correct convention for boolean operators",
+    "relevant": [
+      "include/nlohmann/detail/input/input_adapters.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dcf6175978fa45e6e617b3879c7a98bc37dce80d"
+  },
+  {
+    "query": "fixed a compilation error in MSVC",
+    "relevant": [
+      "include/nlohmann/detail/output/binary_writer.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "454480f581a0b7a05f14c93b8e94006f5bcd8e62"
+  },
+  {
+    "query": "Use array_idx as methods args",
+    "relevant": [
+      "include/nlohmann/detail/json_pointer.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "78e911b8c3ebce27e177693934f1947f0fe6ccaa"
+  },
+  {
+    "query": "Rename argument array_index to array_indx in json_pointer methods",
+    "relevant": [
+      "include/nlohmann/detail/json_pointer.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "00049c20d0bd79ef4d6be42d0d6d76a0c1900437"
+  },
+  {
+    "query": "Correct a warning from cppcheck",
+    "relevant": [
+      "include/nlohmann/detail/output/binary_writer.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "13a7c602578878bd524da551a1005b92e8d8e79b"
+  },
+  {
+    "query": "remove the const attribute",
+    "relevant": [
+      "include/nlohmann/detail/input/input_adapters.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "91ff96a7376881ab4a9933bf6a8bfbf63bf8384a"
+  },
+  {
+    "query": "remove non usefull code. Add small description",
+    "relevant": [
+      "include/nlohmann/detail/input/input_adapters.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae48acbb2377543cb066a19580073991134629a5"
+  },
+  {
+    "query": "rotating_light: fixed a compilation issue with ICPC",
+    "relevant": [
+      "include/nlohmann/detail/output/serializer.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c61a9071ae9410daa629246c46a24165626f992b"
+  },
+  {
+    "query": "from_json: add overload for std::unordered_map",
+    "relevant": [
+      "include/nlohmann/detail/conversions/from_json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b37d7ed86926f0c7c865651b4dee29aaae2015b"
+  },
+  {
+    "query": "from_json: add missing template arguments for std::map",
+    "relevant": [
+      "include/nlohmann/detail/conversions/from_json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "299469cfd5142f25225fff08eb49c913d921db04"
+  },
+  {
+    "query": "hammer: removed unget function for wstring parsers",
+    "relevant": [
+      "include/nlohmann/detail/input/input_adapters.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae213721b1d51570f8d922c8b3f7a7fa13ccdbdf"
+  },
+  {
+    "query": "dump to alternate implementation of string, as defined in basic_json template",
+    "relevant": [
+      "include/nlohmann/detail/output/output_adapters.hpp",
+      "include/nlohmann/json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "faccc37d0d99a30c9de6fc4a68f683482a790638"
+  },
+  {
+    "query": "pvs_studio fix. misprinted condition",
+    "relevant": [
+      "include/nlohmann/json.hpp"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2a2ed799b1ccc58dc8594770150684a7303fc2d8"
+  }
+]

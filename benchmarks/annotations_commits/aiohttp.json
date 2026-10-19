@@ -1,0 +1,371 @@
+[
+  {
+    "query": "Harden cookie file permissions in CookieJar.save",
+    "relevant": [
+      "aiohttp/cookiejar.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47558a30c88e31cc3b5ff3b57f6127e7984c80bc"
+  },
+  {
+    "query": "Fix GunicornWebWorker failing to reset SIGCHLD handler",
+    "relevant": [
+      "aiohttp/worker.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "522439ace1c695c5b73d4c27f2d67bba37277fa7"
+  },
+  {
+    "query": "Fix spurious \"Future exception was never retrieved\" warning on disconnect during backpressure",
+    "relevant": [
+      "aiohttp/base_protocol.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f4dc0deedbae67a94b0ab86b6a0e748249f26d83"
+  },
+  {
+    "query": "Skip duplicate singleton header check in lax mode",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "53e2e6fc58b89c6185be7820bd2c9f40216b3000"
+  },
+  {
+    "query": "Narrow singleton header rejection to security-critical headers",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e37bbb7d6657d96d284269768735e62e63a04057"
+  },
+  {
+    "query": "Fix zstd decompression of multi-frame responses",
+    "relevant": [
+      "aiohttp/compression_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "374fb1dc29baa5e5b11a113ce1a5d0d04116f8e3"
+  },
+  {
+    "query": "Raise ConnectionResetError if transport is None",
+    "relevant": [
+      "aiohttp/web_fileresponse.py",
+      "aiohttp/web_ws.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8bdc7c7fc002c4a7774b295923be42aac6dd9eb7"
+  },
+  {
+    "query": "Fix credential leak on same-host redirects with different ports",
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b10afd473a6805cd2c2b6bf918543942941a869"
+  },
+  {
+    "query": "Copy unsafe setting from session cookie jar to ad-hoc request cookie jar",
+    "relevant": [
+      "aiohttp/abc.py",
+      "aiohttp/client.py",
+      "aiohttp/cookiejar.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6a86e0f87e18ffaf81d6d40e92bba0596f6a5ed2"
+  },
+  {
+    "query": "Remove pickle loading from CookieJar",
+    "relevant": [
+      "aiohttp/cookiejar.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a6687c2e8c6a4eed52828e5bb482c86b1716b89e"
+  },
+  {
+    "query": "Tokenize Connection header values in Python HTTP parser",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5279fbd1241aa3d1ccaa09de28a174f42c6e030b"
+  },
+  {
+    "query": "Skip TLS-in-TLS warning when proxy is not HTTPS",
+    "relevant": [
+      "aiohttp/connector.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b256cfe7d92b392683e341abd07a4729f705d04"
+  },
+  {
+    "query": "Raise on redirect with consumed non-rewindable request bodies",
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f50bac47d29cb5b0c16cc266000bc60e0a432e1"
+  },
+  {
+    "query": "Adjust header value character checks to RFC 9110",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9370b9714a7a56003cacd31a9b4ae16eab109ba4"
+  },
+  {
+    "query": "Adjust header value characters to RFC 9110",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7043bc563523992cee20754a59b1fd61f1972e7d"
+  },
+  {
+    "query": "Check multipart max_size during iteration",
+    "relevant": [
+      "aiohttp/web_request.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cbb774f38330563422ca0c413a71021d7b944145"
+  },
+  {
+    "query": "Reject null bytes in headers",
+    "relevant": [
+      "aiohttp/http_writer.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "db560cfeab32aa35f3d06f7a24238bedc01ffe2b"
+  },
+  {
+    "query": "use deque for FormData.add_fields queue",
+    "relevant": [
+      "aiohttp/formdata.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d5eb044f1a2a8c3fdcb79ba3d59a36a4bf864a5d"
+  },
+  {
+    "query": "Drop additional headers on redirect",
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5351c980dcec7ad385730efdf4e1f4338b24fdb6"
+  },
+  {
+    "query": "Fix AttributeError: 'ClientConnectorCertificateError' object has no attribute '_os_error'",
+    "relevant": [
+      "aiohttp/client_exceptions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5d922ee574df62e2d55aa975cd245e903ab304cb"
+  },
+  {
+    "query": "Reject duplicate chunked Transfer-Encoding in requests",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "50241d68c1133875ad98a6eadbc71d03ea4b2e0c"
+  },
+  {
+    "query": "Replace unintentional except BaseException with except Exception",
+    "relevant": [
+      "aiohttp/client_proto.py",
+      "aiohttp/http_parser.py",
+      "aiohttp/worker.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8896cfc1bd49fa469e48eabe9590b03a91f1cb05"
+  },
+  {
+    "query": "Block absolute paths in static files",
+    "relevant": [
+      "aiohttp/web_urldispatcher.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ae2aa076c84573df83fc1fdc39eec0f5862fe3d"
+  },
+  {
+    "query": "Fix access log timestamps ignoring daylight savings time",
+    "relevant": [
+      "aiohttp/web_log.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7438e8d4eaf94c95615695f527cc029e3e7987b0"
+  },
+  {
+    "query": "Restrict pickle deserialization in CookieJar.load",
+    "relevant": [
+      "aiohttp/cookiejar.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dcf40f30637e8752c76781cf6703b5a236749a00"
+  },
+  {
+    "query": "Fix _sendfile_fallback over-reading beyond requested count",
+    "relevant": [
+      "aiohttp/web_fileresponse.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ceb098bae7498a7a7cc9a116918dbde06e03eb28"
+  },
+  {
+    "query": "Fix server hang on chunked transfer encoding size mismatch",
+    "relevant": [
+      "aiohttp/http_parser.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "36573aad2bb56d99bd4dd60a53c5588a14be16f8"
+  },
+  {
+    "query": "Make clear that regex is not affected by ReDoS",
+    "relevant": [
+      "aiohttp/helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dc85b4c418394cd350c45bc365db5fe7c88bb34c"
+  },
+  {
+    "query": "widen trace_request_ctx type to accept any object",
+    "relevant": [
+      "aiohttp/client.py",
+      "aiohttp/tracing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6bebdca3003ce78523518360a837309b18ad7e04"
+  },
+  {
+    "query": "Fix digest auth dropping challenge fields with empty string values",
+    "relevant": [
+      "aiohttp/client_middleware_digest_auth.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "39ae036bfa222bcaefa9a13cb5760b6523833387"
+  },
+  {
+    "query": "Specify types in set_parser",
+    "relevant": [
+      "aiohttp/client_proto.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5efc6c89616ebfe16020f28d482b8ba5cd3d811e"
+  },
+  {
+    "query": "Reject ClientTimeout(total=0) in v4, use None to disable timeouts",
+    "relevant": [
+      "aiohttp/client.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c472b5eb704be73178d98ec886b2da36663dc4d"
+  },
+  {
+    "query": "Fix ValueError with ClientTimeout(total=0) in TLS connections",
+    "relevant": [
+      "aiohttp/connector.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b17972f5ea2e8b8cb80486c8a5a5b9e67788d571"
+  },
+  {
+    "query": "Change .decode_async to .decode_iter",
+    "relevant": [
+      "aiohttp/multipart.py",
+      "aiohttp/web_request.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9d8dcec2624eba0240c5088d380be797149196a6"
+  },
+  {
+    "query": "Restore BodyPartReader.decode as sync method, add decode_async for non-blocking decompression",
+    "relevant": [
+      "aiohttp/multipart.py",
+      "aiohttp/web_request.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2fc38fe163a29f7b84eaad0c1e3fba14fa079d93"
+  },
+  {
+    "query": "Limit number of chunks before pausing reading",
+    "relevant": [
+      "aiohttp/streams.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ed97a4e46eaf61bd0f05063245f613469700229"
+  },
+  {
+    "query": "Replace asserts with exceptions",
+    "relevant": [
+      "aiohttp/multipart.py",
+      "aiohttp/web_request.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc1319ec3cbff9438a758951a30907b072561259"
+  },
+  {
+    "query": "Use collections.deque for chunk splits",
+    "relevant": [
+      "aiohttp/streams.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dc3170b56904bdf814228fae70a5501a42a6c712"
+  },
+  {
+    "query": "Log once per cookie header",
+    "relevant": [
+      "aiohttp/_cookie_helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64629a0834f94e46d9881f4e99c41a137e1f3326"
+  },
+  {
+    "query": "Enforce client_max_size over entire multipart form",
+    "relevant": [
+      "aiohttp/web_request.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b7dbd35375aedbcd712cbae8ad513d56d11cce60"
+  }
+]

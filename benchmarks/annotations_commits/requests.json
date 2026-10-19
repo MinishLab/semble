@@ -1,0 +1,219 @@
+[
+  {
+    "query": "Prevent Response self-reference in redirect history",
+    "relevant": [
+      "src/requests/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ef439eb779c1eba7cbdeeeb302b11e1e061b4b7d"
+  },
+  {
+    "query": "Fix malformed value parsing for Content-Type",
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0198e6dfc431a2293dc16e1b1e8fcddc910a7f3"
+  },
+  {
+    "query": "Fix cosmetic header validity parsing regex",
+    "relevant": [
+      "src/requests/_internal_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc7dd0fc4d56e808bcdd85ac2d797b3107c89259"
+  },
+  {
+    "query": "Remove unused extraction call",
+    "relevant": [
+      "src/requests/adapters.py",
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e331a288f369973f5de0ec8901c94cae4fa87286"
+  },
+  {
+    "query": "Update docstring for Session.verify to include string support",
+    "relevant": [
+      "src/requests/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f338446f9eabd956e7e132668f330d9de4fc368"
+  },
+  {
+    "query": "Fix empty netrc entry usage",
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47914226c2968802f2cdee3f6f0f6e06e4472f64"
+  },
+  {
+    "query": "clarify timeout parameter uses seconds in Session.request",
+    "relevant": [
+      "src/requests/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d58d8aa2f45c3575268d6d5250745ef69f9cf8b7"
+  },
+  {
+    "query": "Only use hostname to do netrc lookup instead of netloc",
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96ba401c1296ab1dda74a2365ef36d88f7d144ef"
+  },
+  {
+    "query": "Don't create default SSLContext if ssl module isn't present",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e18879932287c2bf4bcee4ddf6ccb8a69b6fc656"
+  },
+  {
+    "query": "Don't use default SSLContext with custom poolmanager kwargs",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b1d73ddb509a3a2d3e10744e85f9cdebdbde90f0"
+  },
+  {
+    "query": "Allow for overriding of specific pool key params",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a62a2d35d918baa8e793f7aa4fb41527644dfca5"
+  },
+  {
+    "query": "Move _get_connection to get_connection_with_tls_context",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aa1461b68aa73e2f6ec0e78c8853b635c76fd099"
+  },
+  {
+    "query": "Avoid reloading root certificates to improve concurrent performance",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9a40d1277807f0a4f26c9a37eea8ec90faa8aadc"
+  },
+  {
+    "query": "Add rfc9110 HTTP status code names",
+    "relevant": [
+      "src/requests/status_codes.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e45b428960ff3927812fc9b555e2ac627ba95769"
+  },
+  {
+    "query": "Fix the proxy_bypass_registry function all returning true in some cases",
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1604e20fc87ce212cf3a02474a6d7509b640cbbb"
+  },
+  {
+    "query": "Use TLS settings in selecting connection pool",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c0813a2d910ea6b4f8438b91d315b8d181302356"
+  },
+  {
+    "query": "Trim excess leading path separators",
+    "relevant": [
+      "src/requests/adapters.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "60389df6d69ce833164696dcf36cbb43336d3426"
+  },
+  {
+    "query": "Fix - JSONDecodeError are not deserializable",
+    "relevant": [
+      "src/requests/exceptions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ff3ff21dd45957c9e143cd500291959bb15f690"
+  },
+  {
+    "query": "Enhance `super_len` to count encoded bytes for str",
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fd309a5c14e4cfbd96bea6c8e71b4958fe090bb"
+  },
+  {
+    "query": "Too early definition added to 425 status code type",
+    "relevant": [
+      "src/requests/status_codes.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b37878d3407995e41fd3c160fd04d5d0afda1130"
+  },
+  {
+    "query": "Fix missing space in error message",
+    "relevant": [
+      "src/requests/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c32b046243dcbf0dceb952da1317261109ac45c4"
+  },
+  {
+    "query": "added handling for chardet and charset_normalizer imports",
+    "relevant": [
+      "src/requests/packages.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e9b1217cff710307e5de9fb8ce2fc21eb79acec3"
+  },
+  {
+    "query": "every chardet package maps to requests.packages.chardet.* package respectively",
+    "relevant": [
+      "src/requests/packages.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ad761abcdd2f1b5e4fcba549676b2ea52bd325cd"
+  },
+  {
+    "query": "Update models.Response.json docstring clearer",
+    "relevant": [
+      "src/requests/models.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12862617df7391a87f30d5bc30fffbcfd8fa3761"
+  }
+]

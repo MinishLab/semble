@@ -1,0 +1,383 @@
+[
+  {
+    "query": "serde_derive: reduce llvm-lines in ser.rs, reuse fn field_i",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/ser.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "098da70a7e7b944ceaa032b60a57f5cbe856981f"
+  },
+  {
+    "query": "serde_derive: rewrite fields_from_ast with less llvm-lines",
+    "relevant": [
+      "serde_derive/src/internals/ast.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1229fc8a6dbdb91c32398ee2673de8ec3e878eca"
+  },
+  {
+    "query": "serde_derive: rewrite with_bound without filter/chain/vec allocation",
+    "relevant": [
+      "serde_derive/src/bound.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bfc9ccf68697588b1f31504049e9b67ff025ba8c"
+  },
+  {
+    "query": "serde_derive: rewrite .iter .filter_map with less llvm-lines",
+    "relevant": [
+      "serde_derive/src/bound.rs",
+      "serde_derive/src/de/enum_adjacently.rs",
+      "serde_derive/src/pretend.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c6d0d2e0969173e0292666426c8286ac68daf1d"
+  },
+  {
+    "query": "remove 1 level of nesting",
+    "relevant": [
+      "serde_derive/src/internals/attr.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "086353c581742d64790ff41ee1134430e794dd90"
+  },
+  {
+    "query": "Do not use ? operator in the generated code where possible",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/enum_adjacently.rs",
+      "serde_derive/src/de/enum_externally.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f9a1ea35ee43b1a4d77171f50eaeaedd7583009"
+  },
+  {
+    "query": "Remove InPlaceSeed public re-export",
+    "relevant": [
+      "serde_core/src/de/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2fb6748bf1ff939a2208d70b26708ddc75ab2e88"
+  },
+  {
+    "query": "No longer macro_use integer128 module",
+    "relevant": [
+      "serde/src/lib.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c836915fc8d6fab4990764096e53e9a668cf3df"
+  },
+  {
+    "query": "Rename enum_untagged::generate_newtype_variant -> deserialize_newtype_variant",
+    "relevant": [
+      "serde_derive/src/de/enum_internally.rs",
+      "serde_derive/src/de/enum_untagged.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a7c11c82c431e5f4af8797a1c3a98613061a293"
+  },
+  {
+    "query": "Rename enum_untagged::generate_variant -> deserialize_variant",
+    "relevant": [
+      "serde_derive/src/de/enum_adjacently.rs",
+      "serde_derive/src/de/enum_untagged.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "11ce4402bd083b880d2d482c9acb394d9bc85771"
+  },
+  {
+    "query": "Rename generate_body_in_place -> deserialize_in_place",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/struct_.rs",
+      "serde_derive/src/de/tuple.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8047570160ed277a961299e3439bce2115f02a11"
+  },
+  {
+    "query": "Rename identifier::generate_identifier -> deserialize_generated",
+    "relevant": [
+      "serde_derive/src/de/enum_.rs",
+      "serde_derive/src/de/identifier.rs",
+      "serde_derive/src/de/struct_.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a437ff6bf7357c1ae33b6c37f9608edc1c77734f"
+  },
+  {
+    "query": "Rename identifier::generate_body -> deserialize_custom",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/identifier.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "20fc31c78afb810e5c07aca18874b627ecbeb352"
+  },
+  {
+    "query": "Replace unnecessary use of generics_with_de_lifetime",
+    "relevant": [
+      "serde_derive/src/de/struct_.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e219a0d4b7f33285f09eec738d961abfc5e58d9f"
+  },
+  {
+    "query": "Move body generator for unit structs to its own module",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/unit.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4a07ed4e80c5db43293526798f5d1ba580351f5"
+  },
+  {
+    "query": "Move body generator for internally tagged enums to its own module",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/enum_internally.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae00c4acb735c8cddf6781ba2bfba2d709fc178c"
+  },
+  {
+    "query": "Move body generator for externally tagged enums to its own module",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/enum_externally.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "85d0b9ccd84ce03e69df45d25f47d4a88c86a264"
+  },
+  {
+    "query": "Move body generator for adjacently tagged enums to its own module",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/de/enum_adjacently.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e60f62a289ecb6ae06992b8df92a7b997b6e8ab2"
+  },
+  {
+    "query": "InternallyTagged always instantiated with the same deserializer, so remove that parameter",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e04f0ba2de17ffb544d57dd93636f96298c01135"
+  },
+  {
+    "query": "Untagged always instantiated with the same deserializer, so remove that parameter",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c8184be23822f3db85e40c87320cf56c22692ae5"
+  },
+  {
+    "query": "`deserialize_untagged_newtype_variant` always called with the same `deserializer`, so remove that parameter",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "915686d0ecb415f5fe3118456bcbfeb90834dd39"
+  },
+  {
+    "query": "`deserialize_untagged_variant` always called with the same `deserializer`, so remove that parameter",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a682c951b6b02b238cd4cd1381b24b2b041bfde"
+  },
+  {
+    "query": "`deserialize_internally_tagged_variant` always called with the same `deserializer`, so remove that parameter",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ca79f61d0fc9e0379259238892f7453f08a1f015"
+  },
+  {
+    "query": "Convert `split_with_de_lifetime` to method of `Parameters`",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ddb7c4b30f552c8bfb2fcdda99570632aae4c834"
+  },
+  {
+    "query": "Move code for injecting tagged variants to untagged generator to the place where the decision was made",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4855fb467f41b96985962ba913486032f56490b2"
+  },
+  {
+    "query": "Remove one-line intermediate function",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6dffc0b1c84a7c12646cabd12e5ee6e3360a0aa8"
+  },
+  {
+    "query": "Remove confusing call to deserialize_untagged_variant in deserialize_internally_tagged_variant",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "15be2a600a3e8692cd755f3cf48ab95baf7bcae7"
+  },
+  {
+    "query": "Use `variant` name for field instead of `field`",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bfb020d97562da784d86b67dc660254c61a45bcb"
+  },
+  {
+    "query": "Inline variables that used only once",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6805bba308654ec9628831143d42e367c88e0db2"
+  },
+  {
+    "query": "Create deserializer only when needed",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2659b94a62c684a12c2b20e16df918a542e38a33"
+  },
+  {
+    "query": "Do not duplicate variant deserialization code",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c451415d9fb6d4c81c45c30a1bb525bff5d2d071"
+  },
+  {
+    "query": "Document functions that are entry points for generating bodies of different deserialization forms",
+    "relevant": [
+      "serde_derive/src/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "553a9ff15f6ff5ce6c5d5644909dd02555151c97"
+  },
+  {
+    "query": "Unify access to the serde namespace",
+    "relevant": [
+      "serde_derive/src/de.rs",
+      "serde_derive/src/internals/attr.rs",
+      "serde_derive/src/ser.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b47f4dfa962171ef95a29070438d2d9828bdabbf"
+  },
+  {
+    "query": "Delete unneeded field of MapDeserializer",
+    "relevant": [
+      "serde/src/private/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f6925125bae7837d918da63f2dba6efabad8dec"
+  },
+  {
+    "query": "Move Content's Clone impl from serde_core to serde",
+    "relevant": [
+      "serde/src/private/de.rs",
+      "serde_core/src/private/content.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf141aa8c79a40fe7b7c5ac5dbfd28802f2e01f4"
+  },
+  {
+    "query": "Link to serde.rs without trailing slash",
+    "relevant": [
+      "serde/src/lib.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "263a1dbdd716c2b96a523bce9ad45b1eadc81129"
+  },
+  {
+    "query": "Replace serde_core::* glob export",
+    "relevant": [
+      "serde/src/lib.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1a82c3c555439de2d4e96264ca6d11aa2ffe153"
+  },
+  {
+    "query": "Inline SeqDeserializer and MapDeserializer for Content",
+    "relevant": [
+      "serde/src/private/de.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7659fb686d7950ac515a488020ed8f369b3c2c89"
+  },
+  {
+    "query": "Specify the cfg in which 'tri!' is used",
+    "relevant": [
+      "serde/src/lib.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b6c7ce8ec31e352e74a415950ac55557ebfe1a2c"
+  },
+  {
+    "query": "Enforce derive cannot be used against serde_core",
+    "relevant": [
+      "serde/src/lib.rs",
+      "serde_core/src/lib.rs",
+      "serde_derive/src/dummy.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8909fc0c603949ad60ee503d1d49a440b7b6f414"
+  }
+]

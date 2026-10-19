@@ -1,0 +1,371 @@
+[
+  {
+    "query": "Fix duplicate key detection when first value is null",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f4d371d29c04066dbe7fdb31f642831f9c7f40cd"
+  },
+  {
+    "query": "Validate that strings being parsed as integers consist of ASCII characters",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/stream/JsonReader.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1fa9b7a0a994b006b3be00e2df9de778e71e6807"
+  },
+  {
+    "query": "Avoid a potential CheckReturnValue issue",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/GsonBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "552b4135c87f8d52bfd9ffcee6e7098e37f7a217"
+  },
+  {
+    "query": "Optimize `new Gson `",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/Gson.java",
+      "gson/src/main/java/com/google/gson/GsonBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8526dbd2f0a7e61d5fbcc5caa163f2352fb0ddc0"
+  },
+  {
+    "query": "Add default capacity to EnumTypeAdapter maps",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/EnumTypeAdapter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae9604c201b3ba44babc48e982e012b1d23b69c8"
+  },
+  {
+    "query": "Don't rely on Android desugaring",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7878ee2b3c7d71278e94e01b5896b5179df3a29a"
+  },
+  {
+    "query": "Add build config for Gson subset",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonElement.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a271f487b5969601308ed438b2da9c8fc1a8e927"
+  },
+  {
+    "query": "Make AppendableWriter do flush and close if delegation object supports",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/Streams.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "72537db9a6095720aca3a67abe77ec5a16200081"
+  },
+  {
+    "query": "Remove redundant warning suppression",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/GsonTypes.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3488c30c65afb7bc3715c68b2a4f10ca2500c821"
+  },
+  {
+    "query": "Address some minor Error Prone warnings",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/TreeTypeAdapter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81d15f545d98e902ff1ebdb9c239f1719b3bc3aa"
+  },
+  {
+    "query": "replace local StringWriter with StringBuilder",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/Gson.java",
+      "gson/src/main/java/com/google/gson/JsonElement.java",
+      "gson/src/main/java/com/google/gson/TypeAdapter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "259c477cecaea8e73cd19e5207ba63edc04157da"
+  },
+  {
+    "query": "Give FieldNamingStrategy the ability to return multiple String names",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/FieldNamingStrategy.java",
+      "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4e65e6ab368d92638b4ca04521958dbf1d3753e7"
+  },
+  {
+    "query": "Restructure code to avoid assignment expression warning",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/Excluder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "de190d7ef5feb4950d5daca819a625b39f3fd2f5"
+  },
+  {
+    "query": "Simplify collection type adapters slightly",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/CollectionTypeAdapterFactory.java",
+      "gson/src/main/java/com/google/gson/internal/bind/MapTypeAdapterFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10bdd6dc6a2f86151762e9c18d155970e90d14a9"
+  },
+  {
+    "query": "Allow registering adapters for `JsonElement` again",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/GsonBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2b1c3c88276697578a961de8286752e772c55db"
+  },
+  {
+    "query": "Change the use of == operator to isEmpty in JsonObject",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonObject.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3e5ccb171a56b3278f7123638631b945ec52e5cb"
+  },
+  {
+    "query": "Replace anonymous class creation with lambdas in ConstructorConstructor",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/ConstructorConstructor.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2dc29f7a15f6c2b6de384e8e1e545f20b1c8d5df"
+  },
+  {
+    "query": "Add NullSafeTypeAdapter to prevent TypeAdapter.nullSafe",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/TypeAdapter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c55d8babe0ac9b21b3d3e9db655afa3f1b3bbf2"
+  },
+  {
+    "query": "Reference the default nesting limit by name rather than as a constant",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/stream/JsonReader.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d1badbae65cccdc4e772bcf295c640af97b5674a"
+  },
+  {
+    "query": "Remove `AccessController` usage for enum adapter",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "00028fb5a7f3fc9b72d77b2d028a58e3155dadec"
+  },
+  {
+    "query": "Add more Javadoc cross-links between methods",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/FormattingStyle.java",
+      "gson/src/main/java/com/google/gson/Strictness.java",
+      "gson/src/main/java/com/google/gson/stream/JsonWriter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "91d22b33e267b0fd699bdc3e830b7dc5561a88e4"
+  },
+  {
+    "query": "Improved Long-Double Number Policy",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/ToNumberPolicy.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "454a49127f9416f45221eecf311eefdca50e4cdc"
+  },
+  {
+    "query": "Fix a Yoda condition to placate Error Prone",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/stream/JsonReader.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "749d22f3690cde1f538f23228e48167d71725f4d"
+  },
+  {
+    "query": "Document that `JsonReader` methods throw `IllegalStateException`",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/stream/JsonReader.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e838516c1ed0865623384ad308006c99c04607e8"
+  },
+  {
+    "query": "Add Troubleshooting Guide entry for custom adapter not being used",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/GsonBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee61e3f020351f0498dd3ff8f8386b96454a4dfe"
+  },
+  {
+    "query": "Adds support to `BigDecimal` in `JsonPrimitive#equals`",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonPrimitive.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "db61bb07f04512b6fc21a5ce4d2b7cd380a1e7fc"
+  },
+  {
+    "query": "issue : Throw exception when registering adapter for Object or JsonElement",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/GsonBuilder.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0109f451299e7780a334d1844548d3a3346a9b39"
+  },
+  {
+    "query": "Only create one `BoundField` instance per field in `ReflectiveTypeAdapterFactory`",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e7cf5c458374e5fc69dbdce6de5cb2c881521135"
+  },
+  {
+    "query": "Add clarifying parentheses to a ternary expression",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonPrimitive.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "edfaf0c387cd0dc42403f8994c3ef4722d2898a9"
+  },
+  {
+    "query": "Throw exception when calling `JsonWriter.name` outside JSON object",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/JsonTreeWriter.java",
+      "gson/src/main/java/com/google/gson/stream/JsonWriter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "70bda4b9c9eb8d0b567f8715a67dbada00b02216"
+  },
+  {
+    "query": "Changes to ensure if no object is opened user won't be able to write property name",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/stream/JsonWriter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "392cc65ff3004689e03b219d9b00979072f9c9d0"
+  },
+  {
+    "query": "Prevent `TypeToken` from capturing type variables",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/reflect/TypeToken.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b8ce2b9f7faaa22893bb77140563e3c41afb4ab"
+  },
+  {
+    "query": "Access `RecordComponent` via `Class.forName`",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/reflect/ReflectionHelper.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c5c1fbf9a12def0b3b5e6c6e84c36b185dfb4628"
+  },
+  {
+    "query": "Support non-generic type for `TypeToken.getParameterized` for legacy reasons",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/reflect/TypeToken.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a38b757bc4fddfd57ab762fbf192dd2b3fc6be22"
+  },
+  {
+    "query": "Update to latest Error Prone and fix some newly-flagged problems",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/NonNullElementWrapperList.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9cf0f8d3022fdfcd480dcd7648b2e5209e775b52"
+  },
+  {
+    "query": "Address review comments from @Marcono1234",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonElement.java",
+      "gson/src/main/java/com/google/gson/JsonStreamParser.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "37ed0fcbd7930df0aad9f5068c608e4465413877"
+  },
+  {
+    "query": "Fix the `equals` method of `JsonPrimitive` to work with `BigInteger`",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonPrimitive.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af2179843601c73aa96062208d8f324a45243e47"
+  },
+  {
+    "query": "Remove EOFException special casing of JsonStreamParser.next",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonStreamParser.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f63a1b85aec695f4d464e07a5c13fc038d581527"
+  },
+  {
+    "query": "Unnecessary unboxing at JsonPrimitive.getAsBoolean",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/JsonPrimitive.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c3cf2243581c6ade4d6341b7d46884528261108"
+  },
+  {
+    "query": "Remove the `final` keyword from `private` method",
+    "relevant": [
+      "gson/src/main/java/com/google/gson/internal/bind/DefaultDateTypeAdapter.java"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "28affcbdb9cc77efd6d4cb6cf6cab4acd48f4975"
+  }
+]

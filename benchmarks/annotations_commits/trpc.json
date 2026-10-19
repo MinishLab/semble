@@ -1,0 +1,383 @@
+[
+  {
+    "query": "Add subscription inferrence helpers",
+    "relevant": [
+      "packages/server/src/@trpc/server/index.ts",
+      "packages/server/src/unstable-core-do-not-import/clientish/inference.ts",
+      "packages/server/src/unstable-core-do-not-import/procedure.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d3c4051f03d0ca1f31177cadc10adff21c9048b8"
+  },
+  {
+    "query": "unwrap error from cause for streaming onError",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/resolveResponse.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b8a4f826d3b22829343cebd9b23e163dfeecd09"
+  },
+  {
+    "query": "error handling with Node VM",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/error/TRPCError.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2f90fc96196baba0858a571bce0c2bfaafcce3c"
+  },
+  {
+    "query": "preserve buffered chunks on stream close in httpBatchStreamLink",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ccaf04b0af4e06936e640bc45173fab5c8a2b0a"
+  },
+  {
+    "query": "SSE subscriptions don't reconnect after maxDurationMs",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/resolveResponse.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dad1281917a6f16930d0e154ea9deb9a6e7dd75b"
+  },
+  {
+    "query": "pass maxDurationMs timeout signal to subscription handlers",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/resolveResponse.ts",
+      "packages/server/src/unstable-core-do-not-import/stream/sse.ts",
+      "packages/server/src/unstable-core-do-not-import/stream/utils/asyncIterable.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "172b6aa1ac2cfd5429ebd5284fcc308bce159702"
+  },
+  {
+    "query": "missing sse options when using mergeRouter",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/router.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ffa88b0f3e2e7215f967a223287541cf2425c65c"
+  },
+  {
+    "query": "`httpBatchStreamLink` in React Native \"stream ends with TypeError\"",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b274114cfe861c0b37abc48bb2cef550a2ebf16"
+  },
+  {
+    "query": "fix \"stream is not in a state that permits close\" in RN",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aac35fbdc55c7f8ceb38915cccc0719201719230"
+  },
+  {
+    "query": "add precondition required response code",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/getHTTPStatusCode.ts",
+      "packages/server/src/unstable-core-do-not-import/rpc/codes.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f0f1e4299cad90adedbbf022cfddf996cd6759c"
+  },
+  {
+    "query": "export DataTransformer interface marked as @public",
+    "relevant": [
+      "packages/server/src/@trpc/server/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e272d689530531a498195276f14dd71bda534afe"
+  },
+  {
+    "query": "fix property in JSDoc",
+    "relevant": [
+      "packages/server/src/adapters/node-http/types.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "77fc9919dee817af470090ee50e692b256419d36"
+  },
+  {
+    "query": "expose procedure path in resolver options",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/procedureBuilder.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2ae7176404c7f0c76f1b8893fc66964f06ea6ff"
+  },
+  {
+    "query": "prefer Standard Schema for input/output type inference",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/parser.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b90d5097262be65aacc5832f21d411e735d4748e"
+  },
+  {
+    "query": "incompatible types in monorepo due to separate `.d.ts` for esm/cjs",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/router.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81c75f001505c2c8234e4674e9f2b3539180a01b"
+  },
+  {
+    "query": "missing export from internal package",
+    "relevant": [
+      "packages/server/src/@trpc/server/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fcf4b4a2f6f9af98ab318bef8a82c5a9392a8fe0"
+  },
+  {
+    "query": "add support for 402 http response status code",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/getHTTPStatusCode.ts",
+      "packages/server/src/unstable-core-do-not-import/rpc/codes.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d937503b4a25c8f0f30eec4d4cce172851500d97"
+  },
+  {
+    "query": "node 24 async iterables are already `AsyncDisposable`s",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/utils/asyncIterable.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f7aef25110611d953acbfcb658e68fcf897a9470"
+  },
+  {
+    "query": "simplify error creation from unknown causes",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/error/TRPCError.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "95d1997b9f7926775ce01ae96a32ea1ea5f737dc"
+  },
+  {
+    "query": "Expose meta on procedures",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/procedure.ts",
+      "packages/server/src/unstable-core-do-not-import/procedureBuilder.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "420dcc5791b3d9e2213e181501779eb3b29b45fa"
+  },
+  {
+    "query": "Fix sseStreamConsumer to use instance's properties instead of global",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/sse.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf7091a95bb216c595b7eeb28d54dbcb217e3359"
+  },
+  {
+    "query": "Update cookie splitting for lambda adapter",
+    "relevant": [
+      "packages/server/src/adapters/aws-lambda/getPlanner.ts",
+      "packages/server/src/vendor/cookie-es/set-cookie/split.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1becc23d9f13c706c3279c356dedcc35071750a6"
+  },
+  {
+    "query": "fix exports of `callProcedure`",
+    "relevant": [
+      "packages/server/src/@trpc/server/index.ts",
+      "packages/server/src/adapters/ws.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e15916e9fc26a08c9936c4c706e996321d42958"
+  },
+  {
+    "query": "parallel load calls of lazy router",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/router.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e31a1f59920f20a5bcf690dc01ebda0c9ecf3e1b"
+  },
+  {
+    "query": "tweak logic in jsonl",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c15b0575d18179ddf964d89d8295aabad39f2cc"
+  },
+  {
+    "query": "transformer at top level for `httpBatchStreamLink`",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ab0f06e288b19b2d40ff0fe483c15365a7699f0"
+  },
+  {
+    "query": "pinging in jsonl response streams",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/resolveResponse.ts",
+      "packages/server/src/unstable-core-do-not-import/rootConfig.ts",
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96fa581c4a53778dbb4272d728a010c64c8fecbe"
+  },
+  {
+    "query": "custom base path for requests in standalone adapter",
+    "relevant": [
+      "packages/server/src/adapters/node-http/types.ts",
+      "packages/server/src/adapters/standalone.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "caed91ee782f78ada6c8c0c82e2d9d2ff474f555"
+  },
+  {
+    "query": "allow nested async result",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/clientish/serialize.ts",
+      "packages/server/src/unstable-core-do-not-import/http/resolveResponse.ts",
+      "packages/server/src/unstable-core-do-not-import/rootConfig.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2018e3914554d5e8e649fb489cfbf7a4e3fae925"
+  },
+  {
+    "query": "allow middleware to be mounted anywhere",
+    "relevant": [
+      "packages/server/src/adapters/express.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "77c939a3d0dd5ede02a3e216fdad35b2ad6ae2e5"
+  },
+  {
+    "query": "improve jsonl async code",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/jsonl.ts",
+      "packages/server/src/unstable-core-do-not-import/stream/utils/mergeAsyncIterables.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3d80a22210e1a1b8120155aa5b596addb5b2b0e0"
+  },
+  {
+    "query": "handle missing socket.off and socket.once methods",
+    "relevant": [
+      "packages/server/src/adapters/node-http/incomingMessageToRequest.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fd2342add3de8f6956459182154d49686c523b06"
+  },
+  {
+    "query": "encode the SSE messages as bytes instead",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/sse.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "87ea49ed1da187e72669ce6f638500369b16b749"
+  },
+  {
+    "query": "never error SSE on abort",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/sse.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8650a22e8631ae04091209daf09830563d8dcac1"
+  },
+  {
+    "query": "handle runtimes where `req.socket` isn't available",
+    "relevant": [
+      "packages/server/src/adapters/fastify/fastifyRequestHandler.ts",
+      "packages/server/src/adapters/node-http/incomingMessageToRequest.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29a2f0d1802a4fe286ae56715ac1a06315f8f858"
+  },
+  {
+    "query": "dangling event listener in `AbortSignal.any` ponyfill",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/utils.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4744c0612c2e6dcf6d9fd3a30fd57621962ac439"
+  },
+  {
+    "query": "expose more http helpers",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/http/getHTTPStatusCode.ts",
+      "packages/server/src/unstable-core-do-not-import/rpc/codes.ts",
+      "packages/server/src/unstable-core-do-not-import/types.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "956d65f99bd9dd4b52343a4f406111079af0ce7f"
+  },
+  {
+    "query": "ensure order of observable subscription errors",
+    "relevant": [
+      "packages/server/src/observable/observable.ts",
+      "packages/server/src/unstable-core-do-not-import/types.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cd3dfd83063324e59768d1da7288eb313d69f4ba"
+  },
+  {
+    "query": "no `onError`-calls on aborted requests",
+    "relevant": [
+      "packages/server/src/unstable-core-do-not-import/stream/sse.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25f21aad23b0a49439048604eb7cddb92cdc84d8"
+  },
+  {
+    "query": "provide `observableToAsyncIterable` within exports",
+    "relevant": [
+      "packages/server/src/adapters/ws.ts",
+      "packages/server/src/observable/index.ts",
+      "packages/server/src/observable/observable.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5ae464b2428b591d816ee4e01725c86b232d620"
+  }
+]

@@ -1,0 +1,362 @@
+[
+  {
+    "query": "Typst writer: newline after `#set text` directive",
+    "relevant": [
+      "src/Text/Pandoc/Writers/Typst.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "38a23550bb87e8c30002526f153d0942772c36da"
+  },
+  {
+    "query": "Docx reader with `citations` extension: prefer `citation-key`",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Docx.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5caad90fc44669ced0abdd7a890108a995689a90"
+  },
+  {
+    "query": "Docx reader: don't look to ext tags for image extent",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Docx/Parse.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fc374908c0bce4eb8d7d301ec24940a2bc0b2ab"
+  },
+  {
+    "query": "LaTeX writer: fix fr-CA babel language mapping",
+    "relevant": [
+      "src/Text/Pandoc/Writers/LaTeX/Lang.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf955e9441c0cca16274cb51ca8b0b6621721734"
+  },
+  {
+    "query": "Typst reader: implement \"rotate\" as pass-through",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Typst.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df29187f9ea338fbc57d06c07bb99ba04f735149"
+  },
+  {
+    "query": "Docx writer: fix FirstParagraph style lost after heading with footnote",
+    "relevant": [
+      "src/Text/Pandoc/Writers/Docx/OpenXML.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "381b82e4a36e6fc6ec92cecabd7a652e79bc33f6"
+  },
+  {
+    "query": "Markdown reader: simplify checkNotes, remove dead code",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71d54870c4befd7571a8324f0732f36072865af8"
+  },
+  {
+    "query": "Markdown reader: use direct predicate in wikilink",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2f4982f36f393f384b6d6fdf8d484e958679fffa"
+  },
+  {
+    "query": "Markdown reader: use direct predicate in isSmallCapsFontVariant",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "36b18947fb3d8c0f7e2983a00f5e3c6f58a809c6"
+  },
+  {
+    "query": "Markdown reader: use direct predicate in rawTeXBlock",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6228244136e4e8f8ab25c9b043bdbeda041b8506"
+  },
+  {
+    "query": "Markdown reader: avoid temporary Text in lhsCodeBlockBirdWith",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "676634c2f094fb709b8ce0b85d227de3817519ab"
+  },
+  {
+    "query": "Markdown reader: use T.pack . concat in exampleRef",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ecfa2aa9de08540d60359372d1ebf601200fb0e6"
+  },
+  {
+    "query": "use Builder in inBalancedBraces, avoid unpack/pack",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/Math.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1c23e75ad16ee1d34c96cca3762b97298f0157d"
+  },
+  {
+    "query": "avoid full list traversal in fromParsecError",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/General.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8e95b6011df7f4c5916008ee33479a96e27cbac7"
+  },
+  {
+    "query": "use T.pack . concat in exampleNum",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/Lists.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8deded45417ae5d35feb30a0ac3716e0aaa5a33c"
+  },
+  {
+    "query": "use Builder in stringAnyCase, remove stringAnyCase'",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/General.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5d97d31a40d7ac5e640f6b3773322f947da9abae"
+  },
+  {
+    "query": "avoid intermediate list in uriChunkBetween",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/General.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0969ee5a4d041e9284f29188989b819f473abb7b"
+  },
+  {
+    "query": "use Set.member for isEmailPunct",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/General.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "da27d0b75280c6ead91aca76f4342a72b008fefa"
+  },
+  {
+    "query": "simplify oneOfStrings' initial accumulator",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/General.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e856c23c3c1e0743233ef6411ce68fc2a86ce0e5"
+  },
+  {
+    "query": "Fix extractIdClass: filter used || instead of &&",
+    "relevant": [
+      "src/Text/Pandoc/Parsing/General.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5d8b30ce63558d8f4b971d0201e288284a30b6ba"
+  },
+  {
+    "query": "avoid unpack/pack round-trip in splitTextByIndices",
+    "relevant": [
+      "src/Text/Pandoc/Shared.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "30bca6f38a6004a0d79bab428fcd9ddd3da3dcc8"
+  },
+  {
+    "query": "use Set for tag matching in renderTags'",
+    "relevant": [
+      "src/Text/Pandoc/Shared.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9151222cd12c876fa8aacacb1cb562a53dec03c3"
+  },
+  {
+    "query": "use short-circuiting 'any' in compactify",
+    "relevant": [
+      "src/Text/Pandoc/Shared.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89fcb01a58f23cdcc6bb0751f6f755d0f550dc2c"
+  },
+  {
+    "query": "avoid quadratic Text concatenation in toRomanNumeral",
+    "relevant": [
+      "src/Text/Pandoc/Shared.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b17e1c66ddd39aa652dd1f7bf8d7aad5f52591f"
+  },
+  {
+    "query": "avoid redundant T.pack in tabFilter",
+    "relevant": [
+      "src/Text/Pandoc/Shared.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b1d44a70195145ae76bfcdf96d671dd5968c5f4"
+  },
+  {
+    "query": "Markdown writer: escape `:::` to avoid triggering unintended divs",
+    "relevant": [
+      "src/Text/Pandoc/Writers/Markdown/Inline.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a6486391e14792d83e8d8e471ad6da09213783b4"
+  },
+  {
+    "query": "Make groff the default pdf-engine for ms output",
+    "relevant": [
+      "src/Text/Pandoc/App/CommandLineOptions.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40e05e47a95c7639734880c1d38a15ac4ed557c0"
+  },
+  {
+    "query": "MediaWiki writer: handle some technically malformed URLs",
+    "relevant": [
+      "src/Text/Pandoc/Writers/MediaWiki.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7aca987b95fe5d1317592db350369217975f648c"
+  },
+  {
+    "query": "MediaWiki writer: fix escaping to avoid lists",
+    "relevant": [
+      "src/Text/Pandoc/Writers/MediaWiki.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df61b8b1a907d43617fcbbfb8ac6ecfa80825ea5"
+  },
+  {
+    "query": "BibLaTeX inbook should be CSL book, not chapter",
+    "relevant": [
+      "src/Text/Pandoc/Citeproc/BibTeX.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7777de6adb166d92b4c9ee4b24054637ab8477b7"
+  },
+  {
+    "query": "Man writer: don't run together successive definitions",
+    "relevant": [
+      "src/Text/Pandoc/Writers/Man.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fcd8eae9400be99a3bdcf62bcaf1d5cd7df90559"
+  },
+  {
+    "query": "Markdown reader: small code simplification",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "109887263f44b466caa3dbe90c3a029bac82bc88"
+  },
+  {
+    "query": "Markdown reader: Fix bug with `lists_without_preceding_blankline`",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Markdown.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ef6b669e25f55f96b3be45867b497ff5e3467999"
+  },
+  {
+    "query": "correctly handle percentage width, height on svg",
+    "relevant": [
+      "src/Text/Pandoc/ImageSize.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1cc6fec234b96d6f35ee458a5c91dc79cb0a96cb"
+  },
+  {
+    "query": "LaTeX reader: support supertabular environment",
+    "relevant": [
+      "src/Text/Pandoc/Readers/LaTeX/Table.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f10ee0eec3654f5a7302e27743231e0a241cc3a8"
+  },
+  {
+    "query": "Docx reader: preserve non-textbox content when unwrapping textboxes",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Docx/Parse.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c8ee9dc545557117f8bef47bbf18ccce7f61ce08"
+  },
+  {
+    "query": "Docx writer: don't depend on extractTarget from Docx reader",
+    "relevant": [
+      "src/Text/Pandoc/Writers/Docx.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8aa7a0857452e52d8afb72d325c24796b0edce09"
+  },
+  {
+    "query": "Docx reader: properly handle media stored with packaged-rooted paths",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Docx/Parse.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "244528e044a77c5aa7287c8988c4f05dc0cbe4a5"
+  },
+  {
+    "query": "Docx reader: Recognize media inside textboxes",
+    "relevant": [
+      "src/Text/Pandoc/Readers/Docx/Parse.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0d05eb438d164830a903f121fd5252caebcbd48"
+  },
+  {
+    "query": "Typst writer: properly escape . after bracketed argument",
+    "relevant": [
+      "src/Text/Pandoc/Writers/Typst.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "80c704a9acb01fbeffc91a0d05a86c98ab0fe2c0"
+  }
+]

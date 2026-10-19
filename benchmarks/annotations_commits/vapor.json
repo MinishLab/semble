@@ -1,0 +1,374 @@
+[
+  {
+    "query": "Fix Response Compression Bug when Content Type header is empty",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/HTTPServer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cfd8f434843ac7850e2d97f46c1aa5ddb906cf1c"
+  },
+  {
+    "query": "Parse directives from all Cookie headers, not just the first",
+    "relevant": [
+      "Sources/Vapor/HTTP/Headers/HTTPCookies.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8db2dbda8b3cdc8a61bd35128590bd296e85563"
+  },
+  {
+    "query": "Do not create a session if no cookie was provided",
+    "relevant": [
+      "Sources/Vapor/Authentication/SessionAuthenticatable.swift",
+      "Sources/Vapor/Concurrency/Authentication+Concurrency.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6f3db7122ccffb28e11e121c3797a176fcb88796"
+  },
+  {
+    "query": "The RouteNotFound that is used when the router finds nothing is now public",
+    "relevant": [
+      "Sources/Vapor/Responder/DefaultResponder.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3014d7de87d86939f31c5e88b3aa261a46e1d460"
+  },
+  {
+    "query": "Fix parallel build failures on platforms with Glibc",
+    "relevant": [
+      "Sources/Vapor/Utilities/String+IsIPAddress.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b7a70a607e61f81214f09130009af4ed76d9d62"
+  },
+  {
+    "query": "Fix a couple of import issues",
+    "relevant": [
+      "Sources/Vapor/Security/OTP.swift",
+      "Sources/Vapor/Utilities/String+IsIPAddress.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ac3aeb7730b63f4f54248603c38137b551b465c7"
+  },
+  {
+    "query": "Add HEIC (HEVC in HEIF) HTTPMediaType Support",
+    "relevant": [
+      "Sources/Vapor/HTTP/Headers/HTTPMediaType.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d07643bdb4b51780ba8d566c5086d6af50bb78c0"
+  },
+  {
+    "query": "Allow initializing Vapor.Application with a Logger",
+    "relevant": [
+      "Sources/Vapor/Application.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "636fbe688e001dc1f8d6f6026a52bcc396025d19"
+  },
+  {
+    "query": "Add Sendable annotations to the OTP types",
+    "relevant": [
+      "Sources/Vapor/Security/OTP.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3636f443474769147828a5863e81a31f6f30e92c"
+  },
+  {
+    "query": "Correct SessionData's Codable conformance",
+    "relevant": [
+      "Sources/Vapor/Sessions/SessionData.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "87b0edd2633c35de543cb7573efe5fbf456181bc"
+  },
+  {
+    "query": "Added a cache policy for file middleware",
+    "relevant": [
+      "Sources/Vapor/Middleware/FileMiddleware.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f6459d6417d4968f91979224dd8fd38fa99b042c"
+  },
+  {
+    "query": "Fix warning in service fix",
+    "relevant": [
+      "Sources/Vapor/Services/Service.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a425e32f9b9d19c0ecab952cb4484c1c15e2536f"
+  },
+  {
+    "query": "Prevent stack overflow by using `NIOLock` instead of `NIOLockedValueBox` during service initialization",
+    "relevant": [
+      "Sources/Vapor/Services/Service.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f2dcf7d3b47d0af25137ee586405bdffb584045"
+  },
+  {
+    "query": "Use singleton NIOThreadPool by default",
+    "relevant": [
+      "Sources/Vapor/Core/Core.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "91d6f94fd9f0e8ca659de2ac3465b7aeaf8ecbdc"
+  },
+  {
+    "query": "do not truncate response when streaming on error",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/HTTPServerResponseEncoder.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eafbca78d0ced81a127c94f3703fc3fc76827963"
+  },
+  {
+    "query": "Validation API | `Custom` Validator",
+    "relevant": [
+      "Sources/Vapor/Validation/Validation.swift",
+      "Sources/Vapor/Validation/Validators/Custom.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4d7456c0d4b33ef82783a90ecfeae33a52a3972a"
+  },
+  {
+    "query": "Make Services in Vapor Usable",
+    "relevant": [
+      "Sources/Vapor/Services/App+Service.swift",
+      "Sources/Vapor/Services/Req+Service.swift",
+      "Sources/Vapor/Services/Service.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1002f35edf92e2a579580f2d1df92e01287c6c7"
+  },
+  {
+    "query": "Pass the method, url, and user agent from the ErrorMiddleware to the logger in the metadata",
+    "relevant": [
+      "Sources/Vapor/Logging/Logger+Report.swift",
+      "Sources/Vapor/Middleware/ErrorMiddleware.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8903461470b44486bf94007a9994d39e877fb5e7"
+  },
+  {
+    "query": "Adds JPEG XL (JXL) and AVIF HTTPMediaTypes",
+    "relevant": [
+      "Sources/Vapor/HTTP/Headers/HTTPMediaType.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9786a424db75c4e9eb53e255ce1268675b680562"
+  },
+  {
+    "query": "fix `HTTPMethod.RAW(value: String)` string representation",
+    "relevant": [
+      "Sources/Vapor/HTTP/HTTPMethod+String.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb1df8223bfc5507133879f81b23ae387cd16839"
+  },
+  {
+    "query": "Omit ACAO header instead of empty value",
+    "relevant": [
+      "Sources/Vapor/Middleware/CORSMiddleware.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4d3bc6ce08b72a14c9879810cf0be455ca98f1fb"
+  },
+  {
+    "query": "Raise error when the data expected an array but not parsed as array",
+    "relevant": [
+      "Sources/Vapor/URLEncodedForm/URLEncodedFormDecoder.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a4d7d4d32ef4a21dd10bc6375f4d20da3c5594e4"
+  },
+  {
+    "query": "Throw an error if unkeyed container is at end",
+    "relevant": [
+      "Sources/Vapor/URLEncodedForm/URLEncodedFormDecoder.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "083028c79b88577359632a46c5d72b084d5832a5"
+  },
+  {
+    "query": "Use Configured JSONEncoder in ErrorMiddleware",
+    "relevant": [
+      "Sources/Vapor/Middleware/ErrorMiddleware.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "498c5e57005030cc3c28e9ee70fac3b63ffae672"
+  },
+  {
+    "query": "support capital letters in the domain part of email validation",
+    "relevant": [
+      "Sources/Vapor/Validation/Validators/Email.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1da8bbab10c84596ca4a239c507e5c023b3c08b3"
+  },
+  {
+    "query": "Fix decoding 'flag' URL query params via `.decode(StructType.self)`",
+    "relevant": [
+      "Sources/Vapor/URLEncodedForm/URLEncodedFormDecoder.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f1c3495b5c35ab67881412acf20144112729b560"
+  },
+  {
+    "query": "Adds TIFF and WebP HTTP Media Types",
+    "relevant": [
+      "Sources/Vapor/HTTP/Headers/HTTPMediaType.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a46552bf135ebc4a0a4768a1ee2c7258fff32616"
+  },
+  {
+    "query": "Exclude Query and Fragment from URI semicolon fix on Linux",
+    "relevant": [
+      "Sources/Vapor/Utilities/URI.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12e9b41cc576165150cb236676fc94d997d3db5f"
+  },
+  {
+    "query": "asyncBoot will no longer try booting server again if it is already booted",
+    "relevant": [
+      "Sources/Vapor/Application.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c185b7ec980ddd815d325a4655f30e66b1a53bc"
+  },
+  {
+    "query": "Update URLEncodedFormEncoder encoding rules",
+    "relevant": [
+      "Sources/Vapor/URLEncodedForm/URLEncodedFormSerializer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "50c619665760c903e9084772ebdb25877cf2d344"
+  },
+  {
+    "query": "Support compiling against Musl",
+    "relevant": [
+      "Sources/Vapor/Utilities/DirectoryConfiguration.swift",
+      "Sources/Vapor/Utilities/DotEnv.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d9fa0d3f7831ae055077fbcc166eb8baa94a19d0"
+  },
+  {
+    "query": "Log source file and line info for errors in ErrorMiddleware when possible",
+    "relevant": [
+      "Sources/Vapor/Error/AbortError.swift",
+      "Sources/Vapor/Middleware/ErrorMiddleware.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e69a55b5322cecf276ec84f70ae01281264e4624"
+  },
+  {
+    "query": "Make # of connections accepted per event loop cycle configurable, and raise the default",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/HTTPServer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af86ea4402c65dfbe70ac1bb9fd1d3fd9501a3f6"
+  },
+  {
+    "query": "Patch configuration and log actual port on startup",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/HTTPServer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5cb0abdadff95ef996fafd6268f2f5f8cba6325"
+  },
+  {
+    "query": "Removed streamFile deprecation + deactivated advancedETagComparison by default",
+    "relevant": [
+      "Sources/Vapor/Middleware/FileMiddleware.swift",
+      "Sources/Vapor/Utilities/FileIO.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3e3d65b05a280aaecdd33e45f71655b5d9118a00"
+  },
+  {
+    "query": "Advanced ETag Comparison now supported",
+    "relevant": [
+      "Sources/Vapor/HTTP/Headers/HTTPHeaders+ContentRange.swift",
+      "Sources/Vapor/Middleware/FileMiddleware.swift",
+      "Sources/Vapor/Utilities/FileIO.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "526a000bb082a261566b6adea3c1a1ddbed98a19"
+  },
+  {
+    "query": "Enabled Request Decompression By Default",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/HTTPServer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0fb4f1dd8b11fa7a8d4f6bab6d020844b4fc3251"
+  },
+  {
+    "query": "HTTP2 Response Compression/Request Decompression",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/HTTPServer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71dff4f3f889553b4525b53376dcb2c5c27ad993"
+  },
+  {
+    "query": "Don't set ignore status for SIGTERM and SIGINT on Linux",
+    "relevant": [
+      "Sources/Vapor/Commands/ServeCommand.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "096c51992b1c32695c0e17329d1eeda45e026a9d"
+  },
+  {
+    "query": "Allow `HTTPServer`'s configuration to be dynamically updatable",
+    "relevant": [
+      "Sources/Vapor/HTTP/Server/Application+HTTP+Server.swift",
+      "Sources/Vapor/HTTP/Server/HTTPServer.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a7da193a2937472b252b8db210897e7abf37b47"
+  }
+]

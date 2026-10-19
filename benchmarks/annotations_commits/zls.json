@@ -1,0 +1,375 @@
+[
+  {
+    "query": "update set of excluded builtin parameter inlay hints",
+    "relevant": [
+      "src/features/inlay_hints.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f4ac9f643bcd1998759d331908a0c25017dcd45"
+  },
+  {
+    "query": "update usage of deprecated `std.StaticBitSet.initEmpty`",
+    "relevant": [
+      "src/analyser/InternPool.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb67164849e4410e7805028669091e70d3f953d1"
+  },
+  {
+    "query": "EnumSet initFull/Empty are deprecated",
+    "relevant": [
+      "src/Server.zig",
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6a25fe47f4445ed403b636a6c7956da3dd2e96fd"
+  },
+  {
+    "query": "Resolve `const` declaration as interned value if possible",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0bb4338e15ee50bb0b705b7061bbc70042cb2617"
+  },
+  {
+    "query": "Resolve `@as` call as interned value if possible",
+    "relevant": [
+      "src/analyser/InternPool.zig",
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4b644c36891f43e2a2f9aa528ab3c9a16e72fbd1"
+  },
+  {
+    "query": "Avoid using interned value when resolving variable",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a856fcf4038a257983b3129609232db84f7f7c98"
+  },
+  {
+    "query": "Avoid using interned value when resolving negation",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3bab6bfdd083f112e59fcf71484c7cc61bddc083"
+  },
+  {
+    "query": "remove `@constCast` that is no longer needed",
+    "relevant": [
+      "src/DocumentStore.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21c1f8f8ce5af1aa7e9f55856446c85468f5d3e5"
+  },
+  {
+    "query": "don't create folding range for small number of imports",
+    "relevant": [
+      "src/features/folding_range.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f26ea107c3d81e7217107e1f0d871d8b3e6e769b"
+  },
+  {
+    "query": "Fixed resolved types related to mutable bracket access",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12a2039db278455a1023b4902043f78a0d947952"
+  },
+  {
+    "query": "Resolve number literal values when creating inlay hints",
+    "relevant": [
+      "src/features/hover.zig",
+      "src/features/inlay_hints.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ac0f426553503b51a47a3a89e0bcceaaf4f9d08e"
+  },
+  {
+    "query": "Store unknown sentinel value as .unknown_uknown",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f473e025b7b9730426b17484c6251b4cf75e439"
+  },
+  {
+    "query": "handle import to module without a root source file",
+    "relevant": [
+      "src/build_runner/build_runner.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bde49ab444647efafc45e1d759fa6840de784665"
+  },
+  {
+    "query": "reimplement selection range using ast walking",
+    "relevant": [
+      "src/features/selection_range.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ec65a81a0b9be6a47f235d4cc5800201a35bdf0"
+  },
+  {
+    "query": "Intern {pointer,array,optional,error union} types when possible",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1e72ef20aa968c3ef1cbacbd961b41276de2f78f"
+  },
+  {
+    "query": "Resolve peer types: error set and interned error union",
+    "relevant": [
+      "src/analyser/InternPool.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b33d4b4e8db843e20b27812f097f4fb0863d67a"
+  },
+  {
+    "query": "Sort interned error sets",
+    "relevant": [
+      "src/analyser/InternPool.zig",
+      "src/analyser/string_pool.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3f3513efba14905181b574d9ea56db0d8aaefb5"
+  },
+  {
+    "query": "Add helper method Type.instanceUnchecked",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3399ba2277fa17ed90d7de978204aa17663a5eb"
+  },
+  {
+    "query": "move variable naming checks to diagnostics.zig",
+    "relevant": [
+      "src/analysis.zig",
+      "src/features/diagnostics.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27532e2b3a83215efa2ab4dc6f016feb8478a88e"
+  },
+  {
+    "query": "include the body in function document symbol ranges",
+    "relevant": [
+      "src/features/document_symbol.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f963efb38772e2d1007f3f2a0318b06c620ee168"
+  },
+  {
+    "query": "make never mutated local vars const",
+    "relevant": [
+      "src/Uri.zig",
+      "src/configuration.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5770461cd980f3159a9746b7aced5da15cd80a69"
+  },
+  {
+    "query": "Fix resolved type of type function with unknown return type",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "07a682a537ea36704a73cca73c873a4f871854f6"
+  },
+  {
+    "query": "Don't resolve unknown type as `type`",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "85379d753cb7b5ed6113f5934f5577907cd64017"
+  },
+  {
+    "query": "fix extern functions missing from document symbols",
+    "relevant": [
+      "src/features/document_symbol.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ddaf453b8c06a04d110926d787bdf63801496809"
+  },
+  {
+    "query": "improve build on save log messages",
+    "relevant": [
+      "src/Server.zig",
+      "src/features/diagnostics.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d0abde46f5614a98b90da8a5f284479f7a042df3"
+  },
+  {
+    "query": "avoid unnecessary function instantiations of `std.Io.Writer.print`",
+    "relevant": [
+      "src/Server.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2031f1c9a4cc90a793d4538443a6b2e4930a5646"
+  },
+  {
+    "query": "Avoid using interned values when resolving peer types",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64375ba3e73461c2a77d37618b904c7ad1d699ac"
+  },
+  {
+    "query": "Fix completions for interned null-terminated slice",
+    "relevant": [
+      "src/analyser/completions.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "57da2a2b00d3be5f74a15f10a03eeb4c88b7af78"
+  },
+  {
+    "query": "Include comptime-known values in hover info",
+    "relevant": [
+      "src/analysis.zig",
+      "src/features/completions.zig",
+      "src/features/hover.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e32d546aa927730a1c996effa3e841649ecc4361"
+  },
+  {
+    "query": "Deduplicate completions with branching types",
+    "relevant": [
+      "src/analyser/completions.zig",
+      "src/features/completions.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8310251d878cf02427b3afe28b22720fe6105f84"
+  },
+  {
+    "query": "Deprioritize completions for fields with default value",
+    "relevant": [
+      "src/features/completions.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "695a1d5c8a607f927b552784c2dc9f9c1d1f6130"
+  },
+  {
+    "query": "complete decl literals after `try` keyword",
+    "relevant": [
+      "src/features/completions.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "932e621b25bb4f60538894ca849a0e82f3bd39af"
+  },
+  {
+    "query": "Resolve type of `std.meta.ArgsTuple` call",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "094cd9d3f3dbccc654c5b5cf281def7ccad3f8b0"
+  },
+  {
+    "query": "Resolve type of `std.meta.Tag` call",
+    "relevant": [
+      "src/analysis.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ba645910e4d893a097a67bbc76c39609ac7497eb"
+  },
+  {
+    "query": "Include field name in hover info",
+    "relevant": [
+      "src/analysis.zig",
+      "src/features/completions.zig",
+      "src/features/hover.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6946f1144a4c16512440fb6df8f79545aca45161"
+  },
+  {
+    "query": "improve type resolution of builtin functions",
+    "relevant": [
+      "src/analysis.zig",
+      "src/tools/config_gen.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b58f0e2b3d3e58023fc90ca7f4318eaa2970a2fd"
+  },
+  {
+    "query": "Use std.ArrayList in Uri.zig",
+    "relevant": [
+      "src/Uri.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f8dd9557a6c64a688391ba6e5790d2854ddcd2e"
+  },
+  {
+    "query": "fix URI encoding of resolved imports",
+    "relevant": [
+      "src/Uri.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d2e4715032030dcc2c666d6a27de99b02244f6d4"
+  },
+  {
+    "query": "fix enum completion on out of bound token index",
+    "relevant": [
+      "src/features/completions.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4612b22674895d9b7d5dd9e0bfc15c8cd455f34c"
+  },
+  {
+    "query": "fix completion when the cursor is positioned before a lone `@` character",
+    "relevant": [
+      "src/features/completions.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "212d793c4294341993505295094706ab7bbded4b"
+  }
+]

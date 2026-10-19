@@ -1,0 +1,370 @@
+[
+  {
+    "query": "Apply the stringscutprefix modernizer",
+    "relevant": [
+      "middleware/compress.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3328d4d3ab8a08547fa419ed657017355e6d3c4d"
+  },
+  {
+    "query": "Simplify chi.walk with slices.Concat",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be60b2ec5755a9072cdf27af3ba3034e84781d12"
+  },
+  {
+    "query": "Propagate inline middlewares across mounted subrouters",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "903cff2596eac0f72538ac46d696058351f1c3fb"
+  },
+  {
+    "query": "Use strings.ReplaceAll where applicable",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "142fada90f83e2f41f29552110d342de09f96781"
+  },
+  {
+    "query": "add missing return in RouteHeaders empty check",
+    "relevant": [
+      "middleware/route_headers.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "05f1ef7bb50b8a8cb33a9dd3ba1c5b94bff0f723"
+  },
+  {
+    "query": "update reverseMethodMap in RegisterMethod",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fb4a15daa6d4ccd5e7286c1227d58872f89f4cb"
+  },
+  {
+    "query": "Refactor to use atomic type",
+    "relevant": [
+      "middleware/request_id.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "51c977c2da872d16d05531d5bc49ccd027599ce2"
+  },
+  {
+    "query": "Replace methodTypString func with reverseMethodMap",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b9fb55def404397748a9fc7e044efe9db1d618e"
+  },
+  {
+    "query": "Optimize throttle middleware by avoiding unnecessary timer creation",
+    "relevant": [
+      "middleware/throttle.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf537d4016bf258bd9bdbe0dccbfdeeac364423f"
+  },
+  {
+    "query": "Avoid potential nil dereference",
+    "relevant": [
+      "middleware/url_format.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c2d011f59c4b2fc2127f308f2b4171db2567f19"
+  },
+  {
+    "query": "Make use of strings.Cut",
+    "relevant": [
+      "middleware/content_charset.go",
+      "middleware/content_type.go",
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e235052c10146fb724439442fc9d9a23e19fe931"
+  },
+  {
+    "query": "Exclude profiler when use tinygo",
+    "relevant": [
+      "middleware/profiler.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7034fdfdaefd10f1bc1a7b813bc979f2eda3a36"
+  },
+  {
+    "query": "Apply fieldalignment fixes to optimize struct memory layout",
+    "relevant": [
+      "middleware/throttle.go",
+      "middleware/wrap_writer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e846b8304c769c4f1a51c9de06bebfaa4576bd88"
+  },
+  {
+    "query": "allow multiple informational status",
+    "relevant": [
+      "middleware/wrap_writer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d9d5e318c2701f0dfd1decf6f77566501d720d20"
+  },
+  {
+    "query": "Fix `Mux.Find` not correctly handling nested routes",
+    "relevant": [
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ceb498b221efa11f559602beb2463b8b52c2161"
+  },
+  {
+    "query": "Ability to specify response HTTP status code for Throttle middleware",
+    "relevant": [
+      "middleware/throttle.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f927a8ec868a307ad892b454d2aacfab463d5d0"
+  },
+  {
+    "query": "Fixed incorrect comment about routing",
+    "relevant": [
+      "chi.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df0303d61b1dc0933b60c550f9a02e7784a42ed5"
+  },
+  {
+    "query": "feat : add CF-Connecting-IP",
+    "relevant": [
+      "middleware/realip.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cbaac313e4f2c7140eba9863f2be951c7804139a"
+  },
+  {
+    "query": "Add `Find` to `Routes` interface",
+    "relevant": [
+      "chi.go",
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1089a7c69556f7dae6b0219dfea02662c92334a4"
+  },
+  {
+    "query": "add Discard method to WrapResponseWriter",
+    "relevant": [
+      "middleware/wrap_writer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "67be7d9cafdaeb4e04e887ff78d09e030ee43b00"
+  },
+  {
+    "query": "Close created writer in the compressor middleware",
+    "relevant": [
+      "middleware/compress.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f10dc4a9cab53a47f600f518fcccaa044666e95f"
+  },
+  {
+    "query": "reduce context struct size from 216 bytes to 208 bytes",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ef31c0bff3f8061e6fba7085691e4970a3d1b7da"
+  },
+  {
+    "query": "update HTTP method parsing in patterns for `Handle` and `HandleFunc`",
+    "relevant": [
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "60b4f5f52d70851dc4802f68ef96794302bdf854"
+  },
+  {
+    "query": "Extend Handle method to parse HTTP method in pattern",
+    "relevant": [
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7446950424da5c8a04d26f294da95f6c98a4174a"
+  },
+  {
+    "query": "reset methodsAllowed on contexts in sync pool",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9dd8b4a7b5930c86ac2ecfdb55467112cc223518"
+  },
+  {
+    "query": "drop else statements where if block ends with a return",
+    "relevant": [
+      "middleware/compress.go",
+      "middleware/recoverer.go",
+      "middleware/route_headers.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ecd189745e0068835ab105bc23f2de86c31f5717"
+  },
+  {
+    "query": "Use original expvar handler for profiler middleware",
+    "relevant": [
+      "middleware/profiler.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "247397ca7861c4993c1e31dbc0f52b01f5de6baa"
+  },
+  {
+    "query": "add sunset/deprecation header middleware",
+    "relevant": [
+      "middleware/sunset.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3954a76a285fe435e965603e05b3e57d24442ff9"
+  },
+  {
+    "query": "unnecessary guard around call to delete",
+    "relevant": [
+      "middleware/compress.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "779d661a0ce16955dca550ee08bc5c499a99b3c0"
+  },
+  {
+    "query": "Removes ambiguity around \"fresh middleware stack\" in GoDoc",
+    "relevant": [
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "834f94df1330f58c549053d81c0722d906a59bb4"
+  },
+  {
+    "query": "remove mute conversion from Router to *Mux",
+    "relevant": [
+      "mux.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2509839f30420cde2bf7f6e1391b2b4b3ff76db"
+  },
+  {
+    "query": "Adds the Allow header on 405 response",
+    "relevant": [
+      "context.go",
+      "mux.go",
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4b14b832d53cef6c77fdcf852876a34f46bc84a2"
+  },
+  {
+    "query": "middleware.Compress: implement Unwrap method to the compressResponseWriter",
+    "relevant": [
+      "middleware/compress.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8cbdac602a71746101522f9695c06aab72be5244"
+  },
+  {
+    "query": "recoverer middleware skip write header on upgrade connection",
+    "relevant": [
+      "middleware/recoverer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "51068a747f1a32dbce24c499561a0f5ecb7f7158"
+  },
+  {
+    "query": "Use RoutePath in URLFormat middleware",
+    "relevant": [
+      "middleware/url_format.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0fe6bf1ba3ac601700b7993bc4c62f6c5f707932"
+  },
+  {
+    "query": "update comment in source",
+    "relevant": [
+      "chi.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "42a41a8f677355207d4a9ef9594713a240e94c7d"
+  },
+  {
+    "query": "fix set Vary header",
+    "relevant": [
+      "middleware/compress.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b750c805b4ee0952be12031a9b64014a8ae99c6f"
+  },
+  {
+    "query": "add net.ParseIP as validation to RealIP middleware",
+    "relevant": [
+      "middleware/realip.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "06573a69be04fe52f371b87e6d49f433e71ac2f4"
+  },
+  {
+    "query": "support ip chain without spaces in xForwarded header",
+    "relevant": [
+      "middleware/realip.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e4fe2589dd544072423133852cf5661ae44bb72f"
+  },
+  {
+    "query": "middleware.RealIP: also check True-Client-IP request header",
+    "relevant": [
+      "middleware/realip.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "991ad53c7034904754d2ea949ef4ee4f00a884b0"
+  }
+]

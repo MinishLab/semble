@@ -1,0 +1,365 @@
+[
+  {
+    "query": "KTOR-9398 Client Core. Cancel streaming on exception",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/statement/HttpStatement.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2719c3fed3c0d3ea0135b06582e31a38b1477b01"
+  },
+  {
+    "query": "HttpRequestRetry and HttpTImeout installation order",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRequestRetry.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "72ea6c92bc18728415fd7918483c010663694b00"
+  },
+  {
+    "query": "KTOR-9211 Fix SendCountExceedException when max retries is lesser than max send count",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpSend.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "844cd304af0918253f5d9e1522f91e9fd73a4034"
+  },
+  {
+    "query": "KTOR-9258 Add headers member function to DefaultRequestBuilder to prevent silent header loss",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/DefaultRequest.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f99d0afcdc4b55b8b85855fd44dd7a1df6a511a4"
+  },
+  {
+    "query": "KTOR-9096 Fix SSE cancellation leak on Darwin",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/DefaultClientSSESession.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b148c65fc2276dc58f501f8fb75c2680b7f07412"
+  },
+  {
+    "query": "KTOR-9146 Run HttpStatement.execute on the engine's dispatcher",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/statement/HttpStatement.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4196856552cd06871f4f03b5a1ceec2ba1bd857"
+  },
+  {
+    "query": "KTOR-9037 Make formData inline function",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/request/forms/formDsl.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "85b55a8e11b66710303e950703c86d2d915f279e"
+  },
+  {
+    "query": "KTOR-9129 Fix SendCountExceedException when maxRetries = Int.MAX_VALUE",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpSend.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eaddf437163b6f3678e30aee1da6055edfed2f64"
+  },
+  {
+    "query": "Do not append another value to User-Agent if user already specified its value",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/UserAgent.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "45e795579a92014c25ebdda3eb984a6e0ab9cce8"
+  },
+  {
+    "query": "KTOR-7713 HttpCallValidatorConfig.handleResponseException should receive a CallExceptionHandler",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpCallValidator.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f9a450559944a2386effa55a54da3aed735fd8a4"
+  },
+  {
+    "query": "KTOR-5850 Fix SendCountExceedException in HttpRequestRetry",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRequestRetry.kt",
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpSend.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "69ca7cf852cb9514e1ba7e50b73390e78823b73a"
+  },
+  {
+    "query": "KTOR-8975 BodyProgress: Keep the response body replayable",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/BodyProgress.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4a1cc7d8f46ca3b9267112bd12f87777f5726c14"
+  },
+  {
+    "query": "KTOR-8440 Add a note about SSE session lifetime in KDoc",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/builders.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c21922bbe2d06531807d50ed64875968b94e0d5e"
+  },
+  {
+    "query": "KTOR-7162 Add `defaultRequest { }` with optional `replace` parameter",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/HttpClientConfig.kt",
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/DefaultRequest.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af24a5a1a663d6c3c4fe36360a565fe17461b2d5"
+  },
+  {
+    "query": "KTOR-8697 Add fallback when the redirect response has no Location header",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRedirect.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5e9794b0861dc960c255b96d58274522569311f5"
+  },
+  {
+    "query": "KTOR-8636 Set HTTP method after executing request builder",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/request/builders.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be4ffcf9a325765c7981adac59d5e300891693fd"
+  },
+  {
+    "query": "KTOR-6790 Fix ObservableContent by avoiding caching the delegate's channel",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/content/ObservableContent.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27045c8ae75e8a6556e0ced2264b0e5150f9a828"
+  },
+  {
+    "query": "KTOR-8583 Remove spaces from constant names",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/SaveBody.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "03576decadfb773d31cd0c41cd42d315a1dec236"
+  },
+  {
+    "query": "KTOR-4766 Add defaultRequest plugin extension",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/DefaultRequest.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "030299e58de38f5ed6e8b49973ef3e0d409e7e73"
+  },
+  {
+    "query": "KTOR-8343 Store client header cookies with RAW encoding",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cookies/HttpCookies.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a17d9171ffc0034ae3c1ddb9d83ec63bec590142"
+  },
+  {
+    "query": "Set HTTP method earlier in the request builder block",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/request/builders.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7059596f4f0cb278170c4c1d4562d6da13904974"
+  },
+  {
+    "query": "KTOR-8358 Fix Reference to nonexistent INFINITE_TIMEOUT_MS in the exception message on HttpTimeout",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpTimeout.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "331367d653a23665716e33fd06a5d7e914081774"
+  },
+  {
+    "query": "KTOR-8206 Apply socket and connect timeouts to WS and SSE",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpTimeout.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3bae6f2acf8ab24d303d2fc14800ff7b17034154"
+  },
+  {
+    "query": "KTOR-7213 Allow access to the configuration options of a HttpRequestRetry client plugin",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRequestRetry.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c00a5abcc89c1af3e502b908e421bdb91cd91be"
+  },
+  {
+    "query": "KTOR-7830 HttpCache may cache response before its transformation",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cache/HttpCache.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c24c73493ac7b761608b2c34b91d26563c82cd6c"
+  },
+  {
+    "query": "KTOR-7172 Fix IndexOutOfBoundsException in HttpCache",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cache/HttpCacheEntry.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e9404c584685c233b54936931d5451215b815fdb"
+  },
+  {
+    "query": "KTOR-7618 Fix for chunked transfer disconnect not retried",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRequestRetry.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb5ea046f07007557067f48a66123784466d2a43"
+  },
+  {
+    "query": "Remove space from default user agent",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/engine/Utils.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5685873ff52f8abd065c4189a69af661f88eaaf1"
+  },
+  {
+    "query": "KTOR-6946 headers in the default request are overriding new custom headers",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/DefaultRequest.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "147c7a4d95a12579e9c85831ed1e475578447045"
+  },
+  {
+    "query": "KTOR-7623 Evaluate trace logs lazily in WebSockets client plugin",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/websocket/WebSockets.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5a7bf7fa9e84e0c9831902bb06eece3ec90cc58d"
+  },
+  {
+    "query": "KTOR-6963 Fix darwin maxFrameSize option",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/websocket/WebSockets.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89a3bbce0fabcfc394bce131dd25de3c18236d0c"
+  },
+  {
+    "query": "KTOR-7483 Allow auth header when client is not shared",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cache/HttpCache.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0665736fc35c8ab5525241e975f36819b67f9d3e"
+  },
+  {
+    "query": "KTOR-7294 Allow for exponential retry delays of below 2 seconds",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpRequestRetry.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "910d305bd43e1b17569c41546c77250091ead5c9"
+  },
+  {
+    "query": "KTOR-6646 Fix overflow for cookie with long Max-Age",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cookies/AcceptAllCookiesStorage.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "313b38148635d4d0afbe6f6151fa58cfbc21651c"
+  },
+  {
+    "query": "KTOR-6614 Fix SSE client breaking non-SSE requests",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/SSE.kt",
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/builders.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb14545d13f30c32ca2bbd5e32b62b70639fd611"
+  },
+  {
+    "query": "KTOR-6664 Cancel pending incoming messages if the session is closing",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/websocket/builders.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71738f518f14e8847ffaffe9372751a6dcbcb010"
+  },
+  {
+    "query": "KTOR-6625 Fix HttpCallValidatorConfig name",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/HttpCallValidator.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f13ca47f4100fb457b1bed70f3d197c4b39d6149"
+  },
+  {
+    "query": "KTOR-6571 Fix SSEException is thrown instead of JobCancellationException when coroutine's job is cancelled",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/sse/builders.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71aa9200f46da4f40028c11e828072cade9a74b9"
+  },
+  {
+    "query": "KTOR-6505 Fix NumberFormatException in HttpCache",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/cache/HttpCacheEntry.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b9515254d3c7c9bda8271b69cdd83fcee3426df2"
+  },
+  {
+    "query": "KTOR-6388 change \"upgrade\" to \"Upgrade\"",
+    "relevant": [
+      "ktor-client/ktor-client-core/common/src/io/ktor/client/plugins/websocket/WebSocketContent.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d4b0eef94acc47c0e5088baefc047905c6d36125"
+  }
+]

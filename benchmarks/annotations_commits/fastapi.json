@@ -1,0 +1,370 @@
+[
+  {
+    "query": "\u2728 Add support for `@app.vibe `",
+    "relevant": [
+      "fastapi/applications.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "70580da818722cce68b7a88928d67bd0f64f42c5"
+  },
+  {
+    "query": "\ud83d\udcdd Fix duplicated words in docstrings",
+    "relevant": [
+      "fastapi/security/http.py",
+      "fastapi/security/oauth2.py",
+      "fastapi/security/open_id_connect_url.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "31bbb380748ccead62fc0f42dbf4273f11dadccf"
+  },
+  {
+    "query": "\ud83d\udcdd Fix doctrings for `max_digits` and `decimal_places`",
+    "relevant": [
+      "fastapi/param_functions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b0090c39bed382435dd7a13b60966729ddc5dfc"
+  },
+  {
+    "query": "\ud83d\udc1b Fix, avoid yield from a TaskGroup, only as an async context manager, closed in the request async exit stack",
+    "relevant": [
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8a9258b169dce3e321f614c14b1877c18750d6c7"
+  },
+  {
+    "query": "\u267b\ufe0f Refactor logic to handle OpenAPI and Swagger UI escaping data",
+    "relevant": [
+      "fastapi/applications.py",
+      "fastapi/openapi/docs.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2686c7fbbf9abb17902a2981a9d9fca01f5117b8"
+  },
+  {
+    "query": "\u267b\ufe0f Simplify reading files in memory, do it sequentially instead of (fake) parallel",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25270fcee0c71c3bc661e40501fa3838beb6d99b"
+  },
+  {
+    "query": "\u2728 Show a clear error on attempt to include router into itself",
+    "relevant": [
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df950111fe97c8040e49f4600d6f563456bbdba6"
+  },
+  {
+    "query": "\u2728 Replace `dict` by `Mapping` on `HTTPException.headers`",
+    "relevant": [
+      "fastapi/exceptions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "66dc695071d8a040db72d5546eb848a58b41152e"
+  },
+  {
+    "query": "\ud83d\udc1b Fix `on_startup` and `on_shutdown` parameters of `APIRouter`",
+    "relevant": [
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ed2512a5ec33d9d70f7a9ef2e5f9fe52d3b77ab2"
+  },
+  {
+    "query": "\u267b\ufe0f Refactor and simplify Pydantic v2 (and v1) compatibility internal utils",
+    "relevant": [
+      "fastapi/dependencies/utils.py",
+      "fastapi/openapi/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2e7d3754cd1c85feb4dfa14ee29a509133cfc203"
+  },
+  {
+    "query": "\u267b\ufe0f Simplify internals, remove Pydantic v1 only logic, no longer needed",
+    "relevant": [
+      "fastapi/dependencies/utils.py",
+      "fastapi/openapi/utils.py",
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf55bade7ea6e4bf85a167e8aed1c6167e7a4196"
+  },
+  {
+    "query": "\u267b\ufe0f Re-implement `on_event` in FastAPI for compatibility with the next Starlette, while keeping backwards compatibility",
+    "relevant": [
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f9f79926047d7f5d8e0127dd585e7683ee57e9f7"
+  },
+  {
+    "query": "\ud83d\udc1b Fix using `Json[list[str]]` type (issue )",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c5fd75a321496b1f8212744bde217ec8ea956154"
+  },
+  {
+    "query": "\u2728 Add support for PEP695 `TypeAliasType`",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "97145588f5442aa7c3830173813d5d1a2c893521"
+  },
+  {
+    "query": "\ud83c\udfa8 Tweak types for mypy",
+    "relevant": [
+      "fastapi/encoders.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "440bfd70a948c187dadb2e89ee7e94933e867a00"
+  },
+  {
+    "query": "\ud83d\udc1b Strip whitespaces from `Authorization` header credentials",
+    "relevant": [
+      "fastapi/security/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d96b3e3f14fa5a226ae817d1095b868796beb60"
+  },
+  {
+    "query": "\u2728 Add `viewport` meta tag to improve Swagger UI on mobile devices",
+    "relevant": [
+      "fastapi/openapi/docs.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "741f77d571eeeb2cde4fe11dcfe038c4d925a046"
+  },
+  {
+    "query": "\ud83c\udff7\ufe0f Re-export `IncEx` type from Pydantic instead of duplicating it",
+    "relevant": [
+      "fastapi/types.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0748214c43d0793b56a309199f45b9bf78c0da26"
+  },
+  {
+    "query": "\ud83d\udeb8 Improve error message for invalid query parameter type annotations",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "41352de24c41f3df540ea410696aa2116ab59394"
+  },
+  {
+    "query": "\ud83d\udc1b Fix OpenAPI duplication of `anyOf` refs for app-level responses with specified `content` and `model` as `Union`",
+    "relevant": [
+      "fastapi/openapi/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "08dad5c69fbeac83616226b4d56b6c79b8683767"
+  },
+  {
+    "query": "\ud83d\udcdd Use `WSGIMiddleware` from `a2wsgi` instead of deprecated `fastapi.middleware.wsgi.WSGIMiddleware`",
+    "relevant": [
+      "fastapi/middleware/wsgi.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dc3278654f13614d255edca66954326966f6620d"
+  },
+  {
+    "query": "\ud83d\udc77 Run mypy by pre-commit",
+    "relevant": [
+      "fastapi/dependencies/utils.py",
+      "fastapi/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f3f498100f1d0edc344e200b215d42a6e46473fd"
+  },
+  {
+    "query": "\ud83d\udc1b Fix support for `if TYPE_CHECKING`, non-evaluated stringified annotations",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7ba042e069ad424a584a37f1db03887798d9af80"
+  },
+  {
+    "query": "\ud83d\udeb8 Improve tracebacks by adding endpoint metadata",
+    "relevant": [
+      "fastapi/exceptions.py",
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1117f75505bbdb2d42321a009dbf26c9c2b8b6d"
+  },
+  {
+    "query": "\ud83d\udc1b Fix OpenAPI security scheme OAuth2 scopes declaration, deduplicate security schemes with different scopes",
+    "relevant": [
+      "fastapi/openapi/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ec4bafca204c92dca903437e78514246fe14eac"
+  },
+  {
+    "query": "\u2728 Allow using dependables with `functools.partial `",
+    "relevant": [
+      "fastapi/dependencies/models.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "982448661630e2f412f18a192eed29d0da4a8fb1"
+  },
+  {
+    "query": "\u2728 Add support for wrapped functions (e.g. `@functools.wraps `) used with forward references",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c1e584abd5cb98920bf22966f7a8b79d3ec64be"
+  },
+  {
+    "query": "\ud83d\udd25 Remove dangling extra condiitonal no longer needed",
+    "relevant": [
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a79ae3d66fb093adfe9f8d15a53af74b49947562"
+  },
+  {
+    "query": "\u267b\ufe0f Refactor internals, update `is_coroutine` check to reuse internal supported variants (unwrap, check class)",
+    "relevant": [
+      "fastapi/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "247ef32e790ef296d8febc3fbc639849ff24b1a5"
+  },
+  {
+    "query": "\ud83d\udcdd Fix docstring of `servers` parameter",
+    "relevant": [
+      "fastapi/applications.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dcf0299195c7182b0b0f9d07118a157a05490b8d"
+  },
+  {
+    "query": "\ud83d\udc1b Fix Query\\Header\\Cookie parameter model alias",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "015b4fae9ce949ce46b285dabce7aa050b370eba"
+  },
+  {
+    "query": "\ud83d\udc1b Fix unformatted `{type_}` in FastAPIError",
+    "relevant": [
+      "fastapi/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb3792d39e1004947419a2a06b5764894730892d"
+  },
+  {
+    "query": "\ud83d\udc1b Fix parsing extra non-body parameter list",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "de5bec637c6af5126382c1e604514964ba9e5093"
+  },
+  {
+    "query": "\ud83d\udc1b Fix parsing extra `Form` parameter list",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6cf40df24d1d199fd25d034fc87fcae284fc23a2"
+  },
+  {
+    "query": "\ud83d\udc1b Fix `TypeError` when encoding a decimal with a `NaN` or `Infinity` value",
+    "relevant": [
+      "fastapi/encoders.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "20f40b29c0241fc73d82857ab456ef6fda15659f"
+  },
+  {
+    "query": "\ud83d\udc1b Fix hierarchical security scope propagation",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "378ad688b7e57efb190506b3b36be65eb8ad5e6f"
+  },
+  {
+    "query": "\ud83d\udc1b Fix security schemes in OpenAPI when added at the top level app",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "496de1816aa01a59c75a7dcd27fd3c6245fa255a"
+  },
+  {
+    "query": "\ud83d\udc1b Fix validation error when `File` is declared after `Form` parameter",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44fc67632bcdae4d078cb11b1a319ac122cbb06f"
+  },
+  {
+    "query": "\u26a1\ufe0f Fix `default_factory` for response model field with Pydantic V1",
+    "relevant": [
+      "fastapi/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f1e6f978ce10a6f9b4c668350a79462e9ac330a8"
+  },
+  {
+    "query": "\u2728 Allow `None` as return type for bodiless responses",
+    "relevant": [
+      "fastapi/dependencies/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b51ec36f2e442495de5e4c22ae51a8f5c44917eb"
+  }
+]

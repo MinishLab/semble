@@ -1,0 +1,378 @@
+[
+  {
+    "query": "add 'try_io' function to 'unix::pipe' sender and receiver types",
+    "relevant": [
+      "tokio/src/net/unix/pipe.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5db10f538b683fe88d699dfd11be31d193db011c"
+  },
+  {
+    "query": "add `trace_with` for customized task dumps",
+    "relevant": [
+      "tokio/src/runtime/dump.rs",
+      "tokio/src/runtime/task/trace/mod.rs",
+      "tokio/src/runtime/task/trace/trace_impl.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bbdba7101de6ce5329d84021ce669f185cc430b3"
+  },
+  {
+    "query": "overflow second half of tasks when local queue is filled instead of first half",
+    "relevant": [
+      "tokio/src/runtime/scheduler/multi_thread/queue.rs",
+      "tokio/src/runtime/scheduler/multi_thread/worker.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "203af021261ab7399c18ab12f22c24f1934c7d42"
+  },
+  {
+    "query": "use `compare_exchange_weak ` in worker queue",
+    "relevant": [
+      "tokio/src/runtime/scheduler/multi_thread/queue.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4c7d8b2a14de81ace4d8e61cfaeb8eca26f6f68c"
+  },
+  {
+    "query": "AioSource now employs IO Safety",
+    "relevant": [
+      "tokio/src/io/bsd/poll_aio.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7db722bb47d29b81c9b98992813115dfaed491d"
+  },
+  {
+    "query": "fix semaphore reopens after forget",
+    "relevant": [
+      "tokio/src/sync/batch_semaphore.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ea11e2a5fb4139ca21b441044d98994a2b126c5"
+  },
+  {
+    "query": "do not leak fd when cancelling io_uring open operation",
+    "relevant": [
+      "tokio/src/runtime/io/driver/uring.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c79121391db8f8d36d4213feeb25381caee110c7"
+  },
+  {
+    "query": "surface errors from `SO_ERROR` on `recv` for UDP sockets on Linux",
+    "relevant": [
+      "tokio/src/net/udp.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ad8c59add6a1988d8c327fb3358beeeae3bbb5cd"
+  },
+  {
+    "query": "fix panic in `Chan::recv_many` when called with non-empty vector on closed channel",
+    "relevant": [
+      "tokio/src/sync/mpsc/chan.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf18ed452d6aae438e84ae008a01a74776abdc19"
+  },
+  {
+    "query": "fix `notify_waiters` priority in `Notify`",
+    "relevant": [
+      "tokio/src/sync/notify.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f132172dbb00b1f6b6bda64bb9b194382079499"
+  },
+  {
+    "query": "use null get_peer_cred on Hurd",
+    "relevant": [
+      "tokio/src/net/unix/ucred.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee4de818065a97c0be0d6bfc18fb36725349aef8"
+  },
+  {
+    "query": "add FD table pre-warming example",
+    "relevant": [
+      "tokio/src/runtime/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8435c0fc8612bbdf38d3ad8b2ba96d5dbc848d9"
+  },
+  {
+    "query": "fix race condition during the blocking pool shutdown",
+    "relevant": [
+      "tokio/src/runtime/blocking/pool.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f21f2693f02aec9a876ac2bd21566c85e15b682e"
+  },
+  {
+    "query": "remove (most) local `use` declarations in `tokio::select!`",
+    "relevant": [
+      "tokio/src/macros/select.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d81e8f0acbdd7d866bce4f733b3545fd834c7840"
+  },
+  {
+    "query": "clarify when to use `spawn_blocking` vs dedicated threads",
+    "relevant": [
+      "tokio/src/task/blocking.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1b11840f539ced93855df362eb51149ba08903a0"
+  },
+  {
+    "query": "clarify that recv returns None once closed and no more messages",
+    "relevant": [
+      "tokio/src/sync/mpsc/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "09f92b5aedec6085863f570fe882915d0c2740f1"
+  },
+  {
+    "query": "fix TOCTOU issue when decreasing `num_idle_threads`",
+    "relevant": [
+      "tokio/src/runtime/blocking/pool.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c23735d43be36d31911dd2c832f36e5e6a6078a1"
+  },
+  {
+    "query": "fix double increment of `num_idle_threads` on shutdown",
+    "relevant": [
+      "tokio/src/runtime/blocking/pool.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d83921bc5181010be72704d1fe8fb9b6f10cb7e8"
+  },
+  {
+    "query": "clarify the behavior of `AsyncWriteExt::shutdown `",
+    "relevant": [
+      "tokio/src/io/util/async_write_ext.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a25d95a8c4f443886e55b24c97d4bbee1d87283d"
+  },
+  {
+    "query": "Explain how to flush stdout/stderr",
+    "relevant": [
+      "tokio/src/io/stderr.rs",
+      "tokio/src/io/stdout.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e7e1ef7ad30ad84f54a047ecd65b78e5973a9c4"
+  },
+  {
+    "query": "drop rx waker when oneshot receiver is dropped",
+    "relevant": [
+      "tokio/src/sync/oneshot.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d1e4db1018f9124d66d0cc9673b97606ba90bf86"
+  },
+  {
+    "query": "shorten default thread name to fit in Linux limit",
+    "relevant": [
+      "tokio/src/runtime/builder.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "187a2146a7692440cf6a83efb5fbcc886b66a6df"
+  },
+  {
+    "query": "wake deferred tasks before entering `block_in_place`",
+    "relevant": [
+      "tokio/src/runtime/scheduler/multi_thread/worker.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0d6c7af3e43457350bdc03a6dbcafa276fab7352"
+  },
+  {
+    "query": "implement vectored writes for `write_buf`",
+    "relevant": [
+      "tokio/src/io/util/write_buf.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9dc9b53ae164cdba6f14146cfe32d16fcdc562a0"
+  },
+  {
+    "query": "guarantee that listeners never return `None`",
+    "relevant": [
+      "tokio/src/signal/mod.rs",
+      "tokio/src/signal/unix.rs",
+      "tokio/src/signal/windows.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3b31ba2ab78a901502ff4ac22ec3f2896ab8805"
+  },
+  {
+    "query": "hardcode platform list for `poll_write`",
+    "relevant": [
+      "tokio/src/io/poll_evented.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b68ea4156a7d0d63ba3351fb0299ea958f16e7fe"
+  },
+  {
+    "query": "add optimizer hint that `memchr` returns in-bounds pointer",
+    "relevant": [
+      "tokio/src/util/memchr.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "67682ac2e87e27b4791e33467a7c6e773e0c2179"
+  },
+  {
+    "query": "remember the result of `SetConsoleCtrlHandler`",
+    "relevant": [
+      "tokio/src/signal/unix.rs",
+      "tokio/src/signal/windows/sys.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "240cc44da87ac30188e946ed1003b0e67f64aad8"
+  },
+  {
+    "query": "add comments to `schedule_option_task_without_yield`",
+    "relevant": [
+      "tokio/src/runtime/scheduler/multi_thread/worker.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7ed6da6733199fe4d08b9694fce646dac5944e70"
+  },
+  {
+    "query": "avoid lock acquisition after uring init",
+    "relevant": [
+      "tokio/src/runtime/io/driver.rs",
+      "tokio/src/runtime/io/driver/uring.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ff9681b3c62d63ca2703976d4767f29442bc87f2"
+  },
+  {
+    "query": "make `is_rt_shutdown_err` method public",
+    "relevant": [
+      "tokio/src/process/unix/pidfd_reaper.rs",
+      "tokio/src/runtime/mod.rs",
+      "tokio/src/runtime/runtime.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d65165f7b563d75db110f8ca26b5a4ae749c59e7"
+  },
+  {
+    "query": "update outdated unstable features section",
+    "relevant": [
+      "tokio/src/lib.rs",
+      "tokio/src/runtime/task/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71a1a3da7ad0af2200e08d75996a97f50bdf49db"
+  },
+  {
+    "query": "panic when `event_interval` is set to 0",
+    "relevant": [
+      "tokio/src/runtime/builder.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df73fa21884f65ac4f5556ec72814cefed94897f"
+  },
+  {
+    "query": "avoid redundant unpark in current_thread scheduler",
+    "relevant": [
+      "tokio/src/runtime/scheduler/current_thread/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "09ad5367b8de39ae2532c7c0efe4136167be015d"
+  },
+  {
+    "query": "don't park in `current_thread` if `before_park` defers waker",
+    "relevant": [
+      "tokio/src/runtime/scheduler/current_thread/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "934f68d91c90777235e119f4b42f3de660c45bd0"
+  },
+  {
+    "query": "return `TryRecvError::Disconnected` from `Receiver::try_recv` after `Receiver::close`",
+    "relevant": [
+      "tokio/src/sync/mpsc/chan.rs",
+      "tokio/src/sync/mpsc/list.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "484cb52d8d21cb8156decbeba9569651fcc09d0d"
+  },
+  {
+    "query": "optimize unix signal storage to skip zero",
+    "relevant": [
+      "tokio/src/signal/registry.rs",
+      "tokio/src/signal/unix.rs",
+      "tokio/src/signal/windows/sys.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "46674789abdcd72189bb48a82c6c2121bc3922a0"
+  },
+  {
+    "query": "add `SyncIoBridge` cross-references to `copy` and `copy_buf`",
+    "relevant": [
+      "tokio/src/io/util/copy.rs",
+      "tokio/src/io/util/copy_buf.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4bc2a15d28554426a500ce73be969ecd9ed6dd89"
+  },
+  {
+    "query": "clarify that `num_alive_tasks` is not strongly consistent",
+    "relevant": [
+      "tokio/src/runtime/metrics/runtime.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "33566434bba678c492a5b03b24a013d2f8710c6e"
+  },
+  {
+    "query": "add support for `TCLASS` option on IPv6",
+    "relevant": [
+      "tokio/src/net/tcp/socket.rs",
+      "tokio/src/net/udp.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7388f2d2ea5311af4b2fa0e088d890facfbf4054"
+  }
+]

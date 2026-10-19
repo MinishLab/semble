@@ -1,0 +1,371 @@
+[
+  {
+    "query": "update to lumen-oss for binaries. Closes . Closes",
+    "relevant": [
+      "lua/lazy/core/config.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e31789c675e2f591a20fc894b6713398eaa5dddd"
+  },
+  {
+    "query": "fixed luarocks manifest loading. It's now bigger than 65k entries and luajit doesn't want to load it anymore",
+    "relevant": [
+      "lua/lazy/build.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3c86e236582cb57bf148d3f2f06fb3d9ae1cc289"
+  },
+  {
+    "query": "check that path is actually in root dir. Closes",
+    "relevant": [
+      "lua/lazy/core/plugin.lua",
+      "lua/lazy/manage/task/fs.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "16e52715b70b4d0fc6af3563ccc0ed9df82ae23e"
+  },
+  {
+    "query": "better support for different `time_t` sizes. See",
+    "relevant": [
+      "lua/lazy/stats.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1ea3c4085785f460fb0e46d2fe1ee895f5f9e7c1"
+  },
+  {
+    "query": "LAZY_OFFLINE support for minit",
+    "relevant": [
+      "lua/lazy/minit.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a21b7bf2e7c78e90696d13163e7cae761a414f28"
+  },
+  {
+    "query": "add plugin to lua path if it was already loaded before we know its a luarock",
+    "relevant": [
+      "lua/lazy/pkg/init.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "147f5a3f55b5491bbc77a55ce846ef5eb575fa42"
+  },
+  {
+    "query": "rebuild dirty right after disable. See",
+    "relevant": [
+      "lua/lazy/core/meta.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d51cf6978321d659e68a8bc38ee806bd2517a196"
+  },
+  {
+    "query": "add optional return value for `LazyKeysSpec` rhs",
+    "relevant": [
+      "lua/lazy/core/handler/keys.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8c6db5da7bd382094606340eed015d14fbb5654"
+  },
+  {
+    "query": "pass lang to `vim.notify` so that snacks notifier can render the ft. Closes",
+    "relevant": [
+      "lua/lazy/core/util.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6a57a3534d3494bcc5ff9b0586e141bdb0280eb"
+  },
+  {
+    "query": "do not show virt_lines for messages",
+    "relevant": [
+      "lua/lazy/view/render.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f15a93907ddad3d9139aea465ae18336d87f5ce6"
+  },
+  {
+    "query": "add missing space on the default debug icon",
+    "relevant": [
+      "lua/lazy/core/config.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4df5c4d65a3bbf801edd9ec55fb1ae55cfa72dd0"
+  },
+  {
+    "query": "allow customizing the debug icon",
+    "relevant": [
+      "lua/lazy/core/config.lua",
+      "lua/lazy/view/render.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a9c660d6ef1b396869d3d951760aa7a3dbfe575f"
+  },
+  {
+    "query": "when a plugin is both optional and disabled, then just delete it from the list",
+    "relevant": [
+      "lua/lazy/core/meta.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "805b85c2ea3bd6f9506ef22cbd6e3a39172b5b08"
+  },
+  {
+    "query": "ensure all fields for `LazyPluginSpec` are optional",
+    "relevant": [
+      "lua/lazy/types.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "703be1dda35e142e76e94e7503cf67d6b98a1d35"
+  },
+  {
+    "query": "don't check if dir exists for virtual plugins",
+    "relevant": [
+      "lua/lazy/manage/task/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "656cf4309396b7b8b62984e923bf8d8a0013f7d7"
+  },
+  {
+    "query": "show correct key for home. Fixes",
+    "relevant": [
+      "lua/lazy/view/render.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b08dba8107b5bdaaa007f18cf6c0cc0e0fd576aa"
+  },
+  {
+    "query": "show error for local plugins that don't exist. Fixes",
+    "relevant": [
+      "lua/lazy/core/plugin.lua",
+      "lua/lazy/manage/init.lua",
+      "lua/lazy/manage/task/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9570a5ae7b17dcde4718c7458fd986c10f015a99"
+  },
+  {
+    "query": "always update helptags for local plugins",
+    "relevant": [
+      "lua/lazy/manage/task/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "60cf258a9ae7fffe04bb31141141a91845158dcc"
+  },
+  {
+    "query": "allow binary lua files. Fixes",
+    "relevant": [
+      "lua/lazy/pkg/rockspec.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "408449a59adb8c2a31c32fff606676b32ce4552a"
+  },
+  {
+    "query": "check if command string is a prefix of Lazy",
+    "relevant": [
+      "lua/lazy/view/commands.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e9fd76e239cc18da289f9a3f80f35fa16b003175"
+  },
+  {
+    "query": "try to install from root manifest",
+    "relevant": [
+      "lua/lazy/pkg/rockspec.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "591ef40f2da3a26fbcc0466988cd6fe45ca68cae"
+  },
+  {
+    "query": "add lib64 plugin directory to package.cpath",
+    "relevant": [
+      "lua/lazy/core/loader.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "80da254e645f579c28394ee0f08f75a9c9481744"
+  },
+  {
+    "query": "\"Vim:E150: Not a directory\" on plugin update",
+    "relevant": [
+      "lua/lazy/manage/task/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7108809ab18dc1b1e6f402b29e2e1d35a5d311d5"
+  },
+  {
+    "query": "make .lazy.lua work again",
+    "relevant": [
+      "lua/lazy/core/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4a5a1209e4c64fa67aedf721a383541a64056d1"
+  },
+  {
+    "query": "improve error handling and show better error message",
+    "relevant": [
+      "lua/lazy/core/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c02268ac6e6aab92249d020d75efc588bd9d24fa"
+  },
+  {
+    "query": "added `opts.git.cooldown` to allow updating plugins on slow connections. Fixes",
+    "relevant": [
+      "lua/lazy/core/config.lua",
+      "lua/lazy/manage/task/git.lua",
+      "lua/lazy/types.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d5686efbd00942b3e38de7c08b8df69d961b02f0"
+  },
+  {
+    "query": "dont use vim.fn.system to get cmd versions",
+    "relevant": [
+      "lua/lazy/health.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7d29719ade6f5a269e3b7d08b246641b5b079aaa"
+  },
+  {
+    "query": "explicitely set package.loaded.modname to nil to prevent recursive loading errors",
+    "relevant": [
+      "lua/lazy/core/loader.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12f2c74244cc768d97c83972aa63722389b5d96d"
+  },
+  {
+    "query": "add plugins whose rtp got loaded early to start plugins",
+    "relevant": [
+      "lua/lazy/core/loader.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "34b0126e5b3966f1dbe148d6f8450213115e76b2"
+  },
+  {
+    "query": "add auto loaded module to package.loaded early to prevent require loops",
+    "relevant": [
+      "lua/lazy/core/loader.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a692bf86883457f45fe3f773bfc8bc4d9e4b070c"
+  },
+  {
+    "query": "only load the plugin before build for `:` build commands",
+    "relevant": [
+      "lua/lazy/manage/task/plugin.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5bdb12a038e5a72cc793f38893f1a9c9fb741759"
+  },
+  {
+    "query": "added git network throttle to limit network related git ops per interval. Closes",
+    "relevant": [
+      "lua/lazy/core/config.lua",
+      "lua/lazy/manage/task/git.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d731a6b005fd239e85e555bd57362382f6c1e461"
+  },
+  {
+    "query": "check for lib64. Fixes",
+    "relevant": [
+      "lua/lazy/core/config.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "93499c5deb37641c6cf71528a93f101d186b409f"
+  },
+  {
+    "query": "ensure newline at EOF for lockfile",
+    "relevant": [
+      "lua/lazy/manage/lock.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7ed9f7173cdec71a057053d7e6efc20c2c230b95"
+  },
+  {
+    "query": "add luassert to minitest for now",
+    "relevant": [
+      "lua/lazy/minit.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54f70c757cdfc5da4740f2c22e057f3518872ef5"
+  },
+  {
+    "query": "add plugin name to handlers.managed",
+    "relevant": [
+      "lua/lazy/core/handler/init.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "17473db1d79ea30e06126834be7fd95ca511557b"
+  },
+  {
+    "query": "strip `-lua` in normname",
+    "relevant": [
+      "lua/lazy/core/util.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54b003c650f07b771e61566f7be2629beb2b781f"
+  },
+  {
+    "query": "try building anyway even when prerequisits have not been met. (will likely fail)",
+    "relevant": [
+      "lua/lazy/manage/task/fs.lua",
+      "lua/lazy/pkg/rockspec.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0324defdd43be8aa14aaf3a794ff3d5581f36ba"
+  },
+  {
+    "query": "don't treat suspended as headless. Closes",
+    "relevant": [
+      "lua/lazy/core/config.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2dfccd7b948beb26d8bcff7f9113a3a5c85cbc4a"
+  },
+  {
+    "query": "only check for new commits for local plugins. Closes",
+    "relevant": [
+      "lua/lazy/manage/git.lua",
+      "lua/lazy/manage/task/git.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81d2bfffdc8c84a40d25cae7fd4800178c19a138"
+  }
+]

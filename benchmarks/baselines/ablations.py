@@ -94,7 +94,7 @@ def _bench(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="semble ablation benchmarks.")
-    add_filter_args(parser, verbose=True)
+    add_filter_args(parser, verbose=True, query_set=True)
     return parser.parse_args()
 
 
@@ -102,7 +102,7 @@ def main() -> None:
     """Run the semble ablation benchmarks."""
     args = _parse_args()
 
-    repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None)
+    repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None, args.query_set)
 
     print("Loading model...", file=sys.stderr)
     started = time.perf_counter()
@@ -136,7 +136,8 @@ def main() -> None:
     print(json.dumps(summary, indent=2))
 
     if not args.repo and not args.language:
-        out = save_results("semble-ablations", summary)
+        method = "semble-ablations" if args.query_set == "annotations" else f"semble-ablations-{args.query_set}"
+        out = save_results(method, summary)
         print(f"\nResults saved to {out}", file=sys.stderr)
 
 

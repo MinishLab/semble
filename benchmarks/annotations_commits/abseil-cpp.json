@@ -1,0 +1,384 @@
+[
+  {
+    "query": "Add additional bounds check functions to cover most ABSL_HARDENING_ASSERTs",
+    "relevant": [
+      "absl/base/internal/hardening.cc",
+      "absl/base/internal/hardening.h",
+      "absl/base/internal/hardening_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b9536c952c6f6bbcb37a5edb4fa88ee62d27cd7e"
+  },
+  {
+    "query": "Undo unintended inlining of absl::void_t -- the inlining didn't actually replace it with std::void_t",
+    "relevant": [
+      "absl/meta/type_traits.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "04b6110da90be12296037f9e91b8bd6d4b0d3ae7"
+  },
+  {
+    "query": "Consume result from various SampleRecorder methods",
+    "relevant": [
+      "absl/container/internal/hashtablez_sampler_test.cc",
+      "absl/container/sample_element_size_test.cc",
+      "absl/profiling/internal/sample_recorder_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ea64b6e7e63ffd917b20609eca768e8e6eacceda"
+  },
+  {
+    "query": "Remove unnecessary namespace bracketing for an internal nullability macro",
+    "relevant": [
+      "absl/base/nullability.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8cd64504e2e96c6b93d9fb32ddbb3562473e4a13"
+  },
+  {
+    "query": "Refactor error factories to propagate static knowledge to the compiler, where supported",
+    "relevant": [
+      "absl/status/status.cc",
+      "absl/status/status.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "884282e28f6591d6c0680a79e07357a5aa868618"
+  },
+  {
+    "query": "Inline absl::void_t to std::void_t wherever possible",
+    "relevant": [
+      "absl/meta/type_traits.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb769815864694e6a56907005f85625461c4b796"
+  },
+  {
+    "query": "Deprecate and inline a lot of C++17 Abseil type traits",
+    "relevant": [
+      "absl/meta/type_traits.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e7c47687fe83c72658c25140c8725abc5c18b078"
+  },
+  {
+    "query": "fix a header guard comment",
+    "relevant": [
+      "absl/log/internal/nullstream.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "709bf9ea1841881382e13994ce9b168accdfd397"
+  },
+  {
+    "query": "Add SKIP_ABSL_INLINE_NAMESPACE_CHECK to absl/base/internal/exception_safety_testing.h as it doesn't use the absl namespace at all",
+    "relevant": [
+      "absl/base/internal/exception_safety_testing.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b006ea16f793835acba176151017f25066636a9"
+  },
+  {
+    "query": "Remove the forward declaration of base::scheduling::Schedulable from thread_identity by using a void*, and fix callers to use base::scheduling::Schedulable::GetBoundSchedulable",
+    "relevant": [
+      "absl/base/internal/low_level_scheduling.h",
+      "absl/base/internal/thread_identity.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3eb0f0bd73e528d8888ccc5516e0ba56329508ad"
+  },
+  {
+    "query": "Support passing I/O manipulators such as std::endl to StringifyStream",
+    "relevant": [
+      "absl/strings/internal/stringify_stream.h",
+      "absl/strings/internal/stringify_stream_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c01794f79024b05db86a152890dbd230b30a60f"
+  },
+  {
+    "query": "Add absl::Status::MakeNonOkStatusWithOkCode and absl::status_internal::StatusPrivateAccessor for private/internal use",
+    "relevant": [
+      "absl/status/internal/status_internal.h",
+      "absl/status/status.cc",
+      "absl/status/status.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "170f877af5a24afdfba3d271d59c38e36a191714"
+  },
+  {
+    "query": "Prepare to move callers away from get_bound_schedulable to remove the forward declaration of base::scheduling::Schedulable",
+    "relevant": [
+      "absl/base/internal/thread_identity.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d2910b037f123dde65c3223359de3325dd341289"
+  },
+  {
+    "query": "Prevent users of absl::AnySpan::subspan(pos, len) from relying on truncation behavior while the migration from this nonstandard function is in progress",
+    "relevant": [
+      "absl/types/any_span.h",
+      "absl/types/any_span_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0093ac6cac892086a6d7d09c55421a2a4c2cdb2e"
+  },
+  {
+    "query": "Add support for [[clang::annotate(\"clang-tidy\", \"bugprone-use-after-move\", \"null_after_move\")]] annotations",
+    "relevant": [
+      "absl/base/attributes.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e2321c00f99237d50e01349ff6ba779d33a0ffb7"
+  },
+  {
+    "query": "Use absl::SourceLocation for Rust source locations in Status",
+    "relevant": [
+      "absl/types/source_location.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cc986e47a767db6e23ea1743c05451d1afd313dd"
+  },
+  {
+    "query": "Avoid using lambdas in Abseil assertion macros",
+    "relevant": [
+      "absl/base/macros.h",
+      "absl/base/optimization.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be50e52a0710e10da1dac7773fab63fccb4a056b"
+  },
+  {
+    "query": "Minor changes to #includes",
+    "relevant": [
+      "absl/time/simulated_clock.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b71166ddd7f534800aa9aac4bba4c4400b79b371"
+  },
+  {
+    "query": "Document that DemangleRustSymbolEncoding omits some details on purpose",
+    "relevant": [
+      "absl/debugging/internal/demangle_rust.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4c5d34c1e547e431330e7d62cb750bca2383e377"
+  },
+  {
+    "query": "Remove the legacy stateless symbol decorator API",
+    "relevant": [
+      "absl/debugging/internal/symbolize.h",
+      "absl/debugging/symbolize_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88c0a25fde0c033f60b9fd66eb8b4800fdb58d84"
+  },
+  {
+    "query": "Fix sampling for the insert into a non-SOO table with capacity==1",
+    "relevant": [
+      "absl/container/internal/raw_hash_set.cc",
+      "absl/container/internal/raw_hash_set_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ec35402ac93f2f010087794d8216a235d5e62b79"
+  },
+  {
+    "query": "Add benchmark for string erase/emplace",
+    "relevant": [
+      "absl/container/internal/raw_hash_set_benchmark.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "896d91506936877a47712e7f42e1c639301c66d4"
+  },
+  {
+    "query": "Prepare GenericPrinter for the rename of ArenaSafeUniquePtr",
+    "relevant": [
+      "absl/strings/internal/generic_printer_internal.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "93a7a9cfe12e84f73df3720e3081b0e035c1e47c"
+  },
+  {
+    "query": "Fix hashtablez oversampling for SOO tables on repeated 0->1 element transitions",
+    "relevant": [
+      "absl/container/internal/raw_hash_set.h",
+      "absl/container/internal/raw_hash_set_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "04f3bc01d12cf58c90a1bb68990f087fa3c3ed19"
+  },
+  {
+    "query": "Make absl_testing::StatusIs print the status code as a string",
+    "relevant": [
+      "absl/status/internal/status_matchers.h",
+      "absl/status/status_matchers_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e72b94a2f257ba069ec0b99e557e9f1f6b9c1a3e"
+  },
+  {
+    "query": "Mark absl::FastTypeId final to prevent subclassing",
+    "relevant": [
+      "absl/base/fast_type_id.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "60152322663f4e5a16cb71ca8c5f18c38a081265"
+  },
+  {
+    "query": "Import of CCTZ from GitHub",
+    "relevant": [
+      "absl/time/internal/cctz/src/tzfile.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "267879b45aabbebdab0eb9d8bc9e217b3390eb6c"
+  },
+  {
+    "query": "Fix ambiguous call to EncodeVarint",
+    "relevant": [
+      "absl/log/internal/log_message.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d3714755a7e80473ab7e62484bd23e227f02d24"
+  },
+  {
+    "query": "Use reserve to grow in STLStringResizeUninitializedAmortized",
+    "relevant": [
+      "absl/strings/internal/resize_uninitialized.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ab54e73e59cb8a57684c5f92ebcc005b8009c912"
+  },
+  {
+    "query": "Use reserve to grow in absl::string_internal::StringAppendAndOverwrite",
+    "relevant": [
+      "absl/strings/internal/append_and_overwrite.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "443adb7497b80ea6dd0647dce12c13eea3d8e7d9"
+  },
+  {
+    "query": "Remove unused include of resize_uninitialized.h",
+    "relevant": [
+      "absl/strings/ascii.h",
+      "absl/strings/internal/str_join_internal.h",
+      "absl/strings/str_cat.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dee6c628372aca2474dcda526e69f46798dd348a"
+  },
+  {
+    "query": "Update the description of hexadecimal digits to include lowercase letters {a-f}",
+    "relevant": [
+      "absl/strings/ascii.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1ccf9eeabbbb9d635578b3b308c397eed817cec9"
+  },
+  {
+    "query": "Use size_t for literal in MaxValidSizeForKeySize",
+    "relevant": [
+      "absl/container/internal/raw_hash_set.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4c67257206383aefbbd25ac8645f1d50497a85bf"
+  },
+  {
+    "query": "Rust wrapper for absl::Clock and absl::SimulatedClock",
+    "relevant": [
+      "absl/time/clock_interface.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4a9a571e98f8302dce7aa402fd93790bf5694586"
+  },
+  {
+    "query": "Instead of using bit rotate for CRC hashing, use multiplication by 3",
+    "relevant": [
+      "absl/hash/internal/hash.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b33d7ccab133a52b76fbc28a9245838ad2899b8"
+  },
+  {
+    "query": "Create bounds check functions to improve observability of hardening check failures to monitoring",
+    "relevant": [
+      "absl/base/internal/hardening.cc",
+      "absl/base/internal/hardening.h",
+      "absl/base/internal/hardening_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d85c5281b875fd58d86524a0b781c09e3248b216"
+  },
+  {
+    "query": "Avoid ADL calls with StatusIs in absl/status/status_matchers.h",
+    "relevant": [
+      "absl/status/status_matchers.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64c1b40d732cccd660df378a1639505bbdbfe5b3"
+  },
+  {
+    "query": "Fix comment about releaser's operators in MakeCordFromExternal",
+    "relevant": [
+      "absl/strings/cord.h",
+      "absl/strings/cord_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "90633b5020092052b0d956d1fd3c7675c989445e"
+  },
+  {
+    "query": "Inline deprecated versions of absl::Base64Escape and absl::WebSafeBase64Escape",
+    "relevant": [
+      "absl/strings/escaping_benchmark.cc",
+      "absl/strings/escaping_test.cc"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ec9964c325db0610a376b3cb81de073ea6ada90"
+  },
+  {
+    "query": "Deprecate the versions of Base64Escape and WebSafeBase64Escape that use an output parameter",
+    "relevant": [
+      "absl/strings/escaping.cc",
+      "absl/strings/escaping.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "586a3fbe2a985e8eaf8e54c5b80731a22af49ae1"
+  }
+]

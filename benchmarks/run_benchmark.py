@@ -231,8 +231,8 @@ def _bench_quality(
     return results
 
 
-def _save_results(results: list[RepoResult]) -> None:
-    """Write results to benchmarks/results/semble-hybrid-<sha12>.json."""
+def _save_results(results: list[RepoResult], query_set: str = "annotations") -> None:
+    """Write results to benchmarks/results/semble-hybrid[-commits]-<sha12>.json."""
     languages = sorted({r.language for r in results})
     by_language = {lang: [r for r in results if r.language == lang] for lang in languages}
 
@@ -260,6 +260,7 @@ def _save_results(results: list[RepoResult]) -> None:
     output = {
         "tool": "semble-hybrid",
         "model": DEFAULT_MODEL_NAME,
+        "query_set": query_set,
         "summary": {
             "ndcg10": round(sum(r.ndcg10 for r in results) / n_repos, 4),
             "tokens": round(sum(r.tokens for r in results) / n_repos, 0),
@@ -286,16 +287,16 @@ def _save_results(results: list[RepoResult]) -> None:
         "repos": [asdict(r) for r in results],
     }
 
-    out_path = save_results("semble-hybrid", output)
+    out_path = save_results("semble-hybrid" if query_set == "annotations" else f"semble-hybrid-{query_set}", output)
     print(f"\nResults saved to {out_path}", file=sys.stderr)
 
 
 def main() -> None:
     """Parse arguments and run the semble hybrid benchmark."""
     parser = argparse.ArgumentParser(description="Benchmark hybrid semble search across the pinned benchmark repos.")
-    add_filter_args(parser, verbose=True)
+    add_filter_args(parser, verbose=True, query_set=True)
     args = parser.parse_args()
-    repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None)
+    repo_specs, tasks = load_filtered_tasks(args.repo or None, args.language or None, args.query_set)
     print("Loading model...", file=sys.stderr)
     started = time.perf_counter()
     print(f"Loaded in {(time.perf_counter() - started) * 1000:.0f} ms", file=sys.stderr)
@@ -304,7 +305,7 @@ def main() -> None:
     results = _bench_quality(repo_tasks, repo_specs, verbose=args.verbose)
     _print_summary(results)
     if not args.repo and not args.language:
-        _save_results(results)
+        _save_results(results, args.query_set)
 
 
 if __name__ == "__main__":

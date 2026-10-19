@@ -1,0 +1,372 @@
+[
+  {
+    "query": "Fix issue with `combineReducer` returning incorrect type when given a custom action",
+    "relevant": [
+      "src/types/reducers.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fa9dc9d0b4bd6423b041d68c2f5c312308ae648e"
+  },
+  {
+    "query": "getState is not bound to MiddlewareAPI",
+    "relevant": [
+      "src/types/middleware.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4d94ae9b48b53b6d8f7ef54ad1de1331416ca5d0"
+  },
+  {
+    "query": "add NoInfer to Ext return",
+    "relevant": [
+      "src/createStore.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5e1eaef30c183c2b5ceb67da53bab4cca3f800b8"
+  },
+  {
+    "query": "some more type imports",
+    "relevant": [
+      "src/utils/isAction.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dfcfab2d9a399c3fe19e12a47607ced44acda6b5"
+  },
+  {
+    "query": "widen `StateExt` as type arguments",
+    "relevant": [
+      "src/createStore.ts",
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b74703f19ae287bea8b6375e3bb69a341dfa3a4"
+  },
+  {
+    "query": "default type parameter `StateExt` in `Store`",
+    "relevant": [
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ba980dd784f1688c6b0590cee5adba0c05c3c30b"
+  },
+  {
+    "query": "Add isAction type predicate",
+    "relevant": [
+      "src/index.ts",
+      "src/utils/isAction.ts",
+      "src/utils/isPlainObject.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "847264253ec4efd0227428e852b3a2eb12fb07d7"
+  },
+  {
+    "query": "update comment with TS issue",
+    "relevant": [
+      "src/types/actions.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "61515daf7f787798ff4d558bfcb3bbcb7bce43b2"
+  },
+  {
+    "query": "add comment explaining why Action needs to be a type alias",
+    "relevant": [
+      "src/types/actions.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c518a66686f106e1b8322fad9bc6a3729bb3668"
+  },
+  {
+    "query": "action needs to be a type not interface",
+    "relevant": [
+      "src/types/actions.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "20631993c1c68ce398e9b0d8a9326f17db042c6f"
+  },
+  {
+    "query": "include value in message",
+    "relevant": [
+      "src/createStore.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "937792dccd458c67b9682c8a5158babee2e8a37c"
+  },
+  {
+    "query": "throw error if action type is not string",
+    "relevant": [
+      "src/createStore.ts",
+      "src/types/actions.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1ff7eddba5df08e937c45ac24b7b437b742c773c"
+  },
+  {
+    "query": "default dispatch to unknownaction",
+    "relevant": [
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fe3d667990d0f0b4cb63c077f8d8b9d7a2e1a3cd"
+  },
+  {
+    "query": "make Action a type",
+    "relevant": [
+      "src/types/actions.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "985fdefdeb1bc5cf09b5dbd81f291bfec101e296"
+  },
+  {
+    "query": "type action as unknown",
+    "relevant": [
+      "src/types/middleware.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3b79b52a9b6dba2a670ce9d7bbd0029a0732cf72"
+  },
+  {
+    "query": "Make side-effectful $$observable import a bit clearer",
+    "relevant": [
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b9b0e9dd688d4624bf3cd05f9cf5b9983a4a59b"
+  },
+  {
+    "query": "Replace listeners array with a Map for better performance",
+    "relevant": [
+      "src/createStore.ts",
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1599aadb204a09e7b43dbb04b66582f056b3c83d"
+  },
+  {
+    "query": "Port `createStore` deprecation from 4.x branch",
+    "relevant": [
+      "src/createStore.ts",
+      "src/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "37350b2dd79e5deee1bc6bed7b2af53907d0319c"
+  },
+  {
+    "query": "Remove legacy `isMinified` check",
+    "relevant": [
+      "src/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a6288423630c9afbce609cddee56653916ba88f6"
+  },
+  {
+    "query": "change reducer type validation place",
+    "relevant": [
+      "src/createStore.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fbfe51458ca2addf97f426d505bf2c27503a5ff1"
+  },
+  {
+    "query": "Fix error with new TS catch type default",
+    "relevant": [
+      "src/combineReducers.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a5680db8f511d4df88183ac5539b6f4460e38cf2"
+  },
+  {
+    "query": "Port TS type fixes from the 4.x branch",
+    "relevant": [
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d1919f404b026b87d0ce5b7cb327ef542dca0f5c"
+  },
+  {
+    "query": "miniKindOf returns 'object' for plain object",
+    "relevant": [
+      "src/utils/kindOf.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d47bb902967b36d67203dee18137e87a13c1909"
+  },
+  {
+    "query": "Backport kindOf fix from",
+    "relevant": [
+      "src/utils/kindOf.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ca9463dd692ddcf85073bca921fd05f970bba6cf"
+  },
+  {
+    "query": "Add quotes around INIT action type in error",
+    "relevant": [
+      "src/combineReducers.ts",
+      "src/createStore.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c83b014221196e1c1c6f1a8d63433dd8432de5d0"
+  },
+  {
+    "query": "Explicit type argument any can be removed",
+    "relevant": [
+      "src/types/reducers.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1fc762610bd82b14f1bf87b45ba609ff4fdf1393"
+  },
+  {
+    "query": "arrange import section of combineReducers",
+    "relevant": [
+      "src/combineReducers.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7ebcdfa727d68df2c3a44ecc22b9204ea99b0bce"
+  },
+  {
+    "query": "link to the page of webpack's 'mode' configuration",
+    "relevant": [
+      "src/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2baca9c149a98de52d08b231bd2963c72eba4621"
+  },
+  {
+    "query": "Only apply mapped types to un-branded types",
+    "relevant": [
+      "src/types/store.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0dae2d1c6e0bd9a947910ecb223db784018eac8f"
+  },
+  {
+    "query": "allow type-setting args on ActionCreator",
+    "relevant": [
+      "src/types/actions.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "380e8b042852601ecebb1dd1be5ebb2c9c02fd83"
+  },
+  {
+    "query": "Explicit type argument any can be removed in \"bindActionCreators\"",
+    "relevant": [
+      "src/bindActionCreators.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "208d7f1c2f2d56a8edf8834557e6341d69e64f65"
+  },
+  {
+    "query": "updated compose types to use tuple types",
+    "relevant": [
+      "src/compose.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f1fc7ce8bfa2fd83159c25d2a1b90046f0143790"
+  },
+  {
+    "query": "fixes to bindActionCreators overloads",
+    "relevant": [
+      "src/bindActionCreators.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dbc95c8cded395ace787e1e56a3a516d0357a3fc"
+  },
+  {
+    "query": "add overloads to compose.ts and applyMiddleware.ts",
+    "relevant": [
+      "src/applyMiddleware.ts",
+      "src/compose.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8112c956a9877a04ea99f6e9c01de98abfbcb474"
+  },
+  {
+    "query": "fix combineReducers overload exports, and import of Reducer type",
+    "relevant": [
+      "src/combineReducers.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a450fbd9a43943f8ae07de693aa83053dc11486e"
+  },
+  {
+    "query": "fix typings of createStore and import of Reducer type",
+    "relevant": [
+      "src/createStore.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d96545f95b5a7ecafc96ca43cd9f3f0b5bd275d"
+  },
+  {
+    "query": "use new reducer types from types/reducers.ts, store types from types/store.ts",
+    "relevant": [
+      "src/applyMiddleware.ts",
+      "src/bindActionCreators.ts",
+      "src/createStore.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "65afa45c766b852847ca975494ded5aa101d0a69"
+  },
+  {
+    "query": "add missing type exports",
+    "relevant": [
+      "src/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40d9e1e94336d195181b19aea5eb46c10637ae34"
+  },
+  {
+    "query": "use new middleware types from types/middleware.ts",
+    "relevant": [
+      "src/applyMiddleware.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81329e5b24d96c5421f5f5e69dbcd34a752b1cfe"
+  },
+  {
+    "query": "import types from src/types",
+    "relevant": [
+      "src/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "35f2e1ae6de82aa0aa5022c0bf76f819a6dc5740"
+  }
+]

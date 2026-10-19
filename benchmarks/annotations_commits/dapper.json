@@ -1,0 +1,376 @@
+[
+  {
+    "query": "OutputExpression wasn't working for methods that use QueryRowAsync",
+    "relevant": [
+      "Dapper/SqlMapper.Async.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d994b6d93265f1318a064f5f3ebbcb1f3aaf53cf"
+  },
+  {
+    "query": "Mark AddTypeHandlerImpl as obsolete and prevent lost updates via AddTypeHandler",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f4f783a41844a3cb939f345125fcfc7746ffe90"
+  },
+  {
+    "query": "properly handle value types when setting properties on dynamic objects returned by Dapper queries",
+    "relevant": [
+      "Dapper/SqlMapper.DapperRowMetaObject.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3804ceb1d6851eccd4521246ae0d40d80f586f9"
+  },
+  {
+    "query": "Improve performance of \"queryunbuffered\", and correctness of \"first\" APIs",
+    "relevant": [
+      "Dapper/SqlMapper.Async.cs",
+      "Dapper/SqlMapper.Settings.cs",
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4f80b6b6b599e8298a9a3fd6d85d00d105df0a1"
+  },
+  {
+    "query": "Do not close the inner reader when disposing wrapped data readers",
+    "relevant": [
+      "Dapper/WrappedReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ed3525598494dddc1fbeb4e95e018239fffed13"
+  },
+  {
+    "query": "disable DateOnly / TimeOnly support - see /",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fdb30a43e3cf311253ae3a3629cb67b5c8db698"
+  },
+  {
+    "query": "string and byte[] : add UseGetFieldValue",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "87eb0331181eccd0f45d3aa7a01bce63dfed32d3"
+  },
+  {
+    "query": "1. give clearer error messages when an ICustomQueryParameter is null",
+    "relevant": [
+      "Dapper/DbString.cs",
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c46c69a174fd983885e453414bc358bcfa5594d0"
+  },
+  {
+    "query": "fix - when matching properties, prefer non-normalized property name",
+    "relevant": [
+      "Dapper/DefaultTypeMap.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "947b582c79e7ec555b85ef53bce8f84eb45cc2ed"
+  },
+  {
+    "query": "add commmit and rollback to \"text\" exclusion list",
+    "relevant": [
+      "Dapper/CompiledRegex.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6fdafc32e2f39d48f4daaa16c7a5a1de39185b96"
+  },
+  {
+    "query": "include ExplicitConstructorAttribute's targets to constructor&method",
+    "relevant": [
+      "Dapper/ExplicitConstructorAttribute.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0e61a740b0c2f5421a64aff0bdb4707ced1c46b"
+  },
+  {
+    "query": "NRT tweak on GetConstructorParameter",
+    "relevant": [
+      "Dapper/SqlMapper.ITypeMap.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b8d119fa635b535574593daf07aea831259ab698"
+  },
+  {
+    "query": "the $ support added for DuckDB does not need to exacerbate the OLEDB problem",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8d53acb4011c33a590dcb6fdb35ab6c48a2b456e"
+  },
+  {
+    "query": "Add a setting to turn off Ole Db \"smell check\"",
+    "relevant": [
+      "Dapper/SqlMapper.Settings.cs",
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "19193b52bb105ee2935826bd7bf26478b8ac2993"
+  },
+  {
+    "query": "missed an object? type-handler",
+    "relevant": [
+      "Dapper/DataTableHandler.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47ef1e7100b7ecdb68bcf97432b9674373a6f75c"
+  },
+  {
+    "query": "add missing ReadUnbufferedAsync untyped API",
+    "relevant": [
+      "Dapper/SqlMapper.GridReader.Async.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "61ff85a2b86acb046231ccfcafbcf1276814220b"
+  },
+  {
+    "query": "Support $ as parameter prefix",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8a68070b8e05e6ed6ff24a4f0d25ca2a156139a6"
+  },
+  {
+    "query": "Add FetchSize global setting",
+    "relevant": [
+      "Dapper/CommandDefinition.cs",
+      "Dapper/SqlMapper.Link.cs",
+      "Dapper/SqlMapper.Settings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c9b4bde3cdb03e263403bedf0eed83fb6491467"
+  },
+  {
+    "query": "add missing QueryUnbufferedAsync<T> API",
+    "relevant": [
+      "Dapper/SqlMapper.Async.cs",
+      "Dapper/SqlMapper.GridReader.Async.cs",
+      "Dapper/SqlMapper.GridReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d56340b8859ca4270ef12efb03f6e48a95745ee6"
+  },
+  {
+    "query": "Don't specify dbtype for DateTime et al; fixed npgsql 6 issue",
+    "relevant": [
+      "Dapper/DynamicParameters.cs",
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b272cc664d933b4b65703d26a79272d549576dff"
+  },
+  {
+    "query": "XML love for SqlMapper.HasTypeHandler",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ad28954442847b94e9718bb6f2c70eb8a2a950e"
+  },
+  {
+    "query": "Added array underlying type conversion",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cfce48ee3b72bb03ed1f2ecc50cad3c2d24f0dc1"
+  },
+  {
+    "query": "Add support for Array return value (i.e.: QueryAsync<int[]>))",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b2b716da0dfbf2e4d754983c2ca959ce63f78175"
+  },
+  {
+    "query": "Transfer duplicate code and encapsulate it as a static method",
+    "relevant": [
+      "Dapper/SqlMapper.GridReader.Async.cs",
+      "Dapper/SqlMapper.GridReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7ad382543c547b4945c68910c8892d9e2a40d30"
+  },
+  {
+    "query": "Fix/1480 fix ReadFirstOrDefaultAsync throw exception",
+    "relevant": [
+      "Dapper/SqlMapper.GridReader.Async.cs",
+      "Dapper/SqlMapper.GridReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fcbb3b729afc1d93b3ce5289fe1a43eda246235"
+  },
+  {
+    "query": "Add correct feature flag for ClickHouse",
+    "relevant": [
+      "Dapper/FeatureSupport.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b17a989950090c43c958adf59982636335aff285"
+  },
+  {
+    "query": "Normalize deserialization errors for bad data",
+    "relevant": [
+      "Dapper/SqlMapper.Async.cs",
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3371bf2b7f1a9c2938b9a33f381cb027036fb431"
+  },
+  {
+    "query": "Fix handling of selecting nullable value tuples",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c81a4085a6d3d25f5eaa32f904086f9add1d5cf"
+  },
+  {
+    "query": "Updated InListStringSplitCount comment to GTE",
+    "relevant": [
+      "Dapper/SqlMapper.Settings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b17133fd84522a11b53d9b2eac364f50ec06334"
+  },
+  {
+    "query": "Replaced constant with index in loop",
+    "relevant": [
+      "Dapper/DynamicParameters.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "899c9feb631a1c3d3f868b4b1983da5ad3065509"
+  },
+  {
+    "query": "Allow checking for custom handlers outside Dapper library (For use in SimpleCRUD extension)",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "121d710067928822feef1c48763605fa8c4c6156"
+  },
+  {
+    "query": "Use consistent punctuation in XML comment",
+    "relevant": [
+      "Dapper/SqlMapper.Async.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1922ef4a8d1fa7e87e9d3fa72daaf18e2ae327cd"
+  },
+  {
+    "query": "Use InvariantCulture in FlexibleConvert",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a18dc63c688b5173c5dde8b1243b74e26fa262c4"
+  },
+  {
+    "query": "tidy ReadChar/ReadNullableChar with modern C#",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "07bc83f2b780da79ea4b780fa27baa9cf87c608d"
+  },
+  {
+    "query": "Handle PostgreSQL chars correctly",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a47f23cc754bc5f6884195b17f675e3bc85ac451"
+  },
+  {
+    "query": "Fixed issue with IN and other condition",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4eeb632fd56e665468a4f2aa6830e6d66727e766"
+  },
+  {
+    "query": "Use LocalBuilders rather than hardcoding or passing local indexes",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f1ad61c711596a3985713dceaeb21a2f05387052"
+  },
+  {
+    "query": "Add ExecuteReaderAsync overloads that return Task<DbDataReader>",
+    "relevant": [
+      "Dapper/Extensions.cs",
+      "Dapper/SqlMapper.Async.cs",
+      "Dapper/WrappedReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6754fe2795fef79a604f368dd4cb23ffae255414"
+  },
+  {
+    "query": "Stop setting current index local which is nonexistent in ValueTuple deserializer",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b49eb691dd4eaca6d80993130ca8a3d88455111"
+  },
+  {
+    "query": "Fixes mapping for C# tuples with more than seven elements",
+    "relevant": [
+      "Dapper/SqlMapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "33d974a5c021f92e98f67b625d5902e088fc5c4d"
+  }
+]

@@ -1,0 +1,368 @@
+[
+  {
+    "query": "project negation excludes browser instances",
+    "relevant": [
+      "packages/vitest/src/node/core.ts",
+      "packages/vitest/src/node/projects/resolveProjects.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9423dc0841e97b6dcac8a73cdb8e656b3d6ba909"
+  },
+  {
+    "query": "Remove no-op function in plugin config logic",
+    "relevant": [
+      "packages/vitest/src/node/plugins/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "82c858d9435fac60bbc75b2af5c6e1e80914f5b6"
+  },
+  {
+    "query": "add filterMeta option to json reporter",
+    "relevant": [
+      "packages/vitest/src/node/reporters/json.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b77de968ecdc978e54d32926198f25a13bde9441"
+  },
+  {
+    "query": "default to text reporter `skipFull` if agent detected",
+    "relevant": [
+      "packages/vitest/src/node/config/resolveConfig.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "53757804c0c291205ecd567cbf19f8d9beed24a0"
+  },
+  {
+    "query": "advance fake timers with `expect.poll` interval",
+    "relevant": [
+      "packages/vitest/src/integrations/chai/poll.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f5bfa3658e391aa98f41d36592931b80cc7acbf"
+  },
+  {
+    "query": "ensure sequential mock/unmock resolution",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c06598dbb49d9b54c990d537b700474330b6e12"
+  },
+  {
+    "query": "load built-in provider without module runner",
+    "relevant": [
+      "packages/vitest/src/utils/coverage.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf89208177e65af72cdc1e4db85c8200cf6c2721"
+  },
+  {
+    "query": "properly re-evaluate actual modules of mocked external",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae5ec03ef98097aed2851f287a76d595582fe578"
+  },
+  {
+    "query": "mark `TestProject.testFilesList` internal properly",
+    "relevant": [
+      "packages/vitest/src/node/project.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54f2660f5637705916105966ba9380acdac4e1e1"
+  },
+  {
+    "query": "use isAgent check, not just TTY, for watch mode",
+    "relevant": [
+      "packages/vitest/src/defaults.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3cac1c1b5a91d921942e9391fbd94841717363f"
+  },
+  {
+    "query": "manual and redirect mock shouldn't `load` or `transform` original module",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8216b0014b83612e40ef49f919d5293b68717b3"
+  },
+  {
+    "query": "allow hyphens in project config file name pattern",
+    "relevant": [
+      "packages/vitest/src/node/projects/resolveProjects.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "33e96311a1f771c083a0f27a735493e1d1a007ee"
+  },
+  {
+    "query": "fix `URL.name` on jsdom",
+    "relevant": [
+      "packages/vitest/src/integrations/env/jsdom.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "031f3a374939e7122becd7438e2388b0ad16ffa0"
+  },
+  {
+    "query": "throw an error in virtual requires",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f5968f2116939b3d8b20ff398d1a3f1db25b56f7"
+  },
+  {
+    "query": "fix re-mocking virtual module",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3cbbb17f1eefd5c9d7d388be7e07c41a95dce21a"
+  },
+  {
+    "query": "`bench.reporters` no longer gives type errors when passing file name string paths",
+    "relevant": [
+      "packages/vitest/src/node/types/benchmark.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "093c8f6b5be20ea8cf1b3836c8ecc4d8b29c2c37"
+  },
+  {
+    "query": "handle module-sync condition in vmThreads/vmForks require (fix )",
+    "relevant": [
+      "packages/vitest/src/runtime/vm/commonjs-executor.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bb20389f4b1a74e8357ae1229896d0c8817088c1"
+  },
+  {
+    "query": "don't allow `deepEqual` in the config because it's not serializable",
+    "relevant": [
+      "packages/vitest/src/integrations/chai/config.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ee999d73f4ba986f372d43906c7503c5a1d5b73"
+  },
+  {
+    "query": "hanging-reporter link in cli",
+    "relevant": [
+      "packages/vitest/src/node/core.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c103055cd2fa3b07039b0ab81a76ca90678c681"
+  },
+  {
+    "query": "increase stacktrace limit for `--detect-async-leaks`",
+    "relevant": [
+      "packages/vitest/src/node/reporters/base.ts",
+      "packages/vitest/src/runtime/detect-async-leaks.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fd4ce53365337b35f92b6c9d32fe0732a1c389d"
+  },
+  {
+    "query": "don't suppress warnings on pnp",
+    "relevant": [
+      "packages/vitest/src/node/pool.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89cbdaea3f86e699c8e46ee52b08204cbc8bf345"
+  },
+  {
+    "query": "don't fail if --ui and --root are specified together",
+    "relevant": [
+      "packages/vitest/src/node/plugins/index.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d93055fc70083165c2998d58d9ed145686267bd0"
+  },
+  {
+    "query": "fix ssr environment runner in project",
+    "relevant": [
+      "packages/vitest/src/node/plugins/workspace.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "090064f97bf1f82ce5ebf1a39e6f4d44ec59980a"
+  },
+  {
+    "query": "show a warning when `browser.isolate` is used",
+    "relevant": [
+      "packages/vitest/src/node/config/resolveConfig.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3d48ebcb992c2ceaf1a50be40ff1625203ccdba8"
+  },
+  {
+    "query": "propagate experimental CLI options to child projects",
+    "relevant": [
+      "packages/vitest/src/node/plugins/workspace.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b624fae538241490ac2da6f5a9da513a3fb2697e"
+  },
+  {
+    "query": "handle `external/noExternal` during `configEnvironment` hook",
+    "relevant": [
+      "packages/vitest/src/node/plugins/runnerTransform.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59ea27c1cdd12a97a1969cb3c874f8ce906f4518"
+  },
+  {
+    "query": "move cjs globals into its own function",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1b9512024b0db0ed1b49f747e1c14fadaa71028"
+  },
+  {
+    "query": "avoid using `isFileServingAllowed` from Vite",
+    "relevant": [
+      "packages/vitest/src/api/setup.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2de117af914466d7ed98ee62809aaeec85b1e25f"
+  },
+  {
+    "query": "add `toTestSpecification` to reported tasks",
+    "relevant": [
+      "packages/vitest/src/node/reporters/reported-tasks.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1a4705da994491f15f24852167380b32c0083510"
+  },
+  {
+    "query": "fix static-collect on rolldown",
+    "relevant": [
+      "packages/vitest/src/node/ast-collect.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1ba14a2f804d30b8e31fba90bb10e69ff17dc511"
+  },
+  {
+    "query": "expose `runTestFiles` as alternative to `runTestSpecifications`",
+    "relevant": [
+      "packages/vitest/src/node/core.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "43d7618215567397b5cd11cc05d551e318f43a03"
+  },
+  {
+    "query": "preact browser mode init example of render function not async",
+    "relevant": [
+      "packages/vitest/src/create/browser/examples.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2bea549c74348cfab474adcc2887404782130695"
+  },
+  {
+    "query": "use `meta.url` in `createRequire`",
+    "relevant": [
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e342255630af0fea7fbb3136e34ebced3d487efc"
+  },
+  {
+    "query": "return a disposable from doMock",
+    "relevant": [
+      "packages/vitest/src/integrations/vi.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e3e659a960a2f328380cb1acce48be0c7ad8c7a1"
+  },
+  {
+    "query": "add importers alongside importedModules",
+    "relevant": [
+      "packages/vitest/src/node/environments/fetchModule.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59f92d403bf97b3145911aaeffbae36b465284c7"
+  },
+  {
+    "query": "don't store importers in cache",
+    "relevant": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "751364eec8e7a5e9d205146e44f1ed06d7afc57c"
+  },
+  {
+    "query": "handle null options in `addEventHandler`",
+    "relevant": [
+      "packages/vitest/src/integrations/env/jsdom.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40841ff005cf518064b4611b34a6ca86303ac645"
+  },
+  {
+    "query": "handle worker start failures gracefully",
+    "relevant": [
+      "packages/vitest/src/node/pools/pool.ts",
+      "packages/vitest/src/node/pools/poolRunner.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "200dadb328a5e71f0805ee05e24f11af23ecf2db"
+  },
+  {
+    "query": "support `fileParallelism` on an instance",
+    "relevant": [
+      "packages/vitest/src/node/projects/resolveProjects.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "150065459b96a5ed3b9f07ab3001596492032183"
+  },
+  {
+    "query": "improve error message when tsc outputs help text",
+    "relevant": [
+      "packages/vitest/src/typecheck/typechecker.ts"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b10ab4cd7d23d3c520fd1f6956ce99108f70a04"
+  }
+]

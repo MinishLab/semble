@@ -1,0 +1,372 @@
+[
+  {
+    "query": "Use posix path for Windows compatibility",
+    "relevant": [
+      "model2vec/persistence/persistence.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ed9dc08a1bd1c0f34c6b0c1684f7021bd0d2cb72"
+  },
+  {
+    "query": "add util for tokenizer pad id",
+    "relevant": [
+      "model2vec/train/base.py",
+      "model2vec/train/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e70780375fd2f1d13ffd3a01f41d52cd496ed9c4"
+  },
+  {
+    "query": "expose random seed in training",
+    "relevant": [
+      "model2vec/train/classifier.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b137dc63d20ae0034d66a6ae857ff39f8e694253"
+  },
+  {
+    "query": "if layers == 0, layers were not initialized",
+    "relevant": [
+      "model2vec/train/classifier.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8f46692806904dd86b0c577bb46eeeb7dd9ed0ce"
+  },
+  {
+    "query": "refix tokenizer with added token shenanigans",
+    "relevant": [
+      "model2vec/distill/distillation.py",
+      "model2vec/tokenizer/tokenizer.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "86f062ea52eeaefb9d10538ed4af103b209d49e2"
+  },
+  {
+    "query": "Rename PoolingType to PoolingMode",
+    "relevant": [
+      "model2vec/distill/distillation.py",
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "68491f1b563080efd58f215d174963b5bf64ebba"
+  },
+  {
+    "query": "Deprecate apply_zipf and use_subword parameters",
+    "relevant": [
+      "model2vec/distill/distillation.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f6b716c988dd83e581f947df3b9ecf275fdfd55"
+  },
+  {
+    "query": "Add configurable pooling for distillation",
+    "relevant": [
+      "model2vec/distill/distillation.py",
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0609f5e7e0d87e958d06b81d97b16ca22eb793f0"
+  },
+  {
+    "query": "F rule, A rule, update ruff",
+    "relevant": [
+      "model2vec/model.py",
+      "model2vec/utils.py",
+      "model2vec/vocabulary_quantization.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96a06ae59b8146078f4e9d656cce8cf1c781ca65"
+  },
+  {
+    "query": "load faster, make quantization better",
+    "relevant": [
+      "model2vec/model.py",
+      "model2vec/quantization.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5a8578d93f2d7df2319394f4f2316bc8bf72b339"
+  },
+  {
+    "query": "add configurable pad token",
+    "relevant": [
+      "model2vec/train/base.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "55b955ad5f04f83d05ed4b6d4d2d1f197269fc53"
+  },
+  {
+    "query": "padding token not recognized, update transfrormers",
+    "relevant": [
+      "model2vec/tokenizer/tokenizer.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e0fe9d15315d490fd60b87dec1a427be1fd8ade7"
+  },
+  {
+    "query": "Add support for passing weight to the classification loss functions",
+    "relevant": [
+      "model2vec/train/classifier.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4867cb86e955e462fe3659b01903f69bbc88180b"
+  },
+  {
+    "query": "distillation for models without card",
+    "relevant": [
+      "model2vec/distill/distillation.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "86d5378e74532d2a8ec52fbba2ddc1245a4949b2"
+  },
+  {
+    "query": "allow passing validation set explicitly",
+    "relevant": [
+      "model2vec/train/classifier.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af6f67c8b0ad5567ac71a159f08b8638d119dd46"
+  },
+  {
+    "query": "add default arg for push_to_hub",
+    "relevant": [
+      "model2vec/inference/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "562c14d8f9f541e46587c857cab3b02d8210c8c6"
+  },
+  {
+    "query": "fix 0 score in evaluate",
+    "relevant": [
+      "model2vec/inference/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2d0417d675718e481ced5ca12f3df3b568c7379c"
+  },
+  {
+    "query": "typing issues, bug in infernece",
+    "relevant": [
+      "model2vec/inference/model.py",
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "77f16dfa7c189377f9d99a19ddf2a6809c52daf7"
+  },
+  {
+    "query": "faster inference for large vocab",
+    "relevant": [
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0402b98ca0f31cb16355560f7b72dcbfa40a987e"
+  },
+  {
+    "query": "add dimensionality during loading",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f5786ad9d32bc254dc0e3a51e75142618f32fda"
+  },
+  {
+    "query": "pretokenize tokens before checking vocabulary",
+    "relevant": [
+      "model2vec/distill/distillation.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4cc6148439897c26c9b969f7073862bd434cddd5"
+  },
+  {
+    "query": "only allows named args in pretrain",
+    "relevant": [
+      "model2vec/train/base.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0581046c11af43662e82fee00426f2f0ed663256"
+  },
+  {
+    "query": "Added min and max epochs to fit",
+    "relevant": [
+      "model2vec/train/classifier.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4502448d82285327474af397a339b1abc26112ca"
+  },
+  {
+    "query": "replace 8m by 32m for training",
+    "relevant": [
+      "model2vec/train/base.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dd160fb7a1dcbbc180a3a36fd7e936f337b080e6"
+  },
+  {
+    "query": "Improve distill for modernBERT",
+    "relevant": [
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "43c7e5f1d8605d7036ad090f44e07de4a3e5da51"
+  },
+  {
+    "query": "Add optional embedding normalization to StaticModel loading",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b41c3be282ae97228322550c6f5c9a00f5f4fb3d"
+  },
+  {
+    "query": "Fix issue with tokenizer, add token pattern to _distill",
+    "relevant": [
+      "model2vec/distill/distillation.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b18e201e706dd3a0ab78f33a0967953dc0938f4"
+  },
+  {
+    "query": "Removed unneeded tokenize call",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1588694cdaefed4cf7bba6175b5ed53a70c22829"
+  },
+  {
+    "query": "Added multiprocessing threshold parameter",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "80741826b54d45c37c1f620b06ed251dccf3c465"
+  },
+  {
+    "query": "Fixed package extras bug",
+    "relevant": [
+      "model2vec/utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29fbb75f10364edc3a29cf7a4c12ecc1d6eac03d"
+  },
+  {
+    "query": "don't rely on reported vocab size, log warning if inconsistent",
+    "relevant": [
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5ed70a67345f47b2068ce12c6d94dfc518035eec"
+  },
+  {
+    "query": "Reverted eos bos change",
+    "relevant": [
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6941c7d05d3cfac70ddd0db65ade1b2691994143"
+  },
+  {
+    "query": "rename show progress bar argument",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4e7446313aeb30b9e69fab9139440e3fa7acd9d5"
+  },
+  {
+    "query": "Add explained variance messages",
+    "relevant": [
+      "model2vec/distill/distillation.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0fefc5f1e55268a171e235395d86c79c39472dfb"
+  },
+  {
+    "query": "Switched to math ceil",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29e8ebcd09343297f1ee070237ed492a55499173"
+  },
+  {
+    "query": "move tensor to cpu",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c1ba3211136dd88e607c2b8173d3104489518d1"
+  },
+  {
+    "query": "Fix distill model bos and eos token",
+    "relevant": [
+      "model2vec/distill/distillation.py",
+      "model2vec/distill/inference.py",
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "97d367795239de23f2020a9b8d3a30c87075a660"
+  },
+  {
+    "query": "Fix token type ids not supported",
+    "relevant": [
+      "model2vec/distill/inference.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "84570b680b7ee49aeb0bb8267a6612b8f42b6af7"
+  },
+  {
+    "query": "issue with model info missing for local model",
+    "relevant": [
+      "model2vec/distill/distillation.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9faa4bd8db79c39170370ef16f13a936527d255d"
+  },
+  {
+    "query": "bug with devices not being managed properly",
+    "relevant": [
+      "model2vec/model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c77abb9fb2f6018a914a2a428452d3b1ee384e7"
+  }
+]

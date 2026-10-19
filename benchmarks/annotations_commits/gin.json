@@ -1,0 +1,370 @@
+[
+  {
+    "query": "panic in findCaseInsensitivePathRec with RedirectFixedPath",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "472d086af2acd924cb4b9d7be0525f7d790f69bc"
+  },
+  {
+    "query": "use http.StatusContinue constant instead of magic number 100",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb2583442c4d9bccb75e6d26f1aa6e7c01950db6"
+  },
+  {
+    "query": "write content length in Data.Render",
+    "relevant": [
+      "render/data.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c00df8afadd06cc5be530dde00fe6d9fa4a2e4a"
+  },
+  {
+    "query": "allow skipping query string output",
+    "relevant": [
+      "logger.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "db309081bc5c137b2aa15701ef53f7f19788da25"
+  },
+  {
+    "query": "replace magic numbers with named constants in bodyAllowedForStatus",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "488f8c3ffa579a8d19beb2bae95ff8ef36b3d53f"
+  },
+  {
+    "query": "reduce allocations in findCaseInsensitivePath",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cad29c5e3f50a9764edbfc4787825c6caabd8579"
+  },
+  {
+    "query": "add GetError and GetErrorSlice methods for error retrieval",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "53410d2e07054369e0960fbe2eed97e1b9966f12"
+  },
+  {
+    "query": "add support for encoding.UnmarshalText in uri/query binding",
+    "relevant": [
+      "binding/form_mapping.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "192ac89eefc1c30f7c97ae48a9ffb1c6f1c8c8bc"
+  },
+  {
+    "query": "always trust xff headers from unix socket",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b2b489dbf4826c2c630717a77fd5e42774625410"
+  },
+  {
+    "query": "ClientIP handling for multiple X-Forwarded-For header values",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9914178584e42458ff7d23891463a880f58c9d86"
+  },
+  {
+    "query": "replace hardcoded localhost IPs with constants",
+    "relevant": [
+      "utils.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "915e4c90d28ec4cffc6eb146e208ab5a65eac772"
+  },
+  {
+    "query": "prevent Flush panic when `http.Flusher`",
+    "relevant": [
+      "response_writer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26c3a628655cad2388380cb8102d6ce7d4875f3b"
+  },
+  {
+    "query": "move util functions to utils.go",
+    "relevant": [
+      "context.go",
+      "tree.go",
+      "utils.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d1a15347b1e45a8ee816193d3578a93bfd73b70f"
+  },
+  {
+    "query": "optimize line reading in stack function",
+    "relevant": [
+      "recovery.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64a6ed9a41ab72076506bd590dc4b916ca4b66a5"
+  },
+  {
+    "query": "suppress http.ErrAbortHandler in recover",
+    "relevant": [
+      "recovery.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "63dd3e60cab89c27fb66bce1423bd268d52abad1"
+  },
+  {
+    "query": "add option to use escaped path",
+    "relevant": [
+      "gin.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "771dcc6476d7bc6abb9ec0235ecefa4d38fe6fb0"
+  },
+  {
+    "query": "replace regex with custom functions in redirectTrailingSlash",
+    "relevant": [
+      "gin.go",
+      "path.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "440eb14ab8ed503d4a31dfecc9946a90cd73b955"
+  },
+  {
+    "query": "literal colon routes not working with engine.Handler",
+    "relevant": [
+      "gin.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5fad976b372e381312f8de69f0969f1284d229d3"
+  },
+  {
+    "query": "improve type safety and server organization in HTTP middleware",
+    "relevant": [
+      "context.go",
+      "gin.go",
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "93ff771e6dbf10e432864b30f3719ac5c84a4d4a"
+  },
+  {
+    "query": "add example comments for ShouldBind* methods",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "58135f06cf206a9ff713eb14150ef04a05b031d4"
+  },
+  {
+    "query": "close os.File in RunFd to prevent resource leak",
+    "relevant": [
+      "gin.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3d5a28ed6d3849da820195b6774d212bcc038a9"
+  },
+  {
+    "query": "add Protocol Buffers support to content negotiation",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "acc55e049e33b401e810dbd8c0d6dcb6b3ba2b05"
+  },
+  {
+    "query": "optimize path parsing using strings.Count",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2e22e5085960205fbb11c25776f6ea76b8053253"
+  },
+  {
+    "query": "omit the return value names",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c0048f645ee945c4db30593afdea10123e2c30a6"
+  },
+  {
+    "query": "improve empty slice/array handling in form binding",
+    "relevant": [
+      "binding/form_mapping.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3d1092b3b48addf6f9cd00fe274ec3bd14650eb"
+  },
+  {
+    "query": "use maps.Copy for cleaner map handling",
+    "relevant": [
+      "binding/form_mapping.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "39858a0859c914bd26948fa950477e11bd8d3823"
+  },
+  {
+    "query": "refine hijack behavior for response lifecycle",
+    "relevant": [
+      "response_writer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "234a6d4c00cb77af9852aca0b8289745d5529b4b"
+  },
+  {
+    "query": "use sync.OnceValue to simplify engine function",
+    "relevant": [
+      "ginS/gins.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59e9d4a794f12c4f9a6c7bed441b9644e5f6d99b"
+  },
+  {
+    "query": "remove headers parameter from writeHeader",
+    "relevant": [
+      "render/reader.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e198f6e859220afd35bc2fb2fd5d404d7c0882ca"
+  },
+  {
+    "query": "replace string(/) with \"/\" in node.insertChild",
+    "relevant": [
+      "tree.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b1e3533e2d17b6152b05efeab8280f450e68e52"
+  },
+  {
+    "query": "optimize the log output of CustomRecoveryWithWriter",
+    "relevant": [
+      "recovery.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "45b805f6d59ba0b4f315adffe81ed4a82a51a591"
+  },
+  {
+    "query": "do not export tomlContentType anymore",
+    "relevant": [
+      "render/toml.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "17d0b553eac2a32fe82b06e3b4fa0d0cac3bff57"
+  },
+  {
+    "query": "prevention of Hijack runtime panics",
+    "relevant": [
+      "response_writer.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "32065bbd4298d566d060d234e452bbf44e92161d"
+  },
+  {
+    "query": "remove impossible case (empty value for mode)",
+    "relevant": [
+      "mode.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "57ec9e603642dd8a48fbd860e1f4fc5de7be37c0"
+  },
+  {
+    "query": "correct article usage in comments",
+    "relevant": [
+      "binding/form_mapping.go",
+      "logger.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ad4f436ae9823ec577b746d0560201557f8c9691"
+  },
+  {
+    "query": "added `AbortWithStatusPureJSON ` in `Context`",
+    "relevant": [
+      "context.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dbd8a2515093ad47cadc5c1fface89861a0b765c"
+  },
+  {
+    "query": "migrate yaml package to github.com/goccy/go-yaml",
+    "relevant": [
+      "binding/yaml.go",
+      "render/yaml.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf4775283ec30cda685355b5016c5abd2a56884e"
+  },
+  {
+    "query": "extract Authorization header masking into maskAuthorization func",
+    "relevant": [
+      "recovery.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e30123ad7314411664a693f23ed0ade498ccdaf0"
+  },
+  {
+    "query": "replace bytes with strings in function for better performance",
+    "relevant": [
+      "recovery.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3c12d2a80e40930632fc4a4a4e1a45140f33fb12"
+  },
+  {
+    "query": "refactor `Keys` type to `map[any]any`",
+    "relevant": [
+      "context.go",
+      "logger.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "41d8591eb16bf23732de9ae2b699d6cae54c2ae8"
+  }
+]

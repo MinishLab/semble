@@ -137,6 +137,27 @@ NDCG@10 per language, sorted by semble. CRE = CodeRankEmbed, cbm = codebase-memo
 
 </details>
 
+### Commit-message queries
+
+A second, independent query set lives in `annotations_commits/`. Each query is a commit subject from the repo's own
+history and its relevant files are the 1-3 non-test source files that commit changed, mined by
+`benchmarks/mine_commit_queries.py`; no model writes or filters the queries. It has 2,416 queries, up to 40 per repo.
+
+| Query set     | Queries | Query words found in the target file | Queries with every word in the target |
+| ------------- | ------: | -----------------------------------: | ------------------------------------: |
+| `annotations` |   1,251 |                                  74% |                                   31% |
+| `commits`     |   2,416 |                                  68% |                                   13% |
+
+Commit subjects describe a change rather than what a file is for, so absolute scores are lower (semble: 0.735
+NDCG@10, against 0.855 on the annotations). The set is most useful for checking that a ranking change isn't tuned to
+how the annotations were written.
+
+```bash
+uv run python -m benchmarks.mine_commit_queries          # (re)mine from history-only clones
+uv run python -m benchmarks.run_benchmark --query-set commits
+uv run python -m benchmarks.baselines.ablations --query-set commits
+```
+
 ## Methods
 
 - **[ripgrep](https://github.com/BurntSushi/ripgrep)**: fast regex search over files, included as a raw keyword-match baseline.

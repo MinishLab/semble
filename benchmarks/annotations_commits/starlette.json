@@ -1,0 +1,368 @@
+[
+  {
+    "query": "Handle websocket denial responses in streaming and file responses",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ee951980bae776103715b66305f807d9e8245da"
+  },
+  {
+    "query": "Use `bytearray` for field accumulation in `FormParser`",
+    "relevant": [
+      "starlette/formparsers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "789b9269fd3f3d6ab28781624f151e44432463cd"
+  },
+  {
+    "query": "Move parser.finalize inside try/except in MultiPartParser.parse",
+    "relevant": [
+      "starlette/formparsers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c2e28786d1e73da045fa84e622f65c314a7171c1"
+  },
+  {
+    "query": "Track session access and modification in `SessionMiddleware`",
+    "relevant": [
+      "starlette/middleware/sessions.py",
+      "starlette/requests.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4647e532bbed7a5f60c9972ddba3f5fb4a79e1f9"
+  },
+  {
+    "query": "Enable `autoescape` by default in `Jinja2Templates`",
+    "relevant": [
+      "starlette/templating.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "496b7106a6223b1bb95785790766ec5e9b9f1c9d"
+  },
+  {
+    "query": "Drop deprecated `method` parameter from `FileResponse`",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c614b910b95f1889d6d39d447ba7e5a6b8542a8"
+  },
+  {
+    "query": "Avoid mutating `FileResponse` headers on range requests",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3bddf51c71e0940d1e9bfbae9d952df8389cb80b"
+  },
+  {
+    "query": "Use CRLF line endings in multipart byterange boundaries",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9c74ef4c7cb1b79909aebf38be0e155064c27601"
+  },
+  {
+    "query": "Set `Content-Type` instead of `Content-Range` on multi-range responses",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "90b805fda70db2316d79aa577f4c3eb670f9a8a1"
+  },
+  {
+    "query": "Include `bytes` unit in Content-Range header on 416 responses",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c011d1fcb27ab8b4759288479208315695ef3ca3"
+  },
+  {
+    "query": "Handle null bytes in `StaticFiles` path",
+    "relevant": [
+      "starlette/staticfiles.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "51057d57449c35a9fa2814266cda60dc51bf3435"
+  },
+  {
+    "query": "Add state generic to WebSocket",
+    "relevant": [
+      "starlette/websockets.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5668ce62872de48aa3f87c620eb9a7e25d40a782"
+  },
+  {
+    "query": "Return explicit origin in CORS response when credentials are allowed",
+    "relevant": [
+      "starlette/middleware/cors.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "02b6ed7b18c741c00795010e9d716b58006af2c3"
+  },
+  {
+    "query": "Drop deprecation warnings on the templating module",
+    "relevant": [
+      "starlette/templating.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96479daca2e4bd8157f68d914fd162aa94eff73a"
+  },
+  {
+    "query": "Drop main deprecation warnings around applications/routing",
+    "relevant": [
+      "starlette/applications.py",
+      "starlette/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f99e11f1f56776f3340338aa26bd4f38792a344f"
+  },
+  {
+    "query": "Only use `typing_extensions` in older Python versions",
+    "relevant": [
+      "starlette/requests.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d02eadecb5409e9553922081ac123757849335e7"
+  },
+  {
+    "query": "Turn `State` into a `Mapping`",
+    "relevant": [
+      "starlette/datastructures.py",
+      "starlette/requests.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d8c7cf9aca95b31c7a70473d03c26bc8ce33cd74"
+  },
+  {
+    "query": "Add `allow_private_network` in `CORSMiddleware`",
+    "relevant": [
+      "starlette/middleware/cors.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "49d4de92867cb38a781069701ad57cecab4a1a36"
+  },
+  {
+    "query": "Ignore `if-modified-since` if `if-none-match` is present",
+    "relevant": [
+      "starlette/staticfiles.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3d480dd7d5adf474d0736c67a2a3064e88226837"
+  },
+  {
+    "query": "Do not pollute exception context in Middleware",
+    "relevant": [
+      "starlette/middleware/base.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26d66bbfb05c7bbecbbb57106c65f33682f8174e"
+  },
+  {
+    "query": "Set encodings when reading config files",
+    "relevant": [
+      "starlette/config.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a59397db889e3a96c4f34b1406957a3b92e1e8b5"
+  },
+  {
+    "query": "Support multiple cookie headers in `Request.cookies`",
+    "relevant": [
+      "starlette/requests.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f78881448d06ac2b296fc3533abbb0148fb9402"
+  },
+  {
+    "query": "Use type literal for WebSocketEndpoint encoding values",
+    "relevant": [
+      "starlette/endpoints.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "30f18da3f8536783af5eaa6c2132e08d4a479649"
+  },
+  {
+    "query": "implement rfc9110 http status names",
+    "relevant": [
+      "starlette/status.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40a81479c7146bab21cc58ccb92b017cf177a077"
+  },
+  {
+    "query": "Make UploadFile check for future rollover",
+    "relevant": [
+      "starlette/datastructures.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f7ec2eb512fcc3fe90b43cb9dd9e1d08696bec1"
+  },
+  {
+    "query": "Use `Self` in `TestClient.__enter__`",
+    "relevant": [
+      "starlette/testclient.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e741635e5452ba8013d926bddf2be3a292910dca"
+  },
+  {
+    "query": "Add support for ASGI `pathsend` extension",
+    "relevant": [
+      "starlette/middleware/base.py",
+      "starlette/middleware/gzip.py",
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af1c709a7d1b92dee2921cceef7ef8d1df65ad25"
+  },
+  {
+    "query": "Make annotation for `methods` more permissive",
+    "relevant": [
+      "starlette/routing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0997431a51116e43d5f5b6538e3ecf4e8fea704"
+  },
+  {
+    "query": "add partitioned attribute to cookie",
+    "relevant": [
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4acf1d1ca3e8aa767567cb4e6e12f093f066553b"
+  },
+  {
+    "query": "Mark ExceptionMiddleware.http_exception as async to prevent thread creation",
+    "relevant": [
+      "starlette/middleware/exceptions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a766a58d14007f07c0b5782fa78cdc370b892796"
+  },
+  {
+    "query": "Prevents reraising of exception from BaseHttpMiddleware",
+    "relevant": [
+      "starlette/middleware/base.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "48f7cd7f28b9e4b9a5a6b19159139205907aec41"
+  },
+  {
+    "query": "fix IndexError in TemplateResponse",
+    "relevant": [
+      "starlette/templating.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bcdf0ad017168408060b6faab156636ced4c94f7"
+  },
+  {
+    "query": "Allow relative directory path when `follow_symlinks=True`",
+    "relevant": [
+      "starlette/staticfiles.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc3b4002e241353d96e1ad18d8c6b5fc4f8463df"
+  },
+  {
+    "query": "Raise exception from background task on BaseHTTPMiddleware",
+    "relevant": [
+      "starlette/middleware/base.py",
+      "starlette/responses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5cc4ddf1a5d07388015458e7c6b2ae5df617c372"
+  },
+  {
+    "query": "Make sure Vary header is always added if a response can be compressed",
+    "relevant": [
+      "starlette/middleware/gzip.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f13d354e18141cea9041ffad603d98197d880a73"
+  },
+  {
+    "query": "Don't compress on server sent events",
+    "relevant": [
+      "starlette/middleware/gzip.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a9a8dab0cc3cbd05dca37650fc392717b9fe5bbf"
+  },
+  {
+    "query": "Rename `max_file_size` to `spool_max_size`",
+    "relevant": [
+      "starlette/formparsers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ae3213ca557a25aff91f1d43d530ca3962c729d"
+  },
+  {
+    "query": "Add deprecated warnings to `TestClient` on use of `timeout` argument",
+    "relevant": [
+      "starlette/testclient.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "135e3af00a507714a4e391ab8d11b835399aa1a4"
+  },
+  {
+    "query": "Get iscoroutinefunction from inspect rather than asyncio",
+    "relevant": [
+      "starlette/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cbddcaf59267d5a6e7bf10736cdd5af6048fe274"
+  },
+  {
+    "query": "Turn directory into string on `lookup_path` on commonpath comparison",
+    "relevant": [
+      "starlette/staticfiles.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f137494160fad01f75ae54b8867ecc8f762bc118"
+  }
+]

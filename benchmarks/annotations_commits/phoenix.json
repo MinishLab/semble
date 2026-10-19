@@ -1,0 +1,369 @@
+[
+  {
+    "query": "Raise on list value in query string parameter encoding",
+    "relevant": [
+      "lib/phoenix/verified_routes.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8fb466e50659cf69dacb035bbb2579a14a3fe529"
+  },
+  {
+    "query": "Raise on duplicate use of Phoenix.VerifiedRoutes",
+    "relevant": [
+      "lib/phoenix/verified_routes.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4147f03e11991a5d0477d6a11b422ff5b09e7d5f"
+  },
+  {
+    "query": "Enable purging in Phoenix code server",
+    "relevant": [
+      "lib/phoenix/code_reloader/server.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7bad200ed0d50c4a38aade970389fd35ca981c9e"
+  },
+  {
+    "query": "Use .localhost and set ip in mix phx.gen.cert",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.cert.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e375acce1c15601b80d6ade1e63a8f5572018ff4"
+  },
+  {
+    "query": "Drop incoming messages with stale join refs",
+    "relevant": [
+      "lib/phoenix/socket.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c73bbfcfeafce3d42cb270a7ecb41a4ca39ae393"
+  },
+  {
+    "query": "Accept function in `Phoenix.Socket.assign/2`",
+    "relevant": [
+      "lib/phoenix/socket.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6978284a96320635393c158cde558aedca93b278"
+  },
+  {
+    "query": "custom dispatcher for Presence handle_diff broadcast",
+    "relevant": [
+      "lib/phoenix/presence.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a09787a1d81e79f8f07f94255815b47b8c9826e"
+  },
+  {
+    "query": "update debian trixie (stable)",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.release.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d805589d3f0613b1e42c91cc748e54c2153de1e1"
+  },
+  {
+    "query": "Add Phoenix.Controller.assign/2 to match LiveView API",
+    "relevant": [
+      "lib/phoenix/controller.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c80e097e91cd9329065a3cd9e165ba48c860387"
+  },
+  {
+    "query": "Remove additional unused requires",
+    "relevant": [
+      "lib/phoenix/endpoint.ex",
+      "lib/phoenix/socket.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1916e0a0b5af8d166bbf78956b664856829d0bc"
+  },
+  {
+    "query": "Do not add path prefix for static routes",
+    "relevant": [
+      "lib/phoenix/verified_routes.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b3462a71d2fe587d8e15e86c4ea56e1c1bd5388f"
+  },
+  {
+    "query": "Fix examples for route_prefix/2",
+    "relevant": [
+      "lib/mix/phoenix/scope.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "818d23cb8a41d8a2d9de74c1ab536886e0ed2bfe"
+  },
+  {
+    "query": "Raise when a reference conflicts with the scope on schema generation",
+    "relevant": [
+      "lib/mix/phoenix/schema.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "757f033df5194f121fc80fe7d1810e5eee46ea87"
+  },
+  {
+    "query": "Set the socket default for longpoll back to false",
+    "relevant": [
+      "lib/phoenix/endpoint.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7b6f241a358b2b6091bf53bf7b8bbba61bd484c"
+  },
+  {
+    "query": "Fix missing in error message's suggestion",
+    "relevant": [
+      "lib/phoenix/channel.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8546ea30d4a8a5bd6459814bf6711ad14c5ddc49"
+  },
+  {
+    "query": "align phx.gen.auth umbrella error message with other generators",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.auth.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c5528770d858330489749ae0e99ce97927035598"
+  },
+  {
+    "query": "Clarify timestamp further. Closes",
+    "relevant": [
+      "lib/phoenix/token.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8502ed0107f0420498f1e3fac235bc80c86c6912"
+  },
+  {
+    "query": "Add guide for live_view generator customization",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54e7b17b83325ce3e654de2e2d9ea30ec5f6bf15"
+  },
+  {
+    "query": "Document conflict between head and Plug.Head, closes",
+    "relevant": [
+      "lib/phoenix/router.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dab2b7bb5c557f0c13853aa634fea1d1b234ca20"
+  },
+  {
+    "query": "try to fix phx.gen.cert on OTP 28",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.cert.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee63ed438a30487bcbb02aafe19bc4916a74bba8"
+  },
+  {
+    "query": "Fix phx.gen.presence PubSub server name for umbrella apps",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.presence.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aa9018db49ddba843691581e6d521bf6d689c9a2"
+  },
+  {
+    "query": "warn when using phx.gen.auth without esbuild",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.auth.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d9b7b5e730ef5bad7c366a5cdc1d53c553a195e9"
+  },
+  {
+    "query": "Optimize parameter scrubbing by precompiling patterns",
+    "relevant": [
+      "lib/phoenix.ex",
+      "lib/phoenix/logger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "359539f00cb28b84b43de046d2a1c4a1844400b7"
+  },
+  {
+    "query": "Scrub `payload[\"value\"]` for LiveView form submit events",
+    "relevant": [
+      "lib/phoenix/logger.ex",
+      "lib/phoenix/socket/message.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "665d74ccbe8c7d895f64a1e131688012475ba989"
+  },
+  {
+    "query": "Run after compiler callbacks in Phoenix",
+    "relevant": [
+      "lib/phoenix/code_reloader/server.ex",
+      "lib/phoenix/endpoint/supervisor.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4aafb2ec59a2be6559e8f31b015b692ffe44ba13"
+  },
+  {
+    "query": "Remove Chrome note, closes",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.cert.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b63c49914730965dbda4346993110fb2ff406adb"
+  },
+  {
+    "query": "Return relative file paths on --info",
+    "relevant": [
+      "lib/mix/tasks/phx.routes.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cef26dabd9ecbb1056583cac106185f13cc3aff3"
+  },
+  {
+    "query": "add `:log` to `common_config`",
+    "relevant": [
+      "lib/phoenix/endpoint.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71eca98d6234820412ce199a08eafb71e93aa751"
+  },
+  {
+    "query": "add elixir and otp opts to Dockerfile generator",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.release.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e4107a9537e114311d0abb7e926bf876df0a3443"
+  },
+  {
+    "query": "Improve deprecation message for Phoenix endpoint, closes",
+    "relevant": [
+      "lib/phoenix/endpoint/supervisor.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ec6ed946b4fb0803590de742f53cdba43d3eba33"
+  },
+  {
+    "query": "use context_app for scopes",
+    "relevant": [
+      "lib/mix/phoenix/schema.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "345f9f7c5eebae5abf84d0fc2605a027def22fed"
+  },
+  {
+    "query": "Do not show ANSI escape codes on exception pages",
+    "relevant": [
+      "lib/phoenix/code_reloader.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "95a2e45467aed8f13c10bb4aae66c6b69aec94e6"
+  },
+  {
+    "query": "Move regexes out of module attributes to fix compatibility with OTP 28",
+    "relevant": [
+      "lib/phoenix/digester.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c8ba77a66552c9b28b78dd0b958457d303f8e1c9"
+  },
+  {
+    "query": "put_flash/3: document flash key values + generator's defaults",
+    "relevant": [
+      "lib/phoenix/controller.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c73c1b0b4ca3fd0adf57bb2010d097d47d8f0768"
+  },
+  {
+    "query": "require at least one attribute in phx.gen.live/html",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.html.ex",
+      "lib/mix/tasks/phx.gen.live.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "48b94ebde127522b9113baecbe1a0a0e54a293ca"
+  },
+  {
+    "query": "Update EEF Security WG Links",
+    "relevant": [
+      "lib/mix/tasks/phx.gen.release.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "08d191ad7a334175a35cd1211c0247a143a9161f"
+  },
+  {
+    "query": "Set __changed__: nil when rendering errors for LiveView compatibility",
+    "relevant": [
+      "lib/phoenix/controller.ex",
+      "lib/phoenix/endpoint/render_errors.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2601ceb548467b9ed793c303857b83b98f98fd1b"
+  },
+  {
+    "query": "Include more information on AlreadySentError errors",
+    "relevant": [
+      "lib/phoenix/controller.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bb494bb4770e5966e3eaaf803b4ebfaff9edaaeb"
+  },
+  {
+    "query": "Deprecate :trailing_slash on router",
+    "relevant": [
+      "lib/phoenix/router.ex",
+      "lib/phoenix/router/scope.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7aae5ad067be0f7dddabb4686ba3f4585c613301"
+  },
+  {
+    "query": "Simplify and remove duplication in routing guides",
+    "relevant": [
+      "lib/phoenix/router.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "41c002c5d67bab71caae44c0762592b73781f574"
+  }
+]

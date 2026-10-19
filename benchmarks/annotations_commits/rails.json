@@ -1,0 +1,364 @@
+[
+  {
+    "query": "Delay engine route building",
+    "relevant": [
+      "railties/lib/rails/engine.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "61e761c7d984b58b3cf29f9cfef18b833c7c12e9"
+  },
+  {
+    "query": "Don't add Rack::Sendfile to the stack if `x_sendfile_header` is `nil`",
+    "relevant": [
+      "railties/lib/rails/application/default_middleware_stack.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b37aeee32f29b879f7bc6e1d91fda7e5f845160b"
+  },
+  {
+    "query": "Remove unused \"open-uri\" require from AppBase",
+    "relevant": [
+      "railties/lib/rails/generators/app_base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8115bbfcd3564beea3ecf38d820a3bc696c4051a"
+  },
+  {
+    "query": "Read from `ENV['REVISION']` if present",
+    "relevant": [
+      "railties/lib/rails/application.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "abc084255e7b122c1c09d56ac6182cfec12a5f0a"
+  },
+  {
+    "query": "Combine duplicate `if respond_to?(:action_view)`",
+    "relevant": [
+      "railties/lib/rails/application/configuration.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bb7af9a1aa77662754a094526d4712e77e55c6dd"
+  },
+  {
+    "query": "Disable console query cache by default",
+    "relevant": [
+      "railties/lib/rails/commands/console/console_command.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d8df2a13aa980fc58fe233fb6b596c4648c4837c"
+  },
+  {
+    "query": "Check for text-based lockfile first",
+    "relevant": [
+      "railties/lib/rails/generators/js_package_manager.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "95fb6bf8d5895d8e832ff63eaf6921495726aaaa"
+  },
+  {
+    "query": "Detect bun JS package manager when using text-based lockfile",
+    "relevant": [
+      "railties/lib/rails/generators/js_package_manager.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c56f4386c1c794a5e00112697ea279c06489bf08"
+  },
+  {
+    "query": "Console `reload!` will reset the console's executor, when present",
+    "relevant": [
+      "railties/lib/rails/commands/console/irb_console.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eac2c629b4e8b8de2da78b8a22eb984898081266"
+  },
+  {
+    "query": "Update comment as Proc support is removed in revision",
+    "relevant": [
+      "railties/lib/rails/application.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c90a5d1ca598a397f8e9138613c29b619cab6661"
+  },
+  {
+    "query": "Remove X-XSS-Protection from default headers",
+    "relevant": [
+      "railties/lib/rails/application/configuration.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ed1157060f232ffea3c3ea004c0704f649e8a60e"
+  },
+  {
+    "query": "App.revision: Close the write side of the pipe before reading",
+    "relevant": [
+      "railties/lib/rails/application.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f7008177810741cf992b0791b9dcfd2bf17abcc3"
+  },
+  {
+    "query": "Fix Rails.app.revision to check git repo in app root",
+    "relevant": [
+      "railties/lib/rails/application.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fc99a27e268f60b4108dfe981385061a3d78b809"
+  },
+  {
+    "query": "Remove unnecessary `defined?` check for RubyVM::YJIT.enable",
+    "relevant": [
+      "railties/lib/rails/application/finisher.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fddf74bea91fb3f6f47551bb13eb0ca4e594288f"
+  },
+  {
+    "query": "Improve error message in `secret_key_base=`",
+    "relevant": [
+      "railties/lib/rails/application/configuration.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0d1b4918594caad1df15aefaa0b8393bbe7e232e"
+  },
+  {
+    "query": "Remove proc support in config.revision",
+    "relevant": [
+      "railties/lib/rails/application.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4abe7ebe1d77f7b0f0eecb2fe5dab8488201df5e"
+  },
+  {
+    "query": "don't create unused routes in authentication generator",
+    "relevant": [
+      "railties/lib/rails/generators/rails/authentication/authentication_generator.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5b5bc64893208cb8f96a4ff7828fc428f6c02926"
+  },
+  {
+    "query": "Fixed bin/rails notes command to work with CSS /**/ comments",
+    "relevant": [
+      "railties/lib/rails/source_annotation_extractor.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0c91aee3e0e658a66cc1bf7160084fc703f107a2"
+  },
+  {
+    "query": "Remove duplicate unique index for token migrations",
+    "relevant": [
+      "railties/lib/rails/generators/generated_attribute.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "de419d7ad8844b03016e78f640ee0523d35b0ad1"
+  },
+  {
+    "query": "Do not clean directories directly under the application root with `Rails::BacktraceCleaner`",
+    "relevant": [
+      "railties/lib/rails/backtrace_cleaner.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ed41b849b86a5d352aa7bbba4b5b69217807338"
+  },
+  {
+    "query": "Add load hook guard for Railties",
+    "relevant": [
+      "railties/lib/rails/application/configuration.rb",
+      "railties/lib/rails/railtie.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e7b023606446d2018b191d0ba49ba6830e23ad30"
+  },
+  {
+    "query": "Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`",
+    "relevant": [
+      "railties/lib/rails/code_statistics.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bae568c80735bf3dcebcd693293527dbdd5111cc"
+  },
+  {
+    "query": "Wrap console command with an executor by default",
+    "relevant": [
+      "railties/lib/rails/commands/console/console_command.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "07f34c9cc47b769de526a118a7b4b794078c672e"
+  },
+  {
+    "query": "Use Digest::UUID.uuid_v5 to generate uuid instead of hand-rolled",
+    "relevant": [
+      "railties/lib/rails/devtools_controller.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "593c709ef3a85ec62e2fd4ebe790851f501c1494"
+  },
+  {
+    "query": "Respect config.log_level to emit debug events",
+    "relevant": [
+      "railties/lib/rails/application/bootstrap.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "166f248c85cabb6055f163388faba1b2451c1122"
+  },
+  {
+    "query": "Fix devcontainer volumes for PostgreSQL 18",
+    "relevant": [
+      "railties/lib/rails/generators/database.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fef1b8c7ba1648f4ef7e0faa3161a119d80b8b1"
+  },
+  {
+    "query": "Fix detection of cssbundling-rails usage in the app generator",
+    "relevant": [
+      "railties/lib/rails/generators/app_base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9d009f205bb0e8d96637d075e12d418e260bc5de"
+  },
+  {
+    "query": "Fix db:system:change Dockerfile changes",
+    "relevant": [
+      "railties/lib/rails/generators/rails/db/system/change/change_generator.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "454ae29798d298eb9911f14b5cff0282ae4cc17d"
+  },
+  {
+    "query": "Fix rails new to use stylesheet_link_tag \"application\" when --css is present",
+    "relevant": [
+      "railties/lib/rails/generators/app_base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f72832f638745f792d9314e53f88a51de2911f3"
+  },
+  {
+    "query": "Respect the file_watcher config in the routes reloader",
+    "relevant": [
+      "railties/lib/rails/application.rb",
+      "railties/lib/rails/application/routes_reloader.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d77afd2321f9b3604d52b7ad1c10750af3306329"
+  },
+  {
+    "query": "Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`",
+    "relevant": [
+      "railties/lib/rails/structured_event_subscriber.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7e8fa100fae0b952e5792592d55c0e8dad77899c"
+  },
+  {
+    "query": "Add error reporter to rails rake command",
+    "relevant": [
+      "railties/lib/rails/commands/rake/rake_command.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b379af17488a1d75d4218317c839e6b653ab3d05"
+  },
+  {
+    "query": "Show help hint when starting `bin/rails console`",
+    "relevant": [
+      "railties/lib/rails/commands/console/console_command.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e0ae228272f36cedca8ecff18f6cf6d0e58e5691"
+  },
+  {
+    "query": "Pre-fill and persist /rails/info/routes search input",
+    "relevant": [
+      "railties/lib/rails/info_controller.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ca59b0c9468466ad3a4e5472a63f4e99add23a6"
+  },
+  {
+    "query": "Remove deprecated `bin/rake stats` command",
+    "relevant": [
+      "railties/lib/rails/tasks.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf7d5e47a91ec68333cd18a02704471bedd047ac"
+  },
+  {
+    "query": "Don't use moby in the docker-outside-of-docker feature",
+    "relevant": [
+      "railties/lib/rails/generators/rails/devcontainer/devcontainer_generator.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0abcb526e6c6e2ce3d901d45d1130337da0d3914"
+  },
+  {
+    "query": "Make CodeStatistics pattern overridable",
+    "relevant": [
+      "railties/lib/rails/code_statistics.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f36de3e1df80db7b10ceb8eac0e07b7583192667"
+  },
+  {
+    "query": "Make `rails new --quiet` fully quiet",
+    "relevant": [
+      "railties/lib/rails/generators/app_base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4483c237edf0d091239adb5e9264e5084cfbc575"
+  },
+  {
+    "query": "Emit structured debug events in development only",
+    "relevant": [
+      "railties/lib/rails/application/bootstrap.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1850a9fee7cf2d4559df582eeb064ca7cb8f6d6a"
+  },
+  {
+    "query": "Show engine routes in `/rails/info/routes` as well",
+    "relevant": [
+      "railties/lib/rails/info_controller.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "14940f28da495fe39ad86aa001d351839d9f6c5c"
+  }
+]

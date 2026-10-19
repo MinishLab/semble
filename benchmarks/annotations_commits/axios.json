@@ -1,0 +1,368 @@
+[
+  {
+    "query": "clamp loaded to total for computable upload/download events",
+    "relevant": [
+      "lib/helpers/progressEventReducer.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "914bc2605ae43cee86fc1327c3f0022e1870d431"
+  },
+  {
+    "query": "support multiselect in form data",
+    "relevant": [
+      "lib/helpers/formDataToJSON.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0912bde937c9505ce5464d5b9c56b81d1edeab63"
+  },
+  {
+    "query": "handle socket-only request errors without leaking keep-alive listeners",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b68491d04838aaab5d1a4d30e23d1f534beceeb"
+  },
+  {
+    "query": "remove Content-Type without boundary for FormData",
+    "relevant": [
+      "lib/adapters/fetch.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "62f62816608823e1b152b27d3209092adc77b454"
+  },
+  {
+    "query": "use strict equality in buildFullPath check",
+    "relevant": [
+      "lib/core/buildFullPath.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f53ebf21989164a1f41b85f012bc545c17df7f16"
+  },
+  {
+    "query": "unrestricted cloud metadata exfiltration via header injection chain",
+    "relevant": [
+      "lib/core/Axios.js",
+      "lib/core/AxiosHeaders.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "363185461b90b1b78845dc8a99a1f103d9b122a1"
+  },
+  {
+    "query": "no_proxy hostname normalization bypass leads to ssrf",
+    "relevant": [
+      "lib/adapters/http.js",
+      "lib/helpers/shouldBypassProxy.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb3befb6daac6cad26b2e54094d0f2d9e47f24df"
+  },
+  {
+    "query": "cancel ReadableStream body after request stream capability probe",
+    "relevant": [
+      "lib/adapters/fetch.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "94e1543576aec5381607dde6f3356a9073dc97bf"
+  },
+  {
+    "query": "fix outdated encode comment",
+    "relevant": [
+      "lib/helpers/buildURL.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "042e7763356f92a0459477839aea0bbc3c475908"
+  },
+  {
+    "query": "closing detached http2 session on timeout",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f7a4ee21d5d62e472b33cbadf351467b19776a3c"
+  },
+  {
+    "query": "trim trailing CRLF in normalized header values",
+    "relevant": [
+      "lib/core/AxiosHeaders.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "688826facdf0c51073bf5712432ff0fc3b396db6"
+  },
+  {
+    "query": "support react native blob objects",
+    "relevant": [
+      "lib/helpers/toFormData.js",
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "885b4af6f5dd6ab7977b207fdf61a7e89af69e69"
+  },
+  {
+    "query": "add missing JSDoc comments",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "00d97b9730f3d83e865d0f3ee33cba6290ba20ed"
+  },
+  {
+    "query": "copy status from source error in AxiosError.from",
+    "relevant": [
+      "lib/core/AxiosError.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d51accbea1faef6e3b74c7dfa636704a2332bfbb"
+  },
+  {
+    "query": "safe FormData detection for WeChat Mini Program",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "672491db34b5575d2abb1c3f91382bc1f45ae7b7"
+  },
+  {
+    "query": "make AxiosError.message property enumerable",
+    "relevant": [
+      "lib/core/AxiosError.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "822e3e40b4f9287b5a787f5d1dfb3ae7f8a0faa3"
+  },
+  {
+    "query": "add input validation to isAbsoluteURL",
+    "relevant": [
+      "lib/helpers/isAbsoluteURL.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "475e75a260668d227aec9f77735a49748c9041ff"
+  },
+  {
+    "query": "Denial of Service via __proto__ Key in mergeConfig",
+    "relevant": [
+      "lib/core/mergeConfig.js",
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "28c721588c7a77e7503d0a434e016f852c597b57"
+  },
+  {
+    "query": "clarify object check comment",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "04cf01969ed58f96920da032f340bfe4614aab90"
+  },
+  {
+    "query": "added a option to choose between legacy and the new request/response interceptor ordering",
+    "relevant": [
+      "lib/core/Axios.js",
+      "lib/defaults/transitional.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "569f028a5878faaec8d7d138ba686aac407bda4c"
+  },
+  {
+    "query": "handle the error in the same interceptor",
+    "relevant": [
+      "lib/core/Axios.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5945e40bb171d4ac4fc195df276cf952244f0f89"
+  },
+  {
+    "query": "refresh CDN URLs and example JSON headers",
+    "relevant": [
+      "lib/helpers/composeSignals.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f8694341deaabd2e81059543fe03f9c791656903"
+  },
+  {
+    "query": "Use port 443 for HTTPS connections by default",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7e60653460480ffacecf85383012ca1baa6263e"
+  },
+  {
+    "query": "silentJSONParsing=false should throw on invalid JSON",
+    "relevant": [
+      "lib/defaults/index.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7d19335e43d6754a1a9a66e424f7f7da259895bf"
+  },
+  {
+    "query": "remove TODO comment and dead code from http adapter error handler",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8092aee7240220aa7913d163187b7fba8d9e5a51"
+  },
+  {
+    "query": "compatibility with frozen prototypes",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "860e03396a536e9b926dacb6570732489c9d7012"
+  },
+  {
+    "query": "unclear error message is thrown when specifying an empty proxy authorization",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ef867e684adf7fb2343e3b29a79078a3c76dc29"
+  },
+  {
+    "query": "add options object to docstring so IDE's indicate it's available",
+    "relevant": [
+      "lib/core/InterceptorManager.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d6682b2035b17a2059f68c29fa6f7ba5c5b55bea"
+  },
+  {
+    "query": "turn AxiosError into a native error",
+    "relevant": [
+      "lib/cancel/CanceledError.js",
+      "lib/core/AxiosError.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c6a86dd2c0623ee1af043a8491dbc96d40e883b"
+  },
+  {
+    "query": "fix 'socket hang up' bug for keep-alive requests when using timeouts;",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8d372335f5c50ecd01e8615f2468a9eb19703117"
+  },
+  {
+    "query": "fix early loop exit;",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12c314b603e7852a157e93e47edb626a471ba6c5"
+  },
+  {
+    "query": "use default export for http2 module to support stubs;",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0588880ac7ddba7594ef179930493884b7e90bf5"
+  },
+  {
+    "query": "fixed a regression that caused the data stream to be interrupted for responses with non-OK HTTP statuses;",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bcd5581d208cd372055afdcb2fd10b68ca40613c"
+  },
+  {
+    "query": "fix possible race condition when handling http2 stream on almost timed out session by improving timeout out algorithm;",
+    "relevant": [
+      "lib/adapters/http.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d000fbfd0722a9c3bd0bcea3451c6d515813635d"
+  },
+  {
+    "query": "fix mismatched return type",
+    "relevant": [
+      "lib/core/InterceptorManager.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "889f8ef8be025c5c580594f0b631daf50a2d3405"
+  },
+  {
+    "query": "prevent TypeError when config.env is undefined",
+    "relevant": [
+      "lib/adapters/fetch.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "015faeca9f26db76f9562760f04bb9f8229f4db1"
+  },
+  {
+    "query": "resolve issue (added spacing in mergeConfig.js)",
+    "relevant": [
+      "lib/core/mergeConfig.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b9ec98548d93e9f2204deea10a5f1528bf3ce62"
+  },
+  {
+    "query": "add jsdoc to adapters",
+    "relevant": [
+      "lib/adapters/adapters.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e0c8e76a7efbfe38d7a1b00e99d9dd6cfbaa577"
+  },
+  {
+    "query": "add missing Cloudflare HTTP status codes",
+    "relevant": [
+      "lib/helpers/HttpStatusCode.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f4970f35b8977940698aeca55627f8dff2ccafb6"
+  },
+  {
+    "query": "change if in else to else if",
+    "relevant": [
+      "lib/utils.js"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "38726c7586c6a2583b7e7dcdce0c4fedd013055d"
+  }
+]

@@ -1,0 +1,373 @@
+[
+  {
+    "query": "document that headers must be set before streaming",
+    "relevant": [
+      "src/flask/ctx.py",
+      "src/flask/helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a29f88ce6f2f9843bd6fcbbfce1390a2071965d6"
+  },
+  {
+    "query": "add back opening session on context push",
+    "relevant": [
+      "src/flask/ctx.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a411a2434b09d9cbaa4074232b2c247d591bb655"
+  },
+  {
+    "query": "update ruff hook and noqa",
+    "relevant": [
+      "src/flask/app.py",
+      "src/flask/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3709c4a9a87e6ce8c26dc4a951e1df52ac9ecad0"
+  },
+  {
+    "query": "redirect defaults to 303",
+    "relevant": [
+      "src/flask/helpers.py",
+      "src/flask/sansio/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eca5fd1dfdc614c2df876cc32018a7d71f84ea82"
+  },
+  {
+    "query": "pass context through dispatch methods",
+    "relevant": [
+      "src/flask/app.py",
+      "src/flask/ctx.py",
+      "src/flask/templating.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6a64969009bf1898bd302e6a9633f71942523f7f"
+  },
+  {
+    "query": "Changed the static annotated type of select_jinja_autoescape method in src/flask/sansio/app.py",
+    "relevant": [
+      "src/flask/sansio/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dbd4c2882593f6118103120aa96fa9acdf7deedb"
+  },
+  {
+    "query": "use template_filter without parens",
+    "relevant": [
+      "src/flask/sansio/app.py",
+      "src/flask/sansio/blueprints.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "daf1510a4bda652ac2cfca03ec5567b03ddf8bf1"
+  },
+  {
+    "query": "refactor stream_with_context for async views",
+    "relevant": [
+      "src/flask/helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9822a0351574790cb66c652fcc396ad7aa2b09d8"
+  },
+  {
+    "query": "relax type hint for bytes io",
+    "relevant": [
+      "src/flask/helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d44f1c65239c3e33509224aa1931631243dbfa7f"
+  },
+  {
+    "query": "push preserved contexts in correct order",
+    "relevant": [
+      "src/flask/testing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "53b8f08218796d95764c5252bccd8a50a173a6fb"
+  },
+  {
+    "query": "secret key rotation: fix key list ordering",
+    "relevant": [
+      "src/flask/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb54159861708558b5f5658ebdc14709d984361c"
+  },
+  {
+    "query": "Accept `AsyncIterable` for responses",
+    "relevant": [
+      "src/flask/typing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "410e5ab7ed0ef326fa8b5164a633863f137ffff5"
+  },
+  {
+    "query": "Handle help arg by itself the same as no args",
+    "relevant": [
+      "src/flask/cli.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "da600394865c06a4772c433c1a560453dcf4f868"
+  },
+  {
+    "query": "fix type hint for `cli_runner.invoke`",
+    "relevant": [
+      "src/flask/testing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "54c3f87af9f6c0d6622cec2c3d9695b0229fb8fa"
+  },
+  {
+    "query": "use generic bases for session",
+    "relevant": [
+      "src/flask/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f49dbfd3e451006a485e81ebce030495131c4454"
+  },
+  {
+    "query": "configure and check trusted_hosts",
+    "relevant": [
+      "src/flask/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f7156f2c3271613b34d04040b502b9d7ae35eb9"
+  },
+  {
+    "query": "update env file precedence",
+    "relevant": [
+      "src/flask/cli.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c3160304278d323da8485057770926d1b582579"
+  },
+  {
+    "query": "add encoding parameter to open_resource",
+    "relevant": [
+      "src/flask/app.py",
+      "src/flask/blueprints.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "28d5a4d71824ff5823ae310e3fd014b48b33d583"
+  },
+  {
+    "query": "Provide a configuration option to control automatic option responses",
+    "relevant": [
+      "src/flask/app.py",
+      "src/flask/sansio/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d718ecf6d3dfc4656d262154c59672437c1ea075"
+  },
+  {
+    "query": "Added python type annotation and return type",
+    "relevant": [
+      "src/flask/sansio/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c7da8c2aa3a923fc620ad480a8831a8a0f21ab37"
+  },
+  {
+    "query": "fix mypy finding with new werkzeug endpoint type",
+    "relevant": [
+      "src/flask/wrappers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a363642a32880114c7944b1017f2f69bd4cc00eb"
+  },
+  {
+    "query": "fix super call in list comprehension",
+    "relevant": [
+      "src/flask/cli.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1af8f95785b85d0937153ee63d504c0b51934d80"
+  },
+  {
+    "query": "auto fixes from pre-commit.com hooks",
+    "relevant": [
+      "src/flask/helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8fdab74cc80c39f45aa65da5dd029c8d262756c3"
+  },
+  {
+    "query": "Fixing issue 5342: 'The double quote is missing in the string'",
+    "relevant": [
+      "src/flask/cli.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d5abfadd7132c9a78e14e5ba6c07aed47115280"
+  },
+  {
+    "query": "type hint fix for flask.send_file",
+    "relevant": [
+      "src/flask/helpers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4104f29956b16f3e351462651ec3c6cc5a0dd069"
+  },
+  {
+    "query": "Allow self as an argument to url_for",
+    "relevant": [
+      "src/flask/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "438edcdf01c392619449a6bdbb18f6cf72ef7bb9"
+  },
+  {
+    "query": "Remove print left in by accident",
+    "relevant": [
+      "src/flask/app.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "65271c105f7c247ecffc9a7121815276e092bd10"
+  },
+  {
+    "query": "Correct the error handler typing",
+    "relevant": [
+      "src/flask/typing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "80cf589a26d792820f135591eb8007bca891bf4f"
+  },
+  {
+    "query": "Widen the response typing",
+    "relevant": [
+      "src/flask/typing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cc80a47f5be6c60e53c42ef9378e6db3b0e183b1"
+  },
+  {
+    "query": "Support async template context processors",
+    "relevant": [
+      "src/flask/app.py",
+      "src/flask/typing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f6b243cec6859185ea4064e84b33c07cc7febf6"
+  },
+  {
+    "query": "Pass maxsplit via kwarg to re.split",
+    "relevant": [
+      "src/flask/cli.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "17e146ad949b3d80438faf95e81b53c543cb50f5"
+  },
+  {
+    "query": "Allow for PathLike types for config file variables",
+    "relevant": [
+      "src/flask/config.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2abb7513dc52e9d9f2c73dde91f3b89d8f9492e4"
+  },
+  {
+    "query": "set `Vary: Cookie` header consistently for session",
+    "relevant": [
+      "src/flask/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8646edca6f47e2cd57464081b3911218d4734f8d"
+  },
+  {
+    "query": "show subdomain or host in routes output",
+    "relevant": [
+      "src/flask/cli.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "84c007d34f7f0b8737310fe4d67be12c463e0130"
+  },
+  {
+    "query": "Allow Response subclasses to set default_mimetype as None",
+    "relevant": [
+      "src/flask/wrappers.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b626a9387900a9f717eb42765275adc0bf0875e3"
+  },
+  {
+    "query": "no cookie domain by default",
+    "relevant": [
+      "src/flask/helpers.py",
+      "src/flask/sessions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c24f8c8199f8ceda7a7cfb5e91773eba595f5b67"
+  },
+  {
+    "query": "require a non-empty name for blueprints",
+    "relevant": [
+      "src/flask/blueprints.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b8b410014d85f9861acc87c5f21c9a55a42d09c9"
+  },
+  {
+    "query": "replace werkzeug.urls with urllib.parse",
+    "relevant": [
+      "src/flask/app.py",
+      "src/flask/testing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4b39ba2f3fede0555f18fc03b0f2499bb0d424b"
+  },
+  {
+    "query": "add text parameter to config.from_file",
+    "relevant": [
+      "src/flask/config.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b10b6d4af1127fdfb0a74221af0c020ced71fece"
+  },
+  {
+    "query": "setup method on registered blueprint is error",
+    "relevant": [
+      "src/flask/blueprints.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fc03d0dfab64945169e1114cdc1fb39519a1e0c1"
+  }
+]

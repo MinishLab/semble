@@ -1,0 +1,363 @@
+[
+  {
+    "query": "Use `default=True` as a sentinel for non-boolean flags",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c4a77ba24854dab793a8ff72110a0a24c403c9f"
+  },
+  {
+    "query": "Fix callable ``flag_value`` being instantiated when used as a default",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "546f2851f414b07413777ebcae89b2c21a685252"
+  },
+  {
+    "query": "Hide `Sentinel.UNSET` values as `None` in `lookup_default `",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aaf99a3ee6935f321f755bc7c5717a91d321cd39"
+  },
+  {
+    "query": "Temporarily provide a fake context to the callback to hide `UNSET` values as `None`",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "437e1e3295c7ec979fc1bf285bb402ca20d847e7"
+  },
+  {
+    "query": "Fix _pipepager /_tempfilepage to work with multi-call binaries",
+    "relevant": [
+      "src/click/_termui_impl.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "34723d12b1e5abe1459813ce0596535da53b55d8"
+  },
+  {
+    "query": "Ensure that 'type_cast_value' never gets 'UNSET'",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "18d29196c508b249ef1111f1f29c9133e0a8b097"
+  },
+  {
+    "query": "Shorten the docstring annotations for confirm and prompt",
+    "relevant": [
+      "src/click/termui.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27de74af68bfd967c639ad4beb330fa4ed0d470f"
+  },
+  {
+    "query": "Update comments on UNSET handling during parse_args",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ce7b47dfc9ea0c665044024d91bd45c547617bf4"
+  },
+  {
+    "query": "Fix default handling to defer UNSET normalization",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c20dc6e724cd5625faaa17b715ba928d44c08bf"
+  },
+  {
+    "query": "Hide UNSET values in Context.invoke",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5fc3423ae54990cec5a8b41d2c7b489da41475b0"
+  },
+  {
+    "query": "Make `uv run --all-extras pyright --verifytypes click` pass",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e4585d77cd4a6df2c14489312f25f33a617906f"
+  },
+  {
+    "query": "Popen list-arg pager process without shell=True",
+    "relevant": [
+      "src/click/_termui_impl.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7db1f209b0b01939ba1e864fe74d3f00dac89dd5"
+  },
+  {
+    "query": "Forward exception data to exit stack when calling `__exit__`",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "555fa9bb37770a6845a98be60b0c84876775552e"
+  },
+  {
+    "query": "Tone-down the case of `default=True` for flags",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2456134ec14305c9de131c4f38d027184bd19c0"
+  },
+  {
+    "query": "Hint at the concepts carried by default",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b9abeaa315939122abf6bb35b636445b1a44dd65"
+  },
+  {
+    "query": "Hide UNSET in the callback",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "029bbeda76aa824149f110408d56de7b402a87ed"
+  },
+  {
+    "query": "Add explanation for the casting",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96e4c7599025eaefa58b7e804805e366f511a219"
+  },
+  {
+    "query": "Support legacy case of default aligning to flag_value for flag whose default=True",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "06847da9126a99c88bf347adf213d33bfe4e4af2"
+  },
+  {
+    "query": "Mark recently documented methods as private",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0acca45214a66eefe50716ecb0bcfcefa8fcc6eb"
+  },
+  {
+    "query": "Do not mention UNSET",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e9e50023f87474939d99596a90b9c8d4335c03c5"
+  },
+  {
+    "query": "Remove assertion already covered by the type annotation",
+    "relevant": [
+      "src/click/termui.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "11bfb2c9e246b91ea35ed75e23c9aad80240a3d7"
+  },
+  {
+    "query": "Do not mention UNSET and keep the change entry small",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f561f1880e6bbc8f2d199d50f08dfa2002090596"
+  },
+  {
+    "query": "Make the source selection logic clearer",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b39590fd8560e3ee6bec411ddd575761bdb1a113"
+  },
+  {
+    "query": "Keep the change entry concise",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf0e5242b3adfbfbeaff64b24a398b57d15ae94b"
+  },
+  {
+    "query": "Do not change the original structure of the code",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44c2bea54ef1f4d153138be2db9537a7f442d461"
+  },
+  {
+    "query": "Don't refactor variable names unnecessarily",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "634549fc180a4c7655eafedce5b84a9b140b0a35"
+  },
+  {
+    "query": "Keep original inconsistent ticks to reduce noise",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40fb3751ec6075538df7242524e3ff8efe366d1f"
+  },
+  {
+    "query": "Do not simple-tick Python literal values",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8645e70266479a4c3abd9b821eca608971a8c051"
+  },
+  {
+    "query": "Fix completions for quoted/escaped parameters in Fish",
+    "relevant": [
+      "src/click/shell_completion.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "701b313160be12752e49b3f7cea32402c0969a69"
+  },
+  {
+    "query": "Properly lazily import shutil",
+    "relevant": [
+      "src/click/formatting.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a352c6e416a734dd7891aa71f6c206b7d42b6baa"
+  },
+  {
+    "query": "Fix rendering when `prompt_suffix` is empty",
+    "relevant": [
+      "src/click/termui.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "812b8000f79c1fbb747a2de5114fc74515558857"
+  },
+  {
+    "query": "Fix Zsh completions with colons",
+    "relevant": [
+      "src/click/shell_completion.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1235aacb1be55dc66ddcfefbf64dec44b6ab54d"
+  },
+  {
+    "query": "Use the value of Enum choices to render default",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2ae679984c3dfaa0c7639686cd793f59eb4d9b8"
+  },
+  {
+    "query": "Using correct typing for `param_hint`",
+    "relevant": [
+      "src/click/exceptions.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3155dcac03fec1bbbcca5afcec10d1c097ad8092"
+  },
+  {
+    "query": "Don't include envvar in error hint when envvar not configured",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1b0e19f50595a07957bd96a600c37cd44b7e0cc3"
+  },
+  {
+    "query": "Raise an exception on end of input in CliRunner",
+    "relevant": [
+      "src/click/testing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "80efdf6c10c51884416d11b3b575f61157af77fa"
+  },
+  {
+    "query": "flush sys.stderr when CliRunner.invoke finalizes",
+    "relevant": [
+      "src/click/testing.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f3a4363d1e8383df496adb31f2a6ed037f85380c"
+  },
+  {
+    "query": "Fix shell completion for nested groups",
+    "relevant": [
+      "src/click/shell_completion.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ac6a2acfdb4550c35ce69ce54db502ba96c96324"
+  },
+  {
+    "query": "Fix condition for setting flag value when type is provided",
+    "relevant": [
+      "src/click/core.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4fd2fea0db423d242aedcae0a5f664efe0a93484"
+  },
+  {
+    "query": "Allow customization of help option right from its decorator",
+    "relevant": [
+      "src/click/core.py",
+      "src/click/decorators.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b7a9acc63dac907088de7d9238f7f4b2afe02ea"
+  }
+]

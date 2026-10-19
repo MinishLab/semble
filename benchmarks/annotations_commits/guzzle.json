@@ -1,0 +1,377 @@
+[
+  {
+    "query": "Use the `http_get_last_response_headers` function",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af24c6915ce307d4d844f600a9c6fe7f92fc7bfb"
+  },
+  {
+    "query": "Remove obsolete reference capturing of `$http_response_header`",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2be2ee8444e839d05537d4091d2c2caee946d53d"
+  },
+  {
+    "query": "Improve compatibility with bad servers for boolean cookie values",
+    "relevant": [
+      "src/Cookie/SetCookie.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8f68d9f29be2e834e6386b90abe19185e9c30196"
+  },
+  {
+    "query": "Remove explicit content-length header for GET requests",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "234747f2d8c6f2187baddb25478320735eda6707"
+  },
+  {
+    "query": "Drop PSR7 v1 and redact URI user info in errors",
+    "relevant": [
+      "src/Exception/RequestException.php",
+      "src/Handler/CurlFactory.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3bec073c0888627be565463115cafff6bddac934"
+  },
+  {
+    "query": "Improve CurlMultiHandler to avoid busy wait if possible",
+    "relevant": [
+      "src/Handler/CurlMultiHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0e9dcaeb379621b399ba0ed0ca9dda12b880cf9f"
+  },
+  {
+    "query": "Added automatic closing of curl handles on CurlFactory object destruction",
+    "relevant": [
+      "src/Handler/CurlFactory.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2ca50cee78091a2f49a64353ff44737e4189403b"
+  },
+  {
+    "query": "Remove the need for `AllowDynamicProperties` in CurlMultiHandler",
+    "relevant": [
+      "src/Handler/CurlMultiHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21314fd3f7b673044ec49b7a0b1d0b2ede2d57ff"
+  },
+  {
+    "query": "Fix `SetCookie::fromString` MaxAge deprecation warning and skip invalid MaxAge values",
+    "relevant": [
+      "src/Cookie/SetCookie.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0d06ef537e4260f2fab49ecb6d7587383c0673e8"
+  },
+  {
+    "query": "Fix set cookie constructor validation",
+    "relevant": [
+      "src/Cookie/SetCookie.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "15c3f6943f16fb14f033ce939e001890bd492a23"
+  },
+  {
+    "query": "Add support for setting crypto method in a unified way",
+    "relevant": [
+      "src/Handler/CurlFactory.php",
+      "src/Handler/StreamHandler.php",
+      "src/RequestOptions.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8154fcb9410c1f78414e5d0772fc69e46d5ce39"
+  },
+  {
+    "query": "Fix `0` body handling",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ebd2b6bc453975a64635b4c412969e331d045c12"
+  },
+  {
+    "query": "Add request to delay closure params",
+    "relevant": [
+      "src/RetryMiddleware.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be2902f14e4d04461d5d95b5f08261c715cbc74f"
+  },
+  {
+    "query": "Fix for janky shared hosting disabling curl",
+    "relevant": [
+      "src/Utils.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "514f665f52a3a06775333b30b4077a647290cac4"
+  },
+  {
+    "query": "Fix cross-domain cookie leakage",
+    "relevant": [
+      "src/Cookie/CookieJar.php",
+      "src/Cookie/SetCookie.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "74a8602c6faec9ef74b7a9391ac82c5e65b1cdab"
+  },
+  {
+    "query": "Set a default ssl.peer_name context in StreamHandler",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8e4a4cd2dae6c894faedff51612ba2b0c0d888d4"
+  },
+  {
+    "query": "Reject non-HTTP schemes in StreamHandler",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be834dba54222c136af31bba9d9a9b05366671f4"
+  },
+  {
+    "query": "Remove curl auth on cross-domain redirects",
+    "relevant": [
+      "src/RedirectMiddleware.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cc80b002a0c550d242e20ed28ef52b35e237e0c9"
+  },
+  {
+    "query": "Pass `int` to `&$still_running` of `curl_multi_exec`",
+    "relevant": [
+      "src/Handler/CurlMultiHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "74ca2cb463a7a99a0b99f195ca809cc4ba6c3147"
+  },
+  {
+    "query": "Replaced implicit URI to string coercion",
+    "relevant": [
+      "src/Exception/RequestException.php",
+      "src/MessageFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "01611d9e725ebfe69a4cbe31fe490e3f44321acb"
+  },
+  {
+    "query": "Only close curl handle if it's done",
+    "relevant": [
+      "src/Handler/CurlMultiHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e6765c055982209b910fcf619625091431a10d8f"
+  },
+  {
+    "query": "Stricter treatment of types in `SetCookie`",
+    "relevant": [
+      "src/Cookie/SetCookie.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "70d32b9f388e1edb645e2ed40bb8c085e36df563"
+  },
+  {
+    "query": "Throw `InvalidArgumentException` when an incorrect `headers` array is provided",
+    "relevant": [
+      "src/Client.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "399c0eaf9bd9b9992bf008b53c758a1f986080b4"
+  },
+  {
+    "query": "Fix progress parameter type compatibility between cURL and StreamHandler",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5da9dac6aee40dabe4d1edd76c7e55f7d75c9938"
+  },
+  {
+    "query": "Fix phpdoc handle_factory array",
+    "relevant": [
+      "src/Handler/CurlHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2d77dc524162ed0f2d008de27c48160d81cfa05b"
+  },
+  {
+    "query": "Be more strict with types",
+    "relevant": [
+      "src/Cookie/SetCookie.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1482295aa64d042f9f5b9a557cd1e0518d419e12"
+  },
+  {
+    "query": "Throw exception if you are using all wrong headers",
+    "relevant": [
+      "src/Client.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2b8dd1ad7e733d50e9c7b80cb375e0883a7088d"
+  },
+  {
+    "query": "Make sure we always call restore_error_handler",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f7640eb366f4e1b04eade8b2a0d9963681f777c"
+  },
+  {
+    "query": "Improve the comment regarding `CURLOPT_ENCODING` handling",
+    "relevant": [
+      "src/Handler/CurlFactory.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d46cec19f74f57fe8be671214b4ecf183e5d63f"
+  },
+  {
+    "query": "Small simplifications in `Utils`",
+    "relevant": [
+      "src/Utils.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "702cca4cbc50ae10d47e701ab9ecc8349ba1dbbe"
+  },
+  {
+    "query": "Robust handling of responses with invalid headers",
+    "relevant": [
+      "src/Handler/EasyHandle.php",
+      "src/Handler/HeaderProcessor.php",
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f5aa6951564bfa7932dd0f7ef389e0f0be02b98c"
+  },
+  {
+    "query": "Use robust, consistent `Psr7\\Utils::tryFopen` where possible",
+    "relevant": [
+      "src/Handler/CurlFactory.php",
+      "src/Handler/StreamHandler.php",
+      "src/Utils.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f38085e434c6a8affe0d4ba8faa5303a0137566d"
+  },
+  {
+    "query": "add support for DER and P12 certs",
+    "relevant": [
+      "src/Handler/CurlFactory.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9687c735181595a9332567c52c75513ec25a31d6"
+  },
+  {
+    "query": "Fixed wrong parameter order in explode",
+    "relevant": [
+      "src/Utils.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "da94ef2e433d77af516d69c0f7d3c1b8ecd566dc"
+  },
+  {
+    "query": "Support the cURL (http://) scheme for StreamHandler proxies",
+    "relevant": [
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2793fe24bf73da918728adfb075bdaba73ba7c7c"
+  },
+  {
+    "query": "Fix CURLOPT_ENCODING not to be overwritten",
+    "relevant": [
+      "src/Handler/CurlFactory.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "368bf4db708c2ebc25a25acbfb70816e86e072af"
+  },
+  {
+    "query": "Make sure the request always has a body object",
+    "relevant": [
+      "src/Handler/CurlFactory.php",
+      "src/Handler/EasyHandle.php",
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d48af55e18e40e422cc27ddc35fe081135bf6a9a"
+  },
+  {
+    "query": "Fix handling of HEAD requests with Accept-Encoding header",
+    "relevant": [
+      "src/Handler/EasyHandle.php",
+      "src/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3d87fb8404adbf697064877b393453d9c0b05934"
+  },
+  {
+    "query": "Update Curl is_resource to work with PHP 8 CurlHandle and CurlMultiHandle objects",
+    "relevant": [
+      "src/Handler/CurlFactory.php",
+      "src/Handler/CurlMultiHandler.php",
+      "src/Handler/EasyHandle.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "33e12c0ab60f265e5c65e6333cb3fbfe598bd4cf"
+  },
+  {
+    "query": "Handle exceptions during response creation",
+    "relevant": [
+      "src/Handler/CurlFactory.php",
+      "src/Handler/EasyHandle.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "616288af85deea154a61f5b996b0df69f7252e36"
+  }
+]

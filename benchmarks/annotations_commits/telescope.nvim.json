@@ -1,0 +1,370 @@
+[
+  {
+    "query": "show_line option for live_grep and grep_string",
+    "relevant": [
+      "lua/telescope/builtin/init.lua",
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "48d2656e54d3e3953ae647153ccdaffa50d4d76b"
+  },
+  {
+    "query": "Add hidden filter toggle to `grep_string` and `live_grep`",
+    "relevant": [
+      "lua/telescope/builtin/__files.lua",
+      "lua/telescope/builtin/init.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "796ee6e1536fcaff59c14cd3cfec4a8b2182027e"
+  },
+  {
+    "query": "swap items of tags entry",
+    "relevant": [
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8bc00e7e284e3fd0785b0106ebe90149f10ea15"
+  },
+  {
+    "query": "default quickfix list nr to to use current list instead of last",
+    "relevant": [
+      "lua/telescope/builtin/__internal.lua",
+      "lua/telescope/builtin/init.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e3f333b83954d4b22b1b74b6cf1836b53639b829"
+  },
+  {
+    "query": "remove reference to `validate` shim",
+    "relevant": [
+      "lua/telescope/actions/utils.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cfb85dcf7f822b79224e9e6aef9e8c794211b20b"
+  },
+  {
+    "query": "use new winid after toggle preview window",
+    "relevant": [
+      "lua/telescope/previewers/buffer_previewer.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ad7d9580338354ccc136e5b8f0aa4f880434dcdc"
+  },
+  {
+    "query": "skip validation with unnamed buffer",
+    "relevant": [
+      "lua/telescope/from_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f8109cd21abe9fdb274a09da1e3c176673254b4"
+  },
+  {
+    "query": "handle reuse_win for current file jump",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "053948d3e816c871b7bb929ac74f621b6a02a90e"
+  },
+  {
+    "query": "force recomputing folds using `zX`",
+    "relevant": [
+      "lua/telescope/actions/set.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4d0f5e0e7f69071e315515c385fab2a4eff07b3d"
+  },
+  {
+    "query": "remove broken highlight call for autocmds",
+    "relevant": [
+      "lua/telescope/previewers/buffer_previewer.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e709d31454ee6e6157f0537f861f797bd44c0bad"
+  },
+  {
+    "query": "handle missing TS highlights query",
+    "relevant": [
+      "lua/telescope/builtin/__files.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0caedf064aa8c926325d7fe64c141d29b8e7853"
+  },
+  {
+    "query": "error logging in call hierarchy handler",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d143e80a1989c70d95fde7d9bd26c41e9f9928a4"
+  },
+  {
+    "query": "default lnum to 0 in gen_from_buffer, to resolve lastplace restore issues",
+    "relevant": [
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5fc1960983da050547dea350f146cfb420eb49d2"
+  },
+  {
+    "query": "prefer the signs from `vim.diagnostic.config `",
+    "relevant": [
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71ef4dc501c3eb3ed0e9cab2e0fb8e4e016def53"
+  },
+  {
+    "query": "use correct error field in client request result",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "84b9ba066d1860f7a586ce9cd732fd6c4f77d1d9"
+  },
+  {
+    "query": "stop using deprecated `client.supports_method` function",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4da76be54691e854d3e0e02c36b0245f945c2c7"
+  },
+  {
+    "query": "don't return negative values from `item_to_location`",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a4ed82509cecc56df1c7138920a1aeaf246c0ac5"
+  },
+  {
+    "query": "add default position encoding when calling `symbols_to_items `",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a17d611a0e111836a1db5295f04945df407c5135"
+  },
+  {
+    "query": "fix!(git_status): keep picker open if pwd is clean",
+    "relevant": [
+      "lua/telescope/builtin/__git.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "814f102cd1da3dc78c7d2f20f2ef3ed3cdf0e6e4"
+  },
+  {
+    "query": "`filter_symbols` return table consistently",
+    "relevant": [
+      "lua/telescope/utils.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "589910694bafe3975d0f025a750dcabc09824126"
+  },
+  {
+    "query": "check bufnr is not nil",
+    "relevant": [
+      "lua/telescope/previewers/buffer_previewer.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "78857db9e8d819d3cc1a9a7bdc1d39d127a36495"
+  },
+  {
+    "query": "offset_encoding is required now in `make_position_params`",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2eca9ba22002184ac05eddbe47a7fe2d5a384dfc"
+  },
+  {
+    "query": "adapt to deprecated jump_to_location",
+    "relevant": [
+      "lua/telescope/builtin/__files.lua",
+      "lua/telescope/builtin/__lsp.lua",
+      "lua/telescope/utils.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "85922dde3767e01d42a08e750a773effbffaea3e"
+  },
+  {
+    "query": "use native lsp handlers for some pickers",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c468ff9ecdc7fd10dd741c40a363ec9829bd92c"
+  },
+  {
+    "query": "add shim for vim.lsp.util._str_byteindex",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua",
+      "lua/telescope/utils.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "37dc9233a473dd6c3f54456ef9994d8f77c80211"
+  },
+  {
+    "query": "correctly count result on_complete",
+    "relevant": [
+      "lua/telescope/builtin/__git.lua",
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df534c3042572fb958586facd02841e10186707c"
+  },
+  {
+    "query": "cast `search` value to string",
+    "relevant": [
+      "lua/telescope/builtin/__files.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dc6fc321a5ba076697cca89c9d7ea43153276d81"
+  },
+  {
+    "query": "adapt to upstream change",
+    "relevant": [
+      "lua/telescope/utils.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eae0d8fbde590b0eaa2f9481948cd6fd7dd21656"
+  },
+  {
+    "query": "previewer show correct highlight group",
+    "relevant": [
+      "lua/telescope/previewers/buffer_previewer.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb3f98d935842836cc115e8c9e4b38c1380fbb6b"
+  },
+  {
+    "query": "add support for displaying tag kind",
+    "relevant": [
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21bfcc3e397961b804241cc056a4c64f214c71f7"
+  },
+  {
+    "query": "sorting_strategy=asc stale result clearing",
+    "relevant": [
+      "lua/telescope/pickers.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b324469959908c1c7434eb65d80e87895e6828f7"
+  },
+  {
+    "query": "fix getting current option values",
+    "relevant": [
+      "lua/telescope/builtin/__internal.lua",
+      "lua/telescope/make_entry.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2ffcfc0d93bc610911c534acf71b8c49bf1da10f"
+  },
+  {
+    "query": "fix(__internal) : fix slash problem in oldfiles",
+    "relevant": [
+      "lua/telescope/builtin/__internal.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "175178e3889c13a840f036d464aee2d145157b9e"
+  },
+  {
+    "query": "nil check manager on `toggle_selection`",
+    "relevant": [
+      "lua/telescope/pickers.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b5fd7f7ae0ea4537511077ed8ef4a6021cedba2f"
+  },
+  {
+    "query": "allow picking help pages and colorschemes not yet loaded by Lazy.nvim",
+    "relevant": [
+      "lua/telescope/builtin/__internal.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40d6d81b1d2e527bbe5d3fe5e6896de745bc1c84"
+  },
+  {
+    "query": "no output when cwd is root",
+    "relevant": [
+      "lua/telescope/builtin/__internal.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "927c10f748e49c543b2d544c321a1245302ff324"
+  },
+  {
+    "query": "bad `sort_lastused` result selection",
+    "relevant": [
+      "lua/telescope/builtin/__internal.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1398e11b06f67276881ed44dcefda5050d8ecd0c"
+  },
+  {
+    "query": "handle empty call hierarchy items",
+    "relevant": [
+      "lua/telescope/builtin/__lsp.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cfaf68420e9f493ee7783ba243e262be7c7f4d08"
+  },
+  {
+    "query": "delete selection in disjointed finder results",
+    "relevant": [
+      "lua/telescope/pickers.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f8985648e034f4c0a91c008c4bf98e321da8e6b8"
+  },
+  {
+    "query": "limit git log entries to prevent fork bomb",
+    "relevant": [
+      "lua/telescope/previewers/buffer_previewer.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fe999db6e0c39c8984519ead75660e0e2d3245d3"
+  }
+]

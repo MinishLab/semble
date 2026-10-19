@@ -1,0 +1,370 @@
+[
+  {
+    "query": "Add @nowarn3 annotations to address deprecation warnings",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Message.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6a68f510353d731fdb9fa722f1edbd3717c6dba8"
+  },
+  {
+    "query": "Address deprecations in MurmurHash3",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Message.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e9c335d928946d306a22bfa341e8016d4c53e25"
+  },
+  {
+    "query": "proxy authorization header instanciation with basic credentials",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Proxy-Authorization.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f5965fc3059e0f216e53e1744f99be72b864d005"
+  },
+  {
+    "query": "Scalafix wants type annotations it didn't before. *shrug*",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Set-Cookie.scala",
+      "core/shared/src/main/scala/org/http4s/headers/Transfer-Encoding.scala",
+      "core/shared/src/main/scala/org/http4s/headers/User-Agent.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4e84d8064438ade551f48e88737522246704045e"
+  },
+  {
+    "query": "Fix inference of 'Any' in Rfc3986",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/internal/parsing/Rfc3986.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df26b613bb83d0a59819a53e823a18ac2d717169"
+  },
+  {
+    "query": "Fix ScalaFix issue by making EmptyCustomLabels and SizedSeq0 sealed",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/metrics/CustomLabels.scala",
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fdc58744645abe4663920d0830a58fb8a5dafd5"
+  },
+  {
+    "query": "Fix EmptyCustomLabels and SizedSeq0 singleton creation",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/metrics/CustomLabels.scala",
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f4e30eeba825c3a1a08717b52a627649fe7265ba"
+  },
+  {
+    "query": "Make constructor of EmptyCustomLabels private - clean up",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/metrics/CustomLabels.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3d3520af35adf4aa8e673a4cd1802acf31d93a80"
+  },
+  {
+    "query": "Make constructor of EmptyCustomLabels private",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/metrics/CustomLabels.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d11fdfcbfe405dadef3d121039bb20df0a117903"
+  },
+  {
+    "query": "Make constructor of SizedSeq0 private - make it also abstract to fix LinterError",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5220bbf88006bcef4fc31e09ad00bf7e748fa9b4"
+  },
+  {
+    "query": "Make constructor of SizedSeq0 private",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a020b8bd9c706511b0cc3f4c2ae39082c7767b5f"
+  },
+  {
+    "query": "Addressing PR comments: Remove intermediate SizedSeqBase, add SizedSeq11 - SizedSeq22",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dfb8e2970249ad5ea56ae07643e3e9185a3b7730"
+  },
+  {
+    "query": "Run scalafixAll - fix SizedSeq.scala",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "820c1dcb225d3013faadcdd56ca03a8d17673697"
+  },
+  {
+    "query": "Add SizedSeq to be used by the coming CustomMetricsOps",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/util/SizedSeq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b054dab54377b98ca238d51babda3600a2988e4"
+  },
+  {
+    "query": "Replace \"*Decoded\" Part methods with \"*Bytes\"",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/multipart/Part.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aeeb51fc98a1597ca1ec6241a4fa865822f5049f"
+  },
+  {
+    "query": "Max Ages of zero should be permitted for cookies",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/ResponseCookie.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c671166deb41b28ead2496e18345cfbaa763899"
+  },
+  {
+    "query": "suppress stack trace on protocol exceptions",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/websocket/protocolexceptions.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0f57dc67c8865762b1ad63f985ecc5f3e53218e7"
+  },
+  {
+    "query": "Replace Acc with Chunk in readToBuffer",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/multipart/PartReceiver.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b8cf0f56989836a4e62a9a9e7757811d01ecdd36"
+  },
+  {
+    "query": "Handle characters > 0xff in multipart filenames",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/multipart/MultipartParser.scala",
+      "core/shared/src/main/scala/org/http4s/multipart/Part.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3cb018e6fd2db39d648c50988a30e981f0a2856"
+  },
+  {
+    "query": "resolve another deadlocking race condition",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/multipart/MultipartParser.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "331683fcdeb7a4fcef0681fe296d6dc735c25b99"
+  },
+  {
+    "query": "Handle zero spaces between semicolons in cookies",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Cookie.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "503c06842d052da81e2a84daf3b9dea3ee5779e6"
+  },
+  {
+    "query": "Update request cookie parser to handle 1 or more spaces between semicolons",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Cookie.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1a4ab16c5f110feae9c8928523b8a24b152a3eea"
+  },
+  {
+    "query": "Keep throwing IllegalArgumentException in apply",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Credentials.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e9a84f63aafeffce4f952da4e93db57757a87c4d"
+  },
+  {
+    "query": "Deduplicate the code by defining apply via fromString.get",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Credentials.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d280ef4d9d3d6ca67f3f16ab3132a09366c245f5"
+  },
+  {
+    "query": "Fixes : make BasicCredentials constructor safe",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Credentials.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4953fd80372a1e34228ee88efed58974b8fa241"
+  },
+  {
+    "query": "Avoid linking MimeDB in Scala Native",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/MediaType.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "381a2996866bcd8f24cfd812019b182a160adf88"
+  },
+  {
+    "query": "Fix : mulitpart decoder wrapping unwanted errors",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/multipart/MultipartDecoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f06f76d37850a9446144f564f218882bb9a4a808"
+  },
+  {
+    "query": "More efficient working with headers",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Header.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d9ec376f98674c2b957b091494bd12540e79d833"
+  },
+  {
+    "query": "apply suggestion from review",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/ContextRoutes.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0a66f7239fd52eb447b2d3042576f2466282c7c8"
+  },
+  {
+    "query": "Add toHttpRoutes conversion function",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/ContextRoutes.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21d7a6a712e135afdcaa148b31a277b0f3658acf"
+  },
+  {
+    "query": "Add missing constructors to ContextRoutes",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/ContextRoutes.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "316ec5c9bd5184fed7c11b61a6d60680d5ee7718"
+  },
+  {
+    "query": "Add a handling to an illegal path",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/websocket/WebSocketFrameDefragmenter.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e3eca5586eb3a1db42beeeea2d7ea65ff7872e1"
+  },
+  {
+    "query": "Fix resolution of root / URIs",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/Uri.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2096b29f1f9d54a932ba161db1288a8dd106edd9"
+  },
+  {
+    "query": "Add application/graphql media type",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/MediaType.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "67dfb7a42d8dd2282020dccdea6e2288c9a202bb"
+  },
+  {
+    "query": "Apply suggestions from code review",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Sec-WebSocket-Accept.scala",
+      "core/shared/src/main/scala/org/http4s/headers/Sec-WebSocket-Key.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b1602431aa0be8d79e34a9860dbf4a65c450f7a"
+  },
+  {
+    "query": "Change hashBytes to hashedKey",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Sec-WebSocket-Accept.scala",
+      "core/shared/src/main/scala/org/http4s/headers/Sec-WebSocket-Key.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "18b0363f40268cdbc0dfca74b049b46f2b17531d"
+  },
+  {
+    "query": "Change to case class",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Sec-WebSocket-Accept.scala",
+      "core/shared/src/main/scala/org/http4s/headers/Sec-WebSocket-Key.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f6e60d5ca0df7012e0516491b990fefb27518f6"
+  },
+  {
+    "query": "Sunset Header takes same date formats as Date Header",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/headers/Sunset.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1611e46b8cf66bf412085d33448377662aa5d069"
+  },
+  {
+    "query": "Allow to customize flags for file decoders",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/EntityDecoder.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2a39d19168bd14dc72c3a848683b51ff4b131fa1"
+  },
+  {
+    "query": "Use new `asciiBytes` interpolator",
+    "relevant": [
+      "core/shared/src/main/scala/org/http4s/websocket/WebSocketHandshake.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d53c7ec1eeb4243b0634eb2bb311b9ea71c74aa6"
+  }
+]

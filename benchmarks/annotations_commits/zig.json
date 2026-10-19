@@ -1,0 +1,367 @@
+[
+  {
+    "query": "std.Progress: Terminate progress escape codes with `ST` not `BEL`",
+    "relevant": [
+      "lib/std/Progress.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b6e1a100b802188e07fc994d28ea122a6c976169"
+  },
+  {
+    "query": "crypto.blake3: sequentially process larger small tree layers",
+    "relevant": [
+      "lib/std/crypto/blake3.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f73c01368f418bb9b5186ff14bcdacb044fcb86"
+  },
+  {
+    "query": "std.crypto.kt128: add support for threads",
+    "relevant": [
+      "lib/std/crypto/kangarootwelve.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "846082fdf20d82637198d0f04b6921c6eedff943"
+  },
+  {
+    "query": "`Build.Step.Options`: add `comptime_float` support",
+    "relevant": [
+      "lib/std/Build/Step/Options.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e23af9d31d79af3636cea5bfb8fc4c9b26f1c854"
+  },
+  {
+    "query": "std.zig.AstGen: rename token_bytes parameter to ident_name_raw",
+    "relevant": [
+      "lib/std/zig/AstGen.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f3270ceca42e02a8d17fff9bee8c7fc4d4f8ea65"
+  },
+  {
+    "query": "std.Zig.AstGen: handle properly .inferred_ptr and .destructure in enum_literal handling",
+    "relevant": [
+      "lib/std/zig/AstGen.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d0ba6642b5407a904ff0bec5b8f05ab65652f428"
+  },
+  {
+    "query": "std.Io.Threaded: fix QueryPerformanceCounter usage",
+    "relevant": [
+      "lib/std/Io/Threaded.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e4be00f949bf77e1c4d243421c2587c1601fb50c"
+  },
+  {
+    "query": "std.Io.File.readPositional fixed buffer type",
+    "relevant": [
+      "lib/std/Io/File.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "476d7d939cf7cc7b336d8f3b8ff1dad429cf343e"
+  },
+  {
+    "query": "crypto.ml_kem: avoid redundant assignment & fix K-PKE.KeyGen",
+    "relevant": [
+      "lib/std/crypto/ml_kem.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3c647ca6bb987c496652fd6bf279ef2625f41821"
+  },
+  {
+    "query": "Move Windows rename implementation from std.posix to windows.RenameFile",
+    "relevant": [
+      "lib/std/os/windows.zig",
+      "lib/std/os/windows/kernel32.zig",
+      "lib/std/posix.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf25816067844efbdb7fe26e8ca7a96341fb919a"
+  },
+  {
+    "query": "windows.GetFinalPathNameByHandle: add links to bugs tracking the Wine workaround",
+    "relevant": [
+      "lib/std/os/windows.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d48faf1a3246c1b5c0f7de04233982f464796f1b"
+  },
+  {
+    "query": "flate.Compress: simplify huffman node comparisons",
+    "relevant": [
+      "lib/std/compress/flate/Compress.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8284da2f3d5179d9c3160edd8d167b5169dbe126"
+  },
+  {
+    "query": "blake3: remove unnecessary comptime, digest_length instead of key_length",
+    "relevant": [
+      "lib/std/crypto/blake3.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0e3b5e6d8fa22eabf8a79a3f0f143a5ba295c2b3"
+  },
+  {
+    "query": "Reader.defaultDiscard: Fix for use with an indirect reader",
+    "relevant": [
+      "lib/std/Io/Reader.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21f9f378f165a762059f12bc3d789c731037c8b6"
+  },
+  {
+    "query": "fs.path: Fix on big-endian architectures, make PathType.isSep assume WTF-16 is LE",
+    "relevant": [
+      "lib/std/fs/path.zig",
+      "lib/std/os/windows.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "822f41242438faeaaf9846e3ebed454b59525ba7"
+  },
+  {
+    "query": "std.Io.Threaded: forward cancellation requests to awaited tasks",
+    "relevant": [
+      "lib/std/Io/Threaded.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb038ffbc1fb2eb936439127df8acf9b9dc080d0"
+  },
+  {
+    "query": "std.Io.Threaded: slightly different semantics",
+    "relevant": [
+      "lib/std/Io/Threaded.zig",
+      "lib/std/Io/Threaded/test.zig",
+      "lib/std/Thread/WaitGroup.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf744aa182cf3a7c4738c43f5b1fcf6c280aa74f"
+  },
+  {
+    "query": "std.Io.Threaded: remove dead code",
+    "relevant": [
+      "lib/std/Io/Threaded.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "13b537d77c07101a9dcb41e0839df1213ca8dd1d"
+  },
+  {
+    "query": "std.Io.Threaded: allow calling init in single-threaded mode",
+    "relevant": [
+      "lib/std/Io/Threaded.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aae85a4130ea032a17d6fadf7f3388b4c431a536"
+  },
+  {
+    "query": "fix logic bug in groupAsync",
+    "relevant": [
+      "lib/std/Io/Threaded.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "69f9395b382eb564285367e539d43dc6c8edd257"
+  },
+  {
+    "query": "std.zig.system.linux: implement s390x native CPU detection",
+    "relevant": [
+      "lib/std/zig/system/linux.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d3e20e71be8d94b8c0534d2cb57a1a27c451db9f"
+  },
+  {
+    "query": "std.zig.system: disable vector support on s390x for now",
+    "relevant": [
+      "lib/std/zig/system.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1cd913a0ec816f44d157980ade00a6560832a348"
+  },
+  {
+    "query": "std.zig.system.linux: don't arbitrarily limit sparc CPU detection to 64-bit",
+    "relevant": [
+      "lib/std/zig/system/linux.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47df2f9abe204849198084e367312db94aeca405"
+  },
+  {
+    "query": "Deal with NT paths in GetFinalPathNameByHandle",
+    "relevant": [
+      "lib/std/os/windows.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "689032d571ace146a78c5286125822dfd02970b2"
+  },
+  {
+    "query": "std.Io.Writer: fix some bugs",
+    "relevant": [
+      "lib/std/Io/Writer.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a87b5332319b20347916f77e57253e2df4b2a3af"
+  },
+  {
+    "query": "std.http: stop assuming previous chunk state",
+    "relevant": [
+      "lib/std/http.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b05fefb9c9bf3065e353102d0e54ea76d5f4e34d"
+  },
+  {
+    "query": "std.debug.MachOFile: handle 'path/to/archive.a(entry.o)' form",
+    "relevant": [
+      "lib/std/debug/MachOFile.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0f06b5b58387eacb53448835cbcbca10cca1559e"
+  },
+  {
+    "query": "std.Io.net: disable `listen on a unix socket, send bytes, receive bytes` on Windows",
+    "relevant": [
+      "lib/std/Io/net/test.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5078acf3a3972f89c2f4c94d9a952be32dedf81f"
+  },
+  {
+    "query": "std.Build.Step.Compile: add support for '-z defs' flag",
+    "relevant": [
+      "lib/std/Build/Step/Compile.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2f240d0819b99999964ad2cee9193dc3d7b1df28"
+  },
+  {
+    "query": "std.Io.Threaded: add missing statx masks",
+    "relevant": [
+      "lib/std/Io/Threaded.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bd832ed39ac60883a82668a24fcc0d863331428b"
+  },
+  {
+    "query": "std.process: Actually use explicit GetCwdError/GetCwdAllocError sets",
+    "relevant": [
+      "lib/std/process.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26afcdb7fe95b35a3246980d249bcf0dc17dbf8b"
+  },
+  {
+    "query": "process.getenvW: Document that returned memory points to the PEB",
+    "relevant": [
+      "lib/std/process.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fb1bd78908ed70b00c1bf5d7d37ad216925f6db2"
+  },
+  {
+    "query": "std.os.linux.IoUring: disable `bind/listen/connect` on s390x",
+    "relevant": [
+      "lib/std/os/linux/IoUring.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "508f676bb41e74872c08c4c9a6a4327e2f87291c"
+  },
+  {
+    "query": "std.zon.parse: disable `zon vector` on s390x",
+    "relevant": [
+      "lib/std/zon/parse.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e179335beec2ddfb515a2d3db44f24ec6771ada3"
+  },
+  {
+    "query": "std.Build.Step.CheckObject: make ELF reading endianness-aware",
+    "relevant": [
+      "lib/std/Build/Step/CheckObject.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "acfb88e9a51944260cdeb12811fc18709c629e2c"
+  },
+  {
+    "query": "std.Build.Step.Run: read/write messages as little endian",
+    "relevant": [
+      "lib/std/Build/Step/Run.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e09ba67161738e2fad2e699b27f9772a35dfdc16"
+  },
+  {
+    "query": "std.Build.Step: send messages to compiler as little-endian",
+    "relevant": [
+      "lib/std/Build/Step.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "092299036705eb597f6c9c3c1cb9939d5fb9d131"
+  },
+  {
+    "query": "std.zig.Server: read error bundle as little-endian",
+    "relevant": [
+      "lib/std/zig/Server.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cd7d8dff26280146a720d907755a41406de4d510"
+  },
+  {
+    "query": "Align ML-KEM code with ML-DSA",
+    "relevant": [
+      "lib/std/crypto/ml_kem.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ea472808437c932f6240c0df5e4d5912d282052"
+  },
+  {
+    "query": "Fix AI/NI flag definitions for BSD systems",
+    "relevant": [
+      "lib/std/c.zig"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "73f863a6fb1e844ec312345b3160e3987fe6586d"
+  }
+]

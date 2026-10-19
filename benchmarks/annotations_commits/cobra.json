@@ -1,0 +1,373 @@
+[
+  {
+    "query": "quote args in fish shell completion",
+    "relevant": [
+      "fish_completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "61968e893eee2f27696c2fbc8e34fa5c4afaf7c4"
+  },
+  {
+    "query": "Loop over the bash variable directly instead of starting subprocesses",
+    "relevant": [
+      "bash_completionsV2.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10d4b48a79be3d4e89e6c45cb59f4d32a3d2ae19"
+  },
+  {
+    "query": "Migrate from gopkg.in/yaml.v3 to go.yaml.in/yaml/v3",
+    "relevant": [
+      "doc/yaml_docs.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88b30ab89da2d0d0abb153818746c5a2d30eccec"
+  },
+  {
+    "query": "change minUsagePadding from var to const",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fc81d2003469e2a5c440306d04a6d82a54065979"
+  },
+  {
+    "query": "replace several vars with consts",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "117698a604b65e80a1ad5b76df67b604bcd992e0"
+  },
+  {
+    "query": "The default ShellCompDirective can be customized for a command and its subcommands",
+    "relevant": [
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6dec1ae26659a130bdb4c985768d1853b0e1bc06"
+  },
+  {
+    "query": "Flow context to command in SetHelpFunc",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1995054b003053cc1e404bccfbf6d168e8731509"
+  },
+  {
+    "query": "Remove the default \"completion\" cmd if it is alone",
+    "relevant": [
+      "command.go",
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "24ada7fe71e3a3a8741dd52e0a7fc3b97450535a"
+  },
+  {
+    "query": "Allow to reset the templates to the default",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ab5cadcc1bbe224b329726fc5f8b99d6f93e9805"
+  },
+  {
+    "query": "nounset unbound file filter variable on empty extension",
+    "relevant": [
+      "bash_completionsV2.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ba5566f5704a9c0d205e1ef3efc4896156d33fa"
+  },
+  {
+    "query": "Print ActiveHelp for bash along other completions",
+    "relevant": [
+      "bash_completionsV2.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "41b26ec8bb59dfba580f722201bf371c4f5703dd"
+  },
+  {
+    "query": "Allow linker to perform deadcode elimination for program using Cobra",
+    "relevant": [
+      "cobra.go",
+      "command.go",
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "611e16c322e3b0413a9ba4e489fcd98ef904e406"
+  },
+  {
+    "query": "add CompletionFunc type to help with completions",
+    "relevant": [
+      "command.go",
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c3c1163c6df19860515103199e880122ba49e80"
+  },
+  {
+    "query": "improve detection for flags that accept multiple values",
+    "relevant": [
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0745e5576205cd05fada5bb2e01500d97e1a04be"
+  },
+  {
+    "query": "Make Powershell completion script work in constrained mode",
+    "relevant": [
+      "powershell_completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5a138f143f25d616c6c195356a6560ed4fbbfdd4"
+  },
+  {
+    "query": "Complete map flags multiple times",
+    "relevant": [
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "756ba6dad61458cbbf7abecfc502d230574c57d2"
+  },
+  {
+    "query": "Fix deprecation comment for Command.SetOutput",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "371ae25d2c82e519feb48c82d142e6a696fd06dd"
+  },
+  {
+    "query": "Remove fully inactivated linters",
+    "relevant": [
+      "command.go",
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8003b74a10ef0d0d84fe3c408d3939d86fdeb210"
+  },
+  {
+    "query": "Fix help text for runnable plugin command",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a73b9c391a9489d20f5ee1480e75d3b99fc8c7e2"
+  },
+  {
+    "query": "Fix help text for plugins",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df547f5fc6ee86071f73c36c16afd885bb4e3f28"
+  },
+  {
+    "query": "Add env variable to suppress completion descriptions on create",
+    "relevant": [
+      "active_help.go",
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e63925d3216142ba2c8d7641d729c6c15f4433e7"
+  },
+  {
+    "query": "Improve API to get flag completion function",
+    "relevant": [
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a0a6ae020bb3899ff0276067863e50523f897370"
+  },
+  {
+    "query": "Support usage as plugin for tools like kubectl",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "890302a35f578311404a462b3cdd404f34db3720"
+  },
+  {
+    "query": "Replace all non-alphanumerics in active help env var program prefix",
+    "relevant": [
+      "active_help.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "22953d88453ec9343b4a78b9d67400a3326f3138"
+  },
+  {
+    "query": "Don't complete --help flag when flag parsing disabled",
+    "relevant": [
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b711e8760b73c6aa1b4aa1bef3a26da5926f175d"
+  },
+  {
+    "query": "Allow running persistent run hooks of all parents",
+    "relevant": [
+      "cobra.go",
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4cafa37bc4bb85633b4245aa118280fe5a9edcd5"
+  },
+  {
+    "query": "add getters for flag completions",
+    "relevant": [
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bd4d1655f6655f690f45d281fe698dacb9c7d750"
+  },
+  {
+    "query": "Customizable error message prefix",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0c72800b8dba637092b57a955ecee75949e79a73"
+  },
+  {
+    "query": "temporarily disable G602 due to securego/gosec",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "285460dca6152bb86994fa4a9659c24ca4060e2f"
+  },
+  {
+    "query": "Add 'one required flag' group",
+    "relevant": [
+      "flag_groups.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c81c46a015b48d9f79c73cc6f528f90eaabb0c7e"
+  },
+  {
+    "query": "escape variable with curly brackets",
+    "relevant": [
+      "powershell_completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fdee73b4a0d0be3e233b968ab038866b7cd99772"
+  },
+  {
+    "query": "Fix grammar: 'allows to'",
+    "relevant": [
+      "bash_completions.go",
+      "bash_completionsV2.go",
+      "cobra.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2246fa82e91dda4486b9466fab691b41b516f747"
+  },
+  {
+    "query": "Allow sourcing zsh completion script",
+    "relevant": [
+      "completions.go",
+      "zsh_completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "45360a55ccccf909b35f4290242bfb8a6bfbef66"
+  },
+  {
+    "query": "do not detect arguments with dash as 2nd char as flag",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4f979ae352828a0153281b590771ce9588d67f8"
+  },
+  {
+    "query": "conflict import name with variable",
+    "relevant": [
+      "cobra.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f25a3c6e0b4220c616a3b342b57b055c1256d318"
+  },
+  {
+    "query": "force ForEach-Object to return array in pwsh completion",
+    "relevant": [
+      "powershell_completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6b99719235fcb18d950f972f27d95fdb0347f02"
+  },
+  {
+    "query": "don't remove flag value that matches subcommand name",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b0bd3076cfafd1c108264ed1e4aa0c0fe3f8537"
+  },
+  {
+    "query": "Check for group presence after full initialization",
+    "relevant": [
+      "command.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10cf7be9972ee5b5994cf760ecba642309ac8685"
+  },
+  {
+    "query": "Add groups for commands in help",
+    "relevant": [
+      "command.go",
+      "completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2169adb5749372c64cdd303864ae8a444da6350f"
+  },
+  {
+    "query": "Allow user to add completion for powershell alias",
+    "relevant": [
+      "powershell_completions.go"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d4040ad8dbc351b7eb88b2ffcff6f3642bce8ce1"
+  }
+]

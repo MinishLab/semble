@@ -1,0 +1,368 @@
+[
+  {
+    "query": "Add recompilation support via `cabal`",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "30d3f7159b6448aa7a7e3704ac8f3830a6386a7c"
+  },
+  {
+    "query": "restore the main loop",
+    "relevant": [
+      "src/XMonad/Main.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a58ccac7ba46414915de6c7f2b4da08b37784016"
+  },
+  {
+    "query": "Export ifM from X.Core",
+    "relevant": [
+      "src/XMonad/Core.hs",
+      "src/XMonad/ManageHook.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "050ba6420deecb70cbd54a958ff961236041533b"
+  },
+  {
+    "query": "Add nix recompilation support",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "67b5510dde30a70363f4316e4a3ef43daaf2eef0"
+  },
+  {
+    "query": "Avoid use of partial function (head)",
+    "relevant": [
+      "src/XMonad/ManageHook.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dc4d30480281343423d74a040b45944ebea8362b"
+  },
+  {
+    "query": "Correctly cite Conor McBride's paper",
+    "relevant": [
+      "src/XMonad/StackSet.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1aac6611d82065c9198e5584176058a9483fcbb0"
+  },
+  {
+    "query": "X.Operations: Apply size hints in floatLocation",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "69134f9e8a5f67c239fced046190debcf0cc48bf"
+  },
+  {
+    "query": "Let the current screen win in the fight for dupes",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5ee76ca48f91408653ed08eb822bbd81d093c6d8"
+  },
+  {
+    "query": "X.Core: Simplify DerivingVia instances",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be8fd7fdc98f1686e7edf36e0d4eee2759042292"
+  },
+  {
+    "query": "Use DerivingVia for obvious instances",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cd86480ff7ff30eb7685b6281ce3e891497d2661"
+  },
+  {
+    "query": "X.Layout: Don't draw zero-area windows in Tall",
+    "relevant": [
+      "src/XMonad/Layout.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "314390937cd47311b8764d9c8962a68d20507432"
+  },
+  {
+    "query": "Expose buildLaunch, sendRestart, and sendReplace",
+    "relevant": [
+      "src/XMonad/Main.hs",
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3d8238b35d0f27dcd9b23c58ea33b5772ec909e9"
+  },
+  {
+    "query": "attempt to work around the join point bug",
+    "relevant": [
+      "src/XMonad/Main.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8965e41d06895ca9592707161c0d5ed18da6a400"
+  },
+  {
+    "query": "X.Operations: Export setNumlockMask, grabKeys",
+    "relevant": [
+      "src/XMonad/Main.hs",
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf6e66b100fa81487901c32bef3647f4859098cc"
+  },
+  {
+    "query": "X.ManageHook: Define infix operators in an infix way",
+    "relevant": [
+      "src/XMonad/ManageHook.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "521e8356fc17a9dfb3f78c975aa6ee0523fce7ad"
+  },
+  {
+    "query": "X.StackSet: Add links to references",
+    "relevant": [
+      "src/XMonad/StackSet.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "831ca493310a3600246bb2dd7febbd7382a43d45"
+  },
+  {
+    "query": "X.StackSet: Give all functions their own Haddock comments",
+    "relevant": [
+      "src/XMonad/StackSet.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c9e24e0f6130e2beaa17e4e10baaa3c6aab1e43"
+  },
+  {
+    "query": "Factor our common logic for floating windows",
+    "relevant": [
+      "src/XMonad/ManageHook.hs",
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c2e632a2b902854f543a29ce2af9eb28540dcb86"
+  },
+  {
+    "query": "Add function to detect floating windows in ManageHook",
+    "relevant": [
+      "src/XMonad/ManageHook.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b6af6bb86a20ac7cccb3e623c13e7ca051771398"
+  },
+  {
+    "query": "X.Operations: Use custom cursor for dragging/resizing",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "79278d94754525930b18db46e4e3861b7a30e4f0"
+  },
+  {
+    "query": "X.Operations: Make window borders opaque",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bb448cc293033df5b54ce961716bcd07f0e14e98"
+  },
+  {
+    "query": "Fix Pattern match(es) are non-exhaustive warnings",
+    "relevant": [
+      "src/XMonad/Main.hs",
+      "src/XMonad/Operations.hs",
+      "src/XMonad/StackSet.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e6f562b0d5bdfd9b39fe55e0581a04178047e2e"
+  },
+  {
+    "query": "X.Operations: Silently catch in setWindowBorderWithFallback",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e3824687c7af2ccd412572413c3478715104fd7c"
+  },
+  {
+    "query": "X.ManageHook: Make (<&&>) and (<||>) lazy in their second argument",
+    "relevant": [
+      "src/XMonad/ManageHook.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d92125485a32d9a8766688638c963964900c767a"
+  },
+  {
+    "query": "Minor cleanups of Solomon's PR",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ebce32d891eec4360d2ff394626eadf87841c2d2"
+  },
+  {
+    "query": "Adds withUnfocused function to XMonad.Operations",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b3bd9c90d18197819d43c57b7961200bdf19d32a"
+  },
+  {
+    "query": "Adjust runOnWorkspaces processing order",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "11d76e284c474faabd43f276d057ffbbc29dd7a1"
+  },
+  {
+    "query": "Rename updateLayoutsBy to modifyLayouts",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d661203d39e44d1dc2aa3a930381e6711d26d56"
+  },
+  {
+    "query": "generalized signature of `updateLayoutsBy`",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb48bb4aef638ba6958a4489a282c274e9779767"
+  },
+  {
+    "query": "changed order of `broadcastMessage` to match original",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5eff329fc607624f843f7b29fb5a4f2169e92cd0"
+  },
+  {
+    "query": "changed `broadcastMessage` to be O(workspaces)",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "183e14725faff625e7dd94983362659809e40d51"
+  },
+  {
+    "query": "added export list to Operations",
+    "relevant": [
+      "src/XMonad/Operations.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0ab42d4228354ff97f3d640cf99f15c2c386cec8"
+  },
+  {
+    "query": "Drop unused import System.Environment (setEnv)",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f89df98f4022b5142760b86a2ad85b4e90e583b3"
+  },
+  {
+    "query": "Fix xmessage in non-UTF-8 locales",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "30719202b9daa80fe1ab37293a4615b93cb042d9"
+  },
+  {
+    "query": "Add `--stack-yaml` flag to `stack build --silent`",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b77ba03ed9715187e58dec682a32ac22722fbbcc"
+  },
+  {
+    "query": "Print the recompilation command into the error file",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7bdc7ab9dc8cc03833d55b687c488daee5acbdd0"
+  },
+  {
+    "query": "Detect deprecation warnings during recompilation and warn the user",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8aa0d4a3e0556d6e897e381cbfba9a6d5c33d9c7"
+  },
+  {
+    "query": "Fix indent in getDirectories",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f8e5b43e19533c6c1e4356a1ca9bb04499ee79d"
+  },
+  {
+    "query": "Move config binary and GHC intermediate outputs to cacheDir",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9813e218b034009b0b6d09a70650178980e05d54"
+  },
+  {
+    "query": "Use \"stack ghc\" for recompilation when stack.yaml exists",
+    "relevant": [
+      "src/XMonad/Core.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "403e4df6245e08c64c5db2d538dd674c1d80d95d"
+  }
+]

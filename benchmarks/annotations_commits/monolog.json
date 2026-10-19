@@ -1,0 +1,365 @@
+[
+  {
+    "query": "Fix missing timezone support in rotation date calculations",
+    "relevant": [
+      "src/Monolog/Handler/RotatingFileHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8a119d6b373041a3fcfb6126c1d9b446e54570b4"
+  },
+  {
+    "query": "Fix undefined array key in DeduplicationHandler with concurrent access",
+    "relevant": [
+      "src/Monolog/Handler/DeduplicationHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6db20ca029219dd8de378cea8e32ee149399ef1b"
+  },
+  {
+    "query": "add maxTraceLength config option to NormalizerFormatter",
+    "relevant": [
+      "src/Monolog/Formatter/NormalizerFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb44e4a2eb355ded395275551d32d63a4ed393f2"
+  },
+  {
+    "query": "Add NoDiscard attr, fixes",
+    "relevant": [
+      "src/Monolog/Handler/TestHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "edf9cb618bd437196ea9ce91fafbf9576df784ce"
+  },
+  {
+    "query": "Fix json formatter does not catch to string exceptions",
+    "relevant": [
+      "src/Monolog/Formatter/JsonFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "05c6b188963c47b961d75a071c34e00a4b05c023"
+  },
+  {
+    "query": "Rotate files based on timezone",
+    "relevant": [
+      "src/Monolog/Handler/RotatingFileHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0d529a75d32af31ec6c70b75e13369aa48ae3c3f"
+  },
+  {
+    "query": "Normalize DIRECTORY_SEPARATOR on file traces(exceptions)",
+    "relevant": [
+      "src/Monolog/Formatter/LineFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "095bf11b27a5b044d71540abe5c02a477139f640"
+  },
+  {
+    "query": "Exclude all php:// prefixed URLs for inode chekcs",
+    "relevant": [
+      "src/Monolog/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "24816d98c6ead3fff12e4b27b9f013ebfc7a5a0c"
+  },
+  {
+    "query": "Add handling of inode changes to reopen files in StreamHandler",
+    "relevant": [
+      "src/Monolog/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "282b43c9962fc89ecebc05134100382ce1c95bdd"
+  },
+  {
+    "query": "Avoid empty espace on empty trace",
+    "relevant": [
+      "src/Monolog/Formatter/LineFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "62366ef23be2348e46075fa9579b50f86c09edc5"
+  },
+  {
+    "query": "Avoid collecting duplicate logs if the file cannot be locked",
+    "relevant": [
+      "src/Monolog/Handler/DeduplicationHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2e97231b969e0ffdeff03329b808945b4ba55e38"
+  },
+  {
+    "query": "Updating while loops to have boolean conditions",
+    "relevant": [
+      "src/Monolog/Formatter/LineFormatter.php",
+      "src/Monolog/Handler/Curl/Util.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5d0da0a79826b615d0a4996a54c746f94a247ed0"
+  },
+  {
+    "query": "Remove deprecated setType method call in ElasticaFormatter",
+    "relevant": [
+      "src/Monolog/Formatter/ElasticaFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "62946513d4232cecdced9a67533e1daff3748e13"
+  },
+  {
+    "query": "Fix gelf message formatter failing to handle context/extra numeric keys, fixes",
+    "relevant": [
+      "src/Monolog/Formatter/GelfMessageFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "467e764fb6ebf5c931ba3edffda938ff755cad19"
+  },
+  {
+    "query": "added possibility to set child handler after instantiation",
+    "relevant": [
+      "src/Monolog/Handler/BufferHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c8bbe52af51c363ba1bdb1d97ecdff3ce0c97c0f"
+  },
+  {
+    "query": "Add a mail hook to NativeMailHandler",
+    "relevant": [
+      "src/Monolog/Handler/NativeMailerHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9cfd246982642119ad9f6744b38604948d646c58"
+  },
+  {
+    "query": "Fix issue in elasticaformatter",
+    "relevant": [
+      "src/Monolog/Formatter/ElasticaFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "95092b01074ed91c511cf2ceef5cbfec0050a689"
+  },
+  {
+    "query": "Fix ErrorLogHandler type int: $messageType accepts only SAPI and OS",
+    "relevant": [
+      "src/Monolog/Handler/ErrorLogHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3606a19b6e54de46cfe5ea2a74e54ed85b82856d"
+  },
+  {
+    "query": "Add `strtolower` for `fromName` match statement",
+    "relevant": [
+      "src/Monolog/Level.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "353f1db2e479ce71cd77d83a2ad3b8274a8f4ea4"
+  },
+  {
+    "query": "Remove empty lines if a custom stack trace parser returns null, fixes",
+    "relevant": [
+      "src/Monolog/Formatter/LineFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "074503850ba6ebbc1b32e7bb7491d45ed257c3c7"
+  },
+  {
+    "query": "Fix gelf formatter keys to strip invalid characters, fixes",
+    "relevant": [
+      "src/Monolog/DateTimeImmutable.php",
+      "src/Monolog/Formatter/GelfMessageFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "595847346a82c9abdac70a2436893d8d08c2976d"
+  },
+  {
+    "query": "Fix normalizeException types, fixes",
+    "relevant": [
+      "src/Monolog/Formatter/JsonFormatter.php",
+      "src/Monolog/Formatter/NormalizerFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e94000419394ff1bec801dad310432228f9fc19c"
+  },
+  {
+    "query": "Fix RotatingFileHandler bug where rotation could sometimes not happen correctly, fixes",
+    "relevant": [
+      "src/Monolog/Handler/RotatingFileHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d57089bf8750d4a8b079f7347c9c84c63b1f5453"
+  },
+  {
+    "query": "Auto-close streams when reset is called, fixes",
+    "relevant": [
+      "src/Monolog/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0c7366171fbe876435636690363ae5895725b84b"
+  },
+  {
+    "query": "Close and reopen file handles if a write fails",
+    "relevant": [
+      "src/Monolog/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0779fb91e524d6a1eea42643e06aefdda18c3b97"
+  },
+  {
+    "query": "Normalize call normalizeRecord if necessary",
+    "relevant": [
+      "src/Monolog/Formatter/JsonFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5d5da57b81f9ac2a71b914b9e05c7e22bfecb920"
+  },
+  {
+    "query": "Allow the user to define a custom mode when `fopen`-ing a log file",
+    "relevant": [
+      "src/Monolog/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8ae546b2b98fe0278520d07e5216a65e97a0a5e2"
+  },
+  {
+    "query": "Add support for elastica 8, fixes",
+    "relevant": [
+      "src/Monolog/Handler/ElasticaHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e266d7d914c1ca652cb9d52bef11340209d4e347"
+  },
+  {
+    "query": "Make timeout of `stream_select ` configurable",
+    "relevant": [
+      "src/Monolog/Handler/ProcessHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2497a896b1f54a10d674526f355d1bcc50775907"
+  },
+  {
+    "query": "Update example in RedisHandler",
+    "relevant": [
+      "src/Monolog/Handler/RedisHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f836e01659d4e94099c49c860eb5e7f030ec07ab"
+  },
+  {
+    "query": "add formatted key in ArrayAccess for LogRecord",
+    "relevant": [
+      "src/Monolog/LogRecord.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4112a1880b205e976e825de1c857f98d07fe3dbf"
+  },
+  {
+    "query": "Expand code a bit",
+    "relevant": [
+      "src/Monolog/LogRecord.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b56faa67a01c2af33a440b3ec1f8c70bce3e1b56"
+  },
+  {
+    "query": "Also add setBasePath to NormalizerFormatter/JsonFormatter",
+    "relevant": [
+      "src/Monolog/Formatter/NormalizerFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47e301d3e268d39e3c9802782c5c16b7a9bba56d"
+  },
+  {
+    "query": "Fix json formatter handling of incomplete classes, fixes",
+    "relevant": [
+      "src/Monolog/Formatter/JsonFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "884aa47a055ea3e8e351ceaf4dfc67f52fff44c0"
+  },
+  {
+    "query": "Ensure private error handler does not cause problems, fixes",
+    "relevant": [
+      "src/Monolog/Handler/StreamHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "233e0b27a0eb090624351f9e8080b852491d50a2"
+  },
+  {
+    "query": "Remove base path on LineFormatter",
+    "relevant": [
+      "src/Monolog/Formatter/LineFormatter.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "24e0e454d9e66b41e0606fad1059eaf4c6503d07"
+  },
+  {
+    "query": "User definable duplication for DeduplicationHandler",
+    "relevant": [
+      "src/Monolog/Handler/DeduplicationHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c48c642b9af1f4e57fdfa28af41696cc6adb14f2"
+  },
+  {
+    "query": "Remove curlopt safe upload which is not needed since php5.6",
+    "relevant": [
+      "src/Monolog/Handler/SlackWebhookHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5b990255a358a0a9399d713b8d08a613e80740a0"
+  },
+  {
+    "query": "Convert GelfMessage into string required by createAmqpMessage",
+    "relevant": [
+      "src/Monolog/Handler/AmqpHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "814ea500f8a6d559075967d5b26b082ca5d2ba99"
+  },
+  {
+    "query": "Include extra in context in PsrHandler",
+    "relevant": [
+      "src/Monolog/Handler/PsrHandler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "35dab43e3cba6e46bb2680a8114e0b9ae26919ff"
+  }
+]

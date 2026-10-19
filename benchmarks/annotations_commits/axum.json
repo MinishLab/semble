@@ -1,0 +1,373 @@
+[
+  {
+    "query": "Address tower-http deprecated warning",
+    "relevant": [
+      "axum/src/handler/mod.rs",
+      "axum/src/routing/method_routing.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0a24ff6b0a65a9c1a6c2af8ef4df75f638d4afc7"
+  },
+  {
+    "query": "Set connect endpoint on correct field in MethodRouter",
+    "relevant": [
+      "axum/src/routing/method_routing.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27f40159865f7fd485655a3e663d4bcb491df2d1"
+  },
+  {
+    "query": "Add customizable WebSocket subprotocol selection",
+    "relevant": [
+      "axum/src/extract/ws.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8019ae0786bb1297192acf7f83a383009234d78d"
+  },
+  {
+    "query": "Avoid unwrap in fallback path",
+    "relevant": [
+      "axum/src/routing/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "776c4a438fd057a48387fcae39ee38c772cfab11"
+  },
+  {
+    "query": "Use Result for validate_nest_path",
+    "relevant": [
+      "axum/src/routing/path_router.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0101c2a2405b966c31218aa6bf4189ec982ed9c8"
+  },
+  {
+    "query": "Switch cargo-public-api-crates to cargo-check-external-types",
+    "relevant": [
+      "axum/src/lib.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "642e4dcb3c26a64fd624d38c4816a4e7be42cb92"
+  },
+  {
+    "query": "use Vec for PathRouter",
+    "relevant": [
+      "axum/src/routing/mod.rs",
+      "axum/src/routing/path_router.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26367b9f1ea036f2b9dfd33993702560c952a431"
+  },
+  {
+    "query": "Relax implicit Send / Sync bounds",
+    "relevant": [
+      "axum/src/routing/mod.rs",
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4fc3faa0b4d82db870d8daaf49978da960bcfc42"
+  },
+  {
+    "query": "Reject JSON bodies with trailing chars",
+    "relevant": [
+      "axum/src/json.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a0692f9f540967166204ab09182ae1d5a0cd2134"
+  },
+  {
+    "query": "Spelling misstake in Using closure capture",
+    "relevant": [
+      "axum/src/lib.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6f1ed5e0a025cd3214e4b0232b0a79fffd339af9"
+  },
+  {
+    "query": "add a wrapper around is_terminated",
+    "relevant": [
+      "axum/src/extract/ws.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "221ef3795b154d8b0d094be5a8a5468773592a74"
+  },
+  {
+    "query": "add `ResponseAxumBodyLayer` for mapping response body to `axum::body::Body`",
+    "relevant": [
+      "axum/src/middleware/mod.rs",
+      "axum/src/middleware/response_axum_body.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d108c50ce7f94eccc8e22d181d0f08d60ec183dc"
+  },
+  {
+    "query": "Clarify that `AddExtension` is not the actual `Layer`",
+    "relevant": [
+      "axum/src/extension.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c40f739cdf276bc3fb298351452eb28213577d0e"
+  },
+  {
+    "query": "Document type parameter `T` on `Handler`",
+    "relevant": [
+      "axum/src/handler/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b8ae30747c79416d330d92444fe2376b307523c7"
+  },
+  {
+    "query": "Support custom (binary) data to be written into SSE Event",
+    "relevant": [
+      "axum/src/response/sse.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb3c5418ef5a24b8c8a7d7257dd7bb9a3378de5f"
+  },
+  {
+    "query": "Add space between duration and `:`",
+    "relevant": [
+      "axum/src/response/sse.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c1ff1539e3063a1fe85e0ba8dc0d9f9ce0e83f60"
+  },
+  {
+    "query": "Implement `OptionalFromRequest` for `Multipart`",
+    "relevant": [
+      "axum/src/extract/multipart.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f32223b2e941e969f79809338774444f828fdc03"
+  },
+  {
+    "query": "Make SSE less dependent on tokio",
+    "relevant": [
+      "axum/src/response/mod.rs",
+      "axum/src/response/sse.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "abe98474e1a1cc520091f70c62079968b8a3a022"
+  },
+  {
+    "query": "omit the `Allow` header for non-405 method not allowed fallbacks",
+    "relevant": [
+      "axum/src/routing/route.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ab593bbab7e0e3203d8e15e09208f3cd8bd43fb4"
+  },
+  {
+    "query": "serve: Enable Hyper request header timeout",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10734681632b9fdebba1650a18d75dfebf678909"
+  },
+  {
+    "query": "Generalize `Connected` implementation to all `Listener`s for `SocketAddr`",
+    "relevant": [
+      "axum/src/extract/connect_info.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a57935c0399d5795525909d84b90281da8377950"
+  },
+  {
+    "query": "Allow body types other than `axum::body::Body` in `serve`",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0821a9dc09c4f887e49dfcc6f1b6da2e0ddfb9e1"
+  },
+  {
+    "query": "Split up serve functions for Serve and WithGracefulShutdown again",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ac75e2f727ca2abb797d71e0846bbd9de2c2a678"
+  },
+  {
+    "query": "Extract handle_connection out of do_serve",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c1162d31919a20ce693fecbc0abbf1f3c833bf4a"
+  },
+  {
+    "query": "Simplify do_serve a bit",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c25184565b8cc1f14be66413394cfb789d66239f"
+  },
+  {
+    "query": "Stop implementing IntoFuture for Serve via with_graceful_shutdown",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ba4327ece075ec47deebfe714bdcf609adb3a4ed"
+  },
+  {
+    "query": "Move serve implementation out of WithGracefulShutdown",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "085be6970bbcb3d3d5fa8edae3180d80f93d2a6d"
+  },
+  {
+    "query": "Replace futures_util::pin_mut with std::pin::pin",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6587b6539386e55635a10a64611eaddb4cfbacdd"
+  },
+  {
+    "query": "Remove unnecessary Arc around tokio::watch::Sender",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1599569df2acc0d7cf74c41bcaa5250c692c5bc0"
+  },
+  {
+    "query": "Fix panic location for overlapping method routes",
+    "relevant": [
+      "axum/src/routing/method_routing.rs",
+      "axum/src/routing/path_router.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25fac01661a9018e59f12a71158536691cc758e6"
+  },
+  {
+    "query": "Make rust-analyzer happy about tap_inner macro",
+    "relevant": [
+      "axum/src/routing/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "291b62e21edc0e988afb5f996895ffee65fbccc5"
+  },
+  {
+    "query": "Add a missing semicolon",
+    "relevant": [
+      "axum/src/routing/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81dea8ce3ed35ddf401fbc6731b8ab3f23ccdd13"
+  },
+  {
+    "query": "Further downstream code size improvements",
+    "relevant": [
+      "axum/src/extract/path/mod.rs",
+      "axum/src/form.rs",
+      "axum/src/json.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af6a595fdf941456dd040a860a06185385da2126"
+  },
+  {
+    "query": "Replace `map_response(IntoResponse::into_response)` with custom service wrapper",
+    "relevant": [
+      "axum/src/middleware/from_fn.rs",
+      "axum/src/routing/route.rs",
+      "axum/src/util.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b3143ba58db9222fe8a91c72332089530d231bc"
+  },
+  {
+    "query": "Remove useless into_response calls",
+    "relevant": [
+      "axum/src/routing/method_routing.rs",
+      "axum/src/routing/route.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "902a3941b70dc02569f9a66adbd92d29ff407851"
+  },
+  {
+    "query": "Simplify Handler async blocks",
+    "relevant": [
+      "axum/src/handler/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2b6ae09568f29451b731674a578275955314badc"
+  },
+  {
+    "query": "Implement `From<Bytes>` for `Message`",
+    "relevant": [
+      "axum/src/extract/ws.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c997137383076296246cab3e402f3a713e04feb0"
+  },
+  {
+    "query": "Properly respond with sec-websocket-protocol under http/2",
+    "relevant": [
+      "axum/src/extract/ws.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c9cabf985236e3775fc07b3f54d639553fd1424"
+  },
+  {
+    "query": "add `read_buffer_size(usize)` to `WebSocketUpgrade`",
+    "relevant": [
+      "axum/src/extract/ws.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0e6e96fb8ce59bcffa577cf99190301d0c4324c3"
+  },
+  {
+    "query": "Guarantee return value of `serve`, Pt. 2",
+    "relevant": [
+      "axum/src/serve/mod.rs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "28c6be74ae44c54047cdb57741da8e6c104bbb50"
+  }
+]

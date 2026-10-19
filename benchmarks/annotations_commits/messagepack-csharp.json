@@ -1,0 +1,376 @@
+[
+  {
+    "query": "Use UtcTicks instead of Ticks",
+    "relevant": [
+      "src/MessagePack/Formatters/StandardClassLibraryFormatter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "503949862b5c237ddd3413e0f4877c71505656a4"
+  },
+  {
+    "query": "Add memory size check to `GetMemoryCheckResult`",
+    "relevant": [
+      "src/MessagePack/Utilities.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d3eea03995cd69a78ff41c6eeb8d083806f53b4f"
+  },
+  {
+    "query": "Fix SkipClrVisibilityChecks to notice private fields in base classes",
+    "relevant": [
+      "src/MessagePack/Resolvers/SkipClrVisibilityChecks.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dbc31dd862e12da935b389a301d2f12796426666"
+  },
+  {
+    "query": "add compatible list formatter",
+    "relevant": [
+      "src/MessagePack/Formatters/CollectionFormatter.cs",
+      "src/MessagePack/Resolvers/BuiltinResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "99ad5e9091c89fcb39e339fb87bec1f5d0ddaa74"
+  },
+  {
+    "query": "remove ByteListFormatter to keep binary compatibility for List<byte>",
+    "relevant": [
+      "src/MessagePack/Formatters/PrimitiveFormatter.cs",
+      "src/MessagePack/Resolvers/BuiltinResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "51973d37c9ecf3133e10e1c9f7c41880800bd34c"
+  },
+  {
+    "query": "Fix issues about Double.MaxValue",
+    "relevant": [
+      "src/MessagePack/MessagePackSerializer.Json.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "abd85434b4b27f7133f429fc2f0b49a416972c19"
+  },
+  {
+    "query": "Protects the generated resolver type metadata from trimmer",
+    "relevant": [
+      "src/MessagePack/Internal/GeneratedAssemblyMessagePackResolverAttribute.cs",
+      "src/MessagePack/Internal/PolyfillAttributes.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2ff9ed8b86febcd8554cd2e514b73c6c14c7f234"
+  },
+  {
+    "query": "allow DynamicGenericResolver to StandardResolver in DynamicAssembly.AvoidDynamicCode",
+    "relevant": [
+      "src/MessagePack/Resolvers/StandardResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1be468de9163e3609e9b35064f71690227d07097"
+  },
+  {
+    "query": "Add Int128, UInt128 formatter",
+    "relevant": [
+      "src/MessagePack/Formatters/StandardClassLibraryFormatter.cs",
+      "src/MessagePack/Resolvers/BuiltinResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "889dcc9ab0d2d79355a302126fd05f3acdba274e"
+  },
+  {
+    "query": "Set MaximumObjectGraphDepth to TrustedData",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7c087905cbbedf1b6455374c4929615cd725233f"
+  },
+  {
+    "query": "Fix serializing BigInteger and Decimal",
+    "relevant": [
+      "src/MessagePack/Formatters/StandardClassLibraryFormatter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a66b6448d5851a2a1b9b4c68ce56452dca4b7829"
+  },
+  {
+    "query": "Limit stack depth to 500 even for trusted data",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b025eab77aeee4d4aa0f5dc5ddf1797a840d8d4"
+  },
+  {
+    "query": "Avoid allocating an `ImmutableArray<T>.Builder` during deserialization",
+    "relevant": [
+      "src/MessagePack/Formatters/ImmutableCollectionFormatters.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ab2616e046d50fec194283d2ef78210bf3dcd3fc"
+  },
+  {
+    "query": "Apply scoped in more places",
+    "relevant": [
+      "src/MessagePack/Internal/CodeGenHelpers.cs",
+      "src/MessagePack/MessagePackReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be6be4a3ac09196a8322eff3e06831efaada48bb"
+  },
+  {
+    "query": "Use `internal` instead of `public` for internal members",
+    "relevant": [
+      "src/MessagePack/Resolvers/DynamicObjectResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e7598e586e6ae7ff7ad5d8ea3139d1d78dee16d"
+  },
+  {
+    "query": "Fix detecting duplicate keys for properties with virtual attribute",
+    "relevant": [
+      "src/MessagePack/Resolvers/DynamicObjectResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4c14ae594c5710381b51cfe23b34b97937de7d49"
+  },
+  {
+    "query": "Add `MessagePackSerializer.Typeless.Deserialize` overload that takes `ReadOnlyMemory<byte>`",
+    "relevant": [
+      "src/MessagePack/MessagePackSerializer+Typeless.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e07ef199f1967a9e4b24e6abe7d9570f0bf2b8d6"
+  },
+  {
+    "query": "Fix bugs of (u)short",
+    "relevant": [
+      "src/MessagePack/Internal/UnsafeRefSerializeHelper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5b526744158e3a01111adc915c6aeb7396d2467"
+  },
+  {
+    "query": "Add a comment about the reason why serialize method signature requires ref T not ReadOnlySpan<T>",
+    "relevant": [
+      "src/MessagePack/Internal/UnsafeRefSerializeHelper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "01107a90265d59304bed34109b8ae13eb7c18b62"
+  },
+  {
+    "query": "Add comment and remove unnecessary in-loop cancellation",
+    "relevant": [
+      "src/MessagePack/Formatters/PrimitiveFormatter.cs",
+      "src/MessagePack/Internal/UnsafeRefSerializeHelper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae446401d9b5c6213f09d5ca4b60fa372e338a49"
+  },
+  {
+    "query": "Add SIMD intrinsics for .NET8",
+    "relevant": [
+      "src/MessagePack/Internal/UnsafeRefSerializeHelper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fd5de27e8928851c60c4f212a380c177fe0c38ba"
+  },
+  {
+    "query": "bulk serialization without simd intrinsices",
+    "relevant": [
+      "src/MessagePack/Formatters/PrimitiveFormatter.cs",
+      "src/MessagePack/Internal/UnsafeRefSerializeHelper.cs",
+      "src/MessagePack/Resolvers/BuiltinResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6aed61d739d4607469868ed99e189cb8a730a8a"
+  },
+  {
+    "query": "Remove mono-specific `Buffer.MemoryCopy` alternative",
+    "relevant": [
+      "src/MessagePack/MessagePackWriter.cs",
+      "src/MessagePack/Utilities.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d026c39c14d8936a9d67a1bb117378e6b111840"
+  },
+  {
+    "query": "Even fewer native instructions (for 16 and 32 bit reads)",
+    "relevant": [
+      "src/MessagePack/SafeBitConverter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3efcba911cf0813e1a59b7d131f2d6897e6d5f2"
+  },
+  {
+    "query": "foreach, remove unneccessary assignment",
+    "relevant": [
+      "src/MessagePack/Formatters/FrozenCollectionFormatters.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6c2193ce0fe55281ac9df1ba41c0cafac1b6d4a"
+  },
+  {
+    "query": "Fix DepthStep and recovery",
+    "relevant": [
+      "src/MessagePack/Formatters/FrozenCollectionFormatters.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21e76ebc09af7efed63fb5c2fa67afccadea2dbc"
+  },
+  {
+    "query": "Add ReadArrayHeaderAsync and ReadMapHeaderAsync to MessagePackStreamReader",
+    "relevant": [
+      "src/MessagePack/MessagePackStreamReader.Arrays.cs",
+      "src/MessagePack/MessagePackStreamReader.Maps.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7226ee97bd84cccd23b8d7e712fab39830a55cdf"
+  },
+  {
+    "query": "Fix compile break on netstandard1.6 build",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "93015bbd8f9fd1cd43b20dca90050ec3b1b97b69"
+  },
+  {
+    "query": "Add secure hashing for enums with backing integers of 32-bit or less",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f71f24ade5e27415e14fd40805ab8913f68a2ae6"
+  },
+  {
+    "query": "Fix `MessagePackSecurity.GetEqualityComparer<object>` to not return null",
+    "relevant": [
+      "src/MessagePack/MessagePackSecurity.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a1fb68b9ab2f6721b10ccc572b825bda450d603e"
+  },
+  {
+    "query": "Update T4 template to produce compilable code",
+    "relevant": [
+      "src/MessagePack/Formatters/ValueTupleFormatter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b21d5dbaf25c2428f0b166d35209ee6f31db57da"
+  },
+  {
+    "query": "Drop net472 target from main library",
+    "relevant": [
+      "src/MessagePack/Internal/DynamicAssembly.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5b969ac9f803d9ea5d83815d7dd7090d50e172c1"
+  },
+  {
+    "query": "Fix comment about DefaultResolver being readonly",
+    "relevant": [
+      "src/MessagePack/MessagePackSerializer.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b812ba84618d3db1006166312ea538fc7a6c8c69"
+  },
+  {
+    "query": "Guard against excessive collection sizes",
+    "relevant": [
+      "src/MessagePack/MessagePackReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4c734efa199013b81327c796a39a5ded55419548"
+  },
+  {
+    "query": "Fix MessagePackReader for multi-segment strings",
+    "relevant": [
+      "src/MessagePack/MessagePackReader.cs",
+      "src/MessagePack/SequenceReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8861abdde93a3b97180ac3b2eafa33459ad52392"
+  },
+  {
+    "query": "Allow parent interface in constructor",
+    "relevant": [
+      "src/MessagePack/Resolvers/DynamicObjectResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "612d46b184ed6cb2463ffc0395c43dae3f02999a"
+  },
+  {
+    "query": "Allow using attributed derived from MessagePackObject on child classes",
+    "relevant": [
+      "src/MessagePack/Resolvers/DynamicObjectResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "72b2bbe2779c304f0a59c88d249bca3ed6a50f1e"
+  },
+  {
+    "query": "Fix compilation break in Unity",
+    "relevant": [
+      "src/MessagePack/IFormatterResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c64281af4e1785964509a3b62eec9427cc62968c"
+  },
+  {
+    "query": "Optimize tiny serialization jobs",
+    "relevant": [
+      "src/MessagePack/BufferWriter.cs",
+      "src/MessagePack/MessagePackSerializer.cs",
+      "src/MessagePack/MessagePackWriter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c1081224fd5d241adc930738884c85ff24702b7c"
+  },
+  {
+    "query": "Optimize MessagePackReader for contiguous memory",
+    "relevant": [
+      "src/MessagePack/MessagePackReader.cs",
+      "src/MessagePack/SequenceReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "727c44806ea7fe74e42d2febc314a88da2a9181b"
+  }
+]

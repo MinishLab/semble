@@ -1,0 +1,368 @@
+[
+  {
+    "query": "Limit the number of quoted escapes during multipart parsing",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b26a3148f28fe6b202dc93e1688e3d74ec2cea3c"
+  },
+  {
+    "query": "Add Content-Length size check in Rack::Multipart::Parser",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "263c86766dd900e5f89c954715a15e21e695e00e"
+  },
+  {
+    "query": "Fix root prefix bug in Rack::Static",
+    "relevant": [
+      "lib/rack/static.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d434bbccdc2ffc3086dbce3930c3816945a35ec"
+  },
+  {
+    "query": "Only do a simple substitution on the x-accel-mapping paths",
+    "relevant": [
+      "lib/rack/sendfile.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cee26c217a58684bd569677b1996c2f50c5603da"
+  },
+  {
+    "query": "Change Rack::Request::AUTHORITY to only match RFC allowed characters",
+    "relevant": [
+      "lib/rack/request.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "32d583c69fcea8e8295b644b94f411a1f304110f"
+  },
+  {
+    "query": "Use a default limit of 100 byte ranges",
+    "relevant": [
+      "lib/rack/utils.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7bb45b0839bbc04c0bbe89006503a056230cba00"
+  },
+  {
+    "query": "Use `String#bytesize` for `Content-Length` in error responses",
+    "relevant": [
+      "lib/rack/files.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8979a1689b65a02f0363fe81e7290ae5d6c45724"
+  },
+  {
+    "query": "Fix `header_rules` bypass via URL-encoded paths",
+    "relevant": [
+      "lib/rack/static.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d3fd39964156cb34fdf0f35f57c10bda0b66dc2e"
+  },
+  {
+    "query": "Raise error for multipart requests with multiple boundary parameters",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "84af7babe5ab6b73f63d599eabf9c8e9a1c241b2"
+  },
+  {
+    "query": "Parse Forwarded header instead of using regexp scan",
+    "relevant": [
+      "lib/rack/utils.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "979fecda7695e30588f784cdb745c776752307fd"
+  },
+  {
+    "query": "Avoid O(n^2) algorithm in Rack::Utils.select_best_encoding",
+    "relevant": [
+      "lib/rack/utils.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ca0c4d9f522fd0060c79b34f1741103cbeb7ce4e"
+  },
+  {
+    "query": "Add nil guards in multipart parser for missing semicolon and equals",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "83fff58206e6fec46815322e0783b6d7cb50f979"
+  },
+  {
+    "query": "Escape non-printable characters in dump_exception output",
+    "relevant": [
+      "lib/rack/show_exceptions.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "939f2f81b635331f50b3c933f150c8152aa2950f"
+  },
+  {
+    "query": "Root directory disclosure via unescaped regex interpolation in `Rack::Directory`",
+    "relevant": [
+      "lib/rack/directory.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c9f5565942bbd1b06663eb78b4de7631255a2026"
+  },
+  {
+    "query": "Avoid unnecessary gsub in Rack::ShowExceptions",
+    "relevant": [
+      "lib/rack/show_exceptions.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2920b8380eaaeba4dc60f015765b05e6afc0cca1"
+  },
+  {
+    "query": "Use \\A instead of ^ when matching beginning of string",
+    "relevant": [
+      "lib/rack/directory.rb",
+      "lib/rack/urlmap.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3a836aa25b55a484166f3fd99d8dd5bfc32f5e4"
+  },
+  {
+    "query": "Prevent directory traversal via root prefix bypass",
+    "relevant": [
+      "lib/rack/directory.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "75c5745c286637a8f049a33790c71237762069e7"
+  },
+  {
+    "query": "XSS injection via malicious filename in `Rack::Directory`",
+    "relevant": [
+      "lib/rack/directory.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2f225f297b99fbee3d9f51255d41f601fc40aff"
+  },
+  {
+    "query": "Ensure streaming response body is closed by `Rack::MockResponse`",
+    "relevant": [
+      "lib/rack/mock_response.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "550de048886a20c79ff33300556b10adcbd7426e"
+  },
+  {
+    "query": "Fix MockResponse#body when the body is a Proc",
+    "relevant": [
+      "lib/rack/mock_response.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e483c4e904fd53ea4078651008d7cd3be36cb62"
+  },
+  {
+    "query": "Raise `IncompatibleEncodingError` on invalid multipart",
+    "relevant": [
+      "lib/rack/method_override.rb",
+      "lib/rack/query_parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "603b799de38b5eb9b2ff1657c8036a20f4c4db7b"
+  },
+  {
+    "query": "Allow Multipart head to span read boundary",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "36877ed39f34500f6c84b6c527db034970eb056d"
+  },
+  {
+    "query": "Drop support for `filename*` in th multipart parser",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a36655e7796b2bba686a0984ba1d840096ce5f25"
+  },
+  {
+    "query": "Ensure internal multi-part buffer is binary",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "de863190a5f65efbcfc2c796f37e9fb0dc1ae458"
+  },
+  {
+    "query": "Introduce `deflaters` option to enable custom algorithms like `zstd`",
+    "relevant": [
+      "lib/rack/deflater.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cacb5ae59ae69e89a80718864999fda4a84a50b5"
+  },
+  {
+    "query": "Unbounded read in `Rack::Request` form parsing can lead to memory exhaustion",
+    "relevant": [
+      "lib/rack/query_parser.rb",
+      "lib/rack/request.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ed79d9a631b2a369ae956a9affb8d4e027662be"
+  },
+  {
+    "query": "Improper handling of proxy headers in `Rack::Sendfile` may allow proxy bypass",
+    "relevant": [
+      "lib/rack/sendfile.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "917c16162b64d5e1b840c96a0558b55574f99464"
+  },
+  {
+    "query": "Limit amount of retained data when parsing multipart requests",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59116073e5114f6d0b77b6b88e6a02f1b6192a18"
+  },
+  {
+    "query": "Fix denial of service vulnerbilties in multipart parsing",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9cf76f691b8801c46b5cb19c5ecc06fbb3c124ce"
+  },
+  {
+    "query": "Document that Rack::Files and Rack::Directory follow symlinks",
+    "relevant": [
+      "lib/rack/directory.rb",
+      "lib/rack/files.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ce658b28e02b5f17b24dd6c8dd4827fdab192cf9"
+  },
+  {
+    "query": "Allow dynamic headers for `Rack::Files`",
+    "relevant": [
+      "lib/rack/files.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2fface9ac09fc582a81386becd939c987ad33f99"
+  },
+  {
+    "query": "Use a fixed `mtime` value in deflater gzip payload",
+    "relevant": [
+      "lib/rack/deflater.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8116397b447e6dc8117c8409cc083bf5b0e2f8fb"
+  },
+  {
+    "query": "Support streaming bodies when using `Rack::Events`",
+    "relevant": [
+      "lib/rack/events.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b7e068e492ea0f83c3495418789ea4f9dbcbbac2"
+  },
+  {
+    "query": "Make Regexp.new and Regexp.union frozen",
+    "relevant": [
+      "lib/rack/request.rb",
+      "lib/rack/urlmap.rb",
+      "lib/rack/utils.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8edebb72b4e8df95085cce380ff4c1e41242845b"
+  },
+  {
+    "query": "Add `response_finished` support to `TempfileReaper`",
+    "relevant": [
+      "lib/rack/tempfile_reaper.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a95e2f5deeafe5237fa3ae81aa05516c879d42a"
+  },
+  {
+    "query": "Raise before exceeding a part limit, not after",
+    "relevant": [
+      "lib/rack/multipart/parser.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fac9a7a6cf01be691245947dab9fc9d3861230e1"
+  },
+  {
+    "query": "Directly close the body in `Rack::Head`",
+    "relevant": [
+      "lib/rack/head.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e10390006fec1fafe100d39f2e15698a2bf7d74"
+  },
+  {
+    "query": "Ensure `truthy` is used consistently in the context of hijacking support in Rack",
+    "relevant": [
+      "lib/rack/lint.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "36156aa0c8f4ea8213513829dfe20da23d58a62b"
+  },
+  {
+    "query": "Tidy up checks for `script_name`, `path_info`",
+    "relevant": [
+      "lib/rack/lint.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7d09de44a00a34eb141242d135a6ae7d024a6c0c"
+  },
+  {
+    "query": "Directly close the body",
+    "relevant": [
+      "lib/rack/conditional_get.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6828a1767e4f3bd535de506d95ff5686b254fa90"
+  }
+]

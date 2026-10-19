@@ -1,0 +1,374 @@
+[
+  {
+    "query": "unix,ibmi: abort on process_title_mutex init failure",
+    "relevant": [
+      "src/unix/ibmi.c",
+      "src/unix/proctitle.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40178b916e5937ed43c557aa051bdb3f86f6ca93"
+  },
+  {
+    "query": "fix server stop accepting after uv_accept error",
+    "relevant": [
+      "src/unix/stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d185607a829e0cb6f31c78c528ebd650b43b33f9"
+  },
+  {
+    "query": "fix error code returned from uv_wtf8_length_as_utf16",
+    "relevant": [
+      "src/idna.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "428f2c44c761fe57118db00969fd8293b4183a77"
+  },
+  {
+    "query": "fix watch loop logic",
+    "relevant": [
+      "src/win/fs-event.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44125af62afa285af6fe581dfa2daa3ca85a7983"
+  },
+  {
+    "query": "use posix_spawn instead of fork",
+    "relevant": [
+      "src/unix/process.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40d45efebf9bf1a8091a573d26e53d9c4262ef5b"
+  },
+  {
+    "query": "win,pipe: skip IOCP for pipe handles",
+    "relevant": [
+      "src/win/pipe.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "046aebe79b76cf05a4aab00df6faad21a8f7f346"
+  },
+  {
+    "query": "check return value of fcntl call",
+    "relevant": [
+      "src/unix/process.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f56978a2822fe228f17d4f9a2f4ba4ed628686f"
+  },
+  {
+    "query": "better validation for process->pid usage",
+    "relevant": [
+      "src/unix/process.c",
+      "src/uv-common.h",
+      "src/win/process.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "58418d5310f60194b634e25711a927b25e89b4ba"
+  },
+  {
+    "query": "support long path names in pipe.c",
+    "relevant": [
+      "src/unix/pipe.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "919b92d9444afb04e011a321d9dfaf810e2f230f"
+  },
+  {
+    "query": "replace EV_OOBAND handling with EVFILT_EXCEPT + NOTE_OOB",
+    "relevant": [
+      "src/unix/kqueue.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6f096c9d03cdaee08b428cbfd69b221a0ce9b846"
+  },
+  {
+    "query": "prefer sizeof with parenthesis",
+    "relevant": [
+      "src/inet.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fe89c7df3961e72cf7f65d7ba207c987c15d1ab3"
+  },
+  {
+    "query": "unix,tty: don't drain when setting the TTY mode",
+    "relevant": [
+      "src/unix/tty.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b84a067e0f004e960dc743813ed3e41987149df4"
+  },
+  {
+    "query": "unix,stream: verify uv_try_write2 handle",
+    "relevant": [
+      "src/unix/stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40c800e5fcd032ada1c5b0ac22edaa250edf96ca"
+  },
+  {
+    "query": "improve handling of uv_async_send mistakes",
+    "relevant": [
+      "src/unix/async.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "10902ab616058198067d6c2cc414014d36f86fff"
+  },
+  {
+    "query": "validate nbufs in send functions",
+    "relevant": [
+      "src/uv-common.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88d6d362f649a33e88f7f7d47155acc36aed213f"
+  },
+  {
+    "query": "fix off-by-one in utf-16 to wtf-8 conversion",
+    "relevant": [
+      "src/win/tty.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ec0ab5d77d32d836a60b024fa43d54ed3ce3ce87"
+  },
+  {
+    "query": "fix const correctness warning",
+    "relevant": [
+      "src/win/util.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d2a45ce364ed97e916be3bcecfd756f15d852473"
+  },
+  {
+    "query": "fix const correctness compiler error",
+    "relevant": [
+      "src/win/util.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6cdf71da80873c7071c3edb3a5fae78feda35da8"
+  },
+  {
+    "query": "fix pedantic compiler warnings",
+    "relevant": [
+      "src/unix/fs.c",
+      "src/uv-common.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a43e543dbffba93f014fe8360a5edbe8d6ce8500"
+  },
+  {
+    "query": "fix crash if poll callback closes handle before `POLLERR`",
+    "relevant": [
+      "src/unix/udp.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b030b02a3e51acd09e260bf20e115e841c3842d0"
+  },
+  {
+    "query": "fix compilation warnings with GCC 15",
+    "relevant": [
+      "src/unix/internal.h",
+      "src/unix/linux.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "50ed2fd7bdd42830ff7327773f62540899b0e9a3"
+  },
+  {
+    "query": "Fix const-correctness warning in linux.c",
+    "relevant": [
+      "src/unix/linux.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12d0dd48e3c6baf1e2f0d9f85f11f0ef58285d6f"
+  },
+  {
+    "query": "unix,win: support NULL loop for sync uv_getaddrinfo",
+    "relevant": [
+      "src/unix/getaddrinfo.c",
+      "src/win/getaddrinfo.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "edfc95dbd707becd2e49cda69184030be2f46164"
+  },
+  {
+    "query": "unix,udp: fix -Wgnu-folding-constant warning",
+    "relevant": [
+      "src/unix/udp.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26a97ad4425ca2f0a911c6412f19b089b9dbf527"
+  },
+  {
+    "query": "make OpenBSD uv_exepath work",
+    "relevant": [
+      "src/unix/bsd-proctitle.c",
+      "src/unix/internal.h",
+      "src/unix/openbsd.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71801576eb58da81ed4b9b0c607a36a7f6dd8200"
+  },
+  {
+    "query": "implement cpu_relax for riscv64",
+    "relevant": [
+      "src/unix/async.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e50d4e672e1859566ea7f8296cbd9b58267ccce5"
+  },
+  {
+    "query": "fix assert in wtf8_to_utf16 conversion",
+    "relevant": [
+      "src/idna.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "73bfbb995f33c9ef3ee087d46c6a85a6a3c204ba"
+  },
+  {
+    "query": "refactor to support large statfs blocks",
+    "relevant": [
+      "src/win/fs.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c68ca444e72fc7711eec4e71a8bb8feaffbbefc2"
+  },
+  {
+    "query": "unix,win: check nbufs argument is reasonable",
+    "relevant": [
+      "src/unix/stream.c",
+      "src/win/stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "91dc2389cc622036bc50e7f9509638a646a2c877"
+  },
+  {
+    "query": "fix partial read handling after POLLHUP",
+    "relevant": [
+      "src/unix/stream.c",
+      "src/uv-common.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2e2114ed8957a0124bc629c61d034c387b8ce42a"
+  },
+  {
+    "query": "readlink support for IO_REPARSE_TAG_LX_SYMLINK",
+    "relevant": [
+      "src/win/fs.c",
+      "src/win/winapi.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "588ea9b91359d9b6bb8ae02cd9dfc565107056cf"
+  },
+  {
+    "query": "remove handle from queue on uv_spawn error",
+    "relevant": [
+      "src/unix/process.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3e9ae1bca07f8155bc4249a21ec41ca2c86fdb93"
+  },
+  {
+    "query": "fix uv_fs_ftruncate io_uring implementation ( 2/2)",
+    "relevant": [
+      "src/unix/linux.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fd89e63f2f3c62434bb5fb096a00d9df3a3cbd67"
+  },
+  {
+    "query": "unix,win: fix leak in uv_os_environ error path",
+    "relevant": [
+      "src/unix/core.c",
+      "src/win/util.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9640bc6510084cc681c23deb7ec6f4993fa1ccad"
+  },
+  {
+    "query": "handle sshfs-win quirk in uv_fs_readdir",
+    "relevant": [
+      "src/win/fs.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7dda9edfec189f9087d13f970525188db06464d"
+  },
+  {
+    "query": "support nanosecond resolution in uv__fs_to_timespec",
+    "relevant": [
+      "src/unix/fs.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf44c3fdcc45f190e6c1f1478ba3beb9ba45bfef"
+  },
+  {
+    "query": "fix race in uv_fs_event_start",
+    "relevant": [
+      "src/win/fs-event.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8fc70344df789d95c18f3c5282f11dcd85205545"
+  },
+  {
+    "query": "rename minimal_windows10_version1709 for libuv's convention",
+    "relevant": [
+      "src/win/tcp.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f6e19be74388ff9dfa8583da226d605a7eb4e022"
+  },
+  {
+    "query": "fix use of uninitialized variable",
+    "relevant": [
+      "src/unix/udp.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b33162dd0b6767fbc3c833ecbe3c2f2607ba0dca"
+  },
+  {
+    "query": "better heuristic for available memory",
+    "relevant": [
+      "src/unix/darwin.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a944c422cca5522073e03710ca7fd08f53218358"
+  }
+]

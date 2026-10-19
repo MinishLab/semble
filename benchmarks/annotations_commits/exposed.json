@@ -1,0 +1,105 @@
+[
+  {
+    "query": "Add support for table modifiers and storage parameters",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Table.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "13dcd90ce568824bc9b1c60eb4f0e4962836dd26"
+  },
+  {
+    "query": "EXPOSED-989 Add Oracle FOR UPDATE SKIP LOCKED support",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/ForUpdateOption.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "97527ed9bfec4c0618ff0008bc39cc5af5503033"
+  },
+  {
+    "query": "Postgres column names are case sensitive (uppercase / lowercase)",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/DatabaseConfig.kt",
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/statements/api/IdentifierManagerApi.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bcc634af40cb04a182ff6f4bf3b0c4aa2b98ae06"
+  },
+  {
+    "query": "EXPOSED-968 Update _IdTable classes to accept sequence name",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/dao/id/IdTable.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3563e9c2a6ab85438ce0512c7801f849f060db35"
+  },
+  {
+    "query": "EXPOSED-698 Fix dropIndex for Oracle and H2 Dialects",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/H2.kt",
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/OracleDialect.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "75af3c7e96bc26e919845c7c81bc8382151d8017"
+  },
+  {
+    "query": "Foreign key is lost when using entityId with reference column",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Table.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e46149c6853ede19322c42d17857b1fccdefb25e"
+  },
+  {
+    "query": "Avoid duplicates in R2DBC Transactions stack",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/transactions/suspend/TransactionContextElement.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f824d9ed846b2e2c84975ee82be8c33492e7a6e5"
+  },
+  {
+    "query": "EXPOSED-815 Fix resolving ExpressionAlias",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Alias.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1ef194f62276ace2f715c50a14517340fb342a29"
+  },
+  {
+    "query": "Enable \"SELECT FOR UPDATE\" for the several applicable dialects",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/H2.kt",
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/MysqlDialect.kt",
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/OracleDialect.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ad844cb7b019f0fd6e859e6fbbc22ab35215f92"
+  },
+  {
+    "query": "EXPOSED-815 Check types for QueryAlias.get at runtime",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/Alias.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0f2bdf82aae4a73c51ff7b5c0ba81fd993bfee00"
+  },
+  {
+    "query": "EXPOSED-827 forUpdate query method doesn't add actual `FOR UDPATE` modifier",
+    "relevant": [
+      "exposed-core/src/main/kotlin/org/jetbrains/exposed/v1/core/vendors/PostgreSQL.kt"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0376bbd700d3400455d6da1b3359cc9424fb4230"
+  }
+]

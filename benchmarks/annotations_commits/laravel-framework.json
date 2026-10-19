@@ -1,0 +1,378 @@
+[
+  {
+    "query": "Add missing @throws and docblocks for concurrency and model info methods",
+    "relevant": [
+      "src/Illuminate/Concurrency/ProcessDriver.php",
+      "src/Illuminate/Database/Eloquent/ModelInfo.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "31309d8cb63a4b7e3983158190ae0af1a52d56a0"
+  },
+  {
+    "query": "Normalize phpredis SSL context for single and cluster connections",
+    "relevant": [
+      "src/Illuminate/Redis/Connectors/PhpRedisConnector.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "26013caaf61036704c25c3caf3e46e39a83d31e1"
+  },
+  {
+    "query": "Added inheritance support for Controller Middleware attributes",
+    "relevant": [
+      "src/Illuminate/Routing/Route.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "edffb2f30aa27a1f943f9e13829fb90f915deec8"
+  },
+  {
+    "query": "Support #[Delay] attribute on queued mailables",
+    "relevant": [
+      "src/Illuminate/Mail/Mailable.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "96613ecca2532a02ede96e034a007468b6f2971f"
+  },
+  {
+    "query": "Fix `#[WithoutRelations]` queue attribute not being inherited by child classes",
+    "relevant": [
+      "src/Illuminate/Queue/SerializesModels.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1becc6c850b74abd3cf9d1969f73929edfdfaa16"
+  },
+  {
+    "query": "Fix deprecation warning in In and NotIn rules when values contain null",
+    "relevant": [
+      "src/Illuminate/Validation/Rules/In.php",
+      "src/Illuminate/Validation/Rules/NotIn.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3a626b7ab87723df08fef4d99b92c0b0e91e14d"
+  },
+  {
+    "query": "Apply fixes from StyleCI",
+    "relevant": [
+      "src/Illuminate/Foundation/Http/FormRequest.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "127197fe3ba2593c0aaff7b78517f49b5adb53b3"
+  },
+  {
+    "query": "Feature/form request strict mode",
+    "relevant": [
+      "src/Illuminate/Foundation/Http/Attributes/FailOnUnknownFields.php",
+      "src/Illuminate/Foundation/Http/FormRequest.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f92a159e9b1c7bf9b7adb6bb08a5dfead2d0be7"
+  },
+  {
+    "query": "Fix Str::markdown and Str::inlineMarkdown crash on null input",
+    "relevant": [
+      "src/Illuminate/Support/Str.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a4a140bca23465d080ed6202b4ad190a70c058ec"
+  },
+  {
+    "query": "Fix deprecation warning in Contains and DoesntContain rules when values contain null",
+    "relevant": [
+      "src/Illuminate/Validation/Rules/Contains.php",
+      "src/Illuminate/Validation/Rules/DoesntContain.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e15f891b1c21a9942c9336dc08b003a0ef25e2d8"
+  },
+  {
+    "query": "redirectgueststo accept null param",
+    "relevant": [
+      "src/Illuminate/Foundation/Configuration/Middleware.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3d7986f4dd6a3c03a7413051a527738f381fc5c"
+  },
+  {
+    "query": "Fix TypeError in starts_with/ends_with validation rules on non-string values",
+    "relevant": [
+      "src/Illuminate/Validation/Concerns/ValidatesAttributes.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be799ce272d446709c4c7a737d0de9ce22c00c19"
+  },
+  {
+    "query": "respect null redirect in unauthenticated exception handler",
+    "relevant": [
+      "src/Illuminate/Foundation/Exceptions/Handler.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8df42a2c67c3b0a8ccaf5b7a84b7938712c5414a"
+  },
+  {
+    "query": "Add overflow option to Carbon plus and minus",
+    "relevant": [
+      "src/Illuminate/Support/Carbon.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d34c8a7ac613479aba96a0b80580e78c8922f182"
+  },
+  {
+    "query": "Use Delay attribute in NotificationSender",
+    "relevant": [
+      "src/Illuminate/Notifications/NotificationSender.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "423f6601b203e9c6da3d2bd91bb48b06d340b5a5"
+  },
+  {
+    "query": "Use #[Delay] attribute in Bus Dispatcher",
+    "relevant": [
+      "src/Illuminate/Bus/Dispatcher.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59c7486c5489cb94b27c9df2e38c79db8091c396"
+  },
+  {
+    "query": "Allow runtime property overrides (onQueue) to take precedence over class attributes",
+    "relevant": [
+      "src/Illuminate/Support/Traits/ReadsClassAttributes.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f374d48bc97144bf2ed6e76b1fa2743e615ad446"
+  },
+  {
+    "query": "Fix CollectedBy attribute not resolving through abstract parent classes",
+    "relevant": [
+      "src/Illuminate/Database/Eloquent/HasCollection.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3dcfeb179e5bc9944f0d49dc6814738ed557b9a9"
+  },
+  {
+    "query": "Fix static closure binding in remaining manager classes",
+    "relevant": [
+      "src/Illuminate/Log/LogManager.php",
+      "src/Illuminate/Redis/RedisManager.php",
+      "src/Illuminate/Support/MultipleInstanceManager.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f395dd65c5ec1fdba0771c2e3e8d62d4bb5bf62"
+  },
+  {
+    "query": "Add --ignore-scripts to yarn in BroadcastingInstallCommand",
+    "relevant": [
+      "src/Illuminate/Foundation/Console/BroadcastingInstallCommand.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "312a44b9ef79c3bc12f7263f03450fc7abb26bd8"
+  },
+  {
+    "query": "Fix missing `Illuminate\\Queue\\Attributes\\Delay` attribute",
+    "relevant": [
+      "src/Illuminate/Events/Dispatcher.php",
+      "src/Illuminate/Queue/Attributes/Delay.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a87ff6905c1ab31e6546ba9a3784c60717f48db"
+  },
+  {
+    "query": "Prevents installed package from executing malicious code via `postinstall`",
+    "relevant": [
+      "src/Illuminate/Foundation/Console/BroadcastingInstallCommand.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2ee58c04ec989acfdffa78990777839f7c8d098"
+  },
+  {
+    "query": "allow returning Stringable objects in casts -method",
+    "relevant": [
+      "src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8843a5e3f931e005e7f3c9046bc83f6e664c53f5"
+  },
+  {
+    "query": "Preserve URI fragment when decoding query string",
+    "relevant": [
+      "src/Illuminate/Support/Uri.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f46645ef6c5655a8afa065ab0517e9e2be6a564"
+  },
+  {
+    "query": "Make Collection methods compatible with extended subclass constructors",
+    "relevant": [
+      "src/Illuminate/Collections/Collection.php",
+      "src/Illuminate/Collections/LazyCollection.php",
+      "src/Illuminate/Collections/Traits/EnumeratesValues.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ae99c953372887e265235e8270575fefceee3ff"
+  },
+  {
+    "query": "prefer `new Collection ` over `collect ` helper",
+    "relevant": [
+      "src/Illuminate/Console/Scheduling/CronExpressionTimezoneConverter.php",
+      "src/Illuminate/Console/Scheduling/ScheduleListCommand.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e57d4c55fe624c20feee5a897dd8e8be9ba933d"
+  },
+  {
+    "query": "Cache getLockForPopping result in DatabaseQueue",
+    "relevant": [
+      "src/Illuminate/Queue/DatabaseQueue.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1da2839a083f2934583c7e6b45c5b0ebe12806b6"
+  },
+  {
+    "query": "Add a driver method to the MailFake class",
+    "relevant": [
+      "src/Illuminate/Support/Testing/Fakes/MailFake.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "930e42faffdd8632dde2945c90f9b630d5186656"
+  },
+  {
+    "query": "Add assertHasNoAttachments method to Mailable",
+    "relevant": [
+      "src/Illuminate/Mail/Mailable.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9c888ac1f9d8f16124a651b578b915d8bd191634"
+  },
+  {
+    "query": "Fix sum docblock to include key parameter in callback signature",
+    "relevant": [
+      "src/Illuminate/Collections/Enumerable.php",
+      "src/Illuminate/Collections/Traits/EnumeratesValues.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e49e5982ff55574e1b1d43f9b838bc6efb0d965b"
+  },
+  {
+    "query": "Fix macros with static closures",
+    "relevant": [
+      "src/Illuminate/Macroable/Traits/Macroable.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d8d65fdfe91f40d50c3c12645e2c4d4e7ee9a221"
+  },
+  {
+    "query": "Add withoutFragment method to Uri class",
+    "relevant": [
+      "src/Illuminate/Support/Uri.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "854b7270bc1c3410bcd3ee68faa48ac0c86aa20d"
+  },
+  {
+    "query": "Fix deprecation notice in JSON:API resources",
+    "relevant": [
+      "src/Illuminate/Http/Resources/JsonApi/JsonApiRequest.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "691715e436c991b3972b3697647c1444bd47e1ad"
+  },
+  {
+    "query": "CollectedBy Attribute should follow inheritence",
+    "relevant": [
+      "src/Illuminate/Database/Eloquent/HasCollection.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8222fc56bba94eaa8a4999bfc5b5a86cf59014d5"
+  },
+  {
+    "query": "Use FQCN for Str in exception renderer blade templates",
+    "relevant": [
+      "src/Illuminate/Foundation/resources/exceptions/renderer/components/previous-exceptions.blade.php",
+      "src/Illuminate/Foundation/resources/exceptions/renderer/components/trace.blade.php",
+      "src/Illuminate/Foundation/resources/exceptions/renderer/markdown.blade.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0eeb3ffed881a649768d5fd1fa4ae0e04ec0d6fd"
+  },
+  {
+    "query": "Remove unnecessary clone in SessionManager to prevent duplicate Redis connections",
+    "relevant": [
+      "src/Illuminate/Session/SessionManager.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f920a23d35719af5b93810d65e4a1b1de630f858"
+  },
+  {
+    "query": "Fix MorphTo eager load matching when ownerKey is null and result key is a non-primitive",
+    "relevant": [
+      "src/Illuminate/Database/Eloquent/Relations/MorphTo.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "65d16321e40c1e9148bf395443d7df3b557b8cee"
+  },
+  {
+    "query": "Add enum support to LogManager channel and driver methods",
+    "relevant": [
+      "src/Illuminate/Log/LogManager.php",
+      "src/Illuminate/Support/Facades/Log.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5fa619e36f5e0b76adce609f5d77c0b7e66fa250"
+  },
+  {
+    "query": "Fix trait initializer collision with Attribute parsing",
+    "relevant": [
+      "src/Illuminate/Database/Eloquent/Concerns/GuardsAttributes.php",
+      "src/Illuminate/Database/Eloquent/Concerns/HasAttributes.php",
+      "src/Illuminate/Database/Eloquent/Concerns/HidesAttributes.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "45b8782cd563b8bbaa22ad3ab332d7ec52d9381b"
+  },
+  {
+    "query": "Add missing capitalize parameter to Stringable::initials",
+    "relevant": [
+      "src/Illuminate/Support/Stringable.php"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c03d444fb1771dcb2aca43ecb2ff67bcb6209675"
+  }
+]

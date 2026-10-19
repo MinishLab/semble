@@ -1,0 +1,364 @@
+[
+  {
+    "query": "Replace #file with #fileID",
+    "relevant": [
+      "Source/Core/AFError.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "36f1747e31305e0cfda27864091318950c66a5b1"
+  },
+  {
+    "query": "Add @Sendable to RetryPolicy.retry's completion",
+    "relevant": [
+      "Source/Features/RetryPolicy.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bfdb63464bb71e8f80e912e1fdc96e4a9183e91e"
+  },
+  {
+    "query": "Relax JSONResponseSerializer Sendable Requirement",
+    "relevant": [
+      "Source/Core/DataRequest.swift",
+      "Source/Core/DownloadRequest.swift",
+      "Source/Features/ResponseSerialization.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "232531d757af4dda2277ec0bb54144216e18f111"
+  },
+  {
+    "query": "Set `@Sendable` on refresh method in Authenticator",
+    "relevant": [
+      "Source/Features/AuthenticationInterceptor.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "229b1a27b64534cb36b03d9be1c3337b0c5204db"
+  },
+  {
+    "query": "Pass queue to `responseStreamDecodable`",
+    "relevant": [
+      "Source/Core/DataStreamRequest.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b3296bd3e975fb3e04cdf22761ddf44df7157a5"
+  },
+  {
+    "query": "fix a word spelling error",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc59448eed8cc384186ea587b3d85260ecbd2f22"
+  },
+  {
+    "query": "Removed `urlRequest` property from `URLRequestConvertible` protocol",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2f3437bf335f7e87c32625bb9ab2fece09ac3aed"
+  },
+  {
+    "query": "Added URL initializer extension for URLStringConvertible types that throws",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "279eba95b803c37480dea5d1ee633ca8139d421d"
+  },
+  {
+    "query": "Switched convertible extensions over to using one-line property implementations",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b201e28b5d03f3a4c759629b3aa8c9f98810b3cb"
+  },
+  {
+    "query": "Added top-level APIs for creating StreamRequest instances",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "43ebade235455a43a14cc1cf5e673a8c69d489d4"
+  },
+  {
+    "query": "Removed unnecessary use of `self`\u2026no functional changes",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8bb747342ec640582dbfc49672214e3dc20be29f"
+  },
+  {
+    "query": "Added discardableResult annotations to all top-level Request APIs",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21bf2c9097cec262e79de7fae072d4f20b0cf2a8"
+  },
+  {
+    "query": "NSURLRequest and mutable variant data now maintained in top-level APIs",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "372822c3e5920fc2526c49b8242f7744a54ef211"
+  },
+  {
+    "query": "Added override for `NSMutableURLRequest` for the `URLRequestConvertible` protocol",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "30a55d6cceff8c791287871eb0197cb42254502f"
+  },
+  {
+    "query": "Unified the global request, upload and download external parameters convention",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "92bbee0edbd07218cdb75a9610659f7682de74c3"
+  },
+  {
+    "query": "Modified the URLRequest convenience method to return a mutable NSURLRequest",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "07cb212a01792007f30901bc7fb542f2c8c0136c"
+  },
+  {
+    "query": "Data task progress closures are now always called",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a285dd541c0613da12c79c42428919018f8a8597"
+  },
+  {
+    "query": "Now only setting the operation queue's qualityOfService on iOS 8+",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "768b71e8c5ff59d9c8e51936cd064cb914eb3234"
+  },
+  {
+    "query": "allow nil for prevent redirection",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3681fd1f07f9605467a97a3293cf9c6de6a2fa86"
+  },
+  {
+    "query": "Documenting requirements for URLString type",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb4a945dbb7a3192c08b69268521fa79108bf667"
+  },
+  {
+    "query": "Updated the session delegate override closures to match the method signatures",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27d19e223370630002554c7d7f61cbe7ebaca555"
+  },
+  {
+    "query": "Ensuring unique task identifiers for upload and download tasks",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "829fb1a9134b40ea31f2d14bb9ea6a67a19f5723"
+  },
+  {
+    "query": "Use default NSURLSession trust evaluation",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dd095372e0adf9ce85aa039e4158ab4cc840d6e2"
+  },
+  {
+    "query": "Replacing initializer with default property value",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bc81fa5ad8a321a99b54f9ad55a0fe20f21caa1c"
+  },
+  {
+    "query": "Removed ambiguous response serializer methods that collide with default parameters",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af1e24c3835edfe65626ab27422f3a6186ad526f"
+  },
+  {
+    "query": "Remove optional type from progress property",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dbf0676cceb3508d129bf46f525f874f4880ed9f"
+  },
+  {
+    "query": "For SSL validation, use default system validation until custom behavior is properly implemented",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "63a00ae700a402ee3efb1eeebfd6297cf40aae26"
+  },
+  {
+    "query": "Fixed deinit race condition where task delegate queue could fail to dispatch_release",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aa6ea80b75cf80fe66db415f0f049f8e8df1891a"
+  },
+  {
+    "query": "Making APIs for request / upload / download methods on manager equivalent to those provided at top-level",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5be585cf23f6c12224ac010820a1a8dd73e907e6"
+  },
+  {
+    "query": "add convenience upload functions in Manager",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b1b225a6bed09d7a321af0892c3f4f908a1b5203"
+  },
+  {
+    "query": "Use defined type for clojure 'destination' in download functions",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6f0a61e572a2f9598ed6e5b1cdaf38224a20d976"
+  },
+  {
+    "query": "Added a backgroundCompletionHandler and call it when the session finishes background events",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "582267b974ee75316fe4a9833542d96497108718"
+  },
+  {
+    "query": "Modified all the NSURLSessionDownloadDelegate methods to first call the override closures",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "330905ec0545a7c1084a7d72142436eb9dc936fb"
+  },
+  {
+    "query": "Modified all NSURLSessionDataDelegate methods to first call override closures if set",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dcd4a75b3c1e37ddbc3cd28dab5254d58d8e8ca0"
+  },
+  {
+    "query": "Fixed bug where data task delegate was never being called",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dfab3f3f6253ac055434b4122535ce0e787e359b"
+  },
+  {
+    "query": "Fixed bug where the dataTaskDidBecomeDownloadTask closure was missing the download task",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bbf16e17b40377e161be1e43060c1dedb20a96aa"
+  },
+  {
+    "query": "Modified the NSURLSessionTaskDelegate methods to first rely on override closures if set",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a59b07b8eb41d9315e56cbc5e90d0e834b8b242d"
+  },
+  {
+    "query": "Added an override closure for the NSURLSession:task:didCompleteWithError: method",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b6af2fc13ebdc261ed86d3cdfb8ec1e24fa9007"
+  },
+  {
+    "query": "Fixed small bug where the NSURLCredential was not implicitly unwrapped",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "81c69be0e2794bab94ef85018c6ed0dba74356b2"
+  },
+  {
+    "query": "Switched SessionDelegate and all override closures to public to allow customization",
+    "relevant": [
+      "Source/Alamofire.swift"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21721ee178a70ec26b2c59b1ba14a5db4cbe8c47"
+  }
+]

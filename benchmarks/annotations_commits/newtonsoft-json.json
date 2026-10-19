@@ -1,0 +1,378 @@
+[
+  {
+    "query": "Fix MissingMethodException from JToken.WriteTo",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonValidatingReader.cs",
+      "Src/Newtonsoft.Json/Linq/JToken.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f73e74372445108d2c1bda37b36e6f5e43402e0"
+  },
+  {
+    "query": "Add support for list patterns",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JArray.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "56177005d7add6e1e62ff35ca54f0f76aa98015a"
+  },
+  {
+    "query": "Added explanation for null in `JsonConvert.DeserializeObject`",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonConvert.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "350386871a7ec926ba660a1aa9d117376c14ec31"
+  },
+  {
+    "query": "Fix comment on JsonConvert.SerializeObject",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonConvert.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b0d1d0b9053c14f001bbf25c450cbf86c6f5aaa4"
+  },
+  {
+    "query": "Fix handling of empty constructor names",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonTextReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "55a7204f9b9546aa07145591d42046d509176ad4"
+  },
+  {
+    "query": "Avoid LINQ expression trees on .NET 6+",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/DefaultContractResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "01e1759cac40d8154e47ed0e11c12a9d42d2d0ff"
+  },
+  {
+    "query": "Add support for DateOnly and TimeOnly",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/DefaultContractResolver.cs",
+      "Src/Newtonsoft.Json/Serialization/JsonSerializerInternalWriter.cs",
+      "Src/Newtonsoft.Json/Utilities/ConvertUtils.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0dcd5b434371bcc59fcb4150979ce35a6a9338d"
+  },
+  {
+    "query": "Fixed rare race condition in name table when deserializing on device with ARM processors",
+    "relevant": [
+      "Src/Newtonsoft.Json/DefaultJsonNameTable.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e42c9e4824358b9b38414df0370919c822ed8523"
+  },
+  {
+    "query": "Add copy constructor to JsonSerializerSettings",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonSerializerSettings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "71be691f920e03aa6efaf52ccccde2eeecbe4fed"
+  },
+  {
+    "query": "Add support to pre-epoch Unix time",
+    "relevant": [
+      "Src/Newtonsoft.Json/Converters/UnixDateTimeConverter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f78562d4496d6881e3f60504473127656b98554"
+  },
+  {
+    "query": "Correction for arrays of more than 2 dimensions",
+    "relevant": [
+      "Src/Newtonsoft.Json/Utilities/ReflectionUtils.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "233ed3a961025fa5bddbcc437a9f300f5467923a"
+  },
+  {
+    "query": "Add nullable annotation to `JToken.ToObject(Type, JsonSerializer)`",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JToken.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c9e12bc4755c786a9073dddf1be14cd27823a498"
+  },
+  {
+    "query": "Fix merging enumerable content and validate content",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JContainer.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e44ab3348fabcbe9ed6b5053b706a9e10b945ba1"
+  },
+  {
+    "query": "Remove compiler package and update sourcelink",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonSerializer.cs",
+      "Src/Newtonsoft.Json/Utilities/DictionaryWrapper.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae9fe44e1323e91bcbd185ca1a14099fba7c021f"
+  },
+  {
+    "query": "Change MaxDepth default to 64",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonReader.cs",
+      "Src/Newtonsoft.Json/JsonSerializerSettings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b6dc05be5a0f4808f06ec430f3bb59b24d3fbc3e"
+  },
+  {
+    "query": "Fix JsonWriter.WriteToken to allow null with string token",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonWriter.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "15525f1c44e0d99ef8fdee73430853e22239181d"
+  },
+  {
+    "query": "Change JsonReader and JsonSerializer default max depth to 128",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonReader.cs",
+      "Src/Newtonsoft.Json/JsonSerializer.cs",
+      "Src/Newtonsoft.Json/JsonSerializerSettings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7e77bbe1beccceac4fc7b174b53abfefac278b66"
+  },
+  {
+    "query": "Copy annotations when cloning elements",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JContainer.cs",
+      "Src/Newtonsoft.Json/Linq/JToken.cs",
+      "Src/Newtonsoft.Json/Linq/JValue.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ff5ffb2832b2297502d1ff44efb2e16c57a648b7"
+  },
+  {
+    "query": "Fix wrong define is used in StringUtils.ToLower",
+    "relevant": [
+      "Src/Newtonsoft.Json/Utilities/StringUtils.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "666d9760719e5ec5b2a50046f7dbd6a1267c01c6"
+  },
+  {
+    "query": "Do not treat ignored field as missing member when deserializing from overriden json constructor",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/JsonSerializerInternalReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9be95e0f6aedf5cdc108b058bf71f0839911e0c9"
+  },
+  {
+    "query": "Deserializing immutable set and dictionary create hash impls",
+    "relevant": [
+      "Src/Newtonsoft.Json/Utilities/ImmutableCollectionsUtils.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7cc65dab82f236a25f7bf4feaab49dd0e847d93e"
+  },
+  {
+    "query": "Fix deserialize via ctor with some existing collection types",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/JsonSerializerInternalReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a213bac448e2543339694a6dbca6d2edef787701"
+  },
+  {
+    "query": "Improve documention to mention non-JSON strings for string values",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JToken.cs",
+      "Src/Newtonsoft.Json/Linq/JValue.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c5f210347055c43970199d4611993200d00977fd"
+  },
+  {
+    "query": "Fix JToken nullable support",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JToken.cs",
+      "Src/Newtonsoft.Json/Linq/JValue.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2ec997d3a7a6f86b5524e061cbcc8effb8d73935"
+  },
+  {
+    "query": "Improve performance of calling ICustomTypeDescriptor.GetProperties",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JObject.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7f113ff49a8c7f242009d914901becc365ec0ae0"
+  },
+  {
+    "query": "Fixed merging with self bug",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JContainer.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "da0f0d8dd17018bc86a4a28febdfb7aec5b928d0"
+  },
+  {
+    "query": "Fix loading extra assemblies by only filtering for ByRef types on default members",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/DefaultContractResolver.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a7471ae0b96d5a1d1b1d316cd9c8de84ee351258"
+  },
+  {
+    "query": "Make JTokenReader constructor with initial path public",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JTokenReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8d00ab3684a40bed859fd7e8c89c3adb499c8278"
+  },
+  {
+    "query": "Change constraint on DuplicatePropertyNameHandling",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JsonLoadSettings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "24ddbaf95bb3907361340d0704b3bb2c4d886935"
+  },
+  {
+    "query": "Simplify lambda to expression",
+    "relevant": [
+      "Src/Newtonsoft.Json/Utilities/LateBoundReflectionDelegateFactory.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5712e024b274ced1d387c75639fe18b9ea736a25"
+  },
+  {
+    "query": "Replaced ContainsKey and getting by value with TryGetValue method",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JPropertyKeyedCollection.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb372aaf569f61270fdfc38fa61164af815d277e"
+  },
+  {
+    "query": "Remove duplication of memberName calculation",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/JsonSerializerInternalReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "57a3a65464e80839e3447e1a647311e5e3633321"
+  },
+  {
+    "query": "Add backwards compatible EnumUtils.TryToString call",
+    "relevant": [
+      "Src/Newtonsoft.Json/Utilities/EnumUtils.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "82e76365f86c1e9ee624940fb1488a766c3bd12a"
+  },
+  {
+    "query": "Fix BsonReader reading multiple content",
+    "relevant": [
+      "Src/Newtonsoft.Json/Bson/BsonReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8e16489cbbd9a1c791e2c1f55d8f63c8fd01aaae"
+  },
+  {
+    "query": "Added EncodeSpecialCharacters setting to XmlNodeConverter",
+    "relevant": [
+      "Src/Newtonsoft.Json/Converters/XmlNodeConverter.cs",
+      "Src/Newtonsoft.Json/JsonConvert.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5ed873f44b6b447ccf6f8c5ce894a122656c8b63"
+  },
+  {
+    "query": "Fix JTokenReader not using DateTimeZoneHandling",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JTokenReader.cs",
+      "Src/Newtonsoft.Json/Serialization/JsonSerializerInternalReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5633e17fc1436d1df02b379cbcac3e1465f4e666"
+  },
+  {
+    "query": "fix for JObject.ToObject to respect DateTimeZoneHandling https://github.com/JamesNK/Newtonsoft.Json/issues/1531",
+    "relevant": [
+      "Src/Newtonsoft.Json/Serialization/JsonSerializerInternalReader.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b98a11db2fd5ccda7d1b15ccc2a9fb6d56d93c7"
+  },
+  {
+    "query": "Add support for multiple ctors in JavaScriptDateTimeConverter",
+    "relevant": [
+      "Src/Newtonsoft.Json/Converters/JavaScriptDateTimeConverter.cs",
+      "Src/Newtonsoft.Json/JsonWriter.cs",
+      "Src/Newtonsoft.Json/Utilities/JavaScriptUtils.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "700444a996bfa12808ff28560c714968c5831469"
+  },
+  {
+    "query": "Add JObject.Property overload with a StringComparison and JsonMergeSettings.PropertyNameComparison",
+    "relevant": [
+      "Src/Newtonsoft.Json/Linq/JObject.cs",
+      "Src/Newtonsoft.Json/Linq/JsonMergeSettings.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9fe24483206c2ab962f661dbb1051a7601287e6d"
+  },
+  {
+    "query": "Add line information to JsonSerializationException",
+    "relevant": [
+      "Src/Newtonsoft.Json/JsonSerializationException.cs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d7150871cbda6561d12a1e11131ca92fa7c4561c"
+  }
+]

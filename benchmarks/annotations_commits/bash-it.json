@@ -1,0 +1,363 @@
+[
+  {
+    "query": "Default empty value for variable not defined",
+    "relevant": [
+      "themes/barbuk/barbuk.theme.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1f6d0d5bfddbbab7781e51fa2a4a4a579535e156"
+  },
+  {
+    "query": "barbuk theme more tools",
+    "relevant": [
+      "themes/barbuk/barbuk.theme.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f4443b147be00b0c198efcf7adbf546d761418d1"
+  },
+  {
+    "query": "Register url as composure metadata function",
+    "relevant": [
+      "bash_it.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2fd6e0a3f101ea089f5720eeea02b4558982773b"
+  },
+  {
+    "query": "fix some aesthetics 2",
+    "relevant": [
+      "plugins/available/base.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "aab20c4cb5e6cdab9b9659e1892525633d90d4af"
+  },
+  {
+    "query": "Add --verbose flag to bash-it show command to display URLs",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ba5db49e8073e1fb82b0630e3becccc24f38cba"
+  },
+  {
+    "query": "Add url as composure metadata function",
+    "relevant": [
+      "bash_it.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3b07965d4d42d41835f1671ed7ea9d2a22a0996d"
+  },
+  {
+    "query": "Fix maven description to avoid 'gem' substring match in search",
+    "relevant": [
+      "completion/available/maven.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "76fd8c11e18fe65f8719e3c2ecade7f0f81dd48e"
+  },
+  {
+    "query": "solution is kosher but stincky, shellcheck hates it for a good reason",
+    "relevant": [
+      "completion/available/artisan.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "193c632d93d14fbf5bfe3257fdc6823f80e459af"
+  },
+  {
+    "query": "I hope this is a fix that satisfies shellcheck and is correct functionally",
+    "relevant": [
+      "completion/available/artisan.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "39ca7db919d12f9fdf35e9fbf781e37100b3212e"
+  },
+  {
+    "query": "Add directory completion for tmux new-session -c option",
+    "relevant": [
+      "completion/available/tmux.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "afc42f90c987f4d55ee09b380a803ac8158aefb8"
+  },
+  {
+    "query": "Fix symlink handling in uninstall backup",
+    "relevant": [
+      "uninstall.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "14ea9c9ca3bfa32fb6fc7776cbad45cadd705abb"
+  },
+  {
+    "query": "Apply review feedback: fix comment, remove /g, combine complete",
+    "relevant": [
+      "completion/available/artisan.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c7b03706dc6c215d02981c789514cce35c7d66a2"
+  },
+  {
+    "query": "Apply review feedback: add explicit return 0",
+    "relevant": [
+      "themes/base.theme.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0008d77ff0e1bfcdc3fefc9934e58d248e11071a"
+  },
+  {
+    "query": "Apply review feedback: combine COMP_WORDBREAKS removals",
+    "relevant": [
+      "completion/available/ssh.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6c653cc5142307417e950dd7b5efdb4a9846da3f"
+  },
+  {
+    "query": "Improve uninstall script to preserve current config before restoration",
+    "relevant": [
+      "uninstall.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7dbc36fd5ed728a61a266148665f8a59c03f1ea0"
+  },
+  {
+    "query": "Fix down4me function URL malformation issue",
+    "relevant": [
+      "plugins/available/base.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b5eb53290d14d7764926c9702857798bf8a6e369"
+  },
+  {
+    "query": "Add Laravel artisan completion",
+    "relevant": [
+      "completion/available/artisan.completion.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "959ce18a2f5475988c8f4c02eeb3e191e1843150"
+  },
+  {
+    "query": "Apply review feedback: use git --git-dir and simplify awk",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12dcac3c38809636ff6c50590056d3256aa07a57"
+  },
+  {
+    "query": "Use ${BASH_VERSION-} for set -u compatibility",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ec149ac4709f4af4d3980852c733f503ad32f41"
+  },
+  {
+    "query": "Fix remote name detection function",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c0c5e0573f9bfc51a9c32afde68ec674c76edc99"
+  },
+  {
+    "query": "Add heuristic for finding default remote name",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f106333de34ba858e9f9a0ba09b22a9a73486a96"
+  },
+  {
+    "query": "Add automatic .bashrc sourcing setup to install.sh",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1451ef8f0eea2d0937ef73ff35d87148df8aabdb"
+  },
+  {
+    "query": "Use 'command' prefix to bypass user aliases in core functions",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a336f99a558b0dbff2fe215b8d1b57296a8cf2fa"
+  },
+  {
+    "query": "Add .bashrc sourcing detection to bash-it doctor",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "00c96600c2d0fe6aa09103ad163130960c00b3b5"
+  },
+  {
+    "query": "Add interactive update prompt and colorful output to doctor",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b2fbb09e6634a0b50e69ecf532c23dcae3c9805"
+  },
+  {
+    "query": "Add comprehensive diagnostic summary to bash-it doctor",
+    "relevant": [
+      "lib/helpers.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "177f70600d463413ca00bc77935d0846a33ecea8"
+  },
+  {
+    "query": "fix - $LESS is no longer clobbered globally",
+    "relevant": [
+      "plugins/available/man.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a6a320d2f611c6707d50beb3efd764b6efd93fff"
+  },
+  {
+    "query": "That made little sense to me so I am undoing this",
+    "relevant": [
+      "themes/base.theme.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2097f7fbcd189256351290ff5c58ddde10b4568"
+  },
+  {
+    "query": "Add aliases for git worktree",
+    "relevant": [
+      "aliases/available/git.aliases.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dee6237004168a9edcb715819c23585bff621133"
+  },
+  {
+    "query": "__powerline_last_status_prompt to handle unset argument safely",
+    "relevant": [
+      "themes/powerline/powerline.base.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "294f1713a74d2e586295bd7e61a0013b24555b28"
+  },
+  {
+    "query": "remove superfluous function and pick better var names for readability",
+    "relevant": [
+      "themes/base.theme.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "90c3b2af864dc799a29de2527615966409da858a"
+  },
+  {
+    "query": "Fix for 2323 issue",
+    "relevant": [
+      "themes/powerline-multiline/powerline-multiline.base.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ac91610a9b5301245b05e1ebfad0acde751aee91"
+  },
+  {
+    "query": "Fix a couple bugs introduced by last commit",
+    "relevant": [
+      "themes/powerline-multiline/powerline-multiline.base.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "447aa1a54b93e14013029ab8ad2795614dd6aa78"
+  },
+  {
+    "query": "important syntax correction from the owenr of ble.sh",
+    "relevant": [
+      "plugins/available/blesh.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "14ce4297e8038c2135044183f0f0c0abd8cd4308"
+  },
+  {
+    "query": "only the correct FZF integration loads, sepending on whether the blesh plugin is enabled as well",
+    "relevant": [
+      "plugins/available/blesh.plugin.bash",
+      "plugins/available/fzf.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0c1747635eebb1ce5477e1a7d0e6bfdc28af38d2"
+  },
+  {
+    "query": "readonly HIST* variables is a bit extreme and clashes with ble.sh and other tools",
+    "relevant": [
+      "plugins/available/history-eternal.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fa133ede3fbe3947e9bcd8f8ece6eadaa7d8a1cf"
+  },
+  {
+    "query": "install.sh: Handle unbound variables",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4584e3afa19d5464598c7cfe6b3ce6d5b18a695"
+  },
+  {
+    "query": "plugins/xterm: not just Xterm",
+    "relevant": [
+      "plugins/available/xterm.plugin.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c6d172104e14f61fcc772666c38adaa70edae756"
+  },
+  {
+    "query": "try to determine initialization file",
+    "relevant": [
+      "uninstall.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ca09e40bf86dcc19e958181c14a6efe60aaf9ee9"
+  },
+  {
+    "query": "use `.bashrc` and notify user",
+    "relevant": [
+      "install.sh"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "63cabef5ae4917f1e51f236d362f1327316abd91"
+  }
+]

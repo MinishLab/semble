@@ -1,0 +1,363 @@
+[
+  {
+    "query": "Avoid \"method redefined\" warnings in Delegator",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e5c4ec8ade92c7375f44acf4c6e1103d32d6c12"
+  },
+  {
+    "query": "Remove dead code in `redirect` method",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e9722778e76f5f6b4ab023c384472e9ce2bd1f67"
+  },
+  {
+    "query": "Fix regex in `etag_matches?` to prevent ReDoS",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fe8c38dc405586f7ad8f2ac748aa53e9c3615bd"
+  },
+  {
+    "query": "`PATH_INFO` can never be empty",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fa99a21461d4f1f5337b9b9d7a38a1b51c8f4e55"
+  },
+  {
+    "query": "Add :static_headers setting for custom headers in static file responses",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "91cfb548c9e50a65324a9ce9e4ea5f10cd897027"
+  },
+  {
+    "query": "Fix malformed Content-Type headers",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "025e8c5eada804b192199bf94c2361ef1c8691fe"
+  },
+  {
+    "query": "Avoid crash for integer values in `content_type` parameters",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4b7c04e6d23ef8e17404d64cc731bece268acea"
+  },
+  {
+    "query": "Return an instance of `Sinatra::IndifferentHash` when calling `#except`",
+    "relevant": [
+      "lib/sinatra/indifferent_hash.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c4cd0ba05af0ef5902c53608daab094825d1e96"
+  },
+  {
+    "query": "Don't delete `content-length` header when `Rack::Files` is used",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a39c0c928c8167895a6ac58d5cdc1c2b99442ff1"
+  },
+  {
+    "query": "Don't depend on `Rack::Logger`",
+    "relevant": [
+      "lib/sinatra/base.rb",
+      "lib/sinatra/middleware/logger.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cbd733cf1b11354318959f5353f101d1b17ecd2e"
+  },
+  {
+    "query": "Remove the `IndifferentHash` initializer",
+    "relevant": [
+      "lib/sinatra/indifferent_hash.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ceb14edabedbdef7c94eab1012213bd61a3e844b"
+  },
+  {
+    "query": "Use `Exception#detailed_message` to show backtrace",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d011cc499705e57c0b58ab8419066ce4b57f6eb8"
+  },
+  {
+    "query": "Use relative URL for the 404 image",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9c08af41c97ddf557e2f4c1267c6840b3c756cc0"
+  },
+  {
+    "query": "add `except` to `IndifferentHash`",
+    "relevant": [
+      "lib/sinatra/indifferent_hash.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0889424a43a18d7a87fc4a51ec7a2082b51348a0"
+  },
+  {
+    "query": "Add start and stop callbacks",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fe6297a4bec04e279df7842fe50fb7526dea65a"
+  },
+  {
+    "query": "Make Puma the default server",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "09476ba92dd0a3216ac8a4a1a756bf1603c3a77c"
+  },
+  {
+    "query": "Rescue `RuntimeError` when trying to use `SecureRandom`",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "055087c274e181c2dad77a2b140e7190028b7cfb"
+  },
+  {
+    "query": "Avoid crash in `uri` helper on Integer input",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "892cbeb3786f7c2d73e7ff4812aaba07199ddcd3"
+  },
+  {
+    "query": "Add support to keep open streaming connections with Puma",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "baa6bf783ea6dd8d2a708aa604c8ee583a90ee23"
+  },
+  {
+    "query": "Allow CALLERS_TO_IGNORE to be overridden",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b2c3a7c5a55ceb208a24843c1315c06da638a15"
+  },
+  {
+    "query": "Add Zeitwerk to CALLERS_TO_IGNORE",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e633936574301927a21ffcb877fab3a4c6598eca"
+  },
+  {
+    "query": "escape filename in the Content-Disposition header",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ea8fc9495a350f7551b39e3025bfcd06f49f363b"
+  },
+  {
+    "query": "Rename warn method to warn_for_deprecation",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "21db005c71b12273815f3db14b23492231a89436"
+  },
+  {
+    "query": "Allow max-age value to be specified separately from expires",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1a3c7369b8c0fe379e3969d9ef68e88c73dc0aac"
+  },
+  {
+    "query": "add falcon into server list",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "280e40b0fd2ec3dcdce68bf18a1d311cea321668"
+  },
+  {
+    "query": "Do not leak path when not found",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4b3d99ccbe3adc909e667e2f50856228f9d5e589"
+  },
+  {
+    "query": "Use `ruby2_keywords` for delegation",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e814c6f5529c15bd316fe8ec7371548ba771e621"
+  },
+  {
+    "query": "Internal Sinatra errors now extend Sinatra::Error",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bda8c29d70619d53f5b1c181140638d340695514"
+  },
+  {
+    "query": "Handle EOFError raised by Rack",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df65a73f77f65b1fbe0dfd027347eec3732a2883"
+  },
+  {
+    "query": "Fix memory leaks for proc template",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2e980f3534b680fbd79d7ec39552b4afb7675d6c"
+  },
+  {
+    "query": "Add `#select`, `#reject` and `#compact` methods to `Sinatra::IndifferentHash`",
+    "relevant": [
+      "lib/sinatra/indifferent_hash.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7092f0e0a706379bb3299fcc57817f0d33378df9"
+  },
+  {
+    "query": "Use ruby2_keywords to pass keyword arguments correctly in delegation",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e767648e060673cacbf3dc03844986fbf36283dc"
+  },
+  {
+    "query": "validate expanded path matches public_dir when serving static files",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "462c3ca1db53ed3cfc394cf5948e9c948ad1c10e"
+  },
+  {
+    "query": "Preserve query param value if named route param nil",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bb8fca11315332a31f4aca6fda1d10b5f74b021f"
+  },
+  {
+    "query": "Change initialize method to accept kwargs",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "276065959915cbd64f776560af5cb7c3bb46fa2a"
+  },
+  {
+    "query": "Apply suggestions from code review",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b979ca6c881c9eb940bfa2a775fbf97c54884a08"
+  },
+  {
+    "query": "Fix usage of inherited Sinatra::Base classes keyword arguments",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64347b004e7eea0b5f453bdc6e539229fd8bc2ca"
+  },
+  {
+    "query": "Respect content type set in superclass before filter",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb44ad0ded8626eb316aeb13cd50c30513427593"
+  },
+  {
+    "query": "Add escaping to the static 404 page",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8d38b124aa33b8719f8bbca4800d0f92ef1207a2"
+  },
+  {
+    "query": "add thin handler in server",
+    "relevant": [
+      "lib/sinatra/base.rb"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "342758a67b05a6e2192b7ee133912b10d81bdeec"
+  }
+]

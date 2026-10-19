@@ -1,0 +1,375 @@
+[
+  {
+    "query": "added doctest for forall and exists",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyList.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d85179cfdb10a8e53e3bf395f06a2ccf2347e45"
+  },
+  {
+    "query": "Fix copy-paste scaladoc variable names in NonEmptyVector, NonEmptySeq, NonEmptyChain",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyChain.scala",
+      "core/src/main/scala/cats/data/NonEmptySeq.scala",
+      "core/src/main/scala/cats/data/NonEmptyVector.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c9ad6de7c9396dff508f23eb1566310fd5bc77d"
+  },
+  {
+    "query": "Add Id methods as per review",
+    "relevant": [
+      "core/src/main/scala/cats/package.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1661cadb85bdf415a24cc5e6f7bbac2f287148b4"
+  },
+  {
+    "query": "add methods for try and pair",
+    "relevant": [
+      "core/src/main/scala/cats/instances/try.scala",
+      "core/src/main/scala/cats/instances/tuple.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cf96a0c3433be4d5f97d1cf135c3345f7a3a4425"
+  },
+  {
+    "query": "implement methods for Validated and Ior",
+    "relevant": [
+      "core/src/main/scala/cats/data/Ior.scala",
+      "core/src/main/scala/cats/data/Validated.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3ffab1260dc2a1dea55539715fa334082f95784c"
+  },
+  {
+    "query": "Use implicit as override val in NonEmptyReducible",
+    "relevant": [
+      "core/src/main/scala/cats/NonEmptyReducible.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2884e5b89b5688be8cc1aee6120f9b4869edaead"
+  },
+  {
+    "query": "Make Show.fromToString null safe",
+    "relevant": [
+      "core/src/main/scala/cats/Show.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a9310f6a1209ec14218aad726c4a1e65031616a9"
+  },
+  {
+    "query": "Remove unnecessary imports in Op.scala as per review feedback",
+    "relevant": [
+      "core/src/main/scala/cats/data/Op.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b353e25f2fa4b8f0eadc02a91406045d82f80224"
+  },
+  {
+    "query": "Add doctest for Op",
+    "relevant": [
+      "core/src/main/scala/cats/data/Op.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2f325abb663ff4042ea38c7e56a336c9c450165b"
+  },
+  {
+    "query": "Add doctest example for Op in cats core",
+    "relevant": [
+      "core/src/main/scala/cats/data/Op.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6ec0dc6baee1bdc833aefef5ee5c037a401350c3"
+  },
+  {
+    "query": "Let superseded methods invoke new implementation through `self`",
+    "relevant": [
+      "core/src/main/scala/cats/data/OneAnd.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e059ed84494786f5b9fbf2a3e3a604a172fc94e2"
+  },
+  {
+    "query": "Strip off deprecated annotation and make `OneAndInstancesBinCompat0` sealed",
+    "relevant": [
+      "core/src/main/scala/cats/data/OneAnd.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "175dd2af979af89b9bfde8f7e318679c1538cd30"
+  },
+  {
+    "query": "Make `OneAndBinCompat0` sealed and make use of self-type annotation",
+    "relevant": [
+      "core/src/main/scala/cats/data/OneAnd.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af2336602c44baab46691afe1d9a1f568cf174e8"
+  },
+  {
+    "query": "Weaken some `Alternative` constraints in `OneAnd`",
+    "relevant": [
+      "core/src/main/scala/cats/data/OneAnd.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "585e7553eddc59fb7e9139b71407220be5a88ff8"
+  },
+  {
+    "query": "Move Ordering implicit into else",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyList.scala",
+      "core/src/main/scala/cats/data/NonEmptySeq.scala",
+      "core/src/main/scala/cats/data/NonEmptyVector.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "19f2d92be5266b2cdf9745b05140ed1f1666d745"
+  },
+  {
+    "query": "Optimize distinctBy implementation for NonEmptyList, NonEmptySeq and NonEmptyVector",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyList.scala",
+      "core/src/main/scala/cats/data/NonEmptySeq.scala",
+      "core/src/main/scala/cats/data/NonEmptyVector.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "572fbfa14d7c5f440ae2c9359277f9e267bcf9e1"
+  },
+  {
+    "query": "use NonEmpty in traverseVoid",
+    "relevant": [
+      "core/src/main/scala/cats/data/Chain.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "38e2c7e603895631a120b8714769abd9a3d78d4e"
+  },
+  {
+    "query": "respond to review comments",
+    "relevant": [
+      "core/src/main/scala/cats/data/Chain.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "49625fef4932854bae0fbfe5efdb4f12d98c4968"
+  },
+  {
+    "query": "fix bug, improve scalachecks",
+    "relevant": [
+      "core/src/main/scala/cats/data/Chain.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "83fe74c3567c2c99d4e9e3802a5f59281a082df9"
+  },
+  {
+    "query": "Add take/takeRight/drop/dropRight to Chain",
+    "relevant": [
+      "core/src/main/scala/cats/data/Chain.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3b2c4bd70cbf218c2ac70df859d078cb7a39de37"
+  },
+  {
+    "query": "Override Foldable#toIterable for Chain",
+    "relevant": [
+      "core/src/main/scala/cats/data/Chain.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5c84daa942693d03882f0f22c31a07620b9dc262"
+  },
+  {
+    "query": "fix deprecation note in scaladocs",
+    "relevant": [
+      "core/src/main/scala/cats/Foldable.scala",
+      "core/src/main/scala/cats/Parallel.scala",
+      "core/src/main/scala/cats/Reducible.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e8d95ee5083d3a4f0ae55ee6e9720d3c0fcad9d4"
+  },
+  {
+    "query": "rename `traverse_Directly` to `traverseVoidDirectly` in `Traverse`",
+    "relevant": [
+      "core/src/main/scala/cats/Traverse.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "48526923b73f1ba31e8777390c4a7df6278a80b7"
+  },
+  {
+    "query": "add `par*[Sequence/Traverse]Void` to `Parallel`",
+    "relevant": [
+      "core/src/main/scala/cats/Parallel.scala",
+      "core/src/main/scala/cats/syntax/parallel.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f93efd5645bb4f4fea58235532aca871f151026f"
+  },
+  {
+    "query": "add `nonEmptyTraverse/SequenceVoid` to `Reducible`",
+    "relevant": [
+      "core/src/main/scala/cats/Reducible.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25149a0896d36e42a9f43102bbb89f096a29b928"
+  },
+  {
+    "query": "add `sequenceVoid` and `traverseVoid` to `Foldable`",
+    "relevant": [
+      "core/src/main/scala/cats/Foldable.scala",
+      "core/src/main/scala/cats/syntax/foldable.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3b066e699ff2c58d9c7996f6215ecec9d8e8e2fe"
+  },
+  {
+    "query": "Use alignWith in alignMergeWith",
+    "relevant": [
+      "core/src/main/scala/cats/Align.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89deb4c87fdea00c5a2fa97e981f714ccda72f59"
+  },
+  {
+    "query": "Call a set method not a list one, that's the whole point",
+    "relevant": [
+      "core/src/main/scala/cats/UnorderedFoldable.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "77d2a0f968609a686eec737d3eaaffa7111c852b"
+  },
+  {
+    "query": "Call the correct method in the doctest",
+    "relevant": [
+      "core/src/main/scala/cats/UnorderedFoldable.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a8ff6c7a1698e955c773b5c931c6d71975f6208f"
+  },
+  {
+    "query": "fix some awkward imports",
+    "relevant": [
+      "core/src/main/scala/cats/Bifunctor.scala",
+      "core/src/main/scala/cats/Functor.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1e78fe8139f889440a02b5b370ef230cb371fd8b"
+  },
+  {
+    "query": "actually, there is no reason to make loopFn lazy",
+    "relevant": [
+      "core/src/main/scala/cats/Defer.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e45b590bf1775da896dc58f27528f706eb5be447"
+  },
+  {
+    "query": "Add Defer.recursiveFn to aid in recursion",
+    "relevant": [
+      "core/src/main/scala/cats/Defer.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "025867d0e3340b0b0fcfd1d091710f4a574b6397"
+  },
+  {
+    "query": "covariant all leafs of eval",
+    "relevant": [
+      "core/src/main/scala/cats/Eval.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "94526a9ae802779ce5e27d7169a6d0d19ad3bad2"
+  },
+  {
+    "query": "Issue : Make Later covariant",
+    "relevant": [
+      "core/src/main/scala/cats/Eval.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8bfaab5d62b489bf273699924a1ee5efef1eb64d"
+  },
+  {
+    "query": "Tweak the case in patmat",
+    "relevant": [
+      "core/src/main/scala/cats/syntax/either.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1ccfee329c486e7e8b5a685d0f8a311767bd1d97"
+  },
+  {
+    "query": "Change implicit ordering to match Chain",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyVector.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4fafcf1e38d92a13c727d170b4e9f9d928da247c"
+  },
+  {
+    "query": "Add PartialOrder for NonEmptyVector",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyVector.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bdfafe87144e5fc02dbd19549a3df030e3704554"
+  },
+  {
+    "query": "Add Hash and Order Instances for NonEmptyVector",
+    "relevant": [
+      "core/src/main/scala/cats/data/NonEmptyVector.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "431e1cd34af9fa0a58eeb60cdfeeb5d5e2164052"
+  },
+  {
+    "query": "Use `toList` in seq traverse, not vector",
+    "relevant": [
+      "core/src/main/scala/cats/instances/seq.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a62ce4c55f316c575e1f30c9fbe0aacda0a3252f"
+  },
+  {
+    "query": "fix ambiguous implicit ContravariantShow for SortedSet and SortedMap",
+    "relevant": [
+      "core/src/main/scala/cats/Show.scala"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1c9b2c7f2a2904838dad34ba65a3ecc0f189b4e"
+  }
+]

@@ -1,0 +1,372 @@
+[
+  {
+    "query": "Handle wss rewrite on https",
+    "relevant": [
+      "lib/plug/rewrite_on.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "47649aa7bb910f481b66cc3e98c14b2c3b761c3c"
+  },
+  {
+    "query": "Rewrite protocol to https when x-forwarded-proto is wss",
+    "relevant": [
+      "lib/plug/rewrite_on.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ac52c517e446b2aa333b0de49a83ed75e6665842"
+  },
+  {
+    "query": "Fix `raise_on_missing_only` raising on non-matching paths with colons",
+    "relevant": [
+      "lib/plug/static.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59cf2b552d2130398e27cd192157faf12d1356f5"
+  },
+  {
+    "query": "Expose generate_id function and make it configurable in request id",
+    "relevant": [
+      "lib/plug/request_id.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "74a8674e44f176468b724d93b18469859caecef2"
+  },
+  {
+    "query": "Mention `dbg/2` can be plugged into a pipeline",
+    "relevant": [
+      "lib/plug/builder.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a0e274b264eb7b08fb28238034fff07dc2b143a1"
+  },
+  {
+    "query": "Configure reuse_sessions/secure_renegotiate after cipher suite expansion",
+    "relevant": [
+      "lib/plug/ssl.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29d08633c4ddfcbbaf5e9e153ec708854ddd74a0"
+  },
+  {
+    "query": "Add hosts/paths/conn to Plug.SSL's exclude",
+    "relevant": [
+      "lib/plug/ssl.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a6d285c329dc417610846374bb25bb1a0bf81836"
+  },
+  {
+    "query": "Implement deleting an uploaded file",
+    "relevant": [
+      "lib/plug/upload.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44b54b7cad49705b5a9e079d3a2ac2d8120b1352"
+  },
+  {
+    "query": "Use raw mode to delete files",
+    "relevant": [
+      "lib/plug/upload.ex",
+      "lib/plug/upload/terminator.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "df49f299a5d3e6e71bb285b36e54a69dac56d6d2"
+  },
+  {
+    "query": "Allow colon to be escaped when building the path segments",
+    "relevant": [
+      "lib/plug/router.ex",
+      "lib/plug/router/utils.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c422454fe2e35bd77cfbbf72f97eb660105212ba"
+  },
+  {
+    "query": "Unify code paths and reuse exception",
+    "relevant": [
+      "lib/plug/csrf_protection.ex",
+      "lib/plug/request_id.ex",
+      "lib/plug/static.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "853f1422355b5d88576052a8e8409621e70af04b"
+  },
+  {
+    "query": "Add :raise_on_missing_only option to Plug.Static",
+    "relevant": [
+      "lib/plug/static.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "33644c2fb81c65ecd45076e601ebf1e366cb09fc"
+  },
+  {
+    "query": "Add Modern cipher suites and deprecate legacy TLS",
+    "relevant": [
+      "lib/plug/ssl.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d6d3344be35a58349c294e6ee04a21536dfe7692"
+  },
+  {
+    "query": "Explicitly document http_only default value",
+    "relevant": [
+      "lib/plug/conn.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "63f1236c92bdd0d3ae5a85ce2fbcbaf4134fe76c"
+  },
+  {
+    "query": "Add keyword to init_test_session argument type",
+    "relevant": [
+      "lib/plug/test.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fada0c0949cf0ea208d1327df974f0d9b548800d"
+  },
+  {
+    "query": "Rename Unprocessable Entity to Unprocessable Content",
+    "relevant": [
+      "lib/plug/conn/status.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3071bdc87c0ef9ffa18e2c4d9432de69076dbb9a"
+  },
+  {
+    "query": "Keep headers in non-html render",
+    "relevant": [
+      "lib/plug/debugger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a48d65ca42b97ce537252c327d45389fb8044730"
+  },
+  {
+    "query": "Add support for Plug.RewriteOn to rewrite nonstandard headers",
+    "relevant": [
+      "lib/plug/rewrite_on.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8df27acade7120bd864ea0805dc52f585987f262"
+  },
+  {
+    "query": "Only respond with html if client prefers media type",
+    "relevant": [
+      "lib/plug/debugger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "57d04d7acec598aa960e39ca1fe548d67b09665f"
+  },
+  {
+    "query": "Implement a more comprehensive way to get connection information",
+    "relevant": [
+      "lib/plug/conn.ex",
+      "lib/plug/conn/adapter.ex",
+      "lib/plug/test.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8abdd30f30f2457da305938498111986195ce8d9"
+  },
+  {
+    "query": "Customize the Logger metadata key name",
+    "relevant": [
+      "lib/plug/request_id.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "67faa573936d898cfddb8d04f26c9670e7aab23a"
+  },
+  {
+    "query": "Match to function plug",
+    "relevant": [
+      "lib/plug/router.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "88f79c2fb184c6da3f30beb7c76aed7fd89573e2"
+  },
+  {
+    "query": "Fix XSS on debug page",
+    "relevant": [
+      "lib/plug/debugger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "361b7fbed3600e5535df4bd0475fef91c874b627"
+  },
+  {
+    "query": "Add dark mode for Plug.Debugger",
+    "relevant": [
+      "lib/plug/debugger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4d12de446e903feba9e326d2bdb142e65a422458"
+  },
+  {
+    "query": "Add SSL validation support for `certs_keys`",
+    "relevant": [
+      "lib/plug/ssl.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "187266d3c19255d8ae250deaca9868b044e5b279"
+  },
+  {
+    "query": "Add example code to `Plug.Conn.Cookies.encode/2`",
+    "relevant": [
+      "lib/plug/conn/cookies.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b2c0d64bfb2a8393d15f187cd0a4626e6810bd03"
+  },
+  {
+    "query": "Clarify rewrite on SSL",
+    "relevant": [
+      "lib/plug/ssl.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "43d5dea177b2a92ac02a47472409ef39a84ead3d"
+  },
+  {
+    "query": "Deprecate cookie fields in favor of functions",
+    "relevant": [
+      "lib/plug/conn.ex",
+      "lib/plug/session.ex",
+      "lib/plug/test.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f804daa204db3a1f1f10742d0964e6e00f932dab"
+  },
+  {
+    "query": "Document and deprecate path_params and req_cookies, closes",
+    "relevant": [
+      "lib/plug/conn.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dfa5085a6ee1dbb5b723a661edbab848743d9f47"
+  },
+  {
+    "query": "no longer recommend soft-deprecated :logger :console config",
+    "relevant": [
+      "lib/plug/request_id.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e11e5c4cb2ceed52914af460d3d9bb07a84fc8eb"
+  },
+  {
+    "query": "improve custom body reader example",
+    "relevant": [
+      "lib/plug/parsers.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d8c17361f16530acce75edc157a8c107fd883a63"
+  },
+  {
+    "query": "Add __RELATIVEFILE__ to PLUG_EDITOR replacements",
+    "relevant": [
+      "lib/plug/debugger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b14af2de0825b01b728e4af80a72cf410678ded"
+  },
+  {
+    "query": "Track conn value in Plug.Debugger.run_action/1",
+    "relevant": [
+      "lib/plug/debugger.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d0e3407fea0a434b516bca6bd4256f15016047a8"
+  },
+  {
+    "query": "Support MFArgs in rewrite_on",
+    "relevant": [
+      "lib/plug/rewrite_on.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bd8a574fd825d2c0c203613aa0935d983df664dd"
+  },
+  {
+    "query": "Discard nil max_age in put_resp_cookie/4",
+    "relevant": [
+      "lib/plug/conn.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9bfa83be669b993a5031441b1be957617df6abb8"
+  },
+  {
+    "query": "Plug.Static: Add support for preset MIME types",
+    "relevant": [
+      "lib/plug/static.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eabf0b9d43060c10663a9105cb1baf984d272a6c"
+  },
+  {
+    "query": "Add underscore support for MIME types",
+    "relevant": [
+      "lib/plug/conn/utils.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b7e6753512c1d923ed8061c4de37f1f0ec849bd0"
+  },
+  {
+    "query": "Add immutable directive for vsn requests",
+    "relevant": [
+      "lib/plug/static.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "85f03493afd78441b1ee2692b198641ccbee6bdc"
+  },
+  {
+    "query": "Allow custom exceptions in validate_utf8 option",
+    "relevant": [
+      "lib/plug/conn/query.ex",
+      "lib/plug/parsers/multipart.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f244f4412f6d0dabe83cb25f5b6a8a7d369d2a0"
+  },
+  {
+    "query": "Support returning {:ok, payload} from adapter.inform/3",
+    "relevant": [
+      "lib/plug/conn.ex",
+      "lib/plug/conn/adapter.ex"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ec9f45bd8b4680f2afb211de1d8bdd1cbb347958"
+  }
+]

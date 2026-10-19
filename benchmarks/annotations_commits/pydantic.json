@@ -1,0 +1,375 @@
+[
+  {
+    "query": "Do not include annotations that are not part of named tuple fields",
+    "relevant": [
+      "pydantic/_internal/_generate_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0574aaab3f38f2bc6671100697bf55a05e6c4b9d"
+  },
+  {
+    "query": "Check for `PlaceholderNode` in Mypy plugin",
+    "relevant": [
+      "pydantic/mypy.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "772448e896a80a6938b5dbfcd229badab9f9ec6b"
+  },
+  {
+    "query": "Allow dynamic models created with `create_model ` to be used as annotations in the Mypy plugin",
+    "relevant": [
+      "pydantic/mypy.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b59bcae65e5a38bb562f99af2606ef0239c8878d"
+  },
+  {
+    "query": "Track extra fields set after init in `model_fields_set`",
+    "relevant": [
+      "pydantic/main.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0b7b855b5ef468c2d0f7928df7fe37f732ff18e7"
+  },
+  {
+    "query": "Handle all schema generation errors in `InstanceOf`",
+    "relevant": [
+      "pydantic/_internal/_generate_schema.py",
+      "pydantic/functional_validators.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fc68422064fefb4414eb6c391b78595dddd67ac2"
+  },
+  {
+    "query": "Ensure `__pydantic_private__` is set in `model_construct ` with user-defined `model_post_init `",
+    "relevant": [
+      "pydantic/main.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0967dd93002a0e766440cf3b9c5004888ccf21ba"
+  },
+  {
+    "query": "Respect `extras_schema` when only `extra_fields_behavior` is set on the config in JSON Schema generation for typed dictionaries",
+    "relevant": [
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2fcb8ba1c6bd5c6f30236d7425f30ac588525eb"
+  },
+  {
+    "query": "Support discriminator metadata outside union type alias",
+    "relevant": [
+      "pydantic/_internal/_discriminated_union.py",
+      "pydantic/types.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d286c73df5d3d2bc1ae530a1d2d29787c8cdee6e"
+  },
+  {
+    "query": "Fix grammar in dataclass field completion docstring",
+    "relevant": [
+      "pydantic/dataclasses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "95dc3ee5b1911bcb678ada0b940c89544aebb4ee"
+  },
+  {
+    "query": "Fix duplicated words in internal schema comments",
+    "relevant": [
+      "pydantic/_internal/_generate_schema.py",
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a6b0bb0aa9331699b550d1c21ec45af7111250cf"
+  },
+  {
+    "query": "Fix duplicated words in v1 comments",
+    "relevant": [
+      "pydantic/v1/datetime_parse.py",
+      "pydantic/v1/fields.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f0ce4c7522824a78b867998bfe333e123fdf463"
+  },
+  {
+    "query": "Fix backported V1 namespace",
+    "relevant": [
+      "pydantic/v1/main.py",
+      "pydantic/v1/version.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f41d300d484a043d3a26d1d95383cd490bd9fde0"
+  },
+  {
+    "query": "Fix walrus operator precedence in `UrlConstraints.__get_pydantic_core_schema__ `",
+    "relevant": [
+      "pydantic/networks.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c763adeba844eb45c7bbad30adf631559dfddc0b"
+  },
+  {
+    "query": "Fix `__hash__` in `UuidVersion` and `PathType` to hash values instead of types",
+    "relevant": [
+      "pydantic/types.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fce3d034312b47a16b45b51d229e5107ca6b3bbc"
+  },
+  {
+    "query": "Allow any type form to be used in `validate_as `",
+    "relevant": [
+      "pydantic/experimental/pipeline.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e943b41ed1700fdbe8b8804c0355c605805e73ae"
+  },
+  {
+    "query": "Preserve custom docstrings on stdlib dataclasses in JSON schema",
+    "relevant": [
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "12288b15e6f687056355d0a6d5e4672b6fef95c4"
+  },
+  {
+    "query": "Ensure deterministic JSON schema defaults by sorting sets",
+    "relevant": [
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "de8dedd5100fb3c6fbf0cebd9c2e31beecbdde36"
+  },
+  {
+    "query": "Improve ImportString error when internal imports fail",
+    "relevant": [
+      "pydantic/_internal/_validators.py",
+      "pydantic/types.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a2934a1225a86933459bf249df47e1e8cc7ebed0"
+  },
+  {
+    "query": "Fix incorrect dataclass constructor signature when overriding class `kw_only` with `Field `",
+    "relevant": [
+      "pydantic/_internal/_dataclasses.py",
+      "pydantic/_internal/_signature.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "950a1c9eadd9b050a0a21febeb360ed469e0afbd"
+  },
+  {
+    "query": "Resolve type ignore comment in JSON Schema code",
+    "relevant": [
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "710f8540c90111bb38b4099f9b25c60683a7db5a"
+  },
+  {
+    "query": "Fix type annotation of `field_definitions` in `create_model `",
+    "relevant": [
+      "pydantic/main.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "92d079e7a0e9d8e7e0574664d2a7bfbaa45a6ec3"
+  },
+  {
+    "query": "Optimize annotations evaluation of Pydantic models",
+    "relevant": [
+      "pydantic/_internal/_fields.py",
+      "pydantic/_internal/_typing_extra.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "75f83be384402cd886f5606d6e89d18029b741c0"
+  },
+  {
+    "query": "Support Root models with `Literal` root types as discriminator field types",
+    "relevant": [
+      "pydantic/_internal/_discriminated_union.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "de141b5d883cc3f8eac3f61292593eb6b1f8c34e"
+  },
+  {
+    "query": "Copy `root` value when making root model shallow copies",
+    "relevant": [
+      "pydantic/root_model.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cb1c5330fb3892622c18d0c6bacc0ac579165553"
+  },
+  {
+    "query": "Document security implications when using `create_model `",
+    "relevant": [
+      "pydantic/main.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b8242eb63597b2d5f83032161bd3e0d684242bd"
+  },
+  {
+    "query": "Special case `MISSING` sentinel in `smart_deepcopy `",
+    "relevant": [
+      "pydantic/_internal/_utils.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a5d9af63ef47b853cd81d36a70eee73075eaad52"
+  },
+  {
+    "query": "Do not delete mock validator/serializer in `rebuild_dataclass `",
+    "relevant": [
+      "pydantic/dataclasses.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "89fed1985ac723e588c7bb290446a7a40be07de4"
+  },
+  {
+    "query": "Fix support for enums with `NamedTuple` as values",
+    "relevant": [
+      "pydantic/_internal/_generate_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c9c31deb5b8b5dda8801ecdfd0aba93941d512ff"
+  },
+  {
+    "query": "Fix `InitVar` being ignored when using with the `pydantic.Field ` function",
+    "relevant": [
+      "pydantic/fields.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ad9c3775fef295111c5fc1a37d1d0cc88e219c88"
+  },
+  {
+    "query": "Fix nested model schema deduplication in JSON schema generation",
+    "relevant": [
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f787c339795f75b9e6bb195d4c1955a50bf5874f"
+  },
+  {
+    "query": "Fix `FieldInfo` rebuilding when parameterizing generic models with an `Annotated` type",
+    "relevant": [
+      "pydantic/_internal/_fields.py",
+      "pydantic/_internal/_model_construction.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3bcc454d132f65dcd9d524a6638ec003fb9771c8"
+  },
+  {
+    "query": "Document workaround for `MongoDsn` default port",
+    "relevant": [
+      "pydantic/networks.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0a0f963d07af5f51913880a870cf8154f1f53ca8"
+  },
+  {
+    "query": "Exclude fields with `exclude_if` from JSON Schema required fields",
+    "relevant": [
+      "pydantic/json_schema.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e0a67308d5a40a24d2a76ab72bd6d9b889788f8a"
+  },
+  {
+    "query": "Fix issue with forward references in parent `TypedDict` classes",
+    "relevant": [
+      "pydantic/_internal/_typing_extra.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c8035874e61637aa8e3178e102265e898a4f0302"
+  },
+  {
+    "query": "Raise a warning when an invalid after model validator function signature is raised",
+    "relevant": [
+      "pydantic/functional_validators.py",
+      "pydantic/warnings.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "adfac8a02f982c86ed1179186b368ed08f723e8c"
+  },
+  {
+    "query": "Fix issue with recursive generic models with a parent model class",
+    "relevant": [
+      "pydantic/_internal/_generate_schema.py",
+      "pydantic/_internal/_model_construction.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64fca3acd732b18fb840a1e5efbd3cfa223a3f51"
+  },
+  {
+    "query": "Fix error message for invalid validator signatures",
+    "relevant": [
+      "pydantic/_internal/_decorators.py",
+      "pydantic/_internal/_generate_schema.py",
+      "pydantic/functional_validators.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6448214c3e7b862b120f8f78e0e705ea7b992910"
+  },
+  {
+    "query": "Do not evaluate annotations when inspecting validators and serializers",
+    "relevant": [
+      "pydantic/_internal/_decorators.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "024e2929dd69f0e746d7df4a2e26ca67025a8d79"
+  },
+  {
+    "query": "Fix spelling in `model_dump ` docstring",
+    "relevant": [
+      "pydantic/main.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f839721eab806e812d9b5276c961cfd78a056812"
+  },
+  {
+    "query": "Add `__qualname__` parameter for `create_model`",
+    "relevant": [
+      "pydantic/main.py"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f59a03ea3219d9e4efd02a504c59138f273723e"
+  }
+]

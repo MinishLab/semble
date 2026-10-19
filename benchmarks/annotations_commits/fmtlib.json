@@ -1,0 +1,373 @@
+[
+  {
+    "query": "Workaround a CUDA issue in handing UTF-32 literals",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "03cfb8645e2646fce738fe9d8e13fe7d7d947ad4"
+  },
+  {
+    "query": "Fix out-of-bounds read in vprintf with trailing '%'",
+    "relevant": [
+      "include/fmt/printf.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ccf1d4faf977a77f157fcad2b96b663109f59cb"
+  },
+  {
+    "query": "Fix bug re: return type of `f(un)lockfile` wrappers for Windows",
+    "relevant": [
+      "include/fmt/format-inl.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "be98ea8addfd8f0dd6f319e7818f94988728ca0a"
+  },
+  {
+    "query": "Don't assume nul termination in printf",
+    "relevant": [
+      "include/fmt/printf.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dc05bee30755bb993add7ed90845d87c2315f9c6"
+  },
+  {
+    "query": "Support fmt::runtime with wchar_t in fmt::format_to_n",
+    "relevant": [
+      "include/fmt/xchar.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ea85b81ccdb28dda636351e80a1888b1d279f325"
+  },
+  {
+    "query": "Make fmt/fmt-c.h compile with Clang on Windows",
+    "relevant": [
+      "include/fmt/fmt-c.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ae6fd83e2ee09ac260f30bbd33f2071e99f972de"
+  },
+  {
+    "query": "Add missing moves to grouping std::string member",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c0cd0fcfece8ac1541857a6dc5955745f1ec165b"
+  },
+  {
+    "query": "Replace the dummy arg from compound initializers in the C API with more macro magic",
+    "relevant": [
+      "include/fmt/fmt-c.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb03303099c57cbe606d9fe7d0aa2cc244d14b04"
+  },
+  {
+    "query": "Update fmt::join to support more character types",
+    "relevant": [
+      "include/fmt/base.h",
+      "include/fmt/format.h",
+      "include/fmt/xchar.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8277ee6aa04e80604806f39c85016a58ed693912"
+  },
+  {
+    "query": "Mark detail::named_arg as deprecated",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af9bb5c0754466e4bc3337e3917e907dad89eff9"
+  },
+  {
+    "query": "Move named_arg to public API",
+    "relevant": [
+      "include/fmt/args.h",
+      "include/fmt/base.h",
+      "include/fmt/xchar.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "db4bea83d615facc0506c0151fc64fe8a9e139d4"
+  },
+  {
+    "query": "wrap macro arguments in parentheses for robustness",
+    "relevant": [
+      "include/fmt/fmt-c.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "82553a7a5b78e446f7f559d7b968f606652ee5d2"
+  },
+  {
+    "query": "Mark static arrays as constexpr for binary opt",
+    "relevant": [
+      "include/fmt/format-inl.h",
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8d3f731763bcbb4a11e3d714c551e509007957b1"
+  },
+  {
+    "query": "Add FMT_USE_FLOCKFILE macro to force has_flockfile trait to false",
+    "relevant": [
+      "include/fmt/format-inl.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2eda43e9be177109a1557a59eee3fe7825a9b479"
+  },
+  {
+    "query": "Move _BitInt next to bitref formatter",
+    "relevant": [
+      "include/fmt/format.h",
+      "include/fmt/std.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f98b54bd7934276f6e0a268dbafc29e0c429584"
+  },
+  {
+    "query": "Dedup compile check enforcement",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d04c9801a7513746c606a2c1e3af1348bb910aa4"
+  },
+  {
+    "query": "Suppress useless conversion warnings",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b9dc6846499d1a204cfcd8b0013de8172ee64331"
+  },
+  {
+    "query": "Remove old diagnostic suppression",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c3f0391efdd978693a3c8ea5c1e4b7dcc6a8e17a"
+  },
+  {
+    "query": "Make deprecated include an opt in",
+    "relevant": [
+      "include/fmt/core.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0007426c2d8d22df6e56d3b4d109415242e683e0"
+  },
+  {
+    "query": "Fix range suppresor formatter",
+    "relevant": [
+      "include/fmt/ranges.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5cc5072aa68c48a8c67f4d09ef1b9fcb9ab15a26"
+  },
+  {
+    "query": "Stop doing heroics for pathological user code",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b2a96c60873788078aab0459700841cad9413ae7"
+  },
+  {
+    "query": "Start phasing out const_check",
+    "relevant": [
+      "include/fmt/base.h",
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "99803085d431de18d7d5467c49982701be1da1fd"
+  },
+  {
+    "query": "Add an alias for unsigned long long",
+    "relevant": [
+      "include/fmt/base.h",
+      "include/fmt/chrono.h",
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9237a4543929157f410f4847ac3cad4c850f4147"
+  },
+  {
+    "query": "Move <new> include to the implementation",
+    "relevant": [
+      "include/fmt/format-inl.h",
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8ee3a56d12d48600e3eb405e44d15de62c684dcf"
+  },
+  {
+    "query": "Fix usage of memset",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "25df8ccd96abd86d8d7c741a807aca2455a41338"
+  },
+  {
+    "query": "Add `constexpr` to argument `value` constructors",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f09185da6563e50f9ccaed1958bf391074633be3"
+  },
+  {
+    "query": "Fix C++20 concept detection",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a9ea225cadc2ad0d0620ddd458310b24d2a1b4b8"
+  },
+  {
+    "query": "Use _M_AMD64 instead of legacy _M_X64",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0e078f6ed0624be8babc43bd145371d9f3a08aab"
+  },
+  {
+    "query": "add support for positional arguments as width and precision specifiers",
+    "relevant": [
+      "include/fmt/printf.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6b018edfb9f6221738b753245e5818bc651792af"
+  },
+  {
+    "query": "Make digits2_i noexcept to match digits2 function",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "605dd2a1d99c78e2d7f9662beab60c4a25af6941"
+  },
+  {
+    "query": "Minor improvement to digits2",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3269c1cea53cb84ab971b36486627367cf73cadc"
+  },
+  {
+    "query": "Make FMT_USE_FULL_CACHE_DRAGONBOX depend on __OPTIMIZE_SIZE__ by default",
+    "relevant": [
+      "include/fmt/format-inl.h",
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a731c73fd5dae3bb942fbf57cb63762b2b998c29"
+  },
+  {
+    "query": "Make FMT_STRING redundant when FMT_USE_CONSTEVAL is enabled",
+    "relevant": [
+      "include/fmt/format.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9f197b22ae2c809014e2a1b30c51ff1dc451508f"
+  },
+  {
+    "query": "Remove the broken fmt::say function",
+    "relevant": [
+      "include/fmt/os.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fc17e825d9b53cb7920d36abfa568d59cde2dd7b"
+  },
+  {
+    "query": "Improve build speed, take 2",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a4c7e17133ee9cb6a2f45545f6e974dd3c393efa"
+  },
+  {
+    "query": "Add FMT_CONSTEXPR to static_format_result members",
+    "relevant": [
+      "include/fmt/compile.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27bf8b47fe99743c1ba9a33eacbdda99080b2490"
+  },
+  {
+    "query": "Fix leaky `diagnostic ignored` pragma",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "913507044b55d7cc4203eb6285c483c61561aca6"
+  },
+  {
+    "query": "Avoid an ABI break for clang",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b95fd6132be3bdc647272a7aa523886f156b7b5f"
+  },
+  {
+    "query": "Don't include std::locale::collate value in the symbol",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9395ef5fcb817c6145c7f0d274be87629c360bf2"
+  },
+  {
+    "query": "Workaround ABI compatibility between clang and gcc",
+    "relevant": [
+      "include/fmt/base.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9721d974fcd88cd522251568730d8de542cc8c4e"
+  }
+]

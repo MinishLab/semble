@@ -1,0 +1,351 @@
+[
+  {
+    "query": "Fix : Check for control characters in text literals everywhere",
+    "relevant": [
+      "src/Data/Aeson/Decoding/ByteString.hs",
+      "src/Data/Aeson/Decoding/ByteString/Lazy.hs",
+      "src/Data/Aeson/Decoding/Text.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b9699f2447d1f4b273211f304cc3009687d1c98"
+  },
+  {
+    "query": "FromJSON and ToJSON instances for Sum, Product, Any, All",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "34ffbf6026cd712086cd990dd3b8dfd7d155da82"
+  },
+  {
+    "query": "Use DerivingVia to derive newtype instances",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d247c3e1d39084eaf06cde6f69936e1a1da57aea"
+  },
+  {
+    "query": "Use GND to derive Key instances",
+    "relevant": [
+      "src/Data/Aeson/Key.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1a666febd0775d8e88d315ece1b97cd20602fb5f"
+  },
+  {
+    "query": "Prepare for change of Data.Text.Array to type synonym",
+    "relevant": [
+      "src/Data/Aeson/Internal/Text.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4301ac38387d18cfc6f2b955bad65e0d4267cff8"
+  },
+  {
+    "query": "Add since annotations to ToJSON Down",
+    "relevant": [
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2073e763116131ad90863b8403fa76612279881"
+  },
+  {
+    "query": "Resolve . Add instances for Data.Ord.Down",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b369630d67e25c2c469bc8c7807941433f18b132"
+  },
+  {
+    "query": "Resolve : Add instances for network-uri's URI",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "624a91c0e0aaa81aa86ee67f1205669bb2fe66d9"
+  },
+  {
+    "query": "Improve `Arbitrary Value` instance",
+    "relevant": [
+      "src/Data/Aeson/Types/Internal.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c8d7988a49ae421edf80233ff5f78f5f1a1e55c"
+  },
+  {
+    "query": "Resolve . Drop attoparsec.Number instances",
+    "relevant": [
+      "src/Data/Aeson/Internal/Scientific.hs",
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d07a168fad196c39999f293cd3b3c1add81f361"
+  },
+  {
+    "query": "Use text-iso8601 to FromJSON time types",
+    "relevant": [
+      "src/Data/Aeson/Parser/Time.hs",
+      "src/Data/Aeson/Types/FromJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f0be72f55d1526b3110aa45b620b08646035bc8c"
+  },
+  {
+    "query": "Fix FromJSONKey Double handling of infinities",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1c802103201af047f8faaabd99d3b4131180a4f2"
+  },
+  {
+    "query": "Guard the import (remove warning)",
+    "relevant": [
+      "src/Data/Aeson/Internal/ByteString.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1d2f4ed73e1555949d3ad45b04bb8dbd0d225dd2"
+  },
+  {
+    "query": "Add To/FromJSONKey Void instances",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e98b90e7fbac840ebe3b85d2a53e5785d0b3ae18"
+  },
+  {
+    "query": "Support deriving for empty datatypes with TH and generics",
+    "relevant": [
+      "src/Data/Aeson/TH.hs",
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b0fa0f62b4d0d9645601374b2a84bda8c7b065cd"
+  },
+  {
+    "query": "Add an insertWith functiion",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b0ea7199fc0f5603199cd21a43753632eae80fd7"
+  },
+  {
+    "query": "Issue 967: Use unsafeDupablePerformIO in unsafePackLenLiteral",
+    "relevant": [
+      "src/Data/Aeson/Internal/ByteString.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "720b857e2e0acf2edc4f5512f2b217a89449a89d"
+  },
+  {
+    "query": "Refactor !? operator to have definition only once",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7a052e8d1c0fea679677ebef2829c6d4f76a5f7b"
+  },
+  {
+    "query": "Make Series more lazy",
+    "relevant": [
+      "src/Data/Aeson/Encoding/Internal.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e21829bed6e1295d0b7ddac2425d407fd6abcf1"
+  },
+  {
+    "query": "Resolve : Add MonadFix instance",
+    "relevant": [
+      "src/Data/Aeson/Types/Internal.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b52baa8fdd02e2f2936fef872303d2fa59b0177d"
+  },
+  {
+    "query": "Resolve : Export ifromJSON and iparse from Data.Aeson.Types. Add iparseEither",
+    "relevant": [
+      "src/Data/Aeson/Types.hs",
+      "src/Data/Aeson/Types/Internal.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ed75728e997ee0b86f3ea64b9df7514585e8fde7"
+  },
+  {
+    "query": "Resolve : Export KeyMap.mapWithKey",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b97186e3d5350ded206ed754c992ac2a117354ed"
+  },
+  {
+    "query": "Export Key from KeyMap module",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3a6971871b7abb3471f7b4b5f30fe31355c08966"
+  },
+  {
+    "query": "use ~ in KeyValue instances",
+    "relevant": [
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "310edbcfce520dc466ca58d578797558c919b784"
+  },
+  {
+    "query": "add explicit toEncoding method to ToJSON QuarterOfYear",
+    "relevant": [
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b43e3d0d1894b3071684c83890c98d754eb47c14"
+  },
+  {
+    "query": "Add ordNub to shrink",
+    "relevant": [
+      "src/Data/Aeson/Types/Internal.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1214ad7a37c04161d4199ae4541c958b83da9eac"
+  },
+  {
+    "query": "Correct Haddock comment for `fromMap`",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "28c2bad684a43c604dc2613e2ddea163cccab911"
+  },
+  {
+    "query": "Add `Map Text` combinators",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5b2d1d78ad782d62577225c369f960d88f6a429a"
+  },
+  {
+    "query": "Star is not Type",
+    "relevant": [
+      "src/Data/Aeson/Types/Generic.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "69979d9da5c5214184b5cb35cc3ccbb3cfef2ac8"
+  },
+  {
+    "query": "Fix : Add IsList (KeyMap v) instance",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b88487d1f4ccbd50052c24977f01111d12b706fd"
+  },
+  {
+    "query": "Accept all values in FromJSON and FromJSON (Proxy tag)",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "677daf0cfc66bad182764eded5e2f08f7293cb0b"
+  },
+  {
+    "query": "Change +inf/-inf :: Double/Float serialization",
+    "relevant": [
+      "src/Data/Aeson/Encoding/Internal.hs",
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "615054e01d26db719552bffb4ac851a9fe809542"
+  },
+  {
+    "query": "Add more KeyMap combinators",
+    "relevant": [
+      "src/Data/Aeson/KeyMap.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "18ea91c8b90fe3ecec9245fd9aaa5e076d2b263b"
+  },
+  {
+    "query": "Fix FromJSON1 instance of Sum",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "da9767f4e71cb2684bfe32aaf15295881eb71c65"
+  },
+  {
+    "query": "Add haddock example of aesonQQ",
+    "relevant": [
+      "src/Data/Aeson/QQ/Simple.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3aae0cba36358bd0420290b1b8d39b90c7315e02"
+  },
+  {
+    "query": "Fix `object` comments: `earlier` -> `later`",
+    "relevant": [
+      "src/Data/Aeson/Types/Internal.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ea3e2261906784bd553e778752d745a17a7e3130"
+  },
+  {
+    "query": "Remove -O2 and most of INLINE pragmas",
+    "relevant": [
+      "src/Data/Aeson/Types/FromJSON.hs",
+      "src/Data/Aeson/Types/ToJSON.hs"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b5f12d28bcf6533a0e63872a219f780aff6a9451"
+  }
+]

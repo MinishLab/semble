@@ -1,0 +1,362 @@
+[
+  {
+    "query": "fix error in `restart` when name contains space",
+    "relevant": [
+      "lua/mini/sessions.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "29447d7b0e1fc9bc9d0384953e63be3fae816736"
+  },
+  {
+    "query": "make resize work when height changes via 'cmdheight'",
+    "relevant": [
+      "lua/mini/animate.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "27a3e747a4e603b4121f5759e74020430ec7b7d5"
+  },
+  {
+    "query": "update `safely` to handle breaking Nightly autocmd changes",
+    "relevant": [
+      "lua/mini/misc.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "69b7433355664cf76898eb86a12a019f39bd86d1"
+  },
+  {
+    "query": "simplify `ui_select` logic when cancelling a picker",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "46c386834c83acf0d762cc852ee5c2b5b663ad63"
+  },
+  {
+    "query": "handle `<` char in \"edit_command\" of a `history` picker",
+    "relevant": [
+      "lua/mini/extra.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2431902e78b76f435542d1e606f08475360068ca"
+  },
+  {
+    "query": "ensure to stop jumping after one non-jump movement",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "90c402eaf6c923b0c169b7325d7143a8766e8905"
+  },
+  {
+    "query": "do not force charwise Operator-pending jump",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bd306c0d4f02d75df6f6bd4db4fab32567a6bec8"
+  },
+  {
+    "query": "update `restart ` to manually restore 'termguicolors'",
+    "relevant": [
+      "lua/mini/sessions.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "af5f75c9ce572a4d1f0c77d6fb4ea764d16c1b3c"
+  },
+  {
+    "query": "autocorrect when the current word was edited",
+    "relevant": [
+      "lua/mini/cmdline.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "debd726e1b620e9934d554c2772de2e99cd3ccbe"
+  },
+  {
+    "query": "add `restart ` to restart preserving current session",
+    "relevant": [
+      "lua/mini/sessions.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d35b6bdac2a6f710afd8afa02a873a9fd0447f61"
+  },
+  {
+    "query": "simplify creating default highlight groups",
+    "relevant": [
+      "lua/mini/snippets.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "53c206d477d82012cd333283c572eb6ceca3bdb9"
+  },
+  {
+    "query": "mention more clearly that enabled 'termguicolors' is needed",
+    "relevant": [
+      "lua/mini/hues.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b63f0109506a2245780ddc0d3cfc4d9dee199c49"
+  },
+  {
+    "query": "make alternative movement keys more explicit",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b39f70b542322d82f942bb41a3276c4e04ea137e"
+  },
+  {
+    "query": "remove new default `grx` LSP mapping",
+    "relevant": [
+      "lua/mini/operators.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59f09943573c5348ca6c88393fa09ce3b66a7818"
+  },
+  {
+    "query": "ensure consistent redraw when Neovim is resized",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "adeaeac8622b966273bb161977bff1293dd44565"
+  },
+  {
+    "query": "autostop jumping only for conditions inside current buffer",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "87b66c0119c352e6949ddb3862ae516a31e76231"
+  },
+  {
+    "query": "do not highlight if stopped jumping",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7102641828218c7092b5bb4e6a7e0292bb9f3e58"
+  },
+  {
+    "query": "prevent `Buf{Enter,Leave}` events with enabled preview",
+    "relevant": [
+      "lua/mini/files.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9cbf4adc22e6ac918b898f8a3317078aee7c9999"
+  },
+  {
+    "query": "warn about duplicating mapping keys",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3b1b65e1e14cd0bf7b4178b38750f4a733e9d4e0"
+  },
+  {
+    "query": "redraw several times for any preview",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "05e275adfa45eba4c1c90b35818fb723b6b17075"
+  },
+  {
+    "query": "simplify the main `jump` function",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "28d993854bdcde7d06f0990cfe6a2c6577f3f8ab"
+  },
+  {
+    "query": "document why scheduled redraw during `getcharstr` is needed",
+    "relevant": [
+      "lua/mini/clue.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "791306900eb12cfc2d9bddf98bc3186d342f5883"
+  },
+  {
+    "query": "use `delay.async` from picker for throttled poking",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c1fe75edc0ed9d29e7eeb4c89287382196f1e447"
+  },
+  {
+    "query": "allow items contain problematic data types like `userdata`",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2c15984ed5b5a6ba59efb0132b6d2889f2904462"
+  },
+  {
+    "query": "make `SpecialKey` more visible",
+    "relevant": [
+      "lua/mini/hues.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9d359222b3643f1fccbd8f3180445842e1cae00b"
+  },
+  {
+    "query": "make dot-repeat not consume character when there is no target",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cad365c212fb1e332cb93fa8f72697125799d00a"
+  },
+  {
+    "query": "make dot-repeat jumping less intefere with regular jumping",
+    "relevant": [
+      "lua/mini/jump.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0098de999048af0539183d625c52d733318a441b"
+  },
+  {
+    "query": "fix `pickers.git_files ` to use repo root by default",
+    "relevant": [
+      "lua/mini/extra.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f73140c20bb6585d8fdc1e753612c1c8a6cb42ee"
+  },
+  {
+    "query": "respect when editor is in locked state",
+    "relevant": [
+      "lua/mini/notify.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "577d2dcb558efce1518c45a76345e01bf346c8e8"
+  },
+  {
+    "query": "normalize into `C://file` on Windows instead of `C:/file`",
+    "relevant": [
+      "lua/mini/files.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ccfc8c35cac348070a9528410c794459c4cc2eeb"
+  },
+  {
+    "query": "more carefully restore cursor when setting current window",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "dbb073bd2ed4a7bb35daafc7989567f0ff1426ee"
+  },
+  {
+    "query": "re-detect sessions in read after session is sourced",
+    "relevant": [
+      "lua/mini/sessions.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a3f117d6d3d9ce8fe279f3836ec27944b7f0bed4"
+  },
+  {
+    "query": "add new supported filetypes",
+    "relevant": [
+      "lua/mini/icons.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8ccd03b844a990cd740638715eb3a474001e51d7"
+  },
+  {
+    "query": "make `stop ` ensure that next session is valid",
+    "relevant": [
+      "lua/mini/snippets.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5a9a3830f9c37211df4c82cac45bf728b95739d"
+  },
+  {
+    "query": "remove unnecessary blank annotation line",
+    "relevant": [
+      "lua/mini/snippets.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "23b92bc40778dac43229eb71e7b595db0b12cef6"
+  },
+  {
+    "query": "update setting CLI items to preserve reaction to query change",
+    "relevant": [
+      "lua/mini/pick.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c40d95931cbe6138391af9180e59439ed2e69df"
+  },
+  {
+    "query": "correctly handle newlines at start/end of textobject",
+    "relevant": [
+      "lua/mini/operators.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f28cd08c8be826355d64080400fab1764c9693dd"
+  },
+  {
+    "query": "create Visual and Operator-pending mappings for finding",
+    "relevant": [
+      "lua/mini/surround.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee73d1d76df5e51fc69f463c944e44a158314e2b"
+  },
+  {
+    "query": "rearrange code for mapping creation",
+    "relevant": [
+      "lua/mini/surround.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8ee9e16ddab5cb290a7f78c14ba1e3211c71a2e5"
+  },
+  {
+    "query": "make default `neigh_pattern` work with multibyte characters",
+    "relevant": [
+      "lua/mini/pairs.lua"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9b935c218ddba02e5dc75c94f90143bce1f7c646"
+  }
+]

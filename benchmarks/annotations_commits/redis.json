@@ -1,0 +1,382 @@
+[
+  {
+    "query": "Fix SIGABRT in HSETEX when a field appears twice in the FIELDS list",
+    "relevant": [
+      "src/t_hash.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fa6d4c3d63cf84299167fdd89eb40d9cf8a64a0f"
+  },
+  {
+    "query": "Log node address when ASM starts",
+    "relevant": [
+      "src/cluster_asm.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "eb74450fcacd205b7e1e5a95df0ec3622914def1"
+  },
+  {
+    "query": "Reduce overhead in command propagation",
+    "relevant": [
+      "src/replication.c",
+      "src/server.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b89bc044a3e58f1a8973df9f766254e048bca248"
+  },
+  {
+    "query": "Introduce internal append-only pointer vector DS",
+    "relevant": [
+      "src/server.c",
+      "src/vector.c",
+      "src/vector.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f810d35bf7de04667d87391013387d82f88aec1"
+  },
+  {
+    "query": "Fix wrong argv index in xinfoReplyWithStreamInfo for slot alloc size tracking",
+    "relevant": [
+      "src/t_stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2049c7fe32f08841c57d50b595986760ed8d9bd0"
+  },
+  {
+    "query": "Fix HEXPIRE numfields overflow",
+    "relevant": [
+      "src/t_hash.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e1d35aca01c4240fa6c3feac55b00e9c1640abc0"
+  },
+  {
+    "query": "Fix missing consumer propagation on empty XREADGROUP",
+    "relevant": [
+      "src/t_stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0be39e503260324013ec1293501d5b5acaf34acf"
+  },
+  {
+    "query": "fix trivial double-free issue in rdbLoadObject",
+    "relevant": [
+      "src/rdb.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c77d60d6b8c0dfa67b938ea50929ffb1661612df"
+  },
+  {
+    "query": "Fix memory leak in `clusterManagerFixSlotsCoverage ` in `src/redis-cli.c`",
+    "relevant": [
+      "src/redis-cli.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fe3ae0ccacc5c9473fb2e98902ac8f673c11e7ee"
+  },
+  {
+    "query": "Disable memory tracking in child processes",
+    "relevant": [
+      "src/server.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5aa6440cbc044f65c9bef8a69526b095333e8ccd"
+  },
+  {
+    "query": "Fix IDMP tracking not cleared when resetting stream IDMP config",
+    "relevant": [
+      "src/t_stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8d2b548f84dcacfa3b227a0f61beb62c150f0039"
+  },
+  {
+    "query": "rename void *value to void *reserved in rdb_save/aof_rewrite callbacks",
+    "relevant": [
+      "src/keymeta.c",
+      "src/keymeta.h",
+      "src/redismodule.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8f3b6990dd4325ecbb8e5dff2e9015196ab944ac"
+  },
+  {
+    "query": "Fix COMMAND GETKEYS for PFMERGE with no source keys",
+    "relevant": [
+      "src/db.c",
+      "src/server.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5f5ddfd1a1ff39617277ac0a4302bee1ef94b492"
+  },
+  {
+    "query": "Fix memory leak in lpBatchInsert",
+    "relevant": [
+      "src/listpack.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f2adcdedbc5ea932e2aa8b99774c483599ae6fe7"
+  },
+  {
+    "query": "fixes around recent keyModified changes",
+    "relevant": [
+      "src/db.c",
+      "src/debug.c",
+      "src/module.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3dc246cd537501f9c0b6e4446994e0365fd667bd"
+  },
+  {
+    "query": "Fix memory leak in ZDIFF algorithm 2 on early exit",
+    "relevant": [
+      "src/t_zset.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2ba0194fbe5820cab8602bfa633a7d27e97cabdd"
+  },
+  {
+    "query": "Fix heap-use-after-free in restoreCommand when module sets key metadata during notification",
+    "relevant": [
+      "src/cluster.c",
+      "src/notify.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40c140bf16ca88cc67e6262c813fde1d8ea8242f"
+  },
+  {
+    "query": "HSETNX notify after accessing KV",
+    "relevant": [
+      "src/t_hash.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "78e21daafe2f95b3c58be59e097aa5dc204b80d6"
+  },
+  {
+    "query": "Skip memory prefetch during loading to avoid crash in dictEmpty callback",
+    "relevant": [
+      "src/memory_prefetch.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1abd489d0716cbfd68fb1c39e0d1a0bba2dc6fc5"
+  },
+  {
+    "query": "Optimize rax insert and lookup for sequential key patterns",
+    "relevant": [
+      "src/rax.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "63d841c3ae8760668a33c41acd2255f61669fe85"
+  },
+  {
+    "query": "Refine error message for HSETEX command with PERSIST",
+    "relevant": [
+      "src/t_hash.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9accf8bd2459dc0e9eea77dafed0a94381d4f5c2"
+  },
+  {
+    "query": "Fix FIELDS argument validation in HSETEX/HGETEX",
+    "relevant": [
+      "src/t_hash.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1b615c774d8d1d0b0d17dc52e209de108507e65b"
+  },
+  {
+    "query": "Refactor asmTask: remove source_node, use clusterLookupNode",
+    "relevant": [
+      "src/cluster_asm.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8a6ae0e4dd82c42174cc5fafc416c08cb66f9206"
+  },
+  {
+    "query": "Fix ACL OOB for wrong-arity KEYNUM commands",
+    "relevant": [
+      "src/db.c",
+      "src/module.c",
+      "src/script_lua.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c4d74587b55383354f53a5c61bd313ccf7867f4b"
+  },
+  {
+    "query": "Fix divide-by-zero in redis-benchmark and redis-cli",
+    "relevant": [
+      "src/redis-benchmark.c",
+      "src/redis-cli.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4ecc07fcff744482fa9da0b5f2781fadc918565d"
+  },
+  {
+    "query": "Add RM_GetContextUser and RM_GetUserUserName module APIs",
+    "relevant": [
+      "src/module.c",
+      "src/redismodule.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "44157ee35e62f7670d67c84f8739af7d2f283045"
+  },
+  {
+    "query": "Use flush db if sflush all owned slots",
+    "relevant": [
+      "src/cluster.c",
+      "src/db.c",
+      "src/server.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "220a577d3c49f4a5105f2c0d0a471bdc725ef829"
+  },
+  {
+    "query": "Fix safety check in lpSafeToAdd size_t Addition Overflow Bypass",
+    "relevant": [
+      "src/listpack.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7e866b47e3c2bf3b4fdf95a26d3f3b66ba938b12"
+  },
+  {
+    "query": "Filter expired IDMP entries during RDB save and load",
+    "relevant": [
+      "src/rdb.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8b9fd4b7526e25b26998ae964440ff5837c4fc09"
+  },
+  {
+    "query": "Fix listpack memory leak in zipmap-to-hash conversion on error path",
+    "relevant": [
+      "src/rdb.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4f0d3118e14e6714dcb58830df625859fc2d06b3"
+  },
+  {
+    "query": "Fix rss_extra_bytes type from size_t to ssize_t in redisMemOverhead",
+    "relevant": [
+      "src/server.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a441d3db445c11b4f3dc5f4623ee31ffb8e46fdc"
+  },
+  {
+    "query": "Fix IDMP cron expiration not working after RDB load",
+    "relevant": [
+      "src/rdb.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ee376cdc3cbf93428ee05829074fd83f33800f50"
+  },
+  {
+    "query": "No checksum performed on diskless replication",
+    "relevant": [
+      "src/rdb.c",
+      "src/replication.c",
+      "src/server.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "708bfd5de530f0a09eb105cbd8fa19d97c3a8753"
+  },
+  {
+    "query": "Optimize BITOP operations with AVX512",
+    "relevant": [
+      "src/bitops.c",
+      "src/config.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3f588a31afe8cb0547c5fbaf433f507ba5e05226"
+  },
+  {
+    "query": "Fix X509 memory leak in connTLSGetPeerCert",
+    "relevant": [
+      "src/tls.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "753c9f616f71493ac9fbeb1531a77bba493d0b12"
+  },
+  {
+    "query": "XADD, update keyModified and dirty counter when increasing iids_duplicates",
+    "relevant": [
+      "src/t_stream.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "20f163eb3dcc1311cfe6c0dda5a3beef08ab1a5d"
+  },
+  {
+    "query": "Fix potential sds buffer leak in RM_SaveDataTypeToString",
+    "relevant": [
+      "src/module.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fe16003e667407973296ae11b039baa2f9d088c2"
+  },
+  {
+    "query": "Fix setModuleEnumConfig to pass unprefixed name to callbacks",
+    "relevant": [
+      "src/module.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8a65b65d63cbf73d0d0713ba34467190f7198f7f"
+  },
+  {
+    "query": "Don't use reply copy avoidance for module to prevent potential UAF",
+    "relevant": [
+      "src/module.c",
+      "src/networking.c",
+      "src/server.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3de7fa257f094ce0e61fc3e339f5b734662660c9"
+  },
+  {
+    "query": "Fix memory leak in trackingRememberKeys for PUBSUB commands",
+    "relevant": [
+      "src/tracking.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "50f1469961c203f7280487eda28765e926f4f025"
+  }
+]

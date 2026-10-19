@@ -1,0 +1,364 @@
+[
+  {
+    "query": "run leaking BATS_ERROR_STATUS and BATS_DEBUG_STACK_TRACE_VALID",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f941879635a4493098e3d058b60240e21650470f"
+  },
+  {
+    "query": "simplify run errexit handling",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "038761356e6adf70bb230eced8076f82a35d29a2"
+  },
+  {
+    "query": "kill process under run as well",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "64064e510ebbb24c4623f5e0e79152ee8b3d9ef1"
+  },
+  {
+    "query": "bats_test_function requires --tags to be sorted",
+    "relevant": [
+      "lib/bats-core/common.bash",
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3e20628f0d7484e922a4185e8d02caa10497f820"
+  },
+  {
+    "query": "Unset sterr in run",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bd1f22d798d43d5e1b65db4f3765595e8985f188"
+  },
+  {
+    "query": "Remove mentions to find_library_load_path in docstrings",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "cda5d117fee3385c7f255141445948f9b07fe43d"
+  },
+  {
+    "query": "Fix shellcheck and unset variables",
+    "relevant": [
+      "lib/bats-core/test_functions.bash",
+      "lib/bats-core/tracing.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4acdbe306f5cd90096609810a5f97f9fed40169d"
+  },
+  {
+    "query": "* Fixing index used. Adding comment",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5752471b2639774ffeb7dae298302b55ded66e43"
+  },
+  {
+    "query": "* Adding comment about pipe_count",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2547ad43dac54f98849f5a74f64c3da120c1c01f"
+  },
+  {
+    "query": "* Chaning `pipestatus_position` to be defaulted to empty string rather than negative value",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bf69a20c89955b5abe4ae054d61176ec15c97504"
+  },
+  {
+    "query": "* Fixing OSX non-compatibility with negative indexing",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c15e4af1026bebf60c17a789d717ce977abd69c1"
+  },
+  {
+    "query": "* Making shellcheck happy",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f9e264094ac6ec99e58eba56460265a993c00393"
+  },
+  {
+    "query": "* Removing previous impls. * Cleaning up / consolidating / simplifying bats_pipe function",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a39a1ac526b448b0e2b826dd54358f53af908608"
+  },
+  {
+    "query": "* Adding escape logic to fix parameters with spaces (and other potential issues)",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a5e5582e1b94ced9fd7ccebeed26b4402036e9c4"
+  },
+  {
+    "query": "First pass impl with eval",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d5e6fce4e2804544ebe761449c4231b604146ac5"
+  },
+  {
+    "query": "* Taking out the \"!\" check. Shouldn't have been there in the first place (maybe copied from `run`)",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a93bf2801aba8d9718317566ddd6a3a8725d50d3"
+  },
+  {
+    "query": "Changing logic from adding a flag to `run`, into a wholly separate command, `bats_pipe`",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "59687ad4ea9cab78f84ef0922928b4048128d6db"
+  },
+  {
+    "query": "Adding `--output-processor` flag to `run` helper. Allows for easily processing output from the command being run, and properly propagate status",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "afa0ff7a540cb8499d00ec7f3c9fcf4ef858a458"
+  },
+  {
+    "query": "Fix \"date: no such file or directory\" errors",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bde29b8028cd22bb76edc4c9cdb1b3fe7f2f496d"
+  },
+  {
+    "query": "Fix overriding date breaks timing",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9c2ce9bb7179399b9e91db3908cdfc378977ca8e"
+  },
+  {
+    "query": "don't change the value of i",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "502dc47dd063c1877e921d67b8621f61adffb3f1"
+  },
+  {
+    "query": "Fix extra empty line with run --keep-empty-lines (fixes )",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6648e2143bffb9334ddde95aad92d962bc0d4848"
+  },
+  {
+    "query": "Avoid unset variable error on bash 3",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8cc82e4bbb11e1b153842d5f59b85789aec139ae"
+  },
+  {
+    "query": "Fix (--tags in BATS_TEST_NAMES)",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2604b0b8dcceeda6b9bfa0f18effac6e92867d2e"
+  },
+  {
+    "query": "Don't use int comparison for strings",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "188bad619abcb33408a33f5d31b653acd5f2bef3"
+  },
+  {
+    "query": "skip failed in setup_file",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f503b5a35eceb313392857ad3e897a6e02622c62"
+  },
+  {
+    "query": "Print output/stderr on exit code errors",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "06db6a833f075c2642fab53215b32664b7fa0e5e"
+  },
+  {
+    "query": "Work around missing realpath in MacOS",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "58ed18d9889304d55e3a35eb874c6edef85231d8"
+  },
+  {
+    "query": "Show file path URI in tracing messages",
+    "relevant": [
+      "lib/bats-core/tracing.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "989cb5ba3d9df4e2ef518a6c6867cf9e1a50504e"
+  },
+  {
+    "query": "Fix kernel debug messages (fixes )",
+    "relevant": [
+      "lib/bats-core/tracing.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7feaa5fdea41d75ef6eb81f529743ce1aa8fb445"
+  },
+  {
+    "query": "Fix unbound variable error",
+    "relevant": [
+      "lib/bats-core/warnings.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "430c1df38fb123b7e70d81a4e816fcc170482830"
+  },
+  {
+    "query": "Improve error message of BW03",
+    "relevant": [
+      "lib/bats-core/warnings.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2abb17f7d9a91a5f4770fb613e2c3175da32a27d"
+  },
+  {
+    "query": "Fix missing setup_suite error output",
+    "relevant": [
+      "lib/bats-core/tracing.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e67bbb07dea6447696bc23d9fa683826ea856235"
+  },
+  {
+    "query": "Remove unused IFS preservation",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9a981a9c28c234fb80c85a3ca267ea9fe5a30319"
+  },
+  {
+    "query": "Preserve the original IFS by `run`",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d62e928f514a32606b96aae81bd2a0c0cf60d3a2"
+  },
+  {
+    "query": "Fix `run` with sepcial IFS",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c8b5bbade301cecb9e8039615a4125269ec24891"
+  },
+  {
+    "query": "Remove leftover debug output",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9e3a1e97d55af8e3ce7046daf76074d242fce489"
+  },
+  {
+    "query": "Fix unbound variable errors with setup_suite",
+    "relevant": [
+      "lib/bats-core/tracing.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "3fc3689a9b18bcaac705b8348deffb10b40eb8ae"
+  },
+  {
+    "query": "Fix undefined variable access",
+    "relevant": [
+      "lib/bats-core/test_functions.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "efea717d330b9870a40082deb063a94c54d2b7d9"
+  },
+  {
+    "query": "Deal with empty arrays on Bash 3",
+    "relevant": [
+      "lib/bats-core/common.bash"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0f26bb1e69ff4b5ecd192badd8d4060a059d768c"
+  }
+]

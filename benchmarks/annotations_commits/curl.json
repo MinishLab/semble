@@ -1,0 +1,373 @@
+[
+  {
+    "query": "vtls_scache: rename `CURLcode` variable to `result`",
+    "relevant": [
+      "lib/vtls/vtls_scache.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "021a87cf81638af5317e142610ea0dd9f9fb4890"
+  },
+  {
+    "query": "clear credentials better on redirect",
+    "relevant": [
+      "lib/http.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b4024bf808bd558026fdc6096e8457f199ace306"
+  },
+  {
+    "query": "adjust/add casts to fix `-Wformat-signedness`",
+    "relevant": [
+      "lib/socks.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ce7174555dec4d077e9e905a47bffcd703175553"
+  },
+  {
+    "query": "libssh2: allocate libssh2-friendly memory in kbd_callback",
+    "relevant": [
+      "lib/vssh/libssh2.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7e450cb80a476b5f96e9c9da67e21ffebcc4b375"
+  },
+  {
+    "query": "clear the old autoreferer",
+    "relevant": [
+      "lib/setopt.c",
+      "lib/transfer.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "fa057ea3dedb04f93672ec95ee964f1f02ec0ecf"
+  },
+  {
+    "query": "make parse_file return zero data on error",
+    "relevant": [
+      "lib/urlapi.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "c60d90cd65391f862b094c4720496b285201dd7f"
+  },
+  {
+    "query": "use dns filter for resolving",
+    "relevant": [
+      "lib/cf-dns.c",
+      "lib/cf-dns.h",
+      "lib/socks.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "bcd94e275076680bcad673478950ab19a7b2c9ee"
+  },
+  {
+    "query": "stop extracting hostname from file:// URLs on Windows",
+    "relevant": [
+      "lib/urlapi-int.h",
+      "lib/urlapi.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "9ceb3ff46a90c3badc2d81be81275c3fcef4c00a"
+  },
+  {
+    "query": "use header_has_value instead of duplicate code",
+    "relevant": [
+      "lib/http.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "def4d8986ee66d87db4d17a8a4c6fbaa4ddfc1df"
+  },
+  {
+    "query": "resolve user supplied ip addresses",
+    "relevant": [
+      "lib/cf-dns.c",
+      "lib/cf-ip-happy.c",
+      "lib/hostip.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "40d57c9f588c42ed3f75fe0ba9b12aa18170a404"
+  },
+  {
+    "query": "increase renegotiation timeout to 60 seconds",
+    "relevant": [
+      "lib/vtls/schannel.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "70bb0db76720c152f6a55bbe12cf162b55cb105b"
+  },
+  {
+    "query": "fix auth_used and auth_avail",
+    "relevant": [
+      "lib/http.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "afdd8f1290b418896db75e01df4cb60712a892c8"
+  },
+  {
+    "query": "handle EOF during initial handshake",
+    "relevant": [
+      "lib/vtls/rustls.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "ce05754c7c3062257999d2d7e9330dd8a792e2f3"
+  },
+  {
+    "query": "fix variable name in fallback code",
+    "relevant": [
+      "lib/vquic/vquic.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6e40c3ed480a1208b43a9e2e97743d0442715c43"
+  },
+  {
+    "query": "on 303, switch to GET",
+    "relevant": [
+      "lib/http.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e5087ac9fc6c80fbb1708b750e8187c7c876f0a4"
+  },
+  {
+    "query": "vtls_scache: include cert_blob independently of verifypeer",
+    "relevant": [
+      "lib/vtls/vtls_scache.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "698eee1b95b05841e9986b85829c6be27df8b800"
+  },
+  {
+    "query": "bsearch the time zones",
+    "relevant": [
+      "lib/parsedate.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "283db12e05e870207b63bb1b096b1269477afee0"
+  },
+  {
+    "query": "fail for large files in `load_file `",
+    "relevant": [
+      "lib/vtls/gtls.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b2a767dbcef3d9442d51cc22ffb52804927e473f"
+  },
+  {
+    "query": "clang-tidy: avoid assigments in `if` expressions",
+    "relevant": [
+      "lib/vtls/gtls.c",
+      "lib/vtls/x509asn1.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "d3dc5dbc87f3047ecac73aa0e7fb190cee59eb86"
+  },
+  {
+    "query": "cf-ip-happy: limit concurrent attempts",
+    "relevant": [
+      "lib/cf-ip-happy.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "db9b6fa82e9062d5c1e1bfb9e9faf898075fbb99"
+  },
+  {
+    "query": "split myssh_statemach_act into sub functions and rename",
+    "relevant": [
+      "lib/vssh/libssh.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b168fc79ff20807e592678bfc85272c1e1edd278"
+  },
+  {
+    "query": "libssh2: split ssh_statemachine into more sub functions",
+    "relevant": [
+      "lib/vssh/libssh2.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "a20989b82c5c6ac98997734726aed891f806fd45"
+  },
+  {
+    "query": "disable connection reuse for SMB(S)",
+    "relevant": [
+      "lib/protocol.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "74a169575d6412dc0ff532acdf94de35a6c2a571"
+  },
+  {
+    "query": "replace `PRI*32` printf masks with C89 ones",
+    "relevant": [
+      "lib/cf-h2-proxy.c",
+      "lib/http2.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "f974a00abaaa7d30610c1951e012d3220e033c24"
+  },
+  {
+    "query": "fix Curl_pollset_poll return code mixup",
+    "relevant": [
+      "lib/cfilters.c",
+      "lib/select.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "4cb4f9d6024caff5ef3629f6fe3f6e54aa810f3a"
+  },
+  {
+    "query": "spacecheck.pl: fix to check 3+ newlines in all files",
+    "relevant": [
+      "lib/hostip.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7b96563a057ac5cf96cb2b3e9a0df9e1c84ac0cc"
+  },
+  {
+    "query": "curl_setup.h: drop stray/unused `USE_OPENSSL_QUIC` guard",
+    "relevant": [
+      "lib/curl_setup.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "5fdb35a3bc788699a9af03fdc01282261f672829"
+  },
+  {
+    "query": "do bitshifts after the type is checked to be valid",
+    "relevant": [
+      "lib/curl_share.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "7813d9a077b3e0723a9fb82676957e81f351368b"
+  },
+  {
+    "query": "fix `-Wsign-compare` in 32-bit builds by dropping a redundant check",
+    "relevant": [
+      "lib/vssh/libssh.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8968a68ebae70f5b61bb87194fd0975d3d0371f4"
+  },
+  {
+    "query": "fix CR detection if no LF is in the chunk",
+    "relevant": [
+      "lib/sendf.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "2e5d219205ebec64a66bfd29bba73dd5049c434f"
+  },
+  {
+    "query": "remove superfluous doh_req check",
+    "relevant": [
+      "lib/doh.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "741ee573757e77d489d5fe54a0617d7d907486c7"
+  },
+  {
+    "query": "set default upload flags to CURLULFLAG_SEEN",
+    "relevant": [
+      "lib/url.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "6d6d81e393b790fda5792cbd6aa9c7af82669226"
+  },
+  {
+    "query": "fix `-Wsign-compare` in 32-bit builds",
+    "relevant": [
+      "lib/vssh/libssh.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "8c8eeba5225599a1f5750ece1d15751a8bfce0bb"
+  },
+  {
+    "query": "fix locking for negative caching",
+    "relevant": [
+      "lib/dnscache.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "1bf663e32f054d40dbe5e30947f893735a230e47"
+  },
+  {
+    "query": "make the HSTS read callback handle name dupes",
+    "relevant": [
+      "lib/hsts.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "e65ba1bd349a7affb09275a442b6a0837df079d9"
+  },
+  {
+    "query": "improve connection reuse on negotiate",
+    "relevant": [
+      "lib/url.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "33e43985b8f3b9e66691d06e70be0395849856cd"
+  },
+  {
+    "query": "init req.no_body in DO so that it works for h2 push",
+    "relevant": [
+      "lib/url.c"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "b27e828b938777b75cf627093e1c9c9d4af2cbd2"
+  },
+  {
+    "query": "accept 10K entries in the list",
+    "relevant": [
+      "lib/hsts.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "93e80c75b419cc6ec5639404b11773ee58e63073"
+  },
+  {
+    "query": "cap the list at 1,000 entries",
+    "relevant": [
+      "lib/hsts.c",
+      "lib/hsts.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "03a792b186da7fdfbe4b85b022d7790091455bdc"
+  },
+  {
+    "query": "cap the list at 5,000 entries",
+    "relevant": [
+      "lib/altsvc.c",
+      "lib/altsvc.h"
+    ],
+    "secondary": [],
+    "category": "commit",
+    "commit": "0805ec043ecb4f2b43782ec06779a27fa8d06d4a"
+  }
+]
