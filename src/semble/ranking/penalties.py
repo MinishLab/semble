@@ -76,7 +76,7 @@ _REEXPORT_FILENAMES = frozenset({"__init__.py", "package-info.java"})
 _FILE_SATURATION_THRESHOLD = 1
 
 # Multiplicative penalty per extra chunk from the same file beyond the threshold.
-_FILE_SATURATION_DECAY = 0.5
+_FILE_SATURATION_DECAY = 0.25
 
 
 def rerank_topk(

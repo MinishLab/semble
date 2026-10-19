@@ -20,6 +20,15 @@ def test_rerank_topk() -> None:
     assert scores == sorted(scores, reverse=True)
 
 
+def test_rerank_topk_prefers_another_file_over_a_second_chunk() -> None:
+    """A strong second chunk from an already-listed file ranks below a weaker chunk from a new file."""
+    first = make_chunk("def parse(): ...", "src/parser.py")
+    second = make_chunk("def parse_all(): ...", "src/parser.py")
+    other = make_chunk("def load(): ...", "src/loader.py")
+    ranked = rerank_topk({first: 1.0, second: 0.9, other: 0.4}, top_k=3)
+    assert [chunk for chunk, _ in ranked] == [first, other, second]
+
+
 @pytest.mark.parametrize(
     "penalised_path",
     [
