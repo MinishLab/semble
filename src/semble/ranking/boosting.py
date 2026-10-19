@@ -78,7 +78,7 @@ _STEM_BOOST_MULTIPLIER = 1.0
 # Fraction of max_score added to each file's top chunk, scaled by its aggregate candidate score.
 _FILE_COHERENCE_BOOST_FRAC = 0.2
 
-_ALPHA_SYMBOL = 0.3  # lean BM25 for exact keyword matching
+_ALPHA_SYMBOL = 0.0  # BM25 only: exact identifier lookups gain nothing from the dense list
 _ALPHA_NL = 0.5  # balanced semantic + BM25
 
 # Common English stopwords excluded from file-stem matching for NL queries.

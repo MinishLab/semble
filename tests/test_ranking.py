@@ -42,7 +42,7 @@ def test_rerank_topk_demotes_penalised_paths(penalised_path: str) -> None:
     ("query", "alpha_in", "expected"),
     [
         ("MyService", 0.7, 0.7),  # explicit value returned as-is
-        ("MyService", None, 0.3),  # symbol query → _ALPHA_SYMBOL
+        ("MyService", None, 0.0),  # symbol query → _ALPHA_SYMBOL
         ("how does routing work", None, 0.5),  # NL query → _ALPHA_NL
     ],
 )
