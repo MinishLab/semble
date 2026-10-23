@@ -1,16 +1,18 @@
 import asyncio
 import hashlib
+import io
 import json
 import signal
 import sys
 import warnings
 from importlib.resources import files
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from semble.cli import _cli_main, _maybe_save_index, _run_clear, main
+from semble.cli import _cli_main, _maybe_save_index, _print_results, _run_clear, main
 from semble.types import ContentType, SearchResult
 from semble.version import __version__
 from tests.conftest import make_chunk
@@ -152,6 +154,32 @@ def test_main_dispatches_to_cli(
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         main()
     assert "query text" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("encoding", "expected"),
+    [
+        ("utf-8", '{"query": "Hi, Chào, 你好", "results": []}\n'),
+        ("utf-16", '{"query": "Hi, Chào, 你好", "results": []}\n'),
+        ("cp65001", '{"query": "Hi, Chào, 你好", "results": []}\n'),
+        ("cp1251", '{"query": "Hi, Ch\\u00e0o, \\u4f60\\u597d", "results": []}\n'),
+        (None, '{"query": "Hi, Ch\\u00e0o, \\u4f60\\u597d", "results": []}\n'),
+        ("", '{"query": "Hi, Ch\\u00e0o, \\u4f60\\u597d", "results": []}\n'),
+    ],
+)
+def test_print_results_json_respects_stdout_encoding(
+    encoding: str | None,
+    expected: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """JSON uses literal Unicode only when stdout declares a UTF encoding."""
+    with io.StringIO() as output, monkeypatch.context() as streams:
+        stdout = SimpleNamespace(write=output.write, flush=output.flush)
+        if encoding != "":
+            stdout.encoding = encoding
+        streams.setattr(sys, "stdout", stdout)
+        _print_results({"query": "Hi, Chào, 你好", "results": []}, "json")
+        assert output.getvalue() == expected
 
 
 @pytest.mark.parametrize(

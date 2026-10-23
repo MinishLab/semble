@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import codecs
 import io
 import json
 import logging
@@ -166,7 +167,10 @@ def _load_index(paths: list[str], content: list[ContentType]) -> tuple[SembleInd
 def _print_results(out: dict, output_format: str) -> None:
     """Print a format_results() payload as JSON or as human-readable text."""
     if output_format == "json":
-        print(json.dumps(out))
+        # Legacy encodings may reject or alter non-ASCII characters, so keep their JSON ASCII-only.
+        encoding = getattr(sys.stdout, "encoding", "") or ""
+        ensure_ascii = not encoding or not codecs.lookup(encoding).name.startswith("utf")
+        print(json.dumps(out, ensure_ascii=ensure_ascii))
     elif "error" in out:
         print(out["error"])
     else:
