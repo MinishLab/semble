@@ -488,11 +488,7 @@ For harnesses that support [Agent Skills](https://agentskills.io), you can insta
 | Agent | Destination |
 |---|---|
 | Claude Code | `~/.claude/skills/semble/SKILL.md` |
-| Cursor | `~/.cursor/skills/semble/SKILL.md` |
-| Gemini CLI | `~/.gemini/skills/semble/SKILL.md` |
-| OpenCode | `~/.config/opencode/skills/semble/SKILL.md` |
-| GitHub Copilot | `~/.copilot/skills/semble/SKILL.md` |
-| Codex | `~/.agents/skills/semble/SKILL.md` |
-| Pi | `~/.pi/agent/skills/semble/SKILL.md` |
 | Qwen Code | `~/.qwen/skills/semble/SKILL.md` |
-| Kilo Code | `~/.kilo/skills/semble/SKILL.md` |
+| Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode, Pi, Kilo Code | `~/.agents/skills/semble/SKILL.md` |
+
+`~/.agents/skills` is shared between agents, so uninstalling the skill for one of them removes it for all of them.
