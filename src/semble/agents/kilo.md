@@ -5,6 +5,8 @@ mode: subagent
 permission:
   bash: allow
   read: allow
+  glob: deny
+  grep: deny
 ---
 
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
