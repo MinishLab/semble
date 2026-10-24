@@ -47,7 +47,7 @@ semble install
 - **MCP server**: lets the agent call Semble directly as a tool.
 - **Instructions**: adds CLI usage guidance to AGENTS.md / CLAUDE.md.
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent.
-- **Skill**: installs a `semble` skill plus a one-line pointer to it in AGENTS.md / CLAUDE.md, instead of the full instructions. Off by default.
+- **Skill**: installs a `semble` skill plus a one-line pointer to it in AGENTS.md / CLAUDE.md, instead of the full instructions.
 
 To undo the setup, run `semble uninstall`.
 
