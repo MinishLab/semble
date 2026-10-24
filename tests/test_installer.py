@@ -14,6 +14,7 @@ from semble.installer.agents import (
     SEMBLE_END,
     SEMBLE_PIN,
     SEMBLE_START,
+    SKILL,
     IntegrationType,
     _vscode_mcp_path,
     _xdg_jsonc_path,
@@ -35,6 +36,7 @@ from semble.installer.installer import (
     _INTEGRATIONS,
     _apply_instructions,
     _apply_mcp,
+    _apply_skill,
     _apply_subagent,
     _checkbox,
     _print_plan,
@@ -57,6 +59,7 @@ def claude_agent(tmp_path):
         mcp=replace(a.mcp, path=tmp_path / ".claude.json"),
         instructions_path=tmp_path / ".claude" / "CLAUDE.md",
         subagent_path=tmp_path / ".claude" / "agents" / "semble-search.md",
+        skill_path=tmp_path / ".claude" / "skills" / "semble" / "SKILL.md",
     )
 
 
@@ -68,6 +71,7 @@ def run_setup(monkeypatch, tmp_path, claude_agent):
         cursor,
         mcp=replace(cursor.mcp, path=tmp_path / "cursor.json"),
         subagent_path=tmp_path / "cursor_subagent.md",
+        skill_path=tmp_path / "cursor_skill" / "SKILL.md",
     )
     monkeypatch.setattr("semble.installer.installer.AGENTS", [claude_agent, cursor])
     monkeypatch.setattr("semble.installer.installer._checkbox", lambda _p, items: [v for _, v, _ in items])
@@ -396,6 +400,21 @@ def test_apply_subagent(tmp_path):
     assert _apply_subagent(agent, "uninstall").action == "not-found"
     assert _apply_subagent(replace(agent, subagent_path=None), "install") is None
     assert _apply_subagent(replace(agent, id="zzz"), "install").action == "error"
+
+
+def test_apply_skill(tmp_path):
+    """_apply_skill writes SKILL.md with the pinned instructions and removes its directory on uninstall."""
+    dest = tmp_path / "skills" / "semble" / "SKILL.md"
+    agent = replace(next(a for a in AGENTS if a.id == "claude"), skill_path=dest)
+
+    assert _apply_skill(agent, "install").action == "created"
+    assert dest.read_text() == SKILL
+    assert SKILL.startswith("---\nname: semble\n") and SEMBLE_PIN in SKILL and SEMBLE_START not in SKILL
+    assert _apply_skill(agent, "install").action == "unchanged"
+    assert _apply_skill(agent, "uninstall").action == "removed"
+    assert not dest.parent.exists()
+    assert _apply_skill(agent, "uninstall").action == "not-found"
+    assert _apply_skill(replace(agent, skill_path=None), "install") is None
 
 
 @pytest.mark.parametrize("agent", [a for a in AGENTS if a.subagent_path is not None], ids=lambda a: a.id)

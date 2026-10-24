@@ -332,7 +332,7 @@ def _cli_main() -> None:
             nargs="+",
             choices=[*(t.value for t in IntegrationType), "all"],
             metavar="TYPE",
-            help="Integrations to include (mcp, instructions, subagent, or all). Default: all. Requires --agent.",
+            help="Integrations to include (mcp, instructions, subagent, skill, or all). Default: all. Requires --agent.",
         )
         p.add_argument(
             "-y",

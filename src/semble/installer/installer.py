@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from contextlib import suppress
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
@@ -12,6 +13,7 @@ from semble.installer.agents import (
     AGENTS,
     INSTRUCTIONS,
     SEMBLE_PIN,
+    SKILL,
     AgentTarget,
     IntegrationType,
     Mode,
@@ -41,7 +43,7 @@ _ACTION_DETAIL: dict[str, str] = {
 
 @dataclass(frozen=True)
 class _Integration:
-    """Descriptor for one installer integration (MCP server, instructions, sub-agent)."""
+    """Descriptor for one installer integration (MCP server, instructions, sub-agent, skill)."""
 
     id: IntegrationType
     label: str
@@ -83,11 +85,8 @@ def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     return WriteResult(path, action)
 
 
-def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
-    """Apply or remove the global sub-agent file for one agent."""
-    dest = agent.subagent_path
-    if dest is None:
-        return None
+def _sync_file(dest: Path, mode: Mode, render: Callable[[], str]) -> WriteResult:
+    """Write the rendered file to dest on install, or delete it on uninstall."""
     if mode == "uninstall":
         if not dest.exists():
             return WriteResult(dest, "not-found")
@@ -96,15 +95,39 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     existed = dest.exists()
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
-        src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
         # Bytes on both sides: no newline translation on Windows, and an undecodable file is just stale.
-        content = src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"').encode("utf-8")
+        content = render().encode("utf-8")
         if existed and dest.read_bytes() == content:
             return WriteResult(dest, "unchanged")
         dest.write_bytes(content)
     except Exception:
         return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")
+
+
+def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the global sub-agent file for one agent."""
+    dest = agent.subagent_path
+    if dest is None:
+        return None
+
+    def render() -> str:
+        src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
+        return src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
+
+    return _sync_file(dest, mode, render)
+
+
+def _apply_skill(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the global semble skill for one agent."""
+    dest = agent.skill_path
+    if dest is None:
+        return None
+    result = _sync_file(dest, mode, lambda: SKILL)
+    if result.action == "removed":
+        with suppress(OSError):  # leave the skill directory if anything else is in it
+            dest.parent.rmdir()
+    return result
 
 
 _INTEGRATIONS: list[_Integration] = [
@@ -128,6 +151,13 @@ _INTEGRATIONS: list[_Integration] = [
         "installs a dedicated semble-search sub-agent",
         _apply_subagent,
         lambda a: a.subagent_path,
+    ),
+    _Integration(
+        IntegrationType.SKILL,
+        "Skill",
+        "installs a semble skill the agent loads on demand",
+        _apply_skill,
+        lambda a: a.skill_path,
     ),
 ]
 
@@ -225,7 +255,10 @@ def run(
         ) or _exit("Nothing selected. Exiting.")
 
         max_label = max(len(i.label) for i in _INTEGRATIONS)
-        integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
+        # The skill overlaps with the instructions block, so it is opt-in.
+        integ_items = [
+            (f"{i.label:<{max_label}}  —  {i.desc}", i, i.id != IntegrationType.SKILL) for i in _INTEGRATIONS
+        ]
         chosen_integrations = _checkbox(
             f"Select integrations to {'enable' if install else 'remove'}:", integ_items
         ) or _exit("Nothing selected. Exiting.")
