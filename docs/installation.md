@@ -35,7 +35,7 @@ semble install --agent claude pi --type mcp subagent --yes
 ```
 
 - `--agent` — one or more agent ids (see the list above; use the lowercase form, e.g. `claude`, `codex`, `pi`).
-- `--type` — one or more of `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all). Requires `--agent`.
+- `--type` — one or more of `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all but `skill`). Requires `--agent`.
 - `-y`/`--yes` — skip the confirmation prompt. Requires `--agent` for a fully non-interactive run.
 
 `semble uninstall` accepts the same flags.

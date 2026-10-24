@@ -72,7 +72,7 @@ For sandboxed or scripted environments, skip the prompts with `--agent` and, opt
 semble install --agent claude --type mcp subagent --yes
 ```
 
-`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all); `--yes` skips the confirmation prompt (requires `--agent` for a fully non-interactive run).
+`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all but `skill`); `--yes` skips the confirmation prompt (requires `--agent` for a fully non-interactive run).
 
 </details>
 

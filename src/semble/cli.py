@@ -332,7 +332,7 @@ def _cli_main() -> None:
             nargs="+",
             choices=[*(t.value for t in IntegrationType), "all"],
             metavar="TYPE",
-            help="Integrations to include (mcp, instructions, subagent, skill, or all). Default: all. Requires --agent.",
+            help="Integrations to include (mcp, instructions, subagent, skill, or all). Default: all but skill. Requires --agent.",
         )
         p.add_argument(
             "-y",
@@ -351,7 +351,13 @@ def _cli_main() -> None:
 
         from semble.installer import run
 
-        integration_ids = None if not args.type or "all" in args.type else [IntegrationType(t) for t in args.type]
+        integration_ids = (
+            None
+            if not args.type
+            else list(IntegrationType)
+            if "all" in args.type
+            else [IntegrationType(t) for t in args.type]
+        )
         run(args.command, agent_ids=args.agent, integration_ids=integration_ids, yes=args.yes)
     elif args.command == "clear":
         _run_clear(args.type)

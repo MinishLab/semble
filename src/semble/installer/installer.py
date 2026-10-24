@@ -50,6 +50,7 @@ class _Integration:
     desc: str
     apply: Callable[[AgentTarget, Mode], WriteResult | None]
     plan_path: Callable[[AgentTarget], Path | None]
+    default: bool = True  # selected when the user doesn't choose integrations
 
 
 def merge_mcp(agent: AgentTarget) -> WriteResult:
@@ -158,6 +159,7 @@ _INTEGRATIONS: list[_Integration] = [
         "installs a semble skill the agent loads on demand",
         _apply_skill,
         lambda a: a.skill_path,
+        default=False,  # overlaps with the instructions block
     ),
 ]
 
@@ -233,7 +235,7 @@ def run(
     """Install or uninstall semble across coding agents.
 
     Prompts interactively unless `agent_ids` is given, in which case it runs unattended
-    against those agents (and `integration_ids`, or all integrations if omitted).
+    against those agents (and `integration_ids`, or the default integrations if omitted).
     """
     install = mode == "install"
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
@@ -243,7 +245,7 @@ def run(
         chosen_integrations = (
             [i for i in _INTEGRATIONS if i.id in integration_ids]
             if integration_ids is not None
-            else list(_INTEGRATIONS)
+            else [i for i in _INTEGRATIONS if i.default]
         ) or _exit("No matching integrations. Exiting.", code=1)
     else:
         agent_items = [
@@ -255,10 +257,7 @@ def run(
         ) or _exit("Nothing selected. Exiting.")
 
         max_label = max(len(i.label) for i in _INTEGRATIONS)
-        # The skill overlaps with the instructions block, so it is opt-in.
-        integ_items = [
-            (f"{i.label:<{max_label}}  —  {i.desc}", i, i.id != IntegrationType.SKILL) for i in _INTEGRATIONS
-        ]
+        integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, i.default) for i in _INTEGRATIONS]
         chosen_integrations = _checkbox(
             f"Select integrations to {'enable' if install else 'remove'}:", integ_items
         ) or _exit("Nothing selected. Exiting.")

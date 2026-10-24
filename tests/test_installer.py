@@ -681,6 +681,10 @@ def test_cli_unattended_flags(monkeypatch, command):
     assert calls == [(command, {"agent_ids": ["pi"], "integration_ids": [IntegrationType.SUBAGENT], "yes": True})]
     assert isinstance(calls[0][1]["integration_ids"][0], IntegrationType)
 
+    monkeypatch.setattr(sys, "argv", ["semble", command, "--agent", "pi", "--type", "all"])
+    cli.main()
+    assert calls[-1][1]["integration_ids"] == list(IntegrationType)
+
 
 def test_cli_type_without_agent_errors(monkeypatch, capsys):
     """--type without --agent is rejected with a usage error."""
@@ -692,8 +696,8 @@ def test_cli_type_without_agent_errors(monkeypatch, capsys):
     assert "--type requires --agent" in capsys.readouterr().err
 
 
-def test_run_unattended_skips_prompts(run_setup, monkeypatch):
-    """run() with agent_ids skips both checkboxes and the confirmation prompt."""
+def test_run_unattended_skips_prompts(run_setup, monkeypatch, claude_agent):
+    """run() with agent_ids skips the prompts and installs only the default integrations."""
     from semble.installer import run
 
     def _boom(*_: object, **__: object) -> None:
@@ -702,6 +706,8 @@ def test_run_unattended_skips_prompts(run_setup, monkeypatch):
     monkeypatch.setattr("semble.installer.installer._checkbox", _boom)
     monkeypatch.setattr("semble.installer.installer.questionary.confirm", _boom)
     run("install", agent_ids=["claude"], yes=True)
+    assert claude_agent.instructions_path.exists()
+    assert not claude_agent.skill_path.exists()
 
 
 @pytest.mark.parametrize(
