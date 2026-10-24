@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from contextlib import suppress
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
@@ -12,6 +13,7 @@ from semble.installer.agents import (
     AGENTS,
     INSTRUCTIONS,
     SEMBLE_PIN,
+    SKILL_POINTER,
     AgentTarget,
     IntegrationType,
     Mode,
@@ -41,13 +43,14 @@ _ACTION_DETAIL: dict[str, str] = {
 
 @dataclass(frozen=True)
 class _Integration:
-    """Descriptor for one installer integration (MCP server, instructions, sub-agent)."""
+    """Descriptor for one installer integration (MCP server, instructions, sub-agent, skill)."""
 
     id: IntegrationType
     label: str
     desc: str
     apply: Callable[[AgentTarget, Mode], WriteResult | None]
     plan_path: Callable[[AgentTarget], Path | None]
+    default: bool = True  # selected when the user doesn't choose integrations
 
 
 def merge_mcp(agent: AgentTarget) -> WriteResult:
@@ -83,11 +86,8 @@ def _apply_instructions(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     return WriteResult(path, action)
 
 
-def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
-    """Apply or remove the global sub-agent file for one agent."""
-    dest = agent.subagent_path
-    if dest is None:
-        return None
+def _sync_file(dest: Path, mode: Mode, render: Callable[[], str]) -> WriteResult:
+    """Write the rendered file to dest on install, or delete it on uninstall."""
     if mode == "uninstall":
         if not dest.exists():
             return WriteResult(dest, "not-found")
@@ -96,15 +96,46 @@ def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     existed = dest.exists()
     dest.parent.mkdir(parents=True, exist_ok=True)
     try:
-        src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
         # Bytes on both sides: no newline translation on Windows, and an undecodable file is just stale.
-        content = src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"').encode("utf-8")
+        content = render().encode("utf-8")
         if existed and dest.read_bytes() == content:
             return WriteResult(dest, "unchanged")
         dest.write_bytes(content)
     except Exception:
         return WriteResult(dest, "error")
     return WriteResult(dest, "updated" if existed else "created")
+
+
+def _bundled(name: str) -> str:
+    """Read a bundled agent file, pinning its uvx fallback to the installed semble version."""
+    src = files("semble").joinpath(f"agents/{name}").read_text(encoding="utf-8")
+    return src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
+
+
+def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the global sub-agent file for one agent."""
+    dest = agent.subagent_path
+    if dest is None:
+        return None
+    return _sync_file(dest, mode, lambda: _bundled(f"{agent.id}{dest.suffix}"))
+
+
+def _apply_skill(agent: AgentTarget, mode: Mode) -> WriteResult | None:
+    """Apply or remove the global semble skill for one agent."""
+    dest = agent.skill_path
+    if dest is None:
+        return None
+    result = _sync_file(dest, mode, lambda: _bundled("skill.md"))
+    if result.action == "removed":
+        with suppress(OSError):  # leave the skill directory if anything else is in it
+            dest.parent.rmdir()
+    # Agents rarely load a skill unprompted, so point to it from the instructions file.
+    pointer = agent.instructions_path
+    if pointer is not None and mode == "install":
+        replace_or_append_marked(pointer, SKILL_POINTER)
+    elif pointer is not None and pointer.exists() and SKILL_POINTER in pointer.read_text(encoding="utf-8"):
+        remove_marked(pointer)  # leave a full instructions block alone
+    return result
 
 
 _INTEGRATIONS: list[_Integration] = [
@@ -114,6 +145,14 @@ _INTEGRATIONS: list[_Integration] = [
         "lets the agent call semble directly as a tool",
         _apply_mcp,
         lambda a: a.mcp.path if a.mcp else None,
+    ),
+    _Integration(
+        IntegrationType.SKILL,
+        "Skill",
+        "installs a semble skill, with a one-line pointer in AGENTS.md / CLAUDE.md",
+        _apply_skill,
+        lambda a: a.skill_path,
+        default=False,  # alternative to the instructions block; listed first so a chosen full block wins
     ),
     _Integration(
         IntegrationType.INSTRUCTIONS,
@@ -203,7 +242,7 @@ def run(
     """Install or uninstall semble across coding agents.
 
     Prompts interactively unless `agent_ids` is given, in which case it runs unattended
-    against those agents (and `integration_ids`, or all integrations if omitted).
+    against those agents (and `integration_ids`, or the default integrations if omitted).
     """
     install = mode == "install"
     print(f"\n  {_BOLD}{'Semble Installer' if install else 'Semble Uninstaller'}{_RESET}\n")
@@ -213,7 +252,7 @@ def run(
         chosen_integrations = (
             [i for i in _INTEGRATIONS if i.id in integration_ids]
             if integration_ids is not None
-            else list(_INTEGRATIONS)
+            else [i for i in _INTEGRATIONS if i.default]
         ) or _exit("No matching integrations. Exiting.", code=1)
     else:
         agent_items = [
@@ -225,7 +264,7 @@ def run(
         ) or _exit("Nothing selected. Exiting.")
 
         max_label = max(len(i.label) for i in _INTEGRATIONS)
-        integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, True) for i in _INTEGRATIONS]
+        integ_items = [(f"{i.label:<{max_label}}  —  {i.desc}", i, i.default) for i in _INTEGRATIONS]
         chosen_integrations = _checkbox(
             f"Select integrations to {'enable' if install else 'remove'}:", integ_items
         ) or _exit("Nothing selected. Exiting.")

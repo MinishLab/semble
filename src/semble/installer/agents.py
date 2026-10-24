@@ -38,6 +38,7 @@ class IntegrationType(str, Enum):
     MCP = "mcp"
     INSTRUCTIONS = "instructions"
     SUBAGENT = "subagent"
+    SKILL = "skill"
 
 
 SEMBLE_START = "<!-- SEMBLE_START -->"
@@ -125,6 +126,8 @@ The index is built on first run and cached automatically. If `semble` is not on 
 {SEMBLE_END}
 """
 
+SKILL_POINTER = f"{SEMBLE_START}\nUse the `semble` skill for code search instead of Grep or Glob.\n{SEMBLE_END}\n"
+
 
 @dataclass(frozen=True)
 class McpConfig:
@@ -155,6 +158,11 @@ class AgentTarget:
     mcp: McpConfig | None
     instructions_path: Path | None  # None = not supported for this agent
     subagent_path: Path | None = None  # global (user-level) sub-agent file; None = unsupported
+    skill_path: Path | None = None  # global (user-level) SKILL.md; None = unsupported
+
+
+# Cross-agent skills directory, read by Codex, Cursor, Gemini CLI, Copilot, OpenCode, Pi and Kilo.
+_SHARED_SKILL_PATH = _HOME / ".agents" / "skills" / "semble" / "SKILL.md"
 
 
 def _xdg_config_dir(app: str) -> Path:
@@ -191,6 +199,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".claude.json", "mcpServers", _STDIO_SERVER_CONFIG),
         instructions_path=_HOME / ".claude" / "CLAUDE.md",
         subagent_path=_HOME / ".claude" / "agents" / "semble-search.md",
+        skill_path=_HOME / ".claude" / "skills" / "semble" / "SKILL.md",
     ),
     AgentTarget(
         id="cursor",
@@ -200,6 +209,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".cursor" / "mcp.json", "mcpServers", _STDIO_SERVER_CONFIG),
         instructions_path=None,  # Cursor instructions are project-local .mdc files
         subagent_path=_HOME / ".cursor" / "agents" / "semble-search.md",
+        skill_path=_SHARED_SKILL_PATH,
     ),
     AgentTarget(
         id="gemini",
@@ -209,6 +219,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".gemini" / "settings.json", "mcpServers", _STDIO_SERVER_CONFIG),
         instructions_path=_HOME / ".gemini" / "GEMINI.md",
         subagent_path=_HOME / ".gemini" / "agents" / "semble-search.md",
+        skill_path=_SHARED_SKILL_PATH,
     ),
     AgentTarget(
         id="kiro",
@@ -227,6 +238,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_xdg_jsonc_path("opencode"), "mcp", _OPENCODE_SERVER_CONFIG),
         instructions_path=_xdg_config_dir("opencode") / "AGENTS.md",
         subagent_path=_xdg_config_dir("opencode") / "agents" / "semble-search.md",
+        skill_path=_SHARED_SKILL_PATH,
     ),
     AgentTarget(
         id="copilot",
@@ -236,6 +248,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".copilot" / "mcp-config.json", "mcpServers", _BARE_STDIO_SERVER_CONFIG),
         instructions_path=None,
         subagent_path=_HOME / ".copilot" / "agents" / "semble-search.agent.md",
+        skill_path=_SHARED_SKILL_PATH,
     ),
     AgentTarget(
         id="codex",
@@ -245,6 +258,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".codex" / "config.toml", "mcp_servers", _STDIO_SERVER_CONFIG, format="toml"),
         instructions_path=_HOME / ".codex" / "AGENTS.md",
         subagent_path=_HOME / ".codex" / "agents" / "semble-search.toml",
+        skill_path=_SHARED_SKILL_PATH,
     ),
     AgentTarget(
         id="zcode",
@@ -299,6 +313,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".pi" / "agent" / "mcp.json", "mcpServers", _BARE_STDIO_SERVER_CONFIG),
         instructions_path=None,
         subagent_path=_HOME / ".pi" / "agents" / "semble-search.md",
+        skill_path=_SHARED_SKILL_PATH,
     ),
     AgentTarget(
         id="commandcode",
@@ -335,6 +350,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_HOME / ".qwen" / "settings.json", "mcpServers", _STDIO_SERVER_CONFIG),
         instructions_path=_HOME / ".qwen" / "QWEN.md",
         subagent_path=_HOME / ".qwen" / "agents" / "semble-search.md",
+        skill_path=_HOME / ".qwen" / "skills" / "semble" / "SKILL.md",
     ),
     AgentTarget(
         id="cline",
@@ -356,6 +372,7 @@ AGENTS: list[AgentTarget] = [
         mcp=McpConfig(_xdg_jsonc_path("kilo"), "mcp", _OPENCODE_SERVER_CONFIG),
         instructions_path=_xdg_config_dir("kilo") / "AGENTS.md",
         subagent_path=_xdg_config_dir("kilo") / "agents" / "semble-search.md",
+        skill_path=_SHARED_SKILL_PATH,
     ),
 ]
 

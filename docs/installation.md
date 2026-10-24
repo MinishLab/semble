@@ -2,11 +2,12 @@
 
 ## Recommended: `semble install`
 
-The interactive installer detects your installed agents and configures any combination of three integrations globally:
+The interactive installer detects your installed agents and configures any combination of four integrations globally:
 
 - **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.
 - **[AGENTS.md](#instructions-agentsmd--claudemd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
 - **[Sub-agent](#sub-agent)**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
+- **[Skill](#skill)**: installs a `semble` skill plus a one-line pointer to it in AGENTS.md / CLAUDE.md, as an alternative to the full block. Off by default.
 
 Install the CLI with [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
 
@@ -34,7 +35,7 @@ semble install --agent claude pi --type mcp subagent --yes
 ```
 
 - `--agent` — one or more agent ids (see the list above; use the lowercase form, e.g. `claude`, `codex`, `pi`).
-- `--type` — one or more of `mcp`, `instructions`, `subagent`, or `all` (default: all). Requires `--agent`.
+- `--type` — one or more of `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all but `skill`). Requires `--agent`.
 - `-y`/`--yes` — skip the confirmation prompt. Requires `--agent` for a fully non-interactive run.
 
 `semble uninstall` accepts the same flags.
@@ -479,3 +480,21 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 | Grok Build | `grok.md` | `~/.grok/agents/semble-search.md` |
 | Qwen Code | `qwen.md` | `~/.qwen/agents/semble-search.md` |
 | Kilo Code | `kilo.md` | `~/.config/kilo/agents/semble-search.md` |
+
+### Skill
+
+For harnesses that support [Agent Skills](https://agentskills.io), you can install a `semble` skill instead of the AGENTS.md block. Copy [`src/semble/agents/skill.md`](../src/semble/agents/skill.md) to the destination below as `SKILL.md`:
+
+| Agent | Destination |
+|---|---|
+| Claude Code | `~/.claude/skills/semble/SKILL.md` |
+| Qwen Code | `~/.qwen/skills/semble/SKILL.md` |
+| Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode, Pi, Kilo Code | `~/.agents/skills/semble/SKILL.md` |
+
+`~/.agents/skills` is shared between agents, so uninstalling the skill for one of them removes it for all of them.
+
+Agents rarely load a skill on their own, so also add this line to your AGENTS.md / CLAUDE.md (`semble install` does this for you):
+
+```markdown
+Use the `semble` skill for code search instead of Grep or Glob.
+```

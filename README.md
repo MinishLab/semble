@@ -47,6 +47,7 @@ semble install
 - **MCP server**: lets the agent call Semble directly as a tool.
 - **Instructions**: adds CLI usage guidance to AGENTS.md / CLAUDE.md.
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent.
+- **Skill**: installs a `semble` skill plus a one-line pointer to it in AGENTS.md / CLAUDE.md, instead of the full instructions.
 
 To undo the setup, run `semble uninstall`.
 
@@ -71,7 +72,7 @@ For sandboxed or scripted environments, skip the prompts with `--agent` and, opt
 semble install --agent claude --type mcp subagent --yes
 ```
 
-`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, or `all` (default: all); `--yes` skips the confirmation prompt (requires `--agent` for a fully non-interactive run).
+`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all but `skill`); `--yes` skips the confirmation prompt (requires `--agent` for a fully non-interactive run).
 
 </details>
 
