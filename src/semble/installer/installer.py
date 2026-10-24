@@ -13,7 +13,7 @@ from semble.installer.agents import (
     AGENTS,
     INSTRUCTIONS,
     SEMBLE_PIN,
-    SKILL,
+    SKILL_POINTER,
     AgentTarget,
     IntegrationType,
     Mode,
@@ -106,17 +106,18 @@ def _sync_file(dest: Path, mode: Mode, render: Callable[[], str]) -> WriteResult
     return WriteResult(dest, "updated" if existed else "created")
 
 
+def _bundled(name: str) -> str:
+    """Read a bundled agent file, pinning its uvx fallback to the installed semble version."""
+    src = files("semble").joinpath(f"agents/{name}").read_text(encoding="utf-8")
+    return src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
+
+
 def _apply_subagent(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     """Apply or remove the global sub-agent file for one agent."""
     dest = agent.subagent_path
     if dest is None:
         return None
-
-    def render() -> str:
-        src = files("semble").joinpath(f"agents/{agent.id}{dest.suffix}").read_text(encoding="utf-8")
-        return src.replace('"semble[mcp]"', f'"{SEMBLE_PIN}"')
-
-    return _sync_file(dest, mode, render)
+    return _sync_file(dest, mode, lambda: _bundled(f"{agent.id}{dest.suffix}"))
 
 
 def _apply_skill(agent: AgentTarget, mode: Mode) -> WriteResult | None:
@@ -124,10 +125,16 @@ def _apply_skill(agent: AgentTarget, mode: Mode) -> WriteResult | None:
     dest = agent.skill_path
     if dest is None:
         return None
-    result = _sync_file(dest, mode, lambda: SKILL)
+    result = _sync_file(dest, mode, lambda: _bundled("skill.md"))
     if result.action == "removed":
         with suppress(OSError):  # leave the skill directory if anything else is in it
             dest.parent.rmdir()
+    # Agents rarely load a skill unprompted, so point to it from the instructions file.
+    pointer = agent.instructions_path
+    if pointer is not None and mode == "install":
+        replace_or_append_marked(pointer, SKILL_POINTER)
+    elif pointer is not None and pointer.exists() and SKILL_POINTER in pointer.read_text(encoding="utf-8"):
+        remove_marked(pointer)  # leave a full instructions block alone
     return result
 
 
@@ -138,6 +145,14 @@ _INTEGRATIONS: list[_Integration] = [
         "lets the agent call semble directly as a tool",
         _apply_mcp,
         lambda a: a.mcp.path if a.mcp else None,
+    ),
+    _Integration(
+        IntegrationType.SKILL,
+        "Skill",
+        "installs a semble skill, with a one-line pointer in AGENTS.md / CLAUDE.md",
+        _apply_skill,
+        lambda a: a.skill_path,
+        default=False,  # alternative to the instructions block; listed first so a chosen full block wins
     ),
     _Integration(
         IntegrationType.INSTRUCTIONS,
@@ -152,14 +167,6 @@ _INTEGRATIONS: list[_Integration] = [
         "installs a dedicated semble-search sub-agent",
         _apply_subagent,
         lambda a: a.subagent_path,
-    ),
-    _Integration(
-        IntegrationType.SKILL,
-        "Skill",
-        "installs a semble skill the agent loads on demand",
-        _apply_skill,
-        lambda a: a.skill_path,
-        default=False,  # overlaps with the instructions block
     ),
 ]
 

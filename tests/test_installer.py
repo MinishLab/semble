@@ -14,7 +14,7 @@ from semble.installer.agents import (
     SEMBLE_END,
     SEMBLE_PIN,
     SEMBLE_START,
-    SKILL,
+    SKILL_POINTER,
     IntegrationType,
     _vscode_mcp_path,
     _xdg_jsonc_path,
@@ -402,19 +402,31 @@ def test_apply_subagent(tmp_path):
     assert _apply_subagent(replace(agent, id="zzz"), "install").action == "error"
 
 
-def test_apply_skill(tmp_path):
-    """_apply_skill writes SKILL.md with the pinned instructions and removes its directory on uninstall."""
-    dest = tmp_path / "skills" / "semble" / "SKILL.md"
-    agent = replace(next(a for a in AGENTS if a.id == "claude"), skill_path=dest)
+def test_apply_skill(claude_agent):
+    """_apply_skill installs the pinned SKILL.md plus a pointer, and removes only its own pointer on uninstall."""
+    dest, md = claude_agent.skill_path, claude_agent.instructions_path
 
-    assert _apply_skill(agent, "install").action == "created"
-    assert dest.read_text() == SKILL
-    assert SKILL.startswith("---\nname: semble\n") and SEMBLE_PIN in SKILL and SEMBLE_START not in SKILL
-    assert _apply_skill(agent, "install").action == "unchanged"
-    assert _apply_skill(agent, "uninstall").action == "removed"
-    assert not dest.parent.exists()
-    assert _apply_skill(agent, "uninstall").action == "not-found"
-    assert _apply_skill(replace(agent, skill_path=None), "install") is None
+    assert _apply_skill(claude_agent, "install").action == "created"
+    text = dest.read_bytes().decode("utf-8")
+    assert text.startswith("---\nname: semble\n") and SEMBLE_PIN in text and '"semble[mcp]"' not in text
+    assert md.read_text(encoding="utf-8") == SKILL_POINTER
+    assert _apply_skill(claude_agent, "install").action == "unchanged"
+    assert _apply_skill(claude_agent, "uninstall").action == "removed"
+    assert not dest.parent.exists() and not md.exists()
+    assert _apply_skill(claude_agent, "uninstall").action == "not-found"
+    assert _apply_skill(replace(claude_agent, skill_path=None), "install") is None
+
+    _apply_instructions(claude_agent, "install")
+    _apply_skill(claude_agent, "uninstall")
+    assert md.read_text(encoding="utf-8") == INSTRUCTIONS
+
+
+def test_run_skill_and_instructions_keeps_full_block(run_setup, claude_agent):
+    """Choosing both skill and instructions leaves the full instructions block, not the pointer."""
+    both = [IntegrationType.INSTRUCTIONS, IntegrationType.SKILL]
+    run("install", agent_ids=["claude"], integration_ids=both, yes=True)
+    assert claude_agent.skill_path.exists()
+    assert claude_agent.instructions_path.read_text(encoding="utf-8") == INSTRUCTIONS
 
 
 @pytest.mark.parametrize("agent", [a for a in AGENTS if a.subagent_path is not None], ids=lambda a: a.id)

@@ -91,7 +91,8 @@ _ZED_SERVER_CONFIG: dict[str, object] = {  # Zed: command/args only, no "source"
     "args": ["--from", SEMBLE_PIN, "semble"],
 }
 
-_INSTRUCTIONS_BODY = f"""\
+INSTRUCTIONS = f"""\
+{SEMBLE_START}
 ## Semble Code Search
 
 A `semble` MCP server is available with two tools:
@@ -122,17 +123,10 @@ The index is built on first run and cached automatically. If `semble` is not on 
 4. Set the MCP search tool's `content` field to `docs`, `config`, or `all` when searching beyond code.
 5. Optionally use semble's `find_related` tool with `file_path`, `line`, and the same `content` selection to discover similar code elsewhere.
 6. Use Grep only when you need every occurrence of a literal string across the whole repo (e.g., all callers of a renamed function).
+{SEMBLE_END}
 """
 
-INSTRUCTIONS = f"{SEMBLE_START}\n{_INSTRUCTIONS_BODY}{SEMBLE_END}\n"
-
-SKILL = f"""\
----
-name: semble
-description: Search code with semble instead of Grep/Glob. Use for finding where something is implemented, locating code by intent or symbol name, searching docs or config, or finding code related to a known file and line.
----
-
-{_INSTRUCTIONS_BODY}"""
+SKILL_POINTER = f"{SEMBLE_START}\nUse the `semble` skill for code search instead of Grep or Glob.\n{SEMBLE_END}\n"
 
 
 @dataclass(frozen=True)

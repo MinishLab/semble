@@ -7,7 +7,7 @@ The interactive installer detects your installed agents and configures any combi
 - **[MCP server](#mcp-server)**: exposes Semble as a native tool your agent can call directly.
 - **[AGENTS.md](#instructions-agentsmd--claudemd)**: adds a Semble usage guide to the agent's config file (`CLAUDE.md`, `AGENTS.md`, etc.).
 - **[Sub-agent](#sub-agent)**: installs a dedicated `semble-search` sub-agent for harnesses that support it.
-- **[Skill](#skill)**: installs a `semble` skill that the agent loads on demand, as an alternative to the AGENTS.md block. Off by default.
+- **[Skill](#skill)**: installs a `semble` skill plus a one-line pointer to it in AGENTS.md / CLAUDE.md, as an alternative to the full block. Off by default.
 
 Install the CLI with [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
 
@@ -483,7 +483,7 @@ For harnesses that support sub-agents (Claude Code, Cursor, Gemini CLI, Kiro, Op
 
 ### Skill
 
-For harnesses that support [Agent Skills](https://agentskills.io), you can install a `semble` skill instead of the AGENTS.md block. The agent only loads it when a task calls for code search. It has the same content as the [AGENTS.md](#instructions-agentsmd--claudemd) block, with `name` and `description` frontmatter. Save it as `SKILL.md` in a `semble` directory:
+For harnesses that support [Agent Skills](https://agentskills.io), you can install a `semble` skill instead of the AGENTS.md block. Copy [`src/semble/agents/skill.md`](../src/semble/agents/skill.md) to the destination below as `SKILL.md`:
 
 | Agent | Destination |
 |---|---|
@@ -492,3 +492,9 @@ For harnesses that support [Agent Skills](https://agentskills.io), you can insta
 | Codex, Cursor, Gemini CLI, GitHub Copilot, OpenCode, Pi, Kilo Code | `~/.agents/skills/semble/SKILL.md` |
 
 `~/.agents/skills` is shared between agents, so uninstalling the skill for one of them removes it for all of them.
+
+Agents rarely load a skill on their own, so also add this line to your AGENTS.md / CLAUDE.md (`semble install` does this for you):
+
+```markdown
+Use the `semble` skill for code search instead of Grep or Glob.
+```
