@@ -4,7 +4,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from model2vec import StaticModel
@@ -435,6 +435,20 @@ async def test_serve_runs_stdio(
         await serve()
 
     mock_run.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_serve_runs_http_when_port_given() -> None:
+    """serve(port=...) serves streamable HTTP on that port instead of stdio."""
+    with (
+        patch("semble.mcp.load_model", return_value=(MagicMock(spec=StaticModel), "/fake/model")),
+        patch("mcp.server.mcpserver.MCPServer.run_streamable_http_async", new=AsyncMock()) as mock_http,
+        patch("mcp.server.mcpserver.MCPServer.run_stdio_async") as mock_stdio,
+    ):
+        await serve(port=9000)
+
+    mock_http.assert_awaited_once_with(port=9000)
+    mock_stdio.assert_not_called()
 
 
 @pytest.mark.anyio

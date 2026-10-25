@@ -408,6 +408,34 @@ claude mcp add semble -s user -- uvx --from "semble[mcp]" semble --content all
 
 Indexes stay in memory for the lifetime of the server. To free memory while idle, set `SEMBLE_MCP_IDLE_TIMEOUT` to a number of seconds; indexes unused for that long are dropped from memory and reloaded from the disk cache on the next search.
 
+#### Shared server (HTTP)
+
+By default each agent session starts its own semble process. To share one server (and one copy of the model and indexes) across sessions, start it yourself over HTTP:
+
+```bash
+uvx --from "semble[mcp]" semble --http --port 8000
+```
+
+It listens on `127.0.0.1` only. Then point your agents at `http://127.0.0.1:8000/mcp` instead of the `uvx` command:
+
+```bash
+# Claude Code
+claude mcp add --transport http semble -s user http://127.0.0.1:8000/mcp
+```
+
+```json
+// Cursor (~/.cursor/mcp.json)
+{ "mcpServers": { "semble": { "url": "http://127.0.0.1:8000/mcp" } } }
+```
+
+```toml
+# Codex (~/.codex/config.toml)
+[mcp_servers.semble]
+url = "http://127.0.0.1:8000/mcp"
+```
+
+Relative `repo` paths resolve against the directory the server was started in, so agents should pass absolute paths. `semble install` only sets up the stdio server.
+
 ### Instructions (AGENTS.md / CLAUDE.md)
 
 Add the snippet below to your `AGENTS.md` or `CLAUDE.md` so your agent knows when and how to call the semble CLI:

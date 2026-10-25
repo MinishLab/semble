@@ -17,12 +17,14 @@ from tests.conftest import make_chunk
 
 
 @pytest.mark.parametrize(
-    "argv",
+    ("argv", "port"),
     [
-        ["semble"],
+        (["semble"], None),
+        (["semble", "--http"], 8000),
+        (["semble", "--http", "--port", "9000"], 9000),
     ],
 )
-def test_mcp_main_serves_then_exits(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mcp_main_serves_then_exits(argv: list[str], port: int | None, monkeypatch: pytest.MonkeyPatch) -> None:
     """main() serves MCP, then hard-exits with 0 on stdin EOF or SIGTERM instead of joining worker threads."""
     monkeypatch.setattr(sys, "argv", argv)
     loop = asyncio.new_event_loop()
@@ -33,7 +35,7 @@ def test_mcp_main_serves_then_exits(argv: list[str], monkeypatch: pytest.MonkeyP
         patch("semble.cli.os._exit") as mock_exit,
     ):
         main()
-        mock_serve.assert_awaited_once()
+        assert mock_serve.await_args.kwargs["port"] == port
         mock_exit.assert_called_once_with(0)
         signum, handler = mock_signal.call_args.args
         assert signum == signal.SIGTERM

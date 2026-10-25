@@ -123,6 +123,12 @@ def _mcp_main() -> None:
         description="Instant local code search for agents.",
     )
     _add_content_args(parser)
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        help="Serve over streamable HTTP on localhost instead of stdio, so several agents can share one server.",
+    )
+    parser.add_argument("--port", type=int, default=8000, help="Port for --http (default: 8000).")
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
         print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
@@ -130,7 +136,7 @@ def _mcp_main() -> None:
     from semble.mcp import serve
 
     content = _resolve_content(args.content, args.include_text_files)
-    asyncio.new_event_loop().run_until_complete(serve(content))
+    asyncio.new_event_loop().run_until_complete(serve(content, port=args.port if args.http else None))
     # Skip asyncio.run's shutdown, which waits for threads still loading the model or building an index.
     os._exit(0)
 
