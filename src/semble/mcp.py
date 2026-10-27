@@ -175,8 +175,9 @@ def create_server(cache: _IndexCache, default_content: Sequence[ContentType] = (
 
 async def serve(
     content: Sequence[ContentType] = (ContentType.CODE,),
+    port: int | None = None,
 ) -> None:
-    """Start an MCP stdio server."""
+    """Start an MCP server over stdio, or over streamable HTTP on localhost if a port is given."""
     cache = _IndexCache()
 
     async def _load_and_prewarm() -> None:
@@ -193,7 +194,10 @@ async def serve(
     init_task = asyncio.create_task(_load_and_prewarm())
     server = create_server(cache, default_content=content)
     try:
-        await server.run_stdio_async()
+        if port is None:
+            await server.run_stdio_async()
+        else:
+            await server.run_streamable_http_async(port=port)
     finally:
         if not init_task.done():
             init_task.cancel()

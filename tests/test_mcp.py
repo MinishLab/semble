@@ -407,21 +407,23 @@ async def test_search_builds_exact_content_indexes(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    ("load_err", "stdio_yields"),
+    ("load_err", "stdio_yields", "port"),
     [
-        (None, True),
-        (RuntimeError("boom"), True),
-        (None, False),
+        (None, True, None),
+        (RuntimeError("boom"), True, None),
+        (None, False, None),
+        (None, True, 9000),
     ],
-    ids=["model_loads", "model_load_fails", "cancel_pending_init"],
+    ids=["model_loads", "model_load_fails", "cancel_pending_init", "http"],
 )
-async def test_serve_runs_stdio(
+async def test_serve_runs_transport(
     load_err: Exception | None,
     stdio_yields: bool,
+    port: int | None,
 ) -> None:
-    """serve() runs stdio and handles all background init outcomes without raising."""
+    """serve() runs stdio, or HTTP when given a port, and handles all background init outcomes without raising."""
 
-    async def fake_stdio() -> None:
+    async def fake_run(**_: Any) -> None:
         if stdio_yields:
             await asyncio.sleep(0.05)  # let the background init task run
 
@@ -430,11 +432,17 @@ async def test_serve_runs_stdio(
     )
     with (
         patch("semble.mcp.load_model", **load_kwargs),
-        patch("mcp.server.mcpserver.MCPServer.run_stdio_async", side_effect=fake_stdio) as mock_run,
+        patch("mcp.server.mcpserver.MCPServer.run_stdio_async", side_effect=fake_run) as mock_stdio,
+        patch("mcp.server.mcpserver.MCPServer.run_streamable_http_async", side_effect=fake_run) as mock_http,
     ):
-        await serve()
+        await serve(port=port)
 
-    mock_run.assert_called_once()
+    if port is None:
+        mock_stdio.assert_called_once()
+        mock_http.assert_not_called()
+    else:
+        mock_http.assert_called_once_with(port=port)
+        mock_stdio.assert_not_called()
 
 
 @pytest.mark.anyio
@@ -459,17 +467,18 @@ async def test_serve_opens_stdio_before_model_loads() -> None:
 
 @pytest.mark.anyio
 async def test_index_cache_awaits_model(tmp_path: Path) -> None:
-    """get() blocks until the model is installed, then proceeds."""
+    """get() blocks until the model is installed, then concurrent callers share one build."""
     cache = _IndexCache()  # no model yet
     fake_index = MagicMock()
-    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index):
-        get_task = asyncio.create_task(cache.get(str(tmp_path)))
+    with patch("semble.mcp.SembleIndex.from_path", return_value=fake_index) as from_path:
+        tasks = [asyncio.create_task(cache.get(str(tmp_path))) for _ in range(2)]
         await asyncio.sleep(0.01)
-        assert not get_task.done(), "get() must block until the model is installed"
+        assert not any(t.done() for t in tasks), "get() must block until the model is installed"
         cache._model_path = "/fake/model"
         cache._model_ready.set()
-        result = await asyncio.wait_for(get_task, timeout=1.0)
-    assert result is fake_index
+        results = await asyncio.wait_for(asyncio.gather(*tasks), timeout=1.0)
+    assert results == [fake_index, fake_index]
+    from_path.assert_called_once()
 
 
 @pytest.mark.anyio
