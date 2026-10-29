@@ -35,8 +35,9 @@ def _load_cached(model_path: str) -> StaticModel:
             return StaticModel.from_pretrained(model_path, force_download=True)
     except LocalEntryNotFoundError as e:
         raise RuntimeError(
-            f"Could not download model '{model_path}' from huggingface.co. This is a one-time download that is "
-            "cached afterwards. Check network access to huggingface.co, or set SEMBLE_MODEL_NAME to a local path."
+            f"Could not download model '{model_path}' from the Hugging Face Hub (huggingface.co). This is a "
+            "one-time download that is cached afterwards. Check your network access to the Hub, or set "
+            "SEMBLE_MODEL_NAME to a local path."
         ) from e
 
 
