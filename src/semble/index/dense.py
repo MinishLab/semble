@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
+from huggingface_hub.errors import LocalEntryNotFoundError
 from huggingface_hub.utils.tqdm import disable_progress_bars
 from model2vec import StaticModel
 from vicinity.backends.basic import CosineBasicBackend
@@ -28,9 +29,15 @@ def _load_cached(model_path: str) -> StaticModel:
     disable_progress_bars()
     logging.getLogger("huggingface_hub.utils._http").addFilter(_drop_unauthenticated_warning)
     try:
-        return StaticModel.from_pretrained(model_path, force_download=False)
-    except ValueError:
-        return StaticModel.from_pretrained(model_path, force_download=True)
+        try:
+            return StaticModel.from_pretrained(model_path, force_download=False)
+        except ValueError:
+            return StaticModel.from_pretrained(model_path, force_download=True)
+    except LocalEntryNotFoundError as e:
+        raise RuntimeError(
+            f"Could not download model '{model_path}' from huggingface.co. This is a one-time download that is "
+            "cached afterwards. Check network access to huggingface.co, or set SEMBLE_MODEL_NAME to a local path."
+        ) from e
 
 
 def load_model(model_path: str | None = None) -> tuple[StaticModel, str]:
