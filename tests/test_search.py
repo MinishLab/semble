@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, call, patch
 import numpy as np
 import numpy.typing as npt
 import pytest
+from huggingface_hub.errors import LocalEntryNotFoundError
 from model2vec import StaticModel
 from vicinity.backends.basic import BasicArgs
 
@@ -158,6 +159,13 @@ def test_load_model(model_path: str | None, expected_call_arg: str, incomplete_c
     if incomplete_cache:
         expected_calls.append(call(expected_call_arg, force_download=True))
     assert mock_fp.call_args_list == expected_calls
+
+
+def test_load_model_unreachable_hub_raises_helpful_error() -> None:
+    """An unreachable Hub surfaces the model name and host instead of a generic Hub error."""
+    with patch("semble.index.dense.StaticModel.from_pretrained", side_effect=LocalEntryNotFoundError("offline")):
+        with pytest.raises(RuntimeError, match="huggingface.co"):
+            load_model("offline/model")
 
 
 @pytest.mark.parametrize(
