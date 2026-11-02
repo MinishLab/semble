@@ -1,6 +1,6 @@
 ---
 name: semble
-description: Code search for the current repository. Use this before Grep, Glob or find whenever you need to locate code: where something is implemented, which file defines a function, class or symbol, how a feature works, or where docs and config live.
+description: Code search for the current repository. Use this before Grep, Glob or find whenever you need to locate code, such as where something is implemented, which file defines a function, class or symbol, how a feature works, or where docs and config live.
 ---
 
 Use `semble search` to find code by describing what it does or naming a symbol/identifier, instead of grep:
