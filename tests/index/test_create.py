@@ -126,6 +126,19 @@ def test_unreadable_file_is_skipped(mock_model: Any, tmp_path: Path) -> None:
     assert list(manifest) == ["a.py"]
 
 
+def test_chunks_in_process_when_pool_is_denied(
+    mock_model: Any, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Files are chunked in the main process when a sandbox denies creating the worker pool."""
+    monkeypatch.setattr(create, "_MIN_FILES_FOR_PROCESSES", 0)
+    monkeypatch.setenv("SEMBLE_INDEX_WORKERS", "2")
+    _write_files(tmp_path, {"a.py": "def a():\n    return 1\n"})
+
+    with patch.object(create, "ProcessPoolExecutor", side_effect=PermissionError(1, "Operation not permitted")):
+        _, _, _, manifest = create_index_from_path(tmp_path, mock_model, display_root=tmp_path)
+    assert list(manifest) == ["a.py"]
+
+
 def test_worker_exits_with_parent(monkeypatch: pytest.MonkeyPatch) -> None:
     """A chunking worker exits once its parent process is gone."""
     parent_end, worker_end = multiprocessing.Pipe()
