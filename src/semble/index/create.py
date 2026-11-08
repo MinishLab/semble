@@ -86,12 +86,16 @@ def _init_worker() -> None:
 def _chunk_files(files: list[tuple[Path, str]]) -> Generator[_ChunkedFile | None, None, None]:
     """Chunk files in order, in SEMBLE_INDEX_WORKERS worker processes when there are enough files."""
     workers = int(os.environ.get("SEMBLE_INDEX_WORKERS", 0))
-    if workers == 0 or len(files) < _MIN_FILES_FOR_PROCESSES:
+    executor = None
+    if workers > 0 and len(files) >= _MIN_FILES_FOR_PROCESSES:
+        # Sandboxes (e.g. macOS Seatbelt) can deny the semaphore checks the pool runs on creation.
+        with contextlib.suppress(OSError, NotImplementedError):
+            executor = ProcessPoolExecutor(
+                workers, mp_context=multiprocessing.get_context("spawn"), initializer=_init_worker
+            )
+    if executor is None:
         yield from itertools.starmap(_chunk_file, files)
     else:
-        executor = ProcessPoolExecutor(
-            workers, mp_context=multiprocessing.get_context("spawn"), initializer=_init_worker
-        )
         try:
             submitted = (executor.submit(_chunk_file, *file) for file in files)
             pending = deque(itertools.islice(submitted, _MAX_FILES_IN_FLIGHT))
