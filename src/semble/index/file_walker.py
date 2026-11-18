@@ -50,11 +50,27 @@ def _load_ignore_for_dir(directory: Path) -> GitIgnoreSpec | None:
     return None
 
 
+def _load_git_info_exclude(root: Path) -> GitIgnoreSpec | None:
+    """Load .git/info/exclude for a repo root, following a worktree's .git file to the common dir."""
+    git = root / ".git"
+    if git.is_file():
+        # Worktree: ".git" holds "gitdir: <path>"; info/exclude lives in the common dir.
+        git = root / git.read_text(encoding="utf-8", errors="ignore").strip().removeprefix("gitdir:").strip()
+        commondir = git / "commondir"
+        if commondir.is_file():
+            git = git / commondir.read_text(encoding="utf-8").strip()
+    exclude = git / "info" / "exclude"
+    if exclude.is_file():
+        return GitIgnoreSpec.from_lines(exclude.read_text(encoding="utf-8", errors="ignore").splitlines())
+    return None
+
+
 def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | None = None) -> Iterator[Path]:
     """Yield files under root matching extensions, skipping ignored paths.
 
     Directories matching DEFAULT_IGNORED_DIRS plus any names in ignore are always
-    skipped. If the root contains a .gitignore, its patterns are also honoured.
+    skipped. If the root contains a .gitignore, its patterns are also honoured, as are
+    the root repository's .git/info/exclude patterns.
 
     :param root: Root directory to walk.
     :param extensions: List of file extensions to match.
@@ -65,8 +81,11 @@ def walk_files(root: Path, extensions: Sequence[str], ignore: Sequence[str] | No
     extensions_set = frozenset(extensions)
     dir_patterns = list(sorted(_DEFAULT_IGNORED_DIRS)) + list(ignore or [])
     base_spec = GitIgnoreSpec.from_lines(dir_patterns, backend="simple")
-    s = IgnoreSpec(base=root, spec=base_spec)
-    yield from _walk(root, [s], extensions_set)
+    specs = [IgnoreSpec(base=root, spec=base_spec)]
+    exclude_spec = _load_git_info_exclude(root)
+    if exclude_spec is not None:
+        specs.append(IgnoreSpec(base=root, spec=exclude_spec))
+    yield from _walk(root, specs, extensions_set)
 
 
 def _is_ignored(path: Path, is_dir: bool, specs: list[IgnoreSpec]) -> tuple[bool, bool]:
