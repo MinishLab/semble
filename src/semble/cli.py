@@ -3,9 +3,12 @@ import asyncio
 import io
 import json
 import logging
+import os
 import re
+import signal
 import sys
 import warnings
+from collections.abc import Iterator
 from importlib.util import find_spec
 from pathlib import Path
 from shutil import rmtree
@@ -15,6 +18,7 @@ from model2vec.utils import get_package_extras
 
 from semble.cache import cache_key, resolve_cache_folder, save_index_to_cache
 from semble.index import SembleIndex
+from semble.index.files import get_extensions
 from semble.index.types import PersistencePath
 from semble.installer.agents import AGENTS, IntegrationType
 from semble.stats import format_savings_report
@@ -23,7 +27,19 @@ from semble.utils import format_results, is_git_url, resolve_chunk
 from semble.version import __version__
 
 _CLI_DISPATCH_ARGS = frozenset(
-    {"search", "find-related", "install", "uninstall", "savings", "-h", "--help", "clear", "--version", "-V"}
+    {
+        "search",
+        "find-related",
+        "file-types",
+        "install",
+        "uninstall",
+        "savings",
+        "-h",
+        "--help",
+        "clear",
+        "--version",
+        "-V",
+    }
 )
 _CLEAR_CHOICE = Literal["all", "index", "savings", "orphans"]
 
@@ -49,6 +65,26 @@ def _maybe_save_index(parts: list[tuple[str, SembleIndex]]) -> None:
             print(f"Error saving index: {e}", file=sys.stderr)
 
 
+def _add_query_args(p: argparse.ArgumentParser) -> None:
+    """Add the path, result-shaping, and content arguments shared by search and find-related."""
+    p.add_argument(
+        "path",
+        nargs="*",
+        default=["."],
+        help="Local paths or git URLs to search together (default: current directory).",
+    )
+    p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
+    p.add_argument(
+        "--max-snippet-lines",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
+    )
+    p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
+    _add_content_args(p)
+
+
 def _add_content_args(p: argparse.ArgumentParser) -> None:
     """Add --content and deprecated --include-text-files to a subparser."""
     p.add_argument(
@@ -72,6 +108,8 @@ def main() -> None:
     for stream in (sys.stdout, sys.stderr):
         if isinstance(stream, io.TextIOWrapper):
             stream.reconfigure(errors="replace")
+    # Worker processes re-import __main__, so only guarded entry points like this one turn them on by default.
+    os.environ.setdefault("SEMBLE_INDEX_WORKERS", "4")
     if len(sys.argv) > 1 and sys.argv[1] in _CLI_DISPATCH_ARGS:
         _cli_main()
     else:
@@ -79,11 +117,18 @@ def main() -> None:
 
 
 def _mcp_main() -> None:
+    signal.signal(signal.SIGTERM, lambda *_: os._exit(0))
     parser = argparse.ArgumentParser(
         prog="semble",
         description="Instant local code search for agents.",
     )
     _add_content_args(parser)
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        help="Serve over streamable HTTP on localhost instead of stdio, so several agents can share one server.",
+    )
+    parser.add_argument("--port", type=int, default=8000, help="Port for --http (default: 8000).")
     args = parser.parse_args()
     if any(find_spec(dep) is None for dep in get_package_extras("semble", "mcp")):
         print("MCP dependencies are not installed. Run: pip install 'semble[mcp]'", file=sys.stderr)
@@ -91,7 +136,9 @@ def _mcp_main() -> None:
     from semble.mcp import serve
 
     content = _resolve_content(args.content, args.include_text_files)
-    asyncio.run(serve(content))
+    asyncio.new_event_loop().run_until_complete(serve(content, port=args.port if args.http else None))
+    # Skip asyncio.run's shutdown, which waits for threads still loading the model or building an index.
+    os._exit(0)
 
 
 def _resolve_content(content: list[str], include_text_files: bool) -> list[ContentType]:
@@ -178,15 +225,16 @@ def _run_find_related(
     _maybe_save_index(parts)
 
 
+def _cached_index_paths(cache_folder: Path) -> Iterator[Path]:
+    """Yield index folders in the cache that sit under a sha256 cache key."""
+    return (path for path in cache_folder.glob("*/index*") if _SHA_256_REGEX.match(path.parent.name))
+
+
 def _clear_indexes(cache_folder: Path) -> None:
     """Remove all valid index entries from the cache folder."""
-    indexes: set[Path] = set()
-    for path in cache_folder.glob("*/index*"):
-        if not _SHA_256_REGEX.match(path.parent.name):
-            continue
-        if PersistencePath.from_path(path).non_existing():
-            continue
-        indexes.add(path.parent)
+    indexes = {
+        path.parent for path in _cached_index_paths(cache_folder) if not PersistencePath.from_path(path).non_existing()
+    }
 
     if not indexes:
         print(f"No indexes found to clear in `{cache_folder}`")
@@ -209,9 +257,7 @@ def _clear_savings(cache_folder: Path) -> None:
 def _clear_orphans(cache_folder: Path) -> None:
     """Remove index entries whose local root_path no longer exists."""
     orphans: dict[Path, str] = {}
-    for path in cache_folder.glob("*/index*"):
-        if not _SHA_256_REGEX.match(path.parent.name):
-            continue
+    for path in _cached_index_paths(cache_folder):
         try:
             with open(path / "metadata.json", encoding="utf-8") as f:
                 metadata = json.load(f)
@@ -243,46 +289,15 @@ def _run_clear(clear_type: _CLEAR_CHOICE) -> None:
         _clear_orphans(cache_folder)
 
 
-class _CliLogHandler(logging.StreamHandler):
-    """stderr handler owned by the CLI; setup is idempotent on this type, not on foreign handlers."""
-
-
-def _configure_cli_logging() -> None:
-    """Surface semble warnings (e.g. skipped oversized files) on stderr without touching the root logger."""
-    package_logger = logging.getLogger("semble")
-    if any(isinstance(handler, _CliLogHandler) for handler in package_logger.handlers):
-        return
-    handler = _CliLogHandler(sys.stderr)
-    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
-    package_logger.addHandler(handler)
-    if package_logger.level == logging.NOTSET:
-        package_logger.setLevel(logging.WARNING)
-
-
 def _cli_main() -> None:
-    _configure_cli_logging()
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(prog="semble")
     parser.add_argument("-V", "--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command")
 
     search_p = sub.add_parser("search", help="Search a codebase.")
     search_p.add_argument("query", help="Natural language or code query.")
-    search_p.add_argument(
-        "path",
-        nargs="*",
-        default=["."],
-        help="Local paths or git URLs to search together (default: current directory).",
-    )
-    search_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    search_p.add_argument(
-        "--max-snippet-lines",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
-    )
-    search_p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
-    _add_content_args(search_p)
+    _add_query_args(search_p)
 
     clear_p = sub.add_parser("clear", help="Clear the index cache.")
     clear_p.add_argument(
@@ -294,22 +309,17 @@ def _cli_main() -> None:
     related_p = sub.add_parser("find-related", help="Find code similar to a specific location.")
     related_p.add_argument("file_path", help="File path as shown in search results.")
     related_p.add_argument("line", type=int, help="Line number (1-indexed).")
-    related_p.add_argument(
-        "path",
-        nargs="*",
-        default=["."],
-        help="Local paths or git URLs to search together (default: current directory).",
+    _add_query_args(related_p)
+
+    file_types_p = sub.add_parser("file-types", help="List the file extensions indexed per content type.")
+    file_types_p.add_argument(
+        "--content",
+        nargs="+",
+        default=["all"],
+        choices=[ct.value for ct in ContentType] + ["all"],
+        metavar="TYPE",
+        help="Content types to list (space-separated). Choices: code, docs, config, all. Default: all.",
     )
-    related_p.add_argument("-k", "--top-k", type=int, default=5, help="Number of results (default: 5).")
-    related_p.add_argument(
-        "--max-snippet-lines",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Lines of source per result (default: full chunk). 10 = signature + body, 0 = no code.",
-    )
-    related_p.add_argument("--format", choices=["json", "text"], default="json", help="Output format (default: json).")
-    _add_content_args(related_p)
 
     sub.add_parser("savings", help="Show token savings and usage stats.")
 
@@ -328,7 +338,7 @@ def _cli_main() -> None:
             nargs="+",
             choices=[*(t.value for t in IntegrationType), "all"],
             metavar="TYPE",
-            help="Integrations to include (mcp, instructions, subagent, or all). Default: all. Requires --agent.",
+            help="Integrations to include (mcp, instructions, subagent, skill, or all). Default: all but skill. Requires --agent.",
         )
         p.add_argument(
             "-y",
@@ -347,10 +357,18 @@ def _cli_main() -> None:
 
         from semble.installer import run
 
-        integration_ids = None if not args.type or "all" in args.type else [IntegrationType(t) for t in args.type]
+        integration_ids = (
+            None
+            if not args.type
+            else list(IntegrationType)
+            if "all" in args.type
+            else [IntegrationType(t) for t in args.type]
+        )
         run(args.command, agent_ids=args.agent, integration_ids=integration_ids, yes=args.yes)
     elif args.command == "clear":
         _run_clear(args.type)
+    elif args.command == "file-types":
+        print(json.dumps({ct.value: get_extensions([ct]) for ct in _resolve_content(args.content, False)}))
     elif args.command == "search":
         _run_search(
             args.path,

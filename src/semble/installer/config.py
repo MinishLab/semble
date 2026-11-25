@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from functools import cache
 from pathlib import Path
-from typing import Literal, TypeVar
+from typing import Literal
 
 from semble_grammars import get_parser
 from tree_sitter import Node, Parser
@@ -11,7 +11,6 @@ from tree_sitter import Node, Parser
 from semble.installer.agents import SEMBLE_END, SEMBLE_PIN, SEMBLE_START, Action
 
 JsonObjectResult = tuple[Node, bytes] | Literal["skipped", "error"]
-_T = TypeVar("_T")
 
 _CODEX_MCP_HEADER = "[mcp_servers.semble]"
 _CODEX_MCP_BLOCK = f'[mcp_servers.semble]\ncommand = "uvx"\nargs = ["--from", "{SEMBLE_PIN}", "semble"]\n'
@@ -64,6 +63,13 @@ def _insert_first_member(src: bytes, obj: Node, member_text: str) -> bytes:
     return src[: brace + 1] + b"\n" + indent + member_text.encode("utf-8") + comma + src[brace + 1 :]
 
 
+def _skip_blanks_back(src: bytes, i: int) -> int:
+    """Move i left past any spaces and tabs immediately before it."""
+    while i > 0 and src[i - 1 : i] in (b" ", b"\t"):
+        i -= 1
+    return i
+
+
 def _delete_member(src: bytes, member: Node) -> bytes:
     """Remove `member` plus one adjacent comma and its leading line indentation."""
     start, end = member.start_byte, member.end_byte
@@ -73,20 +79,23 @@ def _delete_member(src: bytes, member: Node) -> bytes:
     if after < len(src) and src[after : after + 1] == b",":  # prefer a trailing comma
         end = after + 1
     else:
-        before = start
-        while before > 0 and src[before - 1 : before] in (b" ", b"\t"):
-            before -= 1
+        before = _skip_blanks_back(src, start)
         if before > 0 and src[before - 1 : before] == b"\n":
-            before -= 1  # step over newline to find comma on preceding line
-            while before > 0 and src[before - 1 : before] in (b" ", b"\t"):
-                before -= 1
+            before = _skip_blanks_back(src, before - 1)  # step over newline to find comma on preceding line
         if before > 0 and src[before - 1 : before] == b",":
             start = before - 1
-    while start > 0 and src[start - 1 : start] in (b" ", b"\t"):
-        start -= 1
+    start = _skip_blanks_back(src, start)
     if start > 0 and src[start - 1 : start] == b"\n":
         start -= 1  # drop the now-empty line
     return src[:start] + src[end:]
+
+
+def _json_equals(raw: bytes, value: object) -> bool:
+    """Return True if raw parses as strict JSON equal to value; JSON5-only syntax counts as different."""
+    try:
+        return json.loads(raw) == value
+    except ValueError:
+        return False
 
 
 def _reparse_ok(text: str) -> bool:
@@ -151,13 +160,13 @@ def merge_json_member(path: Path, section_key: str, member_key: str, value: dict
         value_json = json.dumps(value)
         if (existing := _member(resolved, src, member_key)) is not None:
             val_node = _value_of(existing)
+            if _json_equals(src[val_node.start_byte : val_node.end_byte], value):
+                return "unchanged"  # same entry, possibly formatted differently (e.g. a fresh indented file)
             new_src = src[: val_node.start_byte] + value_json.encode("utf-8") + src[val_node.end_byte :]
         else:
             new_src = _insert_first_member(src, resolved, f"{member_key_json}: {value_json}")
 
     new_text = new_src.decode("utf-8")
-    if new_text == text:
-        return "unchanged"
     if not _reparse_ok(new_text):
         return "error"
     path.write_text(new_text, encoding="utf-8")

@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 from pathlib import Path
 
 from semble.types import Chunk
@@ -100,16 +101,11 @@ def rerank_topk(
     if not scores:
         return []
 
-    # Apply file-path penalties.
-    penalty_cache: dict[str, float] = {}
-    penalised: dict[Chunk, float] = {}
-    for chunk, score in scores.items():
-        if penalise_paths:
-            if chunk.file_path not in penalty_cache:
-                penalty_cache[chunk.file_path] = _file_path_penalty(chunk.file_path)
-            penalised[chunk] = score * penalty_cache[chunk.file_path]
-        else:
-            penalised[chunk] = score
+    penalised = (
+        {chunk: score * _file_path_penalty(chunk.file_path) for chunk, score in scores.items()}
+        if penalise_paths
+        else dict(scores)
+    )
 
     # Sort by penalised score (highest first) — single sort.
     ranked = sorted(penalised, key=lambda c: -penalised[c])
@@ -140,6 +136,7 @@ def rerank_topk(
     return [(chunk, score) for score, chunk in selected[:top_k]]
 
 
+@lru_cache(maxsize=4096)
 def _file_path_penalty(file_path: str) -> float:
     """Return a combined multiplicative penalty for all applicable path patterns."""
     normalised = file_path.replace("\\", "/")

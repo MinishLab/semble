@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import builtins
 import json
+import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -12,7 +13,6 @@ from semble.cache import (
     _get_valid_user_cache_dir,
     _linux_cache_dir,
     _windows_cache_dir,
-    clear_cache,
     find_index_from_cache_folder,
     get_validated_cache,
     resolve_cache_folder,
@@ -121,21 +121,6 @@ def test_resolve_cache_folder_semble_cache_location(tmp_path: Path) -> None:
     assert custom.exists()
 
 
-def test_clear_cache(tmp_path: Path) -> None:
-    """clear_cache removes every content variant and is a no-op when none exist."""
-    cache_dir = tmp_path / "repo"
-    index_path = cache_dir / "index"
-    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        clear_cache("/some/path")  # no-op: path doesn't exist yet
-    index_path.mkdir(parents=True)
-    docs_path = cache_dir / "index-docs"
-    docs_path.mkdir()
-    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        clear_cache("/some/path")
-    assert not index_path.exists()
-    assert not docs_path.exists()
-
-
 def _write_metadata(
     path: Path,
     model_path: str,
@@ -164,7 +149,7 @@ def _write_metadata(
 
 
 def test_get_validated_cache_invalid_index(tmp_path: Path) -> None:
-    """Returns None when the index directory is missing or incomplete."""
+    """Returns None when the index directory is missing, incomplete, or has truncated metadata."""
     with patch("semble.cache.find_index_from_cache_folder", return_value=tmp_path / "missing"):
         assert get_validated_cache("/path", None, [ContentType.CODE]) is None
 
@@ -172,6 +157,12 @@ def test_get_validated_cache_invalid_index(tmp_path: Path) -> None:
     index_path.mkdir()
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
         assert get_validated_cache("/path", None, [ContentType.CODE]) is None
+
+    _write_metadata(index_path, "my/model", ["code"], 0.0)
+    metadata = index_path / "metadata.json"
+    metadata.write_text(metadata.read_text()[:20])
+    with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
+        assert get_validated_cache("/path", "my/model", [ContentType.CODE]) is None
 
 
 @pytest.mark.parametrize(
@@ -292,30 +283,36 @@ def test_get_validated_cache_git_url_returns_immediately(tmp_path: Path) -> None
 
 
 @pytest.mark.parametrize(
-    ("write_time", "walk_result", "write", "expected"),
+    ("text", "mtime_offset_ns", "expected_valid"),
     [
-        (0.0, "stale", True, None),  # file newer than index → stale
-        (float("inf"), [], True, "index"),  # no newer files → valid
-        (float("inf"), "stale", False, None),  # no index, returns None
+        ("x = 1", 0, True),  # unchanged since indexing
+        ("x = 1", 1_000_000_000, False),  # modified, newer mtime
+        ("x = 1", -1_000_000_000, False),  # modified, older mtime (edit during indexing, cp -p)
+        ("", 0, False),  # emptied since indexing, so skipped and missing from current files
+        ("x = 1", None, False),  # deleted mid-walk, so skipped and missing from current files
     ],
 )
 def test_get_validated_cache_mtime(
-    write_time: float, walk_result: str | list, write: bool, expected: str | None, tmp_path: Path
+    text: str, mtime_offset_ns: int | None, expected_valid: bool, tmp_path: Path
 ) -> None:
-    """Returns None when a tracked file is newer than the index; the path otherwise."""
+    """Returns None when a tracked file's mtime differs from its manifest entry; the path otherwise."""
     index_path = tmp_path / "index"
-    stale_file = tmp_path / "src.py"
-    stale_file.write_text("x = 1" if write else "")
-    files = [stale_file] if walk_result == "stale" else walk_result
-    # Include the file in stored manifest so manifest check passes and mtime check fires.
-    stored_files = ["src.py"] if walk_result == "stale" else []
-    _write_metadata(index_path, "my/model", ["code"], write_time, file_paths=stored_files)
+    src = tmp_path / "src.py"
+    src.write_text(text)
+    recorded_ns = src.stat().st_mtime_ns
+    _write_metadata(index_path, "my/model", ["code"], recorded_ns / 1e9, file_paths=["src.py"])
+    metadata = json.loads((index_path / "metadata.json").read_text())
+    metadata["files"]["src.py"] = {"mtime_ns": recorded_ns}
+    (index_path / "metadata.json").write_text(json.dumps(metadata))
+    if mtime_offset_ns is None:
+        src.unlink()
+    else:
+        os.utime(src, ns=(recorded_ns + mtime_offset_ns, recorded_ns + mtime_offset_ns))
 
     with patch("semble.cache.find_index_from_cache_folder", return_value=index_path):
-        with patch("semble.cache.get_extensions", return_value={".py"}):
-            with patch("semble.cache.walk_files", return_value=files):
-                result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
-    assert result == (index_path if expected == "index" else None)
+        with patch("semble.cache.walk_files", return_value=[src]):
+            result = get_validated_cache(str(tmp_path), "my/model", [ContentType.CODE])
+    assert result == (index_path if expected_valid else None)
 
 
 @pytest.mark.parametrize(

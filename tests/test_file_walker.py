@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,7 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
     path.write_text(content)
 
 
+@pytest.mark.parametrize("relative_root", [False, True])
 @pytest.mark.parametrize(
     ("files", "gitignore", "sembleignore", "expected"),
     [
@@ -80,9 +82,15 @@ def _touch(path: Path, content: str = "x = 1\n") -> None:
     ],
 )
 def test_walk_files_filtering(
-    tmp_path: Path, files: list[str], gitignore: str | None, sembleignore: str | None, expected: set[str]
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    files: list[str],
+    gitignore: str | None,
+    sembleignore: str | None,
+    expected: set[str],
+    relative_root: bool,
 ) -> None:
-    """Directory defaults, gitignore patterns, and negations filter the yielded files."""
+    """Directory defaults, gitignore patterns, and negations filter the yielded files, also from a relative root."""
     for rel in files:
         _touch(tmp_path / rel)
     if gitignore is not None:
@@ -90,7 +98,10 @@ def test_walk_files_filtering(
     if sembleignore is not None:
         (tmp_path / ".sembleignore").write_text(sembleignore)
 
-    found = {p.relative_to(tmp_path).as_posix() for p in walk_files(tmp_path, [".py"])}
+    if relative_root:
+        monkeypatch.chdir(tmp_path)
+    root = Path(".") if relative_root else tmp_path
+    found = {p.relative_to(root).as_posix() for p in walk_files(root, [".py"])}
     assert found == expected
 
 
@@ -131,7 +142,7 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
 
     # With only the unrelated spec the file is not ignored (spec is skipped),
     # and, crucially, no exception is raised.
-    ignored, _ = _is_ignored(target_file, [unrelated_spec])
+    ignored, _ = _is_ignored(target_file, False, [unrelated_spec])
     assert ignored is False
 
     # Spec rooted at project_a that ignores .py files
@@ -141,7 +152,7 @@ def test_is_ignored_skips_spec_with_unrelated_base(tmp_path: Path) -> None:
     )
 
     # The unrelated spec is safely skipped; the matching spec ignores the file.
-    ignored, _ = _is_ignored(target_file, [unrelated_spec, matching_spec])
+    ignored, _ = _is_ignored(target_file, False, [unrelated_spec, matching_spec])
     assert ignored is True
 
 
@@ -169,3 +180,15 @@ def test_walk_files_skips_symlinks(tmp_path: Path) -> None:
     # Symlink-based paths are absent
     assert "wrapper/src/linked/mod.py" not in found
     assert "link_to_original.py" not in found
+
+
+def test_walk_files_skips_directory_deleted_during_walk(tmp_path: Path) -> None:
+    """A directory removed after its parent was listed is skipped instead of raising."""
+    _touch(tmp_path / "a" / "one.py")
+    _touch(tmp_path / "b" / "two.py")
+
+    walker = walk_files(tmp_path, [".py"])
+    first = next(walker)
+    shutil.rmtree(tmp_path / "b")
+
+    assert [first, *walker] == [tmp_path / "a" / "one.py"]

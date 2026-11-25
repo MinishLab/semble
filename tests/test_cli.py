@@ -1,10 +1,12 @@
+import asyncio
 import hashlib
 import json
+import signal
 import sys
 import warnings
 from importlib.resources import files
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -15,18 +17,31 @@ from tests.conftest import make_chunk
 
 
 @pytest.mark.parametrize(
-    "argv",
+    ("argv", "port"),
     [
-        ["semble"],
+        (["semble"], None),
+        (["semble", "--http"], 8000),
+        (["semble", "--http", "--port", "9000"], 9000),
     ],
 )
-def test_main_calls_asyncio_run(argv: list[str], monkeypatch: pytest.MonkeyPatch) -> None:
-    """main() delegates to asyncio.run(serve(...)) when no CLI subcommand is given."""
+def test_mcp_main_serves_then_exits(argv: list[str], port: int | None, monkeypatch: pytest.MonkeyPatch) -> None:
+    """main() serves MCP, then hard-exits with 0 on stdin EOF or SIGTERM instead of joining worker threads."""
     monkeypatch.setattr(sys, "argv", argv)
-    with patch("asyncio.run") as mock_run:
-        mock_run.side_effect = lambda coro: coro.close()
+    loop = asyncio.new_event_loop()
+    with (
+        patch("semble.cli.asyncio.new_event_loop", return_value=loop),
+        patch("semble.mcp.serve", new=AsyncMock()) as mock_serve,
+        patch("semble.cli.signal.signal") as mock_signal,
+        patch("semble.cli.os._exit") as mock_exit,
+    ):
         main()
-    mock_run.assert_called_once()
+        assert mock_serve.await_args.kwargs["port"] == port
+        mock_exit.assert_called_once_with(0)
+        signum, handler = mock_signal.call_args.args
+        assert signum == signal.SIGTERM
+        handler(signum, None)
+        mock_exit.assert_called_with(0)
+    loop.close()
 
 
 @pytest.mark.parametrize(
@@ -162,7 +177,7 @@ def test_cli_entrypoint_works_without_mcp_installed(
     monkeypatch.setattr(sys, "argv", argv)
     monkeypatch.setitem(sys.modules, "mcp", None)
     monkeypatch.setitem(sys.modules, "mcp.server", None)
-    monkeypatch.setitem(sys.modules, "mcp.server.fastmcp", None)
+    monkeypatch.setitem(sys.modules, "mcp.server.mcpserver", None)
     monkeypatch.setitem(sys.modules, "semble.mcp", None)
     with patch("semble.cli.SembleIndex.from_path", return_value=fake_index):
         if expect_system_exit:
@@ -465,3 +480,22 @@ def test_cli_clear_command(
         assert not (tmp_path / sha).exists()
     if setup_savings:
         assert not savings_file.exists()
+
+
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        ([], {"code": ".py", "docs": ".md", "config": ".toml"}),
+        (["--content", "docs"], {"docs": ".md"}),
+    ],
+)
+def test_cli_file_types(
+    content: list[str], expected: dict[str, str], monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """`semble file-types` prints the indexed extensions per requested content type."""
+    monkeypatch.setattr(sys, "argv", ["semble", "file-types", *content])
+    main()
+    out = json.loads(capsys.readouterr().out)
+    assert list(out) == list(expected)
+    assert all(extension in out[content_type] for content_type, extension in expected.items())
+    assert all(".json" not in extensions for extensions in out.values())

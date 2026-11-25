@@ -24,7 +24,7 @@
 
 </div>
 
-Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~99% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second for most repos, matching the retrieval quality of a code-specialized transformer while indexing ~380x faster and querying ~17x faster (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an MCP server, a CLI tool via AGENTS.md, or a dedicated sub-agent, and any coding agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
+Semble is a code search library built for agents. It returns the exact code snippets they need instantly, using ~99% fewer tokens than grep+read. Indexing and searching a full codebase end-to-end takes under a second for most repos, matching the retrieval quality of a code-specialized transformer while indexing ~580x faster and querying ~21x faster (see [benchmarks](#benchmarks)). Everything runs on CPU with no API keys, GPU, or external services. Use it as an MCP server, a CLI tool via AGENTS.md, or a dedicated sub-agent, and any coding agent (Claude Code, Cursor, Codex, OpenCode, etc.) gets instant access to any repo.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/MinishLab/semble/main/assets/images/demo-dark.gif">
@@ -47,6 +47,7 @@ semble install
 - **MCP server**: lets the agent call Semble directly as a tool.
 - **Instructions**: adds CLI usage guidance to AGENTS.md / CLAUDE.md.
 - **Sub-agent**: installs a dedicated `semble-search` sub-agent.
+- **Skill**: installs a `semble` skill plus a one-line pointer to it in AGENTS.md / CLAUDE.md, instead of the full instructions.
 
 To undo the setup, run `semble uninstall`.
 
@@ -71,7 +72,7 @@ For sandboxed or scripted environments, skip the prompts with `--agent` and, opt
 semble install --agent claude --type mcp subagent --yes
 ```
 
-`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, or `all` (default: all); `--yes` skips the confirmation prompt (requires `--agent` for a fully non-interactive run).
+`--agent` accepts one or more agent ids (e.g. `claude`, `codex`, `pi`); `--type` accepts `mcp`, `instructions`, `subagent`, `skill`, or `all` (default: all but `skill`); `--yes` skips the confirmation prompt (requires `--agent` for a fully non-interactive run).
 
 </details>
 
@@ -135,6 +136,8 @@ generated/     # exclude generated dir
 !*.proto       # include Protobuf files
 !*.cob         # include COBOL files
 ```
+
+Run `semble file-types` to see which extensions are indexed per content type. Extensions not listed (including data files such as `.json` and `.csv`) are not indexed by default and can be force-included with a `!` pattern as above.
 
 Semble also always skips a set of well-known non-source directories regardless of ignore files (e.g. `node_modules/`, `.venv/`, `dist/`, `build/`, `__pycache__/`, and similar).
 
@@ -232,6 +235,8 @@ result.chunk.end_line    # 150
 result.chunk.content     # "def save_pretrained(self, path: PathLike, ..."
 ```
 
+When many files need indexing, the CLI and MCP server chunk them in 4 worker processes (`SEMBLE_INDEX_WORKERS` sets the number, `0` turns them off). In the Python API they are off by default. To turn them on, set `SEMBLE_INDEX_WORKERS` and call Semble from inside an `if __name__ == "__main__":` block, since each worker re-imports your script.
+
 </details>
 
 ## MCP Server
@@ -243,7 +248,7 @@ Semble runs as an MCP server so agents can search any codebase directly as a nat
 | `search` | Search a codebase with a natural-language or code query. Pass `repo` as a local path or an https:// git URL (or a list of them to search several repos together) and `content` as `code`, `docs`, `config`, or `all` (default: `code`). |
 | `find_related` | Given a file path and line number, return chunks semantically similar to the code at that location. |
 
-For per-agent setup instructions, see the [installation docs](docs/installation.md#mcp-server).
+For per-agent setup instructions, see the [installation docs](docs/installation.md#mcp-server). To share one server across agent sessions, run `semble --http`; see [Shared server (HTTP)](docs/installation.md#shared-server-http).
 
 
 ## Benchmarks
@@ -257,7 +262,7 @@ We benchmark quality and speed across ~1,250 queries over 63 repositories in 19 
 </tr>
 </table>
 
-The quality benchmark (left) scores retrieval quality (NDCG@10) against total latency; semble matches the quality of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) while indexing 380x faster. The token efficiency benchmark (right) measures how many tokens each method needs to reach a given recall level; semble uses 99% fewer tokens on average and hits 97% recall at only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and full methodology.
+The quality benchmark (left) scores retrieval quality (NDCG@10) against total latency; semble matches the quality of the 137M-parameter [CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed) while indexing 580x faster. The token efficiency benchmark (right) measures how many tokens each method needs to reach a given recall level; semble uses 99% fewer tokens on average and hits 96% recall at only 2k tokens, while grep+read needs a full 100k context window to reach 85%. See [benchmarks](benchmarks/README.md) for per-language results, ablations, and full methodology.
 
 ## How it works
 
