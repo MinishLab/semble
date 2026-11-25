@@ -141,7 +141,7 @@ def test_sort_top_k() -> None:
 @pytest.mark.parametrize(
     ("model_path", "expected_call_arg", "incomplete_cache"),
     [
-        (None, "minishlab/potion-code-16M-v2", False),  # default model
+        (None, "minishlab/blink-code-16M", False),  # default model
         ("some/custom/model", "some/custom/model", False),  # explicit path forwarded
         ("broken/model", "broken/model", True),  # incomplete cache retries through the Hub
     ],

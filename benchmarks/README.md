@@ -17,7 +17,7 @@ Quality and speed across all methods.
 
 | Method               |   NDCG@10 |      Index |   Query p50 |
 | -------------------- | --------: | ---------: | ----------: |
-| **semble**           | **0.855** | **240 ms** | **0.69 ms** |
+| **semble**           | **0.851** | **201 ms** | **0.73 ms** |
 | CodeRankEmbed        |     0.839 |      116 s |       16 ms |
 | ColGREP              |     0.693 |      5.4 s |      122 ms |
 | BM25                 |     0.673 |      47 ms |     0.17 ms |
@@ -33,7 +33,7 @@ Quality and speed across all methods.
 | :-----------------------------------------------------------------: | :-----------------------------------------------------------------: |
 |          _Time to first result (index + query) vs NDCG@10_          |             _Query latency on a warm index vs NDCG@10_              |
 
-semble matches the NDCG@10 of the 137M-param CodeRankEmbed while winning index time by ~480x and query latency by ~23x.
+semble matches the NDCG@10 of the 137M-param CodeRankEmbed while winning index time by ~580x and query latency by ~21x.
 
 NDCG@10 is averaged across all queries. Speed numbers use one repo per language, CPU only: cold-start index time and warm query p50 (median across 5 consecutive runs).
 
@@ -50,7 +50,7 @@ For each query: tokens consumed at first relevant hit, or 32k if the method neve
 | Method              | Expected tokens |       Savings |
 | ------------------- | --------------: | ------------: |
 | ripgrep + read file |          45,587 |      baseline |
-| **semble**          |         **353** | **99% fewer** |
+| **semble**          |         **362** | **99% fewer** |
 
 ### Recall at fixed token budgets
 
@@ -58,7 +58,7 @@ A relevant file is "covered" once any retrieved unit comes from it.
 
 | Method              |       500 |        1k |        2k |        4k |        8k |       16k |       32k |
 | ------------------- | --------: | --------: | --------: | --------: | --------: | --------: | --------: |
-| **semble**          | **0.843** | **0.921** | **0.963** | **0.989** | **0.995** | **0.996** | **0.996** |
+| **semble**          | **0.832** | **0.917** | **0.964** | **0.988** | **0.994** | **0.995** | **0.995** |
 | ripgrep + read file |     0.001 |     0.008 |     0.037 |     0.086 |     0.207 |     0.374 |     0.583 |
 
 <details>
@@ -74,26 +74,26 @@ NDCG@10 per language, sorted by semble. CRE = CodeRankEmbed, cbm = codebase-memo
 
 | Language    |    semble |       CRE |   ColGREP |  zvec-grep |        ck |       cbm |    grepai |     probe |        cs |   ripgrep |
 | ----------- | --------: | --------: | --------: | ---------: | --------: | --------: | --------: | --------: | --------: | --------: |
-| scala       |     0.921 | **0.925** |     0.765 |      0.799 |     0.717 |     0.704 |     0.330 |     0.392 |     0.111 |     0.180 |
-| javascript  |     0.911 | **0.925** |     0.823 |      0.760 |     0.772 |     0.770 |     0.675 |     0.588 |     0.171 |     0.176 |
-| go          | **0.910** |     0.713 |     0.785 |      0.512 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
-| ruby        | **0.909** |     0.905 |     0.708 |      0.758 |     0.738 |     0.689 |     0.643 |     0.382 |     0.255 |     0.230 |
-| elixir      | **0.905** |     0.893 |     0.808 |      0.811 |     0.786 |     0.506 |     0.669 |     0.412 |     0.397 |     0.134 |
-| zig         |     0.899 | **0.911** |     0.474 |      0.664 |     0.511 |     0.766 |     0.755 |     0.369 |     0.121 |     0.000 |
-| cpp         |     0.881 | **0.897** |     0.626 |      0.677 |     0.687 |     0.630 |     0.731 |     0.375 |     0.262 |     0.126 |
-| python      |     0.876 | **0.878** |     0.777 |      0.704 |     0.721 |     0.643 |     0.634 |     0.488 |     0.305 |     0.202 |
-| csharp      | **0.872** |     0.848 |     0.614 |      0.609 |     0.548 |     0.775 |     0.277 |     0.392 |     0.248 |     0.117 |
-| php         | **0.864** |     0.847 |     0.663 |      0.583 |     0.615 |     0.608 |     0.402 |     0.340 |     0.180 |     0.123 |
-| swift       | **0.848** |     0.845 |     0.710 |      0.709 |     0.672 |     0.630 |     0.429 |     0.280 |     0.151 |     0.160 |
-| bash        | **0.840** |     0.834 |     0.706 |      0.725 |     0.677 |     0.768 |     0.723 |     0.226 |     0.170 |     0.000 |
-| lua         | **0.835** |     0.829 |     0.798 |      0.736 |     0.738 |     0.591 |     0.699 |     0.336 |     0.050 |     0.000 |
-| java        | **0.828** |     0.790 |     0.641 |      0.685 |     0.606 |     0.554 |     0.386 |     0.536 |     0.136 |     0.198 |
-| rust        | **0.826** |     0.754 |     0.662 |      0.541 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
-| kotlin      |     0.803 | **0.823** |     0.637 |      0.628 |     0.587 |     0.611 |     0.478 |     0.335 |     0.170 |     0.166 |
-| haskell     |     0.775 | **0.811** |     0.683 |      0.689 |     0.733 |     0.624 |     0.483 |     0.313 |     0.160 |     0.000 |
-| c           |     0.750 | **0.771** |     0.676 |      0.598 |     0.606 |     0.655 |     0.555 |     0.384 |     0.175 |     0.000 |
-| typescript  | **0.742** |     0.671 |     0.430 |      0.476 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
-| **overall** | **0.855** |     0.839 |     0.693 |      0.670 |     0.642 |     0.630 |     0.561 |     0.387 |     0.200 |     0.126 |
+| scala       |     0.915 | **0.925** |     0.765 |      0.799 |     0.717 |     0.704 |     0.330 |     0.392 |     0.111 |     0.180 |
+| ruby        | **0.907** |     0.905 |     0.708 |      0.758 |     0.738 |     0.689 |     0.643 |     0.382 |     0.255 |     0.230 |
+| javascript  |     0.904 | **0.925** |     0.823 |      0.760 |     0.772 |     0.770 |     0.675 |     0.588 |     0.171 |     0.176 |
+| go          | **0.902** |     0.713 |     0.785 |      0.512 |     0.458 |     0.506 |     0.722 |     0.410 |     0.183 |     0.133 |
+| elixir      | **0.900** |     0.893 |     0.808 |      0.811 |     0.786 |     0.506 |     0.669 |     0.412 |     0.397 |     0.134 |
+| zig         |     0.886 | **0.911** |     0.474 |      0.664 |     0.511 |     0.766 |     0.755 |     0.369 |     0.121 |     0.000 |
+| python      |     0.874 | **0.878** |     0.777 |      0.704 |     0.721 |     0.643 |     0.634 |     0.488 |     0.305 |     0.202 |
+| swift       | **0.857** |     0.845 |     0.710 |      0.709 |     0.672 |     0.630 |     0.429 |     0.280 |     0.151 |     0.160 |
+| bash        | **0.853** |     0.834 |     0.706 |      0.725 |     0.677 |     0.768 |     0.723 |     0.226 |     0.170 |     0.000 |
+| csharp      | **0.852** |     0.848 |     0.614 |      0.609 |     0.548 |     0.775 |     0.277 |     0.392 |     0.248 |     0.117 |
+| php         | **0.849** |     0.847 |     0.663 |      0.583 |     0.615 |     0.608 |     0.402 |     0.340 |     0.180 |     0.123 |
+| cpp         |     0.843 | **0.897** |     0.626 |      0.677 |     0.687 |     0.630 |     0.731 |     0.375 |     0.262 |     0.126 |
+| rust        | **0.843** |     0.754 |     0.662 |      0.541 |     0.419 |     0.454 |     0.519 |     0.242 |     0.193 |     0.162 |
+| lua         | **0.837** |     0.829 |     0.798 |      0.736 |     0.738 |     0.591 |     0.699 |     0.336 |     0.050 |     0.000 |
+| java        | **0.834** |     0.790 |     0.641 |      0.685 |     0.606 |     0.554 |     0.386 |     0.536 |     0.136 |     0.198 |
+| kotlin      |     0.802 | **0.823** |     0.637 |      0.628 |     0.587 |     0.611 |     0.478 |     0.335 |     0.170 |     0.166 |
+| haskell     |     0.781 | **0.811** |     0.683 |      0.689 |     0.733 |     0.624 |     0.483 |     0.313 |     0.160 |     0.000 |
+| c           |     0.754 | **0.771** |     0.676 |      0.598 |     0.606 |     0.655 |     0.555 |     0.384 |     0.175 |     0.000 |
+| typescript  | **0.728** |     0.671 |     0.430 |      0.476 |     0.456 |     0.455 |     0.394 |     0.354 |     0.145 |     0.128 |
+| **overall** | **0.851** |     0.839 |     0.693 |      0.670 |     0.642 |     0.630 |     0.561 |     0.387 |     0.200 |     0.126 |
 
 ## Ablations
 
@@ -101,20 +101,20 @@ NDCG@10 per language, sorted by semble. CRE = CodeRankEmbed, cbm = codebase-memo
 
 | Retrieval              |   Raw | + ranking |
 | ---------------------- | ----: | --------: |
-| BM25                      | 0.686 |     0.838 |
-| potion-code-16M-v2        | 0.652 |     0.824 |
-| BM25 + potion-code-16M-v2 |     — | **0.855** |
+| BM25                   | 0.687 |     0.838 |
+| blink-code-16M         | 0.652 |     0.816 |
+| BM25 + blink-code-16M  |     — | **0.851** |
 
 <details>
 <summary>By query category</summary>
 
-| Mode                               | Architecture |  Semantic |    Symbol |
-| ---------------------------------- | -----------: | --------: | --------: |
-| BM25 raw                           |        0.642 |     0.680 |     0.748 |
-| potion-code-16M raw                |        0.636 |     0.671 |     0.620 |
-| semble BM25 (+ ranking)            |        0.794 |     0.817 |     0.962 |
-| semble potion-code-16M (+ ranking) |        0.768 |     0.819 |     0.917 |
-| **semble hybrid**                  |    **0.808** | **0.847** | **0.954** |
+| Mode                              | Architecture |  Semantic |    Symbol |
+| --------------------------------- | -----------: | --------: | --------: |
+| BM25 raw                          |        0.642 |     0.681 |     0.748 |
+| blink-code-16M raw                |        0.611 |     0.675 |     0.646 |
+| semble BM25 (+ ranking)           |        0.794 |     0.817 | **0.962** |
+| semble blink-code-16M (+ ranking) |        0.753 |     0.813 |     0.929 |
+| **semble hybrid**                 |    **0.801** | **0.842** |     0.949 |
 
 </details>
 
@@ -148,7 +148,7 @@ NDCG@10 per language, sorted by semble. CRE = CodeRankEmbed, cbm = codebase-memo
 - **[ck](https://github.com/BeaconBay/ck)**: hybrid regex + semantic search using [BAAI/bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5).
 - **[zvec-grep](https://github.com/zvec-ai/zvec-grep)**: [potion-code-16M-v2](https://huggingface.co/minishlab/potion-code-16M-v2) static embeddings + BM25. Benchmarked in `direct` mode.
 - **[CodeRankEmbed](https://huggingface.co/nomic-ai/CodeRankEmbed)**: 137M-param transformer embedding model for code retrieval, used for semantic-only dense search.
-- **[semble](https://github.com/your-repo/semble)**: this library. [potion-code-16M-v2](https://huggingface.co/minishlab/potion-code-16M-v2) static embeddings + BM25 + the semble reranking stack.
+- **[semble](https://github.com/your-repo/semble)**: this library. [blink-code-16M](https://huggingface.co/minishlab/blink-code-16M) static embeddings + BM25 + the semble reranking stack.
 
 ## Excluded methods
 
@@ -171,7 +171,7 @@ uv run python -m benchmarks.sync_repos          # clone / update
 uv run python -m benchmarks.sync_repos --check  # verify only
 ```
 
-All tools run CPU-only. semble uses `minishlab/potion-code-16M-v2`; CodeRankEmbed uses `nomic-ai/CodeRankEmbed` (137M params). The speed benchmark touches one repo per language with a cold-start index and 5 query runs per repo.
+All tools run CPU-only. semble uses `minishlab/blink-code-16M`; CodeRankEmbed uses `nomic-ai/CodeRankEmbed` (137M params). The speed benchmark touches one repo per language with a cold-start index and 5 query runs per repo.
 
 <details>
 <summary>semble</summary>
