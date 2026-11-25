@@ -78,7 +78,7 @@ semble install --agent claude --type mcp subagent --yes
 ## Main Features
 
 - **Fast**: indexes an average repo in ~500 ms and answers queries in ~1 ms, all on CPU.
-- **Accurate**: NDCG@10 of 0.854 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
+- **Accurate**: NDCG@10 of 0.851 on our [benchmarks](#benchmarks), on par with code-specialized transformer models, at a fraction of the size and cost.
 - **Token-efficient**: returns only the relevant chunks, using [~99% fewer tokens than grep+read](#benchmarks).
 - **Zero setup**: runs on CPU with no API keys, GPU, or external services required.
 - **MCP server**: works with Claude Code, Cursor, Codex, OpenCode, VS Code, and any other MCP-compatible agent.
@@ -261,7 +261,7 @@ The quality benchmark (left) scores retrieval quality (NDCG@10) against total la
 
 ## How it works
 
-Semble splits each file into code-aware chunks using [tree-sitter](https://github.com/tree-sitter/py-tree-sitter), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [potion-code-16M-v2](https://huggingface.co/minishlab/potion-code-16M-v2) model for semantic similarity, and BM25 for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
+Semble splits each file into code-aware chunks using [tree-sitter](https://github.com/tree-sitter/py-tree-sitter), then scores every query against the chunks with two complementary retrievers: static [Model2Vec](https://github.com/MinishLab/model2vec) embeddings using the code-specialized [blink-code-16M](https://huggingface.co/minishlab/blink-code-16M) model for semantic similarity, and BM25 for lexical matches on identifiers and API names. The two score lists are fused with Reciprocal Rank Fusion (RRF).
 
 After fusing, results are reranked with a set of code-aware signals:
 
