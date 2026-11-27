@@ -192,3 +192,22 @@ def test_walk_files_skips_directory_deleted_during_walk(tmp_path: Path) -> None:
     shutil.rmtree(tmp_path / "b")
 
     assert [first, *walker] == [tmp_path / "a" / "one.py"]
+
+
+@pytest.mark.parametrize("layout", ["repo", "worktree", "no_git"])
+def test_walk_files_honours_git_info_exclude(tmp_path: Path, layout: str) -> None:
+    """Patterns in the root repo's .git/info/exclude are skipped, also when .git is a worktree file."""
+    root = tmp_path / "root"
+    _touch(root / "src" / "a.py")
+    _touch(root / "worktrees" / "copy" / "src" / "a.py")
+    common = tmp_path / "main" / ".git" if layout == "worktree" else root / ".git"
+    if layout != "no_git":
+        _touch(common / "info" / "exclude", "worktrees/\n")
+    if layout == "worktree":
+        gitdir = common / "worktrees" / "root"
+        _touch(gitdir / "commondir", "../..\n")
+        _touch(root / ".git", f"gitdir: {gitdir}\n")
+
+    found = {p.relative_to(root).as_posix() for p in walk_files(root, [".py"])}
+    expected = {"src/a.py"} if layout != "no_git" else {"src/a.py", "worktrees/copy/src/a.py"}
+    assert found == expected
