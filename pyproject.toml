@@ -26,7 +26,7 @@ classifiers = [
     "Natural Language :: English",
 ]
 dependencies = [
-    "model2vec>=0.10.0,<0.11",
+    "model2vec>=0.11.0,<0.12.0",
     "vicinity>=0.4.4,<0.5",
     "numpy>=1.24.0",
     "pathspec>=0.12",
@@ -148,4 +148,5 @@ exclude-newer = "1 week"
 
 [tool.uv.exclude-newer-package]
 model2vec = false
+model2vec-rs = false
 semble-grammars = false
