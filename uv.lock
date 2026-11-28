@@ -17,6 +17,7 @@ exclude-newer-span = "P1W"
 
 [options.exclude-newer-package]
 model2vec = false
+model2vec-rs = false
 semble-grammars = false
 
 [[package]]
@@ -1882,12 +1883,12 @@ wheels = [
 
 [[package]]
 name = "model2vec"
-version = "0.10.0"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
     { name = "jinja2" },
-    { name = "joblib" },
+    { name = "model2vec-rs" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
@@ -1895,9 +1896,30 @@ dependencies = [
     { name = "tokenizers" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/48/2ceace43798ca7cb8c32c50c7956d7446d7f90a3b3f65b201fb7fd87344c/model2vec-0.10.0.tar.gz", hash = "sha256:47119ef1f917b4da7a0010bf10c587c923639a6af4ea51cb2d424fc329d09d2f", size = 4622501, upload-time = "2026-10-11T10:47:59.266Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/96/74334c2560f8861617a6fcf4e1cd921c58714b15ff22dba7c586a374fe8d/model2vec-0.11.0.tar.gz", hash = "sha256:6d432ef78dc5704f3295d1c67af1b752261fc9101aa51ef446f2f1d7ba1e7bdd", size = 4525819, upload-time = "2026-11-27T16:38:55.774Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/c5/2b1b5648195bfcada5de6a1164d560c968ded8fc68f2ddd6118b21cb26b7/model2vec-0.10.0-py3-none-any.whl", hash = "sha256:a39c40de4f82c5e0e50c14bbb87a935c1c62094f3f0f0d8fde8e24f4a4f35b16", size = 89504, upload-time = "2026-10-11T10:47:57.679Z" },
+    { url = "https://files.pythonhosted.org/packages/de/a6/e93709a681681ba50aea8f5cd187b690e5191cfbb00bb437665ae0e61ef3/model2vec-0.11.0-py3-none-any.whl", hash = "sha256:71eb656c31c7ca60e59813ab1b81d49e86eafc8b5296a2025ce48ac2384a78cb", size = 89648, upload-time = "2026-11-27T16:38:54.525Z" },
+]
+
+[[package]]
+name = "model2vec-rs"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f4/90/a1b1320c93e169f052ff579102915806aa589d75d551add9b80a2d7e7212/model2vec_rs-0.5.1.tar.gz", hash = "sha256:db1ab1a79f06f5e6b0dc024704ab3be656f71bac80a79298ef71458384cd06da", size = 153596, upload-time = "2026-11-24T06:28:09.687Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/cf/5eeb55291d1d365419a6ff1f8529be7be9408d690a43f28112de17bc2f86/model2vec_rs-0.5.1-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:19cbb19555229d5232cbd246ae11b7c1941def84048bf3871826db73e71cc8c2", size = 3422771, upload-time = "2026-11-24T06:27:56.665Z" },
+    { url = "https://files.pythonhosted.org/packages/53/0e/7c63cd068a92dbfa7f41930460a8ff7a5f30ffb60d49458c76e3018fa994/model2vec_rs-0.5.1-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:aa394460f15edd38cee31951d56bbf1d226ada2dea7baaaed373e3e9eb46c25a", size = 3320494, upload-time = "2026-11-24T06:27:58.298Z" },
+    { url = "https://files.pythonhosted.org/packages/35/ad/a2e1f6576599918f731e93687607d30fe0af89c336d738bc5f090765ffe6/model2vec_rs-0.5.1-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:8814f1a9aa24d291b07f4a934b0fa57ddf72376552f1db4e7f61a99923de6cdf", size = 3785520, upload-time = "2026-11-24T06:27:59.659Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/77/7634b609591c3f957a09b289acfde2b5f86488d952fc640438dc2db5df0c/model2vec_rs-0.5.1-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:4e71f701a1d389d5f7e7c021cd940b97bfc466f4bd64d5e0dd76f4ef81e59ab8", size = 3731888, upload-time = "2026-11-24T06:28:01.104Z" },
+    { url = "https://files.pythonhosted.org/packages/53/93/e881640e7e94bda8278f1996ecb7e9755105bc2b34f1477d3b0aa68942d9/model2vec_rs-0.5.1-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:e8271caa08343948d3d7459e065e1f2d27dfed664063247057c11604b54058f7", size = 10227143, upload-time = "2026-11-24T06:28:02.824Z" },
+    { url = "https://files.pythonhosted.org/packages/81/ae/dc39169e6f3a38aa1063776b3e596e28e3a811c12771e46c37c8b4dc2b86/model2vec_rs-0.5.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:92f0c0ee68920847ca51d4b42bd17d2b2637326fbde22947f9b40f50efef1d17", size = 10553805, upload-time = "2026-11-24T06:28:04.999Z" },
+    { url = "https://files.pythonhosted.org/packages/35/4c/4f75e995ce8f480dd6f3cbbc1103f452700422931b92f6d35382a04d4835/model2vec_rs-0.5.1-cp310-abi3-win_amd64.whl", hash = "sha256:34273ad17774ed90baa16c04313a805de5be08621966b45f0eca2a1df4b5b794", size = 3142384, upload-time = "2026-11-24T06:28:06.764Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/c6/ba5d52cffd746a0ec160f001d0595baecdd7d5a7be9c4862ced809f5d9e8/model2vec_rs-0.5.1-cp310-abi3-win_arm64.whl", hash = "sha256:aa89947cd02ec2f6b0ffe60504b3efd2d77e8e32205ebbae846f5da234c77a09", size = 2992357, upload-time = "2026-11-24T06:28:08.33Z" },
 ]
 
 [[package]]
@@ -3868,7 +3890,7 @@ requires-dist = [
     { name = "einops", marker = "extra == 'benchmark'", specifier = ">=0.8.2" },
     { name = "matplotlib", marker = "extra == 'benchmark'", specifier = ">=3.7" },
     { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.0,<3.0" },
-    { name = "model2vec", specifier = ">=0.10.0,<0.11" },
+    { name = "model2vec", specifier = ">=0.11.0,<0.12.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "numpy", specifier = ">=1.24.0" },
     { name = "numpy", marker = "extra == 'benchmark'", specifier = ">=1.24.0" },
